@@ -293,12 +293,15 @@ html {
   font-weight: 600;
 }
 
-.power-bar {
+.power-dock {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.75rem 0.6rem;
   background: rgba(10, 10, 10, 0.85);
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 1rem;
@@ -307,28 +310,8 @@ html {
   -webkit-backdrop-filter: blur(12px);
 }
 
-@media (min-width: 768px) {
-  .power-bar {
-    width: auto;
-  }
-}
-
-.power-bar__controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  width: 8rem;
-}
-
-@media (min-width: 640px) {
-  .power-bar__controls {
-    width: 11rem;
-  }
-}
-
-.power-bar__label-row {
-  display: flex;
-  justify-content: space-between;
+.power-dock__value,
+.power-dock__label {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -336,33 +319,56 @@ html {
   color: var(--amber-300);
 }
 
+/* Vertical slider: wide hit area for fingers, colored like a power meter */
 .power-slider {
-  width: 100%;
-  height: 0.5rem;
+  position: relative;
+  width: 44px;
+  height: clamp(140px, 30vh, 240px);
   cursor: pointer;
-  accent-color: var(--amber-400);
-  background: var(--neutral-800);
-  border-radius: 0.5rem;
+  touch-action: none;
 }
 
-.power-bar__track {
-  width: 100%;
-  height: 0.5rem;
-  background: var(--neutral-900);
-  border-radius: 9999px;
+.power-slider__track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 12px;
+  transform: translateX(-50%);
   overflow: hidden;
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(0deg, var(--emerald-500), var(--amber-400), #f43f5e);
 }
 
-.power-bar__fill {
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--emerald-500),
-    var(--amber-400),
-    #f43f5e
-  );
-  transition: width 75ms ease;
+/* The part above the thumb is dimmed, so only the selected power is colored */
+.power-slider__dim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: rgba(10, 10, 10, 0.72);
+}
+
+.power-slider__thumb {
+  position: absolute;
+  left: 50%;
+  bottom: 40%;
+  width: 34px;
+  height: 14px;
+  transform: translate(-50%, 50%);
+  border-radius: 9999px;
+  border: 2px solid var(--amber-200);
+  background: var(--neutral-900);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 8px rgba(251, 191, 36, 0.35);
+}
+
+.fire-dock {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
 }
 
 .btn-fire {

@@ -74,7 +74,7 @@
           </div>
           <ul class="help-panel__list">
             <li>• <b data-i18n="help.aim.keys">Drag mouse / [A][D]:</b> <span data-i18n="help.aim.text">Aim</span></li>
-            <li>• <b data-i18n="help.power.keys">Mouse wheel:</b> <span data-i18n="help.power.text">Adjust shot power continuously</span></li>
+            <li>• <b data-i18n="help.power.keys">Mouse wheel:</b> <span data-i18n="help.power.text">Adjust shot power in 1 % steps</span></li>
             <li>• <b data-i18n="help.shoot.keys">Click / [Space]:</b> <span data-i18n="help.shoot.text">Shoot the cue ball</span></li>
             <li>
               • <b data-i18n="help.camera.keys">[C]:</b> <span data-i18n="help.camera.text">Switch camera</span> |
@@ -83,41 +83,46 @@
             <li>• <b data-i18n="help.free.keys">Free camera:</b> <span data-i18n="help.free.text">WASD move, Space up, Shift down, mouse look</span></li>
           </ul>
         </div>
-
-        <div class="power-bar interactive">
-          <div class="power-bar__controls">
-            <div class="power-bar__label-row">
-              <span data-i18n="power.label">Power (mouse wheel)</span>
-              <span id="power-percent">40%</span>
-            </div>
-            <input
-              id="power-slider"
-              type="range"
-              min="10"
-              max="100"
-              value="40"
-              class="power-slider"
-            />
-            <div class="power-bar__track">
-              <div id="power-fill" class="power-bar__fill" style="width: 40%"></div>
-            </div>
-          </div>
-
-          <button id="btn-fire-shot" type="button" class="btn-fire">
-            <svg
-              class="icon icon--sm"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-            >
-              <path
-                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-              />
-            </svg>
-            <span data-i18n="button.shoot">SHOOT</span>
-          </button>
-        </div>
       </footer>
+
+      <!-- Power: vertical, colored slider (touch friendly), 1 % steps -->
+      <div class="power-dock interactive">
+        <span id="power-percent" class="power-dock__value">40%</span>
+        <div
+          id="power-slider"
+          class="power-slider"
+          role="slider"
+          aria-orientation="vertical"
+          aria-valuemin="10"
+          aria-valuemax="100"
+          aria-valuenow="40"
+          data-i18n-aria-label="power.label"
+          aria-label="Power"
+        >
+          <div class="power-slider__track">
+            <div id="power-dim" class="power-slider__dim"></div>
+          </div>
+          <div id="power-thumb" class="power-slider__thumb"></div>
+        </div>
+        <span class="power-dock__label" data-i18n="power.label">Power</span>
+      </div>
+
+      <!-- Shoot: independent button, bottom center -->
+      <div class="fire-dock interactive">
+        <button id="btn-fire-shot" type="button" class="btn-fire">
+          <svg
+            class="icon icon--sm"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <path
+              d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+            />
+          </svg>
+          <span data-i18n="button.shoot">SHOOT</span>
+        </button>
+      </div>
     </div>
 
     <script type="module" src="/src/entry.js"></script>

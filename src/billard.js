@@ -520,20 +520,37 @@ function setupControls() {
 
   // Power UI helpers
   const slider = document.getElementById("power-slider");
-  const powerFill = document.getElementById("power-fill");
+  const powerThumb = document.getElementById("power-thumb");
+  const powerDim = document.getElementById("power-dim");
   const powerPct = document.getElementById("power-percent");
+  const POWER_MIN = 10;
+  const POWER_MAX = 100;
 
+  /** Set the shot power; always a whole percent (1 % steps). */
   function setPower(val) {
-    selectedPower = Math.max(0.1, Math.min(1.0, val));
-    const pct = Math.round(selectedPower * 100);
-    slider.value = pct;
-    powerFill.style.width = pct + "%";
-    powerPct.innerText = pct + "%";
+    const pct = Math.max(POWER_MIN, Math.min(POWER_MAX, Math.round(val * 100)));
+    selectedPower = pct / 100;
+    const fraction = (pct - POWER_MIN) / (POWER_MAX - POWER_MIN); // 0 = bottom, 1 = top
+    powerThumb.style.bottom = fraction * 100 + "%";
+    powerDim.style.height = (1 - fraction) * 100 + "%";
+    powerPct.textContent = pct + "%";
+    slider.setAttribute("aria-valuenow", String(pct));
   }
 
-  slider.addEventListener("input", (e) => {
-    setPower(e.target.value / 100);
+  // Vertical slider: mouse, touch and pen via pointer events (drag anywhere on the slider)
+  const setPowerFromPointer = (e) => {
+    const rect = slider.getBoundingClientRect();
+    const fraction = 1 - (e.clientY - rect.top) / rect.height;
+    setPower((POWER_MIN + fraction * (POWER_MAX - POWER_MIN)) / 100);
+  };
+  slider.addEventListener("pointerdown", (e) => {
+    slider.setPointerCapture(e.pointerId);
+    setPowerFromPointer(e);
   });
+  slider.addEventListener("pointermove", (e) => {
+    if (slider.hasPointerCapture(e.pointerId)) setPowerFromPointer(e);
+  });
+  setPower(selectedPower); // sync the UI with the default value
 
   // MOUSE WHEEL: set shot power continuously and precisely
   window.addEventListener(
@@ -541,7 +558,7 @@ function setupControls() {
     (e) => {
       if (cameraMode !== "fps") return;
       // Scroll up (-deltaY) = more power, scroll down (+deltaY) = less power
-      const delta = -Math.sign(e.deltaY) * 0.05;
+      const delta = -Math.sign(e.deltaY) * 0.01; // 1 % per notch
       setPower(selectedPower + delta);
     },
     { passive: true }
@@ -630,10 +647,10 @@ function setupControls() {
       aimAngle -= 0.05;
     }
     if (e.code === "ArrowUp" || e.code === "KeyW") {
-      setPower(selectedPower + 0.05);
+      setPower(selectedPower + 0.01);
     }
     if (e.code === "ArrowDown" || e.code === "KeyS") {
-      setPower(selectedPower - 0.05);
+      setPower(selectedPower - 0.01);
     }
     if (e.code === "Space") {
       e.preventDefault();
