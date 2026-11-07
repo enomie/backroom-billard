@@ -26,6 +26,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 - Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
+- Nach dem Stoß bleiben Kamera und Queue hinter der Schussposition. Erst wenn alle Kugeln (nahezu) stillstehen, kehrt die Kamera zur neuen Schussposition zurück; bis dahin ist kein neuer Stoß möglich.
 - Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (oder `R`) startet neu.
 
 ## Aufbau
@@ -41,6 +42,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `physics-world.js` | Rapier-Welt, Collider aus der gerenderten Geometrie |
 | `physics-rapier.js` | Kugel-Körper, Trimesh-Helfer |
 | `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
+| `cue-model.js` | Der Queue: Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück |
 | `room.js`, `ceiling-lamps.js`, `room-constants.js` | Raum (Teppich, Wände, Holzdecke, Nebel), drei Deckenleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 

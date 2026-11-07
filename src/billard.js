@@ -14,6 +14,7 @@ import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
 import { createRoom } from "./room.js";
+import { createCueModel } from "./cue-model.js";
 import {
   FREE_CAM_SPEED,
   FREE_CAM_LOOK_SENSITIVITY,
@@ -21,6 +22,9 @@ import {
   FREE_CAM_START_POSITION,
   FREE_CAM_START_TARGET,
   FREE_CAM_ROOM_MARGIN,
+  FP_CAM_DISTANCE,
+  FP_CAM_HEIGHT,
+  SHOT_REST_DELAY,
   ROOM_LENGTH,
   ROOM_WIDTH,
   ROOM_HEIGHT,
@@ -68,6 +72,12 @@ let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
 let aimPitch = 0.12;
 let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
 let isCueMoving = false;
+/** True from the shot until the table has come to rest; the cue and the camera stay behind. */
+let shotInProgress = false;
+let shotRestTimer = 0;
+let strikeStartDistance = 0; // how far the cue was pulled back when the shot was taken
+const heldCameraPosition = new THREE.Vector3();
+const heldCameraQuaternion = new THREE.Quaternion();
 let cueStrikeAnim = 0; // drives the cue strike animation
 let cueRespawnTimer = null; // timer for re-spotting the cue ball
 let lastShotTime = 0; // guard against double-triggered shots
@@ -212,8 +222,8 @@ function init() {
 /** First-person camera behind the cue ball, looking along the shot direction (no lerp at start). */
 function snapFpsCamera() {
   if (cameraMode !== "fps" || !cueBall) return;
-  const camDist = 0.62;
-  const camH = 0.25 + aimPitch * 0.45;
+  const camDist = FP_CAM_DISTANCE;
+  const camH = FP_CAM_HEIGHT + aimPitch * 0.45;
   camera.position.set(
     cueBall.pos.x + Math.sin(aimAngle) * camDist,
     cueBall.pos.y + camH,
@@ -255,6 +265,7 @@ function setupBalls() {
   pendingRemoval.length = 0;
   clearPocketedHud();
   hideGameOver();
+  shotInProgress = false;
 
   const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
 
@@ -341,27 +352,9 @@ function setupCueAndAimLine() {
   cueStickPivot = new THREE.Group();
   scene.add(cueStickPivot);
 
-  // Wooden cue with taper
-  const stickGeo = new THREE.CylinderGeometry(0.0065, 0.015, 1.45, 24);
-  stickGeo.translate(0, 0.725, 0);
-  stickGeo.rotateX(Math.PI / 2);
-  const cueMat = new THREE.MeshStandardMaterial({
-    color: 0xd4a373,
-    roughness: 0.4,
-    metalness: 0.05,
-  });
-  cueStickMesh = new THREE.Mesh(stickGeo, cueMat);
-  cueStickMesh.castShadow = true;
+  // The cue: two wooden parts, white ferrule, pink rubber tip (cue-model.js)
+  cueStickMesh = createCueModel();
   cueStickPivot.add(cueStickMesh);
-
-  // Blue chalked tip
-  const tip = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.0067, 0.0067, 0.025, 16),
-    new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.6 })
-  );
-  tip.translateZ(0.012);
-  tip.rotateX(Math.PI / 2);
-  cueStickMesh.add(tip);
 
   // Elegant dotted aim line
   const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -2.2)];
@@ -383,8 +376,14 @@ function setupCueAndAimLine() {
 /* ====================================================
    5. SHOT MECHANICS
 ==================================================== */
+/** Distance from the ball center to the cue tip: grows with the selected power. */
+function pulledCueDistance() {
+  return BALL_R + 0.02 + selectedPower * 0.28;
+}
+
 function fireCueStrike() {
   if (gameState !== "playing" || cameraMode !== "fps") return; // the free camera only observes
+  if (shotInProgress) return; // wait until the table is still
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
   // Ignore double-triggered events (button+space, touch+mouse)
@@ -409,6 +408,13 @@ function fireCueStrike() {
 
   // Visual snap animation of the cue
   cueStrikeAnim = 1.0;
+  strikeStartDistance = pulledCueDistance();
+
+  // The camera and the cue stay where they are until everything has come to rest
+  shotInProgress = true;
+  shotRestTimer = 0;
+  heldCameraPosition.copy(camera.position);
+  heldCameraQuaternion.copy(camera.quaternion);
 
   // Update the status UI
   updateStatusDisplay(true);
@@ -666,8 +672,6 @@ function toggleCamera() {
 
   renderCameraLabel();
   document.getElementById("aim-crosshair").style.display = free ? "none" : "flex";
-  cueStickPivot.visible = !free;
-  aimLine.visible = !free;
 }
 
 /** Move and rotate the free camera: WASD, space = up, shift = down, mouse look. */
@@ -879,17 +883,31 @@ function gameLoop(currentTime) {
   // Physics step
   stepPhysics(dt);
 
+  // The table is still for a moment → the cue camera may return to the shot position
+  if (shotInProgress) {
+    if (!isCueMoving && cueBall && !cueBall.inPocket) {
+      shotRestTimer += dt;
+      if (shotRestTimer >= SHOT_REST_DELAY) shotInProgress = false;
+    } else {
+      shotRestTimer = 0;
+    }
+  }
+
   // Cue positioning & distance adjusted to the selected power
   if (cueBall && cueStickPivot) {
-    cueStickPivot.position.set(cueBall.pos.x, cueBall.pos.y, cueBall.pos.z);
-    cueStickPivot.rotation.y = aimAngle;
+    // After the shot the cue stays where it struck; it returns once the table is still
+    if (!shotInProgress) {
+      cueStickPivot.position.set(cueBall.pos.x, cueBall.pos.y, cueBall.pos.z);
+      cueStickPivot.rotation.y = aimAngle;
+    }
+    cueStickPivot.visible = cameraMode === "fps";
 
     // The cue pulls back in proportion to the selected power
-    let cueDist = 0.05 + selectedPower * 0.28;
-    if (cueStrikeAnim > 0) {
-      // The strike snaps forward on impact
-      cueDist = THREE.MathUtils.lerp(0.012, cueDist, 1 - cueStrikeAnim);
+    let cueDist = pulledCueDistance();
+    if (shotInProgress) {
+      // The strike snaps forward to the ball, then the cue stays there
       cueStrikeAnim = Math.max(0, cueStrikeAnim - dt * 6.5);
+      cueDist = THREE.MathUtils.lerp(strikeStartDistance, BALL_R + 0.001, 1 - cueStrikeAnim);
     }
 
     cueStickMesh.position.set(0, 0.015 + aimPitch * 0.1, cueDist);
@@ -897,6 +915,7 @@ function gameLoop(currentTime) {
 
     // Align the aim line with the ball
     if (aimLine) {
+      aimLine.visible = cameraMode === "fps" && !shotInProgress;
       aimLine.position.set(
         cueBall.pos.x,
         cueBall.pos.y - BALL_R + 0.002,
@@ -907,9 +926,13 @@ function gameLoop(currentTime) {
   }
 
   // Camera positioning
-  if (cameraMode === "fps" && cueBall) {
-    const camDist = 0.62;
-    const camH = 0.25 + aimPitch * 0.45;
+  if (cameraMode === "fps" && cueBall && shotInProgress) {
+    // Do not follow the balls: stay behind the cue where the shot was taken
+    camera.position.copy(heldCameraPosition);
+    camera.quaternion.copy(heldCameraQuaternion);
+  } else if (cameraMode === "fps" && cueBall) {
+    const camDist = FP_CAM_DISTANCE;
+    const camH = FP_CAM_HEIGHT + aimPitch * 0.45;
     const targetX = cueBall.pos.x + Math.sin(aimAngle) * camDist;
     const targetZ = cueBall.pos.z + Math.cos(aimAngle) * camDist;
     const targetY = cueBall.pos.y + camH;

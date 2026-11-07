@@ -12,6 +12,12 @@ export const FREE_CAM_LOOK_SENSITIVITY = 0.0025;
  */
 export const FREE_CAM_START_POSITION = [2.1, 2.1, 3.0];
 export const FREE_CAM_START_TARGET = [0, 1.7, 0];
+/** Cue camera behind the cue ball: distance behind the ball and base height above it (m). */
+export const FP_CAM_DISTANCE = 1.02;
+export const FP_CAM_HEIGHT = 0.25;
+/** The cue camera returns to the shot position once the table has been still for this long (s). */
+export const SHOT_REST_DELAY = 0.4;
+
 /** The free camera cannot go below this height (keeps it above the floor). */
 export const FREE_CAM_MIN_Y = 0.15;
 
