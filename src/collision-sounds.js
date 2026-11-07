@@ -35,23 +35,42 @@ function ring(sampleRate, seconds, modes, clickGain, clickHz, clickDecay) {
 
 const detune = () => 1 + (Math.random() - 0.5) * 0.06; // every variant rings slightly differently
 
-/** Hard, bright, very short: high partials of a phenolic ball, almost no low content. */
+/**
+ * The "klack" of two phenolic balls: a sharp broadband contact click, a short wooden-glassy body
+ * from several inharmonic shell modes (each a slightly split pair, so it beats like a real ball
+ * instead of ringing like a pure tone) and a small low knock. Harder impacts are brighter.
+ */
 function synthBallHit(sampleRate, stage) {
   const hard = stage / Math.max(1, BALL_HIT_STAGES - 1); // 0 soft … 1 hard
-  const f = 1 + 0.35 * hard;
-  return ring(
-    sampleRate,
-    BALL_HIT_SECONDS,
-    [
-      [2900 * f * detune(), 1.0, 0.007 - 0.002 * hard],
-      [4700 * f * detune(), 0.7, 0.005],
-      [7300 * detune(), 0.35 * (0.3 + hard), 0.003],
-      [1500 * detune(), 0.35, 0.012], // a little body
-    ],
-    0.9 + 0.5 * hard,
-    6500,
-    0.0012
-  );
+  const n = Math.floor(BALL_HIT_SECONDS * sampleRate);
+  const out = new Float32Array(n);
+  const spread = 1 + (Math.random() - 0.5) * 0.14; // every variant is a slightly different ball pair
+  // [Hz, amplitude, decay seconds]
+  const modes = [
+    [620 * detune(), 0.3, 0.022], // low knock
+    [1250 * spread, 0.55, 0.014],
+    [2050 * spread, 0.8, 0.01],
+    [3100 * spread * (1 + 0.15 * hard), 1.0, 0.007 - 0.002 * hard],
+    [4600 * spread * (1 + 0.2 * hard), 0.45 + 0.35 * hard, 0.0045],
+    [6600 * spread, 0.12 + 0.4 * hard, 0.0028],
+  ].map(([f, a, tau]) => ({ f, a, tau, split: 1 + (0.008 + Math.random() * 0.02), phase: Math.random() * 6.28 }));
+  const contact = bandpass(sampleRate, 0.5); // broadband tick
+  const tick = bandpass(sampleRate, 0.8); // dull body of the noise
+  for (let i = 0; i < n; i++) {
+    const t = i / sampleRate;
+    let v = 0;
+    for (const m of modes) {
+      v +=
+        m.a *
+        (Math.sin(2 * Math.PI * m.f * t + m.phase) + 0.8 * Math.sin(2 * Math.PI * m.f * m.split * t)) *
+        Math.exp(-t / m.tau);
+    }
+    const noise = Math.random() * 2 - 1;
+    v += (1.4 + 0.8 * hard) * contact(noise, 3500 + 2500 * hard) * Math.exp(-t / 0.0007);
+    v += 0.6 * tick(noise, 1800) * Math.exp(-t / 0.004);
+    out[i] = Math.tanh(v * 0.9); // contact saturation: a little crack on hard hits
+  }
+  return finish(out, sampleRate, 0.9, 0.0002);
 }
 
 /** Duller and longer: ball on rubber over wood, low-mid thump, muffled click. */
