@@ -911,7 +911,7 @@ function gameLoop(currentTime) {
     }
 
     cueStickMesh.position.set(0, 0.015 + aimPitch * 0.1, cueDist);
-    cueStickMesh.rotation.x = aimPitch;
+    cueStickMesh.rotation.x = -aimPitch; // negative: the butt end rises (positive would push it into the table)
 
     // Align the aim line with the ball
     if (aimLine) {
