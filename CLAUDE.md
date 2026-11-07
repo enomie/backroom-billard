@@ -19,3 +19,4 @@
 - Maße nur in `src/table-constants.js`, Physik-Werte nur in `src/physics-constants.js`.
 - Docs minimal halten (Überblick für Neueinsteiger); beim Ändern von Verhalten die betroffene Doc-Seite mitpflegen.
 - Kein toter Code; nach Änderungen `npm run build` und im Browser prüfen.
+- `_docs/game-concept.md` enthält **nur Ideen**: nichts davon umsetzen oder einplanen, solange es nicht ausdrücklich beauftragt wird.
