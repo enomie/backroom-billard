@@ -5,11 +5,12 @@ import {
 } from "./table-csg.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
-  CUSHION_PROFILE_TOP_INSET,
+  CUSHION_PROFILE_FACE_RECESS,
 } from "./table-constants.js";
 
 /**
- * K-66-Näherung: Querschnitt als Trapez (unten außen, oben nach innen).
+ * K-66-Näherung: Querschnitt als Trapez mit Nase OBEN (63,5 % Kugeldurchmesser);
+ * die Gummifläche weicht nach unten zum Tuch zurück.
  *
  * @param {number} feltEdge — Filzkante auf dieser Achse (X oder Z)
  * @param {number} inwardSign — +1 / −1 Richtung Spielfeld
@@ -23,15 +24,15 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
   const edgeBottom = feltEdge + outwardSign * CUSHION_PROFILE_BOTTOM_OUTSET;
   const edgeTopOuter =
     feltEdge + inwardSign * Math.max(rubberThick * 0.28, 0.008);
-  const edgeTopInner =
-    feltEdge + inwardSign * (rubberThick - CUSHION_PROFILE_TOP_INSET);
+  const foot =
+    feltEdge + inwardSign * (rubberThick - CUSHION_PROFILE_FACE_RECESS);
 
   return {
     yBottom: tableH,
     yTop: tableH + railH,
     edgeBottom,
+    foot,
     nose,
-    edgeTopInner,
     edgeTopOuter,
   };
 }
@@ -45,8 +46,8 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
 function cushionExtrudeGeometry(profile, length, along) {
   const shape = new THREE.Shape();
   shape.moveTo(profile.edgeBottom, profile.yBottom);
-  shape.lineTo(profile.nose, profile.yBottom);
-  shape.lineTo(profile.edgeTopInner, profile.yTop);
+  shape.lineTo(profile.foot, profile.yBottom);
+  shape.lineTo(profile.nose, profile.yTop);
   shape.lineTo(profile.edgeTopOuter, profile.yTop);
   shape.closePath();
 
@@ -92,8 +93,9 @@ export function buildAuthenticTableWithHoles(
   pockets.length = 0;
   cushions.length = 0;
 
-  const hw = PLAY_W / 2;
-  const hl = PLAY_L / 2;
+  // PLAY_W/PLAY_L gelten Nase zu Nase (WPA); der Filz reicht um die Gummibreite weiter nach außen.
+  const hw = PLAY_W / 2 + dims.rubberThick;
+  const hl = PLAY_L / 2 + dims.rubberThick;
 
   const feltShape = new THREE.Shape();
   feltShape.moveTo(-hw, -hl);

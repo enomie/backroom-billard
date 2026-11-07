@@ -20,8 +20,8 @@ Ursprung Tischmitte; Filz **`y = TABLE_H`** (`0,85 m` Möbelhöhe, Spielnorm una
 
 | Zone | X / Z | Maß (Code) |
 |------|--------|------------|
-| **Spielfläche** | `±hw`, `±hl` | **`1,27 m × 2,54 m`** (`PLAY_W`, `PLAY_L`) |
-| **Bande (Gummi)** | Trapez (~K-66), Nase 40 mm | **`CUSHION_PROFILE_WIDTH` = 40 mm** · Unterkante +6 mm außen · Oben −14 mm vs. Nase |
+| **Spielfläche** | `±hw`, `±hl` (Nasenlinie) | **`1,27 m × 2,54 m` Nase zu Nase** (`PLAY_W`, `PLAY_L`); Filzkante liegt 40 mm weiter außen |
+| **Bande (Gummi)** | Trapez (~K-66), Nase **oben** (63,5 % Ø), 40 mm breit | **`CUSHION_PROFILE_WIDTH` = 40 mm** · Unterkante +6 mm außen · Fuß der Fläche 12 mm hinter der Nase (`CUSHION_PROFILE_FACE_RECESS`) |
 | **Holzrahmen** | außerhalb Filz | **`RAIL_WOOD_DEPTH` = 110 mm** · **`RAIL_CAP_WIDTH` = 150 mm** (Nase→Außenkante) |
 | **Platte** | — | **`FELT_BED_DEPTH` = 25,4 mm** (1″ min.) |
 

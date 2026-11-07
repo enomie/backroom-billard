@@ -25,8 +25,20 @@ export const CUSHION_PROFILE_WIDTH = 0.04;
 /** Unterkante Gummi etwas über Filzkante nach außen (Trapez, nicht Quader). */
 export const CUSHION_PROFILE_BOTTOM_OUTSET = 0.006;
 
-/** Obere Gummikante weniger weit ins Spielfeld als die Nase. */
-export const CUSHION_PROFILE_TOP_INSET = 0.014;
+/**
+ * K-66-Profil: Die Nase liegt OBEN (Höhe `CUSHION_NOSE_TO_BED`), die Gummifläche
+ * weicht nach unten um diesen Betrag zurück (Fuß der Fläche am Tuch).
+ */
+export const CUSHION_PROFILE_FACE_RECESS = 0.012;
+
+/**
+ * Kugelmittelpunkt-Abstand zur Nasenlinie beim Bandenkontakt: Die Kugel berührt die
+ * Nase (Punkt in Höhe `CUSHION_NOSE_TO_BED`), ihr Mittelpunkt liegt aber nur
+ * `BALL_RADIUS_REAL` über dem Tuch → horizontaler Abstand √(R² − (H − R)²) ≈ 27,5 mm.
+ */
+export const CUSHION_BALL_CONTACT_R = Math.sqrt(
+  BALL_RADIUS_REAL ** 2 - (CUSHION_NOSE_TO_BED - BALL_RADIUS_REAL) ** 2
+);
 
 /** Holzrahmen außerhalb der Filzkante (Turnier-üblich ~110 mm). */
 export const RAIL_WOOD_DEPTH = 0.11;

@@ -6,6 +6,7 @@ import {
   TABLE_H,
   BALL_RADIUS_REAL,
   CUSHION_NOSE_TO_BED,
+  CUSHION_BALL_CONTACT_R,
   CUSHION_PROFILE_WIDTH,
   RAIL_WOOD_DEPTH,
   FELT_BED_DEPTH,
@@ -608,7 +609,8 @@ function toggleCamera() {
  * @param {{ pos: { x: number; z: number }; vel: { x: number; z: number } }} b
  */
 function resolveCushionCollisions(b) {
-  const r = BALL_R;
+  // Kontakt an der Nase (liegt über Kugelmitte) → Mittelpunkt-Abstand < BALL_R
+  const r = CUSHION_BALL_CONTACT_R;
   for (let c = 0; c < cushions.length; c++) {
     const seg = cushions[c];
     const sdx = seg.x2 - seg.x1;

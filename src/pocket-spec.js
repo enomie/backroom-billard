@@ -4,7 +4,6 @@
 import * as THREE from "three";
 import {
   BALL_RADIUS_REAL,
-  CUSHION_PROFILE_WIDTH,
   POCKET_R_CORNER,
   POCKET_R_SIDE,
   POCKET_CORNER_OFFSET_FACTOR,
@@ -44,6 +43,7 @@ export const POCKET_DIM_DEFAULTS = {
  * }>}
  */
 export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
+  // playW/playL = Nase zu Nase → hw/hl liegen auf der Nasenlinie
   const hw = table.playW / 2;
   const hl = table.playL / 2;
 
@@ -52,45 +52,44 @@ export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
   const height = yTop - yBottom;
   const yCenter = (yTop + yBottom) / 2;
 
-  /** Schnittpunkt Kissen-Nasen (Filzkante − Gummi-Überhang), dann leicht nach außen. */
-  const noseInset = CUSHION_PROFILE_WIDTH;
+  /** Schnittpunkt der Nasenlinien, dann leicht nach außen. */
   const cornerOut = dims.r_corner * dims.cornerOffsetFactor;
   const sideOut = dims.r_side * dims.sideOffsetFactor;
 
   const pockets = [
     {
       id: "corner-tl",
-      x: -(hw - noseInset + cornerOut),
-      z: -(hl - noseInset + cornerOut),
+      x: -(hw + cornerOut),
+      z: -(hl + cornerOut),
       radius: dims.r_corner,
     },
     {
       id: "corner-tr",
-      x: hw - noseInset + cornerOut,
-      z: -(hl - noseInset + cornerOut),
+      x: hw + cornerOut,
+      z: -(hl + cornerOut),
       radius: dims.r_corner,
     },
     {
       id: "corner-bl",
-      x: -(hw - noseInset + cornerOut),
-      z: hl - noseInset + cornerOut,
+      x: -(hw + cornerOut),
+      z: hl + cornerOut,
       radius: dims.r_corner,
     },
     {
       id: "corner-br",
-      x: hw - noseInset + cornerOut,
-      z: hl - noseInset + cornerOut,
+      x: hw + cornerOut,
+      z: hl + cornerOut,
       radius: dims.r_corner,
     },
     {
       id: "side-l",
-      x: -(hw - noseInset + sideOut),
+      x: -(hw + sideOut),
       z: 0,
       radius: dims.r_side,
     },
     {
       id: "side-r",
-      x: hw - noseInset + sideOut,
+      x: hw + sideOut,
       z: 0,
       radius: dims.r_side,
     },
