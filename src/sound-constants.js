@@ -27,5 +27,12 @@ export const WHOOSH_VARIANTS = 2;
 export const WHOOSH_GAIN_MIN = 0.08;
 export const WHOOSH_GAIN_MAX = 0.4;
 
+/** Strike: the leather tip hits the ball ("tock"). Harder shots are louder, brighter and sharper. */
+export const STRIKE_SECONDS = 0.25;
+export const STRIKE_STAGES = 4;
+export const STRIKE_VARIANTS = 3;
+export const STRIKE_GAIN_MIN = 0.25;
+export const STRIKE_GAIN_MAX = 0.9;
+
 /** Random pitch variation (± fraction) so repeated sounds do not sound identical. */
 export const PITCH_VARIATION = 0.05;

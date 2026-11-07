@@ -1,6 +1,6 @@
 # Sound — Konzept
 
-> **Status:** Umgesetzt sind die Klänge zur **Stoß-Animation**: Zurückziehen (Gleiten), Vorschnalzen (Luftzug) und das dezente Atmen (siehe „Umgesetzt“). **Alles andere** (Abstoß-Klang, Kugel–Kugel, Bande, Rollen, Becher) ist nur Konzept und wird erst auf ausdrücklichen Auftrag umgesetzt. Unabhängig vom Radio (`radio.md`).
+> **Status:** Umgesetzt sind die Klänge zur **Stoß-Animation**: Zurückziehen (Gleiten), Vorschnalzen (Luftzug), dezentes Atmen und der **Abstoß-Klang** (siehe „Umgesetzt“). **Alles andere** (Kugel–Kugel, Bande, Rollen, Becher) ist nur Konzept und wird erst auf ausdrücklichen Auftrag umgesetzt. Unabhängig vom Radio (`radio.md`).
 
 ## Umgesetzt: Klänge der Stoß-Animation
 
@@ -9,9 +9,9 @@ Code: `src/shot-sounds.js` (Synthese und Abspielen), `src/audio.js` (gemeinsamer
 - **Zurückziehen:** Gleiten der Hand auf dem Schaft, gefiltertes Rauschen mit rauer Textur, am lautesten in der Mitte der Bewegung. Es gibt 3 Längen (0,3 / 0,45 / 0,6 s) mit je 2 Varianten; die nächstliegende Länge wird leicht gestreckt, damit sie zur Zugdauer passt. Dazu ein sehr leises **Einatmen**.
 - **Vorschnalzen:** Luftzug, dessen Tonhöhe und Lautstärke ansteigen und der **genau im Moment des Treffens** am lautesten ist und abrupt endet. 3 Stufen (weich, mittel, hart, mit zunehmender Helligkeit) mal 2 Varianten. Dazu ein kurzes, leises **Ausatmen** (Atem lässt sich mit `BREATH_ENABLED` abschalten).
 - **Kraftabhängig:** Lautstärke wächst mit der Stoßkraft (Luftzug quadratisch), dazu eine zufällige Tonhöhe von ±5 %.
-- **Gebuffert:** Die Klänge werden beim ersten Stoß einmal erzeugt (ca. 70 ms) und danach nur noch abgespielt.
+- **Gebuffert:** Die Klänge werden beim ersten Stoß einmal erzeugt (ca. 100 ms) und danach nur noch abgespielt.
 - **Autoplay:** Der Audio-Kontext startet mit dem ersten Stoß (Klick oder Taste).
-- **Offen:** Der Abstoß selbst klingt noch wie vorher (alter, einfacher Ton).
+- **Abstoß** (Spitze trifft Kugel, im Moment des Treffens): kurzer „Tock“ aus einem Anschlagsklick (ca. 1,5 ms), dem Klingen der Kugel (hohe, schnell abklingende Anteile), der Schaft-Resonanz und einem leisen tiefen Schlag. 4 Kraftstufen mal 3 Varianten: weich = dumpfer und mit mehr tiefem Anteil, hart = heller und schärfer; Länge etwa 30–50 ms. Lautstärke wächst mit der Kraft. Der frühere einfache Computer-Ton ist ersetzt und entfernt.
 
 Der Rest dieser Seite ist das Konzept für die übrigen Klänge.
 
@@ -37,7 +37,7 @@ Ein **natürlicher, dichter Klang** für alle Billard-Geräusche, **kraftabhäng
 ### Cue und Stoß
 | Ereignis | Beschreibung |
 |----------|--------------|
-| **Abstoß** (Spitze trifft Kugel) | Kurzer, harter „Tock“: Lederspitze auf Kugel, mit kleiner Holz-Resonanz des Schafts. Bei wenig Kraft weicher und leiser, bei viel Kraft heller und lauter. Ersetzt den heutigen Computer-Ton. |
+| **Abstoß** (Spitze trifft Kugel) | *Umgesetzt (siehe oben).* Kurzer, harter „Tock“: Lederspitze auf Kugel, mit kleiner Holz-Resonanz des Schafts. |
 | **Zurückziehen** | Leises Gleiten der Hand auf dem Schaft (Reibung auf Holz). Dauer und Lautstärke hängen von der Stoßkraft ab. |
 | **Vorschnalzen** | Kurzer Luftzug („Wusch“) beim schnellen Vorschnellen des Cues, direkt gefolgt vom Abstoß. Stärker bei mehr Kraft. |
 | **Atem / Muskel** (optional) | Leises **Einatmen** beim Zurückziehen und kurzes **Ausatmen** beim Stoß; dazu eventuell ein feines Knarzen von Kleidung/Muskel bei viel Kraft. Nur dezent, keine Stimme. Ob wir das wollen, ist offen. |

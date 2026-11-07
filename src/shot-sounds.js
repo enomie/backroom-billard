@@ -25,6 +25,11 @@ import {
   WHOOSH_VARIANTS,
   WHOOSH_GAIN_MIN,
   WHOOSH_GAIN_MAX,
+  STRIKE_SECONDS,
+  STRIKE_STAGES,
+  STRIKE_VARIANTS,
+  STRIKE_GAIN_MIN,
+  STRIKE_GAIN_MAX,
   PITCH_VARIATION,
 } from "./sound-constants.js";
 
@@ -59,12 +64,12 @@ function slowNoise(sampleRate, cutoffHz) {
   };
 }
 
-/** Scale to the given peak and fade the first/last 3 ms (no clicks). */
-function finish(samples, sampleRate, peak = 0.9) {
+/** Scale to the given peak and fade the first/last few ms (no clicks). */
+function finish(samples, sampleRate, peak = 0.9, fadeSeconds = 0.003) {
   let max = 0;
   for (const v of samples) max = Math.max(max, Math.abs(v));
   const scale = max > 0 ? peak / max : 0;
-  const fade = Math.floor(sampleRate * 0.003);
+  const fade = Math.max(1, Math.floor(sampleRate * fadeSeconds));
   for (let i = 0; i < samples.length; i++) {
     let g = scale;
     if (i < fade) g *= i / fade;
@@ -127,6 +132,36 @@ function synthWhoosh(sampleRate, stage) {
 }
 
 /**
+ * Tip hits ball: a very short bright click, the ball's ringing "tock" (damped high partials),
+ * the shaft's body resonance and a soft low thump. `stage` 0..n-1: harder = brighter, sharper
+ * and with less low thump.
+ */
+function synthStrike(sampleRate, stage) {
+  const n = Math.floor(STRIKE_SECONDS * sampleRate);
+  const out = new Float32Array(n);
+  const hard = stage / Math.max(1, STRIKE_STAGES - 1); // 0 soft … 1 hard
+  const detune = () => 1 + (Math.random() - 0.5) * 0.04; // each variant rings slightly differently
+  // [frequency Hz, amplitude, decay time constant s]
+  const modes = [
+    [2300 * (1 + 0.4 * hard) * detune(), 1.0, 0.012 - 0.004 * hard],
+    [3900 * (1 + 0.4 * hard) * detune(), 0.55 * (0.4 + hard), 0.008],
+    [6200 * detune(), 0.25 * hard, 0.004],
+    [520 * detune(), 0.5, 0.045], // shaft body
+    [160 * detune(), 0.6 * (1 - 0.5 * hard), 0.02], // soft thump
+  ];
+  const click = bandpass(sampleRate, 0.8);
+  for (let i = 0; i < n; i++) {
+    const t = i / sampleRate;
+    let v = 0;
+    for (const [f, a, tau] of modes) v += a * Math.sin(2 * Math.PI * f * t) * Math.exp(-t / tau);
+    // initial contact click: noise with a ~1.5 ms decay
+    v += (0.8 + 0.6 * hard) * click(Math.random() * 2 - 1, 5500) * Math.exp(-t / 0.0015);
+    out[i] = v;
+  }
+  return finish(out, sampleRate, 0.9, 0.0003); // a click needs a sharp attack: tiny fade-in
+}
+
+/**
  * Synthesize every sample of the stroke sounds (pure, no Web Audio needed).
  * @param {number} sampleRate
  */
@@ -144,10 +179,13 @@ export function synthesizeShotSounds(sampleRate) {
     whoosh: Array.from({ length: WHOOSH_STAGES }, (_, stage) =>
       Array.from({ length: WHOOSH_VARIANTS }, () => synthWhoosh(sampleRate, stage))
     ),
+    strike: Array.from({ length: STRIKE_STAGES }, (_, stage) =>
+      Array.from({ length: STRIKE_VARIANTS }, () => synthStrike(sampleRate, stage))
+    ),
   };
 }
 
-/** @type {null | { slide: AudioBuffer[][], breathIn: AudioBuffer[], breathOut: AudioBuffer[], whoosh: AudioBuffer[][] }} */
+/** @type {null | { slide: AudioBuffer[][], breathIn: AudioBuffer[], breathOut: AudioBuffer[], whoosh: AudioBuffer[][], strike: AudioBuffer[][] }} */
 let buffers = null;
 
 function toBuffer(audio, samples) {
@@ -167,6 +205,7 @@ function ensureBuffers() {
     breathIn: raw.breathIn.map((s) => toBuffer(audio, s)),
     breathOut: raw.breathOut.map((s) => toBuffer(audio, s)),
     whoosh: raw.whoosh.map((stage) => stage.map((s) => toBuffer(audio, s))),
+    strike: raw.strike.map((stage) => stage.map((s) => toBuffer(audio, s))),
   };
   return buffers;
 }
@@ -218,4 +257,18 @@ export function playForwardSound(strength, seconds) {
       rate: variation(),
     });
   }
+}
+
+/**
+ * The tip hits the ball ("tock"). Call at the moment of contact.
+ * @param {number} strength — 0 (weakest) … 1 (strongest shot)
+ */
+export function playStrikeSound(strength) {
+  const b = ensureBuffers();
+  if (!b) return;
+  const stage = Math.round(strength * (STRIKE_STAGES - 1));
+  playBuffer(pick(b.strike[stage]), {
+    gain: lerp(STRIKE_GAIN_MIN, STRIKE_GAIN_MAX, Math.sqrt(strength)),
+    rate: variation(),
+  });
 }

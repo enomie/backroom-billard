@@ -16,8 +16,7 @@ import { createCeilingLamps } from "./ceiling-lamps.js";
 import { createRoom } from "./room.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
-import { getAudioContext } from "./audio.js";
-import { playDrawBackSound, playForwardSound } from "./shot-sounds.js";
+import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import {
   CUE_FOLLOW_THROUGH_TIME,
   CUE_RELAX_TIME,
@@ -136,33 +135,6 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
-
-// Synthetic strike click (to be replaced by the generated impact sounds, see _docs/sound.md)
-function playClackSound(volume = 0.5, pitch = 800) {
-  try {
-    const audioCtx = getAudioContext();
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(pitch, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(
-      150,
-      audioCtx.currentTime + 0.06
-    );
-    gain.gain.setValueAtTime(
-      Math.min(volume, 1.0) * 0.45,
-      audioCtx.currentTime
-    );
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.07);
-  } catch (e) {
-    /* ignore */
-  }
-}
 
 /* ====================================================
    2. THREE.JS SCENE & ATMOSPHERE
@@ -567,7 +539,7 @@ function advanceCueStroke(dt) {
 
 /** The tip reaches the ball: sound, status, and the follow-through timer starts. */
 function onCueContact() {
-  playClackSound(selectedPower * 0.8, 900);
+  playStrikeSound(stroke.strength); // the "tock" of the tip hitting the ball
   updateStatusDisplay(true);
   strokeContacted = true;
   cueShotTime = 0;

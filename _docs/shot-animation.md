@@ -1,6 +1,6 @@
 # Stoß-Animation
 
-> **Status: umgesetzt** (Zurückziehen, Spannung, Vorschnalzen, physischer Treffer, Klänge für Zurückziehen und Vorschnalzen, siehe `sound.md`).
+> **Status: umgesetzt** (Zurückziehen, Spannung, Vorschnalzen, physischer Treffer, Klänge für Zurückziehen, Vorschnalzen und Abstoß, siehe `sound.md`).
 
 ## Ablauf
 
