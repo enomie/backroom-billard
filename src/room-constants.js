@@ -12,9 +12,20 @@ export const FREE_CAM_LOOK_SENSITIVITY = 0.0025;
  */
 export const FREE_CAM_START_POSITION = [2.1, 2.1, 3.0];
 export const FREE_CAM_START_TARGET = [0, 1.7, 0];
-/** Cue camera behind the cue ball: distance behind the ball and base height above it (m). */
+/**
+ * Cue camera: orbits the cue ball at this distance (m). The player tilts it between the minimum and
+ * maximum elevation above the table (rad, 10° … 80°: almost level … almost straight down).
+ * The camera looks at a point FP_CAM_LOOK_AHEAD · cos(elevation) in front of the ball.
+ */
 export const FP_CAM_DISTANCE = 1.02;
-export const FP_CAM_HEIGHT = 0.25;
+export const FP_CAM_MIN_ELEVATION = (10 * Math.PI) / 180;
+export const FP_CAM_MAX_ELEVATION = (80 * Math.PI) / 180;
+export const FP_CAM_DEFAULT_ELEVATION = 0.28;
+export const FP_CAM_LOOK_AHEAD = 1.88;
+/** Turning with the keys (A/D, arrows): rad per second. Mouse and touch rotate directly. */
+export const FP_CAM_KEY_TURN_SPEED = 1.4;
+/** The orbit center eases back to the new shot position at this rate (1/s) once the table is still. */
+export const FP_CAM_FOCUS_RATE = 8;
 /** The cue camera returns to the shot position once the table has been still for this long (s). */
 export const SHOT_REST_DELAY = 0.4;
 

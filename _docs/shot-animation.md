@@ -15,7 +15,7 @@ Ein Klick, die Leertaste oder der SHOOT-Button löst **nicht sofort** den Stoß 
 | **4. Treffer** | Die Spitze berührt die Kugel: Kollision in Rapier, Abstoß-Klang. | – |
 | **5. Nachschwung** | Der Cue läuft noch 2 cm weiter, bleibt kurz stehen und schwingt dann in die Haltepose (siehe unten). | – |
 
-Während der Animation sind Zielen, Kraft und ein zweiter Stoß ohne Wirkung. Die Kamera bleibt hinter dem Cue, bis alle Kugeln stillstehen.
+Während der Animation sind Zielen, Kraft und ein zweiter Stoß ohne Wirkung. Die Kamera dreht sich ohne Glättung direkt um die Schussposition (`placeAimCamera`, Winkel und Höhe 10°–80°, `FP_CAM_*`), damit Kamera, Zielhilfe und Cue nie gegeneinander ruckeln. Sie bleibt dort, bis alle Kugeln stillstehen, und ist die ganze Zeit drehbar. Die Cue-Neigung ist fest (`CUE_AIM_PITCH`).
 
 ## Die Spitze ist physisch
 

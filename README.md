@@ -15,7 +15,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 | Aktion | Eingabe |
 |--------|---------|
-| Zielen | Maus ziehen, `A` / `D` oder Pfeile |
+| Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (10°–80° über dem Tisch); `A` / `D` oder Pfeile links/rechts |
 | Kraft (1-%-Schritte) | Mausrad, `W` / `S` oder Pfeil hoch/runter, vertikaler farbiger Slider rechts (auch per Touch) |
 | Stoß | Klick, Leertaste oder der SHOOT-Button unten in der Mitte |
 | Kamera wechseln (Queue-Ansicht ↔ freie Kamera) | `C` |
@@ -27,7 +27,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 - Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
 - Ein Stoß ist eine Animation: Der Cue wird zurückgezogen und schnalzt nach vorn; die Kugel bekommt ihre Geschwindigkeit durch die echte Kollision der Cue-Spitze.
-- Nach dem Stoß bleiben Kamera und Queue hinter der Schussposition. Erst wenn alle Kugeln (nahezu) stillstehen, kehrt die Kamera zur neuen Schussposition zurück; bis dahin ist kein neuer Stoß möglich.
+- Nach dem Stoß bleibt die Kamera auf der Schussposition (sie folgt den Kugeln nicht), lässt sich aber weiter um sie drehen. Erst wenn alle Kugeln (nahezu) stillstehen, gleitet sie zur neuen Schussposition; bis dahin ist kein neuer Stoß möglich.
 - Während die Kugeln rollen **und** mit der freien Kamera hält der Spieler den Queue entspannt vor sich: Griff unten im Bild, Spitze oberhalb rechts; nach dem Stillstand schwingt er sanft zurück an die Kugel. Die Pose steht in `src/cue-constants.js`.
 - Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (oder `R`) startet neu.
 

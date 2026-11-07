@@ -40,6 +40,7 @@ import {
   CUE_FOLLOW_DISTANCE,
   CUE_STRIKE_RESTITUTION,
   CUE_STROKE_SUBSTEPS,
+  CUE_AIM_PITCH,
 } from "./cue-constants.js";
 import {
   FREE_CAM_SPEED,
@@ -49,7 +50,12 @@ import {
   FREE_CAM_START_TARGET,
   FREE_CAM_ROOM_MARGIN,
   FP_CAM_DISTANCE,
-  FP_CAM_HEIGHT,
+  FP_CAM_MIN_ELEVATION,
+  FP_CAM_MAX_ELEVATION,
+  FP_CAM_DEFAULT_ELEVATION,
+  FP_CAM_LOOK_AHEAD,
+  FP_CAM_KEY_TURN_SPEED,
+  FP_CAM_FOCUS_RATE,
   SHOT_REST_DELAY,
   ROOM_LENGTH,
   ROOM_WIDTH,
@@ -96,7 +102,8 @@ const pocketSpecs = createPocketSpecs(tableDimensions);
 // State
 let cameraMode = "fps"; // 'fps' (cue view) or 'free' (free fly camera)
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
-let aimPitch = 0.12;
+let aimElevation = FP_CAM_DEFAULT_ELEVATION; // camera elevation above the table (rad)
+const camFocus = new THREE.Vector3(); // orbit center of the cue camera (the shot position)
 let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
 let isCueMoving = false;
 /** True from the shot until the table has come to rest; the cue and the camera stay behind. */
@@ -108,8 +115,6 @@ let stroke = null;
 let strokeContacted = false; // the tip has hit the ball; the follow-through timer may start
 let cueShotTime = 0; // seconds since the shot
 let cueRelax = 0; // 0 = aiming/strike pose, 1 = relaxed hold (linear; eased when applied)
-const heldCameraPosition = new THREE.Vector3();
-const heldCameraQuaternion = new THREE.Quaternion();
 let cueRespawnTimer = null; // timer for re-spotting the cue ball
 let lastShotTime = 0; // guard against double-triggered shots
 /** 15 object balls, all different; no. 8 stays black. The HUD uses the same colors. */
@@ -222,21 +227,26 @@ function init() {
   requestAnimationFrame(gameLoop);
 }
 
-/** First-person camera behind the cue ball, looking along the shot direction (no lerp at start). */
+/**
+ * Cue camera: orbits `camFocus` directly from the aim angle and elevation (no smoothing, so the
+ * camera, the aim line and the cue always agree and nothing jitters).
+ */
+function placeAimCamera() {
+  const ce = Math.cos(aimElevation);
+  camera.position.set(
+    camFocus.x + Math.sin(aimAngle) * ce * FP_CAM_DISTANCE,
+    camFocus.y + Math.sin(aimElevation) * FP_CAM_DISTANCE,
+    camFocus.z + Math.cos(aimAngle) * ce * FP_CAM_DISTANCE
+  );
+  const ahead = FP_CAM_LOOK_AHEAD * ce;
+  camera.lookAt(camFocus.x - Math.sin(aimAngle) * ahead, camFocus.y, camFocus.z - Math.cos(aimAngle) * ahead);
+}
+
+/** Jump the cue camera to the cue ball (start, new rack). */
 function snapFpsCamera() {
   if (cameraMode !== "fps" || !cueBall) return;
-  const camDist = FP_CAM_DISTANCE;
-  const camH = FP_CAM_HEIGHT + aimPitch * 0.45;
-  camera.position.set(
-    cueBall.pos.x + Math.sin(aimAngle) * camDist,
-    cueBall.pos.y + camH,
-    cueBall.pos.z + Math.cos(aimAngle) * camDist
-  );
-  camera.lookAt(
-    cueBall.pos.x - Math.sin(aimAngle) * 1.8,
-    cueBall.pos.y,
-    cueBall.pos.z - Math.cos(aimAngle) * 1.8
-  );
+  camFocus.copy(cueBall.pos);
+  placeAimCamera();
 }
 
 function setupLightingAndRoom() {
@@ -422,7 +432,7 @@ function poseCue(gap) {
 
   // Aiming/strike pose in the pivot's local space (cue origin = tip, +z towards the player).
   // The cue axis passes through the ball center: the tip sits `gap` away from the ball surface.
-  const pitch = stroke ? stroke.pitch : aimPitch;
+  const pitch = CUE_AIM_PITCH;
   _cueEuler.set(-pitch, 0, 0);
   _cueQuatAim.setFromEuler(_cueEuler);
   const reach = BALL_R + gap;
@@ -458,12 +468,10 @@ function fireCueStrike() {
 
   startCueStroke();
 
-  // The camera and the cue stay where they are until everything has come to rest
+  // The orbit center stays at the shot position until everything has come to rest (the player can still turn the camera)
   shotInProgress = true;
   shotRestTimer = 0;
   strokeContacted = false;
-  heldCameraPosition.copy(camera.position);
-  heldCameraQuaternion.copy(camera.quaternion);
 }
 
 /* Cue stroke: the cue is drawn back, pauses, snaps forward and HITS the ball physically
@@ -483,7 +491,7 @@ function startCueStroke() {
     phase: "back",
     t: 0,
     aimAngle,
-    pitch: aimPitch,
+    pitch: CUE_AIM_PITCH,
     ballPos: { x: t.x, y: t.y, z: t.z },
     backGap,
     tBack: THREE.MathUtils.lerp(CUE_BACK_TIME_MIN, CUE_BACK_TIME_MAX, f),
@@ -715,8 +723,8 @@ function setupControls() {
 
     // Horizontal aiming
     aimAngle -= dx * 0.0055;
-    // Vertical tilt
-    aimPitch = Math.max(0.04, Math.min(0.4, aimPitch + dy * 0.002));
+    // Vertical tilt of the camera
+    aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
   });
 
   // Keyboard: C switches the camera, R resets; in cue view arrow keys / A & D aim and space
@@ -735,12 +743,6 @@ function setupControls() {
       if (e.code === "Space") e.preventDefault(); // no page scroll / button activation
       return;
     }
-    if (e.code === "ArrowLeft" || e.code === "KeyA") {
-      aimAngle += 0.05;
-    }
-    if (e.code === "ArrowRight" || e.code === "KeyD") {
-      aimAngle -= 0.05;
-    }
     if (e.code === "ArrowUp" || e.code === "KeyW") {
       setPower(selectedPower + 0.01);
     }
@@ -757,12 +759,14 @@ function setupControls() {
 
   // Touch control for mobile
   let touchX = 0;
+  let touchY = 0;
   let touchMoved = false;
   container.addEventListener(
     "touchstart",
     (e) => {
       if (cameraMode === "fps" && e.touches.length === 1) {
         touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
         touchMoved = false;
       }
     },
@@ -774,9 +778,12 @@ function setupControls() {
     (e) => {
       if (cameraMode === "fps" && e.touches.length === 1) {
         const dx = e.touches[0].clientX - touchX;
-        if (Math.abs(dx) > 3) touchMoved = true;
+        const dy = e.touches[0].clientY - touchY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) touchMoved = true;
         touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
         aimAngle -= dx * 0.006;
+        aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
       }
     },
     { passive: true }
@@ -1184,6 +1191,12 @@ function gameLoop(currentTime) {
     }
   }
 
+  // Turning with the keys (A/D, arrows) — continuous, also while the balls roll
+  if (cameraMode === "fps") {
+    const turn = (heldKeys.has("ArrowLeft") || heldKeys.has("KeyA") ? 1 : 0) - (heldKeys.has("ArrowRight") || heldKeys.has("KeyD") ? 1 : 0);
+    aimAngle += turn * FP_CAM_KEY_TURN_SPEED * dt;
+  }
+
   // Cue positioning & distance adjusted to the selected power
   if (cueBall && cueStickPivot) {
     // After the shot the cue stays where it struck; it returns once the table is still
@@ -1208,24 +1221,11 @@ function gameLoop(currentTime) {
     }
   }
 
-  // Camera positioning
-  if (cameraMode === "fps" && cueBall && shotInProgress) {
-    // Do not follow the balls: stay behind the cue where the shot was taken
-    camera.position.copy(heldCameraPosition);
-    camera.quaternion.copy(heldCameraQuaternion);
-  } else if (cameraMode === "fps" && cueBall) {
-    const camDist = FP_CAM_DISTANCE;
-    const camH = FP_CAM_HEIGHT + aimPitch * 0.45;
-    const targetX = cueBall.pos.x + Math.sin(aimAngle) * camDist;
-    const targetZ = cueBall.pos.z + Math.cos(aimAngle) * camDist;
-    const targetY = cueBall.pos.y + camH;
-
-    camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.18);
-    camera.lookAt(
-      cueBall.pos.x - Math.sin(aimAngle) * 1.8,
-      cueBall.pos.y,
-      cueBall.pos.z - Math.cos(aimAngle) * 1.8
-    );
+  // Camera positioning: the orbit center is the shot position; it stays there while the balls roll
+  // and eases to the new cue ball position once the table is still. Turning works at any time.
+  if (cameraMode === "fps" && cueBall) {
+    if (!shotInProgress) camFocus.lerp(cueBall.pos, 1 - Math.exp(-FP_CAM_FOCUS_RATE * frameSeconds));
+    placeAimCamera();
   } else if (cameraMode === "free") {
     updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
   }
