@@ -3,6 +3,8 @@
 /** Direct AAC 256k stream of the station. */
 export const RADIO_STREAM_URL = "https://knkx-live-a.edge.audiocdn.com/6285_256k";
 export const RADIO_STATION_NAME = "KNKX";
+/** Seconds between title requests while the radio plays. */
+export const RADIO_METADATA_INTERVAL = 20;
 
 /** Placement: the sideboard stands against a long wall (x = ±ROOM_WIDTH/2); +1 = +x wall, −1 = −x wall. */
 export const RADIO_WALL_SIDE = 1;

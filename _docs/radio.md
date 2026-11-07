@@ -1,6 +1,6 @@
 # Radio
 
-> **Status: umgesetzt** (Radio, Sideboard, Ein/Aus, Display, Stereo-Lautsprecher, Stream). **Nicht umgesetzt:** Titel- und Playlist-Anzeige im Display (siehe „Offene Punkte“).
+> **Status: umgesetzt** (Radio, Sideboard, Ein/Aus, Display, Stereo-Lautsprecher, Stream). Titelanzeige per ICY-Metadaten (best effort); **nicht umgesetzt:** Playlist.
 
 Ein altes Röhren-Holzradio auf einem Sideboard an einer langen Wand. Es ist **standardmäßig eingeschaltet**; der **rechte Knopf** ist der Ein/Aus-Schalter und wird angeklickt.
 
@@ -40,7 +40,7 @@ Die Skala zeigt den **Sender (KNKX)** und den **Zustand**: *Klick zum Starten*, 
 
 ## Offene Punkte
 
-- **Titel und Playlist im Display:** Der Stream liefert im Browser keine Titelinfos über das Audio-Element. Dafür bräuchte es einen Metadaten-Weg (z. B. Stream-Metadaten oder eine Sender-Schnittstelle). Bis dahin zeigt das Display nur Sender und Zustand.
+- **Titel im Display:** Das Audio-Element liefert keine Titelinfos. `radio-metadata.js` fragt den Stream deshalb alle 20 s zusätzlich mit `Icy-MetaData: 1` an, liest nur den ersten Metadatenblock (`StreamTitle`) und bricht ab. Das funktioniert nur, wenn der Server per CORS `icy-metaint` freigibt; sonst zeigt das Display weiter nur Sender und „LIVE“. Gegen den echten Server nicht getestet (aus der Sandbox gesperrt). Hinweis: Kanal `6285` ist laut KNKX-Seite der Jazz24-Stream. Eine Playlist-Anzeige ist offen.
 - **Rechte:** Dürfen wir den Stream im Spiel nutzen (Nutzungsbedingungen des Senders)?
 - **Referenzfoto:** Es liegt nicht im Repo (Bildrechte ungeklärt).
 - **Touch:** Das Anklicken des Knopfes geht mit der Maus, nicht per Antippen.

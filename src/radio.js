@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import { t, onLanguageChange } from "./i18n/index.js";
 import { RadioAudio } from "./radio-audio.js";
+import { RadioMetadata } from "./radio-metadata.js";
 import { ROOM_WIDTH } from "./room-constants.js";
 import {
   RADIO_STREAM_URL,
@@ -86,8 +87,9 @@ function grilleTexture() {
  * Draw the dial: FM scale with a needle, the station name and the state. Dark when off.
  * @param {HTMLCanvasElement} c
  * @param {"off" | "waiting" | "connecting" | "live" | "error"} state
+ * @param {string} title — current track ("" = none)
  */
-function drawDisplay(c, state) {
+function drawDisplay(c, state, title) {
   const ctx = c.getContext("2d");
   const w = c.width;
   const h = c.height;
@@ -155,6 +157,17 @@ function drawDisplay(c, state) {
     error: t("radio.nosignal"),
   }[state];
   ctx.fillText(label, w * 0.92, h * 0.32);
+
+  // track title, shortened with an ellipsis if it does not fit
+  if (title && state === "live") {
+    ctx.textAlign = "left";
+    ctx.font = `${Math.round(h * 0.13)}px serif`;
+    const maxWidth = (right - left);
+    let text = title;
+    while (text.length > 1 && ctx.measureText(text).width > maxWidth) text = text.slice(0, -1);
+    if (text !== title) text = text.trimEnd() + "…";
+    ctx.fillText(text, left, h * 0.5);
+  }
 }
 
 /* ---- Meshes ------------------------------------------------------------------------------- */
@@ -326,15 +339,25 @@ export function createRadio(scene) {
   /* State: switched on by default */
   let state = "waiting";
   let on = true;
+  let title = "";
   let knobAngle = 0;
   const redraw = () => {
-    drawDisplay(displayCanvas, state);
+    drawDisplay(displayCanvas, state, title);
     displayTexture.needsUpdate = true;
     lampMat.emissiveIntensity = state === "off" ? 0 : 1.2;
     dialGlow.intensity = state === "off" ? 0 : 0.6;
   };
   const audio = new RadioAudio(RADIO_STREAM_URL, speakers, (s) => {
     state = s;
+    if (s === "live") metadata.start();
+    else {
+      metadata.stop();
+      title = "";
+    }
+    redraw();
+  });
+  const metadata = new RadioMetadata(RADIO_STREAM_URL, (text) => {
+    title = text;
     redraw();
   });
   redraw();
@@ -354,6 +377,7 @@ export function createRadio(scene) {
     info: () => ({
       on,
       state,
+      title,
       spatial: audio.spatial,
       speakers,
       knob: powerKnob.getWorldPosition(new THREE.Vector3()).toArray(),
