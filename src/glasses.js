@@ -213,14 +213,16 @@ export function createGlasses(scene, taken) {
     }
   }
 
-  // Billard table: one drink per player on the left long side of the frame, next to the ashtrays
+  // Billard table: one drink per player on the left long side of the frame, next to the ashtrays.
+  // Chosen anew on every load (not from the seed), and the two players never get the same drink.
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
-  for (const sz of [-1, 1]) {
-    const glass = build(randomKind());
+  const drinks = ["wine-red", "wine-white", "beer", "whiskey"].sort(() => Math.random() - 0.5).slice(0, 2);
+  [-1, 1].forEach((sz, i) => {
+    const glass = build(drinks[i]);
     glass.group.position.set(frameX, frameTop, sz * GLASSES_FRAME_Z);
     group.add(glass.group);
-  }
+  });
 
   scene.add(group);
   return {

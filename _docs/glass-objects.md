@@ -25,7 +25,7 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 - **Form:** Beide sind Drehkörper aus Formeln. Das Weinglas hat einen tulpenförmigen Kelch (Radius per Sinus-Kurve), dünnen Stiel und flachen Fuß; Bierglas und Whiskeyglas sind leicht kegelförmig mit dickem Boden (dieselbe Formel, nur andere Maße). Wein und Bier sind eigene, etwas kleinere Körper in der Innenform; der Schaum ist ein Körper darüber.
 - **Glas:** fast durchsichtig mit Spiegelung des Raums (Aufnahme aus `ball-reflection.js`), ohne Schatten. Damit es glänzt, behalten Glanzlichter und Spiegelung ihre volle Stärke, auch wenn das Material durchsichtig ist (`clearGlass` in `applyBallReflection`; normale Transparenz würde sie mit dem Körper ausblenden). Bier und Whiskey sind so durchsichtig wie getöntes Glas (Alpha 0,5 bzw. 0,6, goldfarben bzw. bernsteinfarben, leicht selbstleuchtend); Wein ist etwas dichter (rot 0,8, weiß 0,5). Der Schaum bleibt deckend. Dasselbe gilt für den Aschenbecher.
 - **Tische:** Pro Tisch zufällig 0–2 Gläser (feste Startwerte), je zu 35 % Wein (davon 70 % rot), 25 % Whiskey, sonst Bier. Sie stehen 12–28 cm von der Mitte entfernt und halten Abstand zu Kerze, Aschenbecher und zueinander.
-- **Billardtisch:** Je Spieler ein zufälliges Getränk auf dem Holzrahmen der linken Längsseite, neben dem Aschenbecher.
+- **Billardtisch:** Je Spieler ein Getränk auf dem Holzrahmen der linken Längsseite, neben dem Aschenbecher. Die Getränke werden **bei jedem Laden neu gewürfelt** (nicht aus dem festen Startwert), und die beiden Spieler bekommen **nie dasselbe** (aus Rotwein, Weißwein, Bier, Whiskey).
 
 ## Flaschen (umgesetzt)
 
