@@ -3,6 +3,7 @@ import {
   buildTableWithPocketsCSG,
   meshWithPocketHolesCSG,
 } from "./table-csg.js";
+import { cushionTipOffsets } from "./pocket-spec.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
   CUSHION_PROFILE_FACE_RECESS,
@@ -97,6 +98,10 @@ export function buildAuthenticTableWithHoles(
   const hw = PLAY_W / 2 + dims.rubberThick;
   const hl = PLAY_L / 2 + dims.rubberThick;
 
+  const hwNose = PLAY_W / 2;
+  const hlNose = PLAY_L / 2;
+  const { cornerTip, sideTip } = cushionTipOffsets();
+
   const feltShape = new THREE.Shape();
   feltShape.moveTo(-hw, -hl);
   feltShape.lineTo(hw, -hl);
@@ -155,7 +160,15 @@ export function buildAuthenticTableWithHoles(
     const x2 = hw;
     const outwardZ = -inwardNz;
     const noseZ = feltEdgeZ + inwardNz * rubberThick;
-    cushions.push({ x1, z1: noseZ, x2, z2: noseZ, nx: 0, nz: inwardNz });
+    // Kurze Bande: zwischen den beiden Ecktaschen-Spitzen
+    cushions.push({
+      x1: -(hwNose - cornerTip),
+      z1: noseZ,
+      x2: hwNose - cornerTip,
+      z2: noseZ,
+      nx: 0,
+      nz: inwardNz,
+    });
 
     const profile = buildCushionProfile(
       feltEdgeZ,
@@ -191,7 +204,12 @@ export function buildAuthenticTableWithHoles(
     const z2 = hl;
     const outwardX = -inwardNx;
     const noseX = feltEdgeX + inwardNx * rubberThick;
-    cushions.push({ x1: noseX, z1, x2: noseX, z2, nx: inwardNx, nz: 0 });
+    // Lange Bande: zwei Teilstücke zwischen Seitentasche und Ecktaschen-Spitze
+    const zEnd = hlNose - cornerTip;
+    cushions.push(
+      { x1: noseX, z1: sideTip, x2: noseX, z2: zEnd, nx: inwardNx, nz: 0 },
+      { x1: noseX, z1: -zEnd, x2: noseX, z2: -sideTip, nx: inwardNx, nz: 0 }
+    );
 
     const profile = buildCushionProfile(
       feltEdgeX,

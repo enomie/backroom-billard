@@ -35,7 +35,7 @@ Ursprung Tischmitte; Filz **`y = TABLE_H`** (`0,85 m` Möbelhöhe, Spielnorm una
 |---|------|--------|
 | WPA mouth (Mitte Spanne) | 115,9 mm | 128,59 mm |
 | **`radius`** | **`POCKET_R_CORNER` ≈ 57,95 mm** | **`POCKET_R_SIDE` ≈ 64,29 mm** |
-| Achs-Offset | `r × 0,35` nach außen | `r × 0,20` nach außen |
+| Achs-Offset | `r × 0` (Mitte auf Nasenlinien-Ecke) | `r × 0,20` nach außen |
 
 ### Positionen (berechnet, nicht hardcoden)
 
@@ -75,9 +75,9 @@ Anker = **Schnittpunkt der Nasen** (`hw|hl − 40 mm`), danach `r × Faktor` nac
 - [x] Kugel & Kissenmaße WPA
 - [x] Taschenradien ohne Arcade-Puffer (mouth/2)
 - [x] Banden-Kollision an Kissen-Innenfläche (`cushions[]`, nicht Holz)
-- [ ] Ecken: Kissen-Segmente ggf. an Taschen-Ausschnitt kürzen
+- [x] Kissen-Segmente enden an den Taschen-Spitzen (`cushionTipOffsets`, Spitzen = Ausschnitt ∩ Nasenlinie); Enden wirken als Kreis-Hindernis
 - [ ] `DEBUG_POCKET_CYLINDERS = false` nach Abgleich
 
 ---
 
-*Achs-Offsets (0,35 / 0,20) sind geometrische Platzierung für CSG, nicht WPA-normiert — Radien und Spielfeld sind normiert.*
+*Achs-Offsets (0 / 0,20) sind geometrische Platzierung für CSG, nicht WPA-normiert — Radien und Spielfeld sind normiert.*

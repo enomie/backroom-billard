@@ -24,6 +24,24 @@ export const POCKET_DIM_DEFAULTS = {
 };
 
 /**
+ * Abstand der Gummi-Spitzen (Taschen-Ausschnitt ∩ Nasenlinie) vom Schnittpunkt der Nasenlinien
+ * (Ecke) bzw. von der Tischmitte-Quermarke (Seite). Single Source für Banden-Physik und CSG.
+ *
+ * @param {typeof POCKET_DIM_DEFAULTS} [dims]
+ * @returns {{ cornerTip: number; sideTip: number }}
+ */
+export function cushionTipOffsets(dims = POCKET_DIM_DEFAULTS) {
+  const oc = dims.r_corner * dims.cornerOffsetFactor;
+  const os = dims.r_side * dims.sideOffsetFactor;
+  return {
+    // Eckentasche: Tipp liegt auf der Nasenlinie, Mittelpunkt `oc` hinter der Nasenlinie
+    cornerTip: Math.sqrt(dims.r_corner ** 2 - oc ** 2) - oc,
+    // Seitentasche: Tipp-Abstand von der Mitte (z = ±sideTip)
+    sideTip: Math.sqrt(dims.r_side ** 2 - os ** 2),
+  };
+}
+
+/**
  * Erzeugt die verbindlichen PocketSpecs für CSG-Ausschnitte und Versenk-Checks.
  *
  * @param {Object} table
@@ -117,7 +135,8 @@ export function checkPocketSink(ballPos, ballRadius, pocketSpecs, tableH) {
   for (let i = 0; i < pocketSpecs.length; i++) {
     const p = pocketSpecs[i];
 
-    if (ballPos.y > tableH + ballRadius * 0.2 || ballPos.y < p.yBottom) {
+    // Rollende Kugel: Mittelpunkt auf tableH + ballRadius. Nur fliegende Kugeln (Sprung) auslassen.
+    if (ballPos.y > tableH + ballRadius * 1.5 || ballPos.y < p.yBottom) {
       continue;
     }
 

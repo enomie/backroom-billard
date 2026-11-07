@@ -618,21 +618,39 @@ function resolveCushionCollisions(b) {
     const lenSq = sdx * sdx + sdz * sdz;
     if (lenSq < 1e-10) continue;
 
-    let t = ((b.pos.x - seg.x1) * sdx + (b.pos.z - seg.z1) * sdz) / lenSq;
-    t = Math.max(0, Math.min(1, t));
+    const tRaw = ((b.pos.x - seg.x1) * sdx + (b.pos.z - seg.z1) * sdz) / lenSq;
+    const t = Math.max(0, Math.min(1, tRaw));
     const cx = seg.x1 + t * sdx;
     const cz = seg.z1 + t * sdz;
+    const dx = b.pos.x - cx;
+    const dz = b.pos.z - cz;
 
-    const sd = (b.pos.x - cx) * seg.nx + (b.pos.z - cz) * seg.nz;
-    if (sd >= r) continue;
+    let nx = seg.nx;
+    let nz = seg.nz;
+    let depth;
+    if (tRaw >= 0 && tRaw <= 1) {
+      // Bandenfläche: Abstand entlang der Normalen
+      const sd = dx * nx + dz * nz;
+      if (sd >= r) continue;
+      depth = r - sd;
+    } else {
+      // Über das Ende hinaus: Gummi-Spitze am Taschenmaul = Punkt-Hindernis (Kreis um die Spitze)
+      const dist = Math.hypot(dx, dz);
+      if (dist >= r) continue;
+      if (dist > 1e-9) {
+        nx = dx / dist;
+        nz = dz / dist;
+      }
+      depth = r - dist;
+    }
 
-    b.pos.x += seg.nx * (r - sd);
-    b.pos.z += seg.nz * (r - sd);
+    b.pos.x += nx * depth;
+    b.pos.z += nz * depth;
 
-    const vn = b.vel.x * seg.nx + b.vel.z * seg.nz;
+    const vn = b.vel.x * nx + b.vel.z * nz;
     if (vn < 0) {
-      b.vel.x -= (1 + CUSHION_RESTITUTION) * vn * seg.nx;
-      b.vel.z -= (1 + CUSHION_RESTITUTION) * vn * seg.nz;
+      b.vel.x -= (1 + CUSHION_RESTITUTION) * vn * nx;
+      b.vel.z -= (1 + CUSHION_RESTITUTION) * vn * nz;
       playClackSound(Math.min(Math.abs(vn) * 0.4, 0.5), 550);
     }
   }

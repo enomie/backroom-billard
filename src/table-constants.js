@@ -57,7 +57,8 @@ const SIDE_MOUTH = (0.127 + 0.130175) / 2;
 export const POCKET_R_CORNER = CORNER_MOUTH / 2;
 export const POCKET_R_SIDE = SIDE_MOUTH / 2;
 
-export const POCKET_CORNER_OFFSET_FACTOR = 0.35;
+/** 0 = Taschenmitte auf dem Schnittpunkt der Nasenlinien → Spitzenabstand ≈ 82 mm (Kugel 57 mm passt). */
+export const POCKET_CORNER_OFFSET_FACTOR = 0;
 export const POCKET_SIDE_OFFSET_FACTOR = 0.2;
 export const POCKET_OVERHANG_TOP = 0.02;
 export const POCKET_DEPTH_BOTTOM = 0.15;
