@@ -8,6 +8,7 @@ import {
   BALL_MASS_KG,
   LINEAR_DAMPING,
   ANGULAR_DAMPING,
+  GROUP_BALL,
 } from "./physics-constants.js";
 
 /**
@@ -32,7 +33,8 @@ export function createBallPhysics(RAPIER, world, position, ballRadius) {
     .setRestitution(BALL_RESTITUTION)
     .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Multiply)
     .setFriction(BALL_FRICTION)
-    .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average);
+    .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average)
+    .setCollisionGroups(GROUP_BALL);
 
   const collider = world.createCollider(colliderDesc, body);
 

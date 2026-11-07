@@ -28,3 +28,17 @@ export const CUP_FRICTION = 0.5;
 /** A ball counts as resting below these values (m/s center of mass, m/s surface speed from rotation). */
 export const REST_LINEAR_SPEED = 0.01;
 export const REST_SURFACE_SPEED = 0.02;
+
+/** Cue tip (leather/rubber with chalk): its front is a dome of this radius of curvature (m). */
+export const CUE_TIP_CURVATURE_RADIUS = 0.0095;
+export const CUE_TIP_FRICTION = 0.8;
+/** 0: the leather/rubber tip does not bounce; the ball leaves with the cue's speed (Rapier ignores small restitution anyway, so 0 keeps the power → speed mapping consistent). */
+export const CUE_TIP_RESTITUTION = 0;
+
+/**
+ * Collision groups (Rapier: membership in the high 16 bits, filter in the low 16 bits).
+ * The cue only collides with balls, never with the table, cushions or cups.
+ */
+export const GROUP_BALL = 0x0001ffff;
+export const GROUP_STATIC = 0x0004ffff;
+export const GROUP_CUE = 0x00020001;

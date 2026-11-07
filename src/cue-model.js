@@ -9,16 +9,22 @@ import * as THREE from "three";
 /** Total length of the cue (m); the parts below add up to this. */
 export const CUE_LENGTH = 1.45;
 
+/** Dimensions of the cue's front end, also used for the physical tip (physics-world.js). */
+export const CUE_TIP_RADIUS = 0.0062;
+export const CUE_FERRULE_RADIUS = 0.0064;
+export const CUE_TIP_LENGTH = 0.008;
+export const CUE_FERRULE_LENGTH = 0.026;
+
 /** All values in meters, measured from the tip. */
-const TIP_LENGTH = 0.008;
-const FERRULE_LENGTH = 0.026;
+const TIP_LENGTH = CUE_TIP_LENGTH;
+const FERRULE_LENGTH = CUE_FERRULE_LENGTH;
 const SHAFT_LENGTH = 0.75;
 const JOINT_LENGTH = 0.014;
 const BUTT_LENGTH = 0.64;
 const BUMPER_LENGTH = 0.012;
 
-const R_TIP = 0.0062;
-const R_FERRULE = 0.0064;
+const R_TIP = CUE_TIP_RADIUS;
+const R_FERRULE = CUE_FERRULE_RADIUS;
 const R_SHAFT_FRONT = 0.0066;
 const R_SHAFT_BACK = 0.0108; // pro taper towards the joint
 const R_JOINT = 0.0112;

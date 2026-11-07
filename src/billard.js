@@ -24,6 +24,16 @@ import {
   CUE_CARRY_DIRECTION,
   CUE_SWAY_AMPLITUDE,
   CUE_SWAY_SPEED,
+  CUE_AIM_GAP,
+  CUE_BACK_GAP_MIN,
+  CUE_BACK_GAP_MAX,
+  CUE_BACK_TIME_MIN,
+  CUE_BACK_TIME_MAX,
+  CUE_HOLD_TIME_MIN,
+  CUE_HOLD_TIME_MAX,
+  CUE_FOLLOW_DISTANCE,
+  CUE_STRIKE_RESTITUTION,
+  CUE_STROKE_SUBSTEPS,
 } from "./cue-constants.js";
 import {
   FREE_CAM_SPEED,
@@ -85,13 +95,14 @@ let isCueMoving = false;
 /** True from the shot until the table has come to rest; the cue and the camera stay behind. */
 let shotInProgress = false;
 let shotRestTimer = 0;
-let strikeStartDistance = 0; // how far the cue was pulled back when the shot was taken
-let cueTipDistance = 0; // tip distance for this frame (computed before the camera update)
+let cueGap = CUE_AIM_GAP; // gap between the cue tip and the ball surface for this frame
+/** Running cue stroke (draw back → hold → forward → follow → done), or null. */
+let stroke = null;
+let strokeContacted = false; // the tip has hit the ball; the follow-through timer may start
 let cueShotTime = 0; // seconds since the shot
 let cueRelax = 0; // 0 = aiming/strike pose, 1 = relaxed hold (linear; eased when applied)
 const heldCameraPosition = new THREE.Vector3();
 const heldCameraQuaternion = new THREE.Quaternion();
-let cueStrikeAnim = 0; // drives the cue strike animation
 let cueRespawnTimer = null; // timer for re-spotting the cue ball
 let lastShotTime = 0; // guard against double-triggered shots
 /** 15 object balls, all different; no. 8 stays black. The HUD uses the same colors. */
@@ -276,6 +287,8 @@ function setupBalls() {
   });
   balls = [];
   ballByCollider.clear();
+  stroke = null;
+  if (physics) physics.cue.collider.setEnabled(false);
   pendingRemoval.length = 0;
   clearPocketedHud();
   hideGameOver();
@@ -407,8 +420,8 @@ function updateCueRelax(dt) {
   if (cameraMode === "free") {
     cueRelax = Math.min(1, cueRelax + dt / CUE_RELAX_TIME);
   } else if (shotInProgress) {
-    cueShotTime += dt;
-    if (cueShotTime > CUE_FOLLOW_THROUGH_TIME) {
+    if (strokeContacted) cueShotTime += dt; // the follow-through starts at the contact
+    if (strokeContacted && cueShotTime > CUE_FOLLOW_THROUGH_TIME) {
       cueRelax = Math.min(1, cueRelax + dt / CUE_RELAX_TIME);
     }
   } else {
@@ -418,17 +431,20 @@ function updateCueRelax(dt) {
 
 /**
  * Place the cue (call after the camera has been updated for this frame).
- * Aiming/strike pose: tip `tipDistance` behind the ball center, butt rising behind it.
+ * Aiming/strike pose: tip `gap` in front of the ball surface, butt rising behind it.
  * Relaxed hold: the cue is carried in the lower right of the camera view, tip pointing diagonally
  * into the scene; the two poses are blended smoothly (position lerp, rotation slerp).
  */
-function poseCue(tipDistance) {
+function poseCue(gap) {
   const eased = cueRelax * cueRelax * (3 - 2 * cueRelax);
 
-  // Aiming pose in the pivot's local space (cue origin = tip, +z towards the player)
-  _cueEuler.set(-aimPitch, 0, 0);
+  // Aiming/strike pose in the pivot's local space (cue origin = tip, +z towards the player).
+  // The cue axis passes through the ball center: the tip sits `gap` away from the ball surface.
+  const pitch = stroke ? stroke.pitch : aimPitch;
+  _cueEuler.set(-pitch, 0, 0);
   _cueQuatAim.setFromEuler(_cueEuler);
-  cueStickMesh.position.set(0, 0.015 + aimPitch * 0.1, tipDistance);
+  const reach = BALL_R + gap;
+  cueStickMesh.position.set(0, Math.sin(pitch) * reach, Math.cos(pitch) * reach);
   cueStickMesh.quaternion.copy(_cueQuatAim);
   if (eased <= 0) return;
 
@@ -448,11 +464,6 @@ function poseCue(tipDistance) {
   cueStickMesh.quaternion.slerp(_cueQuatCarry, eased);
 }
 
-/** Distance from the ball center to the cue tip: grows with the selected power. */
-function pulledCueDistance() {
-  return BALL_R + 0.02 + selectedPower * 0.28;
-}
-
 function fireCueStrike() {
   if (gameState !== "playing" || cameraMode !== "fps") return; // the free camera only observes
   if (shotInProgress) return; // wait until the table is still
@@ -463,34 +474,116 @@ function fireCueStrike() {
   if (now - lastShotTime < 300) return;
   lastShotTime = now;
 
-  // Audible click
-  playClackSound(selectedPower * 0.8, 900);
-
-  // Gently balanced shot strength (realistic rolling instead of excess speed)
-  const impulseStrength = 0.8 + selectedPower * 3.4;
-  const dirX = -Math.sin(aimAngle);
-  const dirZ = -Math.cos(aimAngle);
-
-  // Impulse through the ball center (no spin); mass × velocity
-  const m = cueBall.body.mass();
-  cueBall.body.applyImpulse(
-    { x: dirX * impulseStrength * m, y: 0, z: dirZ * impulseStrength * m },
-    true
-  );
-
-  // Visual snap animation of the cue
-  cueStrikeAnim = 1.0;
-  strikeStartDistance = pulledCueDistance();
-  cueShotTime = 0;
+  startCueStroke();
 
   // The camera and the cue stay where they are until everything has come to rest
   shotInProgress = true;
   shotRestTimer = 0;
+  strokeContacted = false;
   heldCameraPosition.copy(camera.position);
   heldCameraQuaternion.copy(camera.quaternion);
+}
 
-  // Update the status UI
+/* Cue stroke: the cue is drawn back, pauses, snaps forward and HITS the ball physically
+   (kinematic cue tip body in Rapier, see physics-world.js); power decides how far, how long, how fast. */
+const smooth = (x) => x * x * (3 - 2 * x);
+const _strokeQuat = new THREE.Quaternion();
+const _strokeEuler = new THREE.Euler(0, 0, 0, "YXZ");
+
+function startCueStroke() {
+  const power = selectedPower;
+  const f = (power - 0.1) / 0.9; // 0 = weakest, 1 = strongest
+  const ballSpeed = 0.8 + power * 3.4; // gently balanced shot strength (m/s)
+  const vCue = ballSpeed / (1 + CUE_STRIKE_RESTITUTION);
+  const backGap = THREE.MathUtils.lerp(CUE_BACK_GAP_MIN, CUE_BACK_GAP_MAX, f);
+  const t = cueBall.body.translation();
+  stroke = {
+    phase: "back",
+    t: 0,
+    aimAngle,
+    pitch: aimPitch,
+    ballPos: { x: t.x, y: t.y, z: t.z },
+    backGap,
+    tBack: THREE.MathUtils.lerp(CUE_BACK_TIME_MIN, CUE_BACK_TIME_MAX, f),
+    tHold: THREE.MathUtils.lerp(CUE_HOLD_TIME_MIN, CUE_HOLD_TIME_MAX, f),
+    vCue,
+    ballSpeed,
+    tForward: (2 * backGap) / vCue, // quadratic ease-in: the end speed is exactly vCue
+    gap: CUE_AIM_GAP,
+  };
+}
+
+/** Advance the stroke by one physics step and move the kinematic cue tip body accordingly. */
+function advanceCueStroke(dt) {
+  if (!stroke || stroke.phase === "done") return;
+  const s = stroke;
+  s.t += dt;
+
+  if (s.phase === "back") {
+    const k = Math.min(1, s.t / s.tBack);
+    s.gap = THREE.MathUtils.lerp(CUE_AIM_GAP, s.backGap, smooth(k));
+    if (k >= 1) [s.phase, s.t] = ["hold", 0];
+  } else if (s.phase === "hold") {
+    s.gap = s.backGap;
+    if (s.t >= s.tHold) {
+      [s.phase, s.t] = ["forward", 0];
+      physics.cue.collider.setEnabled(true);
+    }
+  } else if (s.phase === "forward") {
+    const k = Math.min(1, s.t / s.tForward);
+    s.gap = s.backGap * (1 - k * k);
+    if (k >= 1) {
+      [s.phase, s.t] = ["follow", 0];
+      onCueContact();
+    }
+  } else if (s.phase === "follow") {
+    s.gap = -s.vCue * s.t;
+    if (s.gap <= -CUE_FOLLOW_DISTANCE) {
+      s.gap = -CUE_FOLLOW_DISTANCE;
+      s.phase = "done";
+      physics.cue.collider.setEnabled(false);
+      ensureBallWasHit(s);
+    }
+  }
+
+  // Tip pose: on the axis through the ball center, `gap` away from the ball surface
+  const cp = Math.cos(s.pitch);
+  const fx = -Math.sin(s.aimAngle) * cp;
+  const fy = -Math.sin(s.pitch);
+  const fz = -Math.cos(s.aimAngle) * cp;
+  const d = BALL_R + s.gap;
+  physics.cue.body.setNextKinematicTranslation({
+    x: s.ballPos.x - fx * d,
+    y: s.ballPos.y - fy * d,
+    z: s.ballPos.z - fz * d,
+  });
+  _strokeEuler.set(-s.pitch, s.aimAngle, 0);
+  _strokeQuat.setFromEuler(_strokeEuler);
+  physics.cue.body.setNextKinematicRotation(_strokeQuat);
+}
+
+/** The tip reaches the ball: sound, status, and the follow-through timer starts. */
+function onCueContact() {
+  playClackSound(selectedPower * 0.8, 900);
   updateStatusDisplay(true);
+  strokeContacted = true;
+  cueShotTime = 0;
+}
+
+/** Safety net: if the physical hit did not move the ball, give it the intended impulse. */
+function ensureBallWasHit(s) {
+  const v = cueBall.body.linvel();
+  if (Math.hypot(v.x, v.z) >= 0.3 * s.ballSpeed) return;
+  console.warn("[Backroom Billard] cue stroke did not move the ball, applying the impulse");
+  const m = cueBall.body.mass();
+  cueBall.body.applyImpulse(
+    {
+      x: -Math.sin(s.aimAngle) * s.ballSpeed * m,
+      y: 0,
+      z: -Math.cos(s.aimAngle) * s.ballSpeed * m,
+    },
+    true
+  );
 }
 
 function updateStatusDisplay(moving) {
@@ -909,17 +1002,26 @@ function stepPhysics(frameDt) {
   physicsAcc += frameDt;
   let steps = 0;
   while (physicsAcc >= PHYSICS_STEP && steps < 16) {
-    physics.world.step(physics.eventQueue);
-    physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
-      if (!started) return;
-      const pocketId = physics.cupFloors.get(h1) ?? physics.cupFloors.get(h2);
-      if (!pocketId) return;
-      const ball = ballByCollider.get(h1) ?? ballByCollider.get(h2);
-      if (ball) onBallPocketed(ball, pocketId);
-    });
+    // While the cue is snapping forward and hitting the ball, use finer sub-steps so the fast
+    // tip does not penetrate the ball (keeps the shot strength independent of the step phase)
+    const fine = stroke && (stroke.phase === "forward" || stroke.phase === "follow");
+    const sub = fine ? CUE_STROKE_SUBSTEPS : 1;
+    physics.world.timestep = PHYSICS_STEP / sub;
+    for (let i = 0; i < sub; i++) {
+      advanceCueStroke(PHYSICS_STEP / sub);
+      physics.world.step(physics.eventQueue);
+      physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
+        if (!started) return;
+        const pocketId = physics.cupFloors.get(h1) ?? physics.cupFloors.get(h2);
+        if (!pocketId) return;
+        const ball = ballByCollider.get(h1) ?? ballByCollider.get(h2);
+        if (ball) onBallPocketed(ball, pocketId);
+      });
+    }
     physicsAcc -= PHYSICS_STEP;
     steps++;
   }
+  physics.world.timestep = PHYSICS_STEP;
   if (steps === 16) physicsAcc = 0; // do not catch up after a long stall
 
   // Delete pocketed object balls from the cup
@@ -975,9 +1077,13 @@ function gameLoop(currentTime) {
 
   // The table is still for a moment → the cue camera may return to the shot position
   if (shotInProgress) {
-    if (!isCueMoving && cueBall && !cueBall.inPocket) {
+    const strokeFinished = !stroke || stroke.phase === "done";
+    if (strokeFinished && !isCueMoving && cueBall && !cueBall.inPocket) {
       shotRestTimer += dt;
-      if (shotRestTimer >= SHOT_REST_DELAY) shotInProgress = false;
+      if (shotRestTimer >= SHOT_REST_DELAY) {
+        shotInProgress = false;
+        stroke = null;
+      }
     } else {
       shotRestTimer = 0;
     }
@@ -992,15 +1098,8 @@ function gameLoop(currentTime) {
     }
     cueStickPivot.visible = true; // also visible with the free camera (carried)
 
-    // The cue pulls back in proportion to the selected power
-    let cueDist = pulledCueDistance();
-    if (shotInProgress) {
-      // The strike snaps forward to the ball, then the cue stays there
-      cueStrikeAnim = Math.max(0, cueStrikeAnim - dt * 6.5);
-      cueDist = THREE.MathUtils.lerp(strikeStartDistance, BALL_R + 0.001, 1 - cueStrikeAnim);
-    }
-
-    cueTipDistance = cueDist;
+    // Aiming: the tip rests close to the ball; during a shot the stroke animation drives the gap
+    cueGap = stroke ? stroke.gap : CUE_AIM_GAP;
 
     // Align the aim line with the ball
     if (aimLine) {
@@ -1039,7 +1138,7 @@ function gameLoop(currentTime) {
   // The cue is placed after the camera so a carried cue never lags behind it
   if (cueBall && cueStickPivot) {
     updateCueRelax(dt);
-    poseCue(cueTipDistance);
+    poseCue(cueGap);
   }
 
   renderer.render(scene, camera);
