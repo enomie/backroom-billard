@@ -18,6 +18,7 @@ Ursprung in der Tischmitte, Filzoberkante bei `y = TABLE_H` (0,85 m). Alle Maße
 | Holzrahmen | 110 mm |
 | Spielplatte (grün) | 5 mm dick |
 | Taschenbecher | beginnt direkt unter der Platte, Boden bei `TABLE_H − 0,15` |
+| Tischbeine | 4 Stück, **direkt unter den Eckbechern**, vom Boden bis **2 cm unter den Becherboden** (`LEG_CUP_GAP`), also 0,68 m hoch |
 
 ## Taschen
 

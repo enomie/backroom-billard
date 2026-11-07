@@ -6,6 +6,9 @@ import {
   CUSHION_PROFILE_FACE_RECESS,
   CUSHION_END_RECESS_CORNER,
   CUSHION_END_RECESS_SIDE,
+  LEG_CUP_GAP,
+  LEG_RADIUS_TOP,
+  LEG_RADIUS_BOTTOM,
 } from "./table-constants.js";
 
 /**
@@ -297,19 +300,20 @@ export function buildAuthenticTableWithHoles(
     }
   }
 
-  const outerInset = railThick;
-  const legGeo = new THREE.CylinderGeometry(0.075, 0.055, TABLE_H, 16);
-  [
-    [-hw - outerInset - 0.03, TABLE_H / 2, -hl - outerInset - 0.03],
-    [hw + outerInset + 0.03, TABLE_H / 2, -hl - outerInset - 0.03],
-    [-hw - outerInset - 0.03, TABLE_H / 2, hl + outerInset + 0.03],
-    [hw + outerInset + 0.03, TABLE_H / 2, hl + outerInset + 0.03],
-  ].forEach((pos) => {
-    const leg = new THREE.Mesh(legGeo, woodMat);
-    leg.position.set(pos[0], pos[1], pos[2]);
+  // Legs: one below each corner pocket cup, from the floor up to LEG_CUP_GAP below the cup bottom
+  const cornerCups = (pocketSpecs ?? []).filter((spec) => spec.id.startsWith("corner"));
+  for (const spec of cornerCups) {
+    const cup = pocketCupDims(spec, TABLE_H, feltDepth);
+    const legHeight = cup.yBottom - LEG_CUP_GAP;
+    const leg = new THREE.Mesh(
+      new THREE.CylinderGeometry(LEG_RADIUS_TOP, LEG_RADIUS_BOTTOM, legHeight, 24),
+      woodMat
+    );
+    leg.position.set(cup.cx, legHeight / 2, cup.cz);
     leg.castShadow = true;
+    leg.name = `table-leg-${spec.id}`;
     scene.add(leg);
-  });
+  }
 
   return colliderGeometries;
 }

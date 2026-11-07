@@ -59,3 +59,8 @@ export const POCKET_DEPTH_BOTTOM = 0.15;
  */
 export const CUSHION_END_RECESS_CORNER = 1.0;
 export const CUSHION_END_RECESS_SIDE = 0.25;
+
+/** Table legs stand directly below the corner pocket cups; air gap between cup bottom and leg top. */
+export const LEG_CUP_GAP = 0.02;
+export const LEG_RADIUS_TOP = 0.075;
+export const LEG_RADIUS_BOTTOM = 0.055;
