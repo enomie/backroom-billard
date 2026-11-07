@@ -86,7 +86,7 @@ function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, 
 }
 
 /**
- * Billiardtisch: Filz, 4× Bande, 4× Holz; optional CSG-Taschen aus `pocketSpecs`.
+ * Billardtisch: Filz, 4× Bande, 4× Holz; optional CSG-Taschen aus `pocketSpecs`.
  *
  * @param {THREE.Scene} scene
  * @param {{
@@ -314,6 +314,6 @@ export function buildAuthenticTableWithHoles(
   return colliderGeometries;
 }
 
-window.BilliardTableBlueprint = {
+window.BillardTableBlueprint = {
   buildAuthenticTableWithHoles,
 };

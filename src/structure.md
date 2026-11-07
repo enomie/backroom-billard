@@ -1,10 +1,10 @@
 # `src/` — Verzeichnisbaum
 
-_Automatisch erzeugt von `_Scripts/_BACKUP/backup.mjs` (2026-11-07T18:41:52.999Z)._
+_Automatisch erzeugt von `_Scripts/_BACKUP/backup.mjs` (2026-11-07T18:42:42.812Z)._
 
 ```
 src/
-├── billiard.js
+├── billard.js
 ├── csg-brush.js
 ├── entry.js
 ├── physics-constants.js

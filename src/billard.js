@@ -21,7 +21,7 @@ import {
 /** @type {typeof import("three")} */
 const THREE = window.THREE;
 if (!THREE) {
-  throw new Error("THREE fehlt — src/entry.js muss vor billiard.js laden.");
+  throw new Error("THREE fehlt — src/entry.js muss vor billard.js laden.");
 }
 
 /* ====================================================
@@ -134,7 +134,7 @@ function init() {
     feltDepth: FELT_BED_DEPTH,
   };
   const colliderGeometries =
-    window.BilliardTableBlueprint.buildAuthenticTableWithHoles(
+    window.BillardTableBlueprint.buildAuthenticTableWithHoles(
       scene,
       tableDims,
       { pocketSpecs }
@@ -142,7 +142,7 @@ function init() {
 
   // 2.5b Rapier-Welt aus genau dieser Geometrie
   if (!window.RAPIER) {
-    throw new Error("Rapier fehlt — src/entry.js muss window.RAPIER vor billiard.js setzen.");
+    throw new Error("Rapier fehlt — src/entry.js muss window.RAPIER vor billard.js setzen.");
   }
   physics = createPhysicsWorld(
     window.RAPIER,
@@ -630,7 +630,7 @@ function onBallPocketed(b, pocketId) {
   if (b.inPocket) return;
   b.inPocket = true;
   console.info(
-    `[Billiard] Kugel ${b.id} versenkt in ${pocketId} (Aufprall Becherboden, y=${b.pos.y.toFixed(3)})`
+    `[Backroom Billard] Kugel ${b.id} versenkt in ${pocketId} (Aufprall Becherboden, y=${b.pos.y.toFixed(3)})`
   );
 
   if (b.isCue) {
@@ -673,7 +673,7 @@ function stepPhysics(frameDt) {
 
     // Streuner (aus dem Tisch gesprungen) zurück auf den Tisch
     if (!b.inPocket && (Math.abs(b.pos.x) > 1.2 || Math.abs(b.pos.z) > 1.8 || b.pos.y < 0.5)) {
-      console.warn("[Billiard] Kugel außerhalb des Tisches, wird zurückgesetzt", b.id);
+      console.warn("[Backroom Billard] Kugel außerhalb des Tisches, wird zurückgesetzt", b.id);
       const spot = findFreeCueSpot();
       b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
       b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);

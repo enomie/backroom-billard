@@ -1,4 +1,4 @@
-# Billiard — Le Salon Noir
+# Backroom Billard
 
 3D-Billard im Browser (Three.js + Rapier): First-Person-Queue zum Zielen, echter 9-Fuß-Tisch, Kugeln mit Schwerkraft, die selbst ins Loch fallen.
 
@@ -25,7 +25,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Datei (`src/`) | Rolle |
 |----------------|-------|
 | `entry.js` | Einstieg: lädt Three.js, Rapier, dann die Spielmodule |
-| `billiard.js` | Szene, Kugeln, Steuerung, Kamera, Spielschleife |
+| `billard.js` | Szene, Kugeln, Steuerung, Kamera, Spielschleife |
 | `table-constants.js` | Alle Tischmaße (WPA 9 Fuß) |
 | `table-blueprint.js` | Tisch bauen: Platte, Banden, Holz, Becher |
 | `pocket-spec.js` | Taschen-Maße, Bandenspitzen, Becher-Maße |
