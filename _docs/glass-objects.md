@@ -23,7 +23,7 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 
 - **Code:** `src/glasses.js`, Werte in `src/glasses-constants.js`.
 - **Form:** Beide sind Drehkörper aus Formeln. Das Weinglas hat einen tulpenförmigen Kelch (Radius per Sinus-Kurve), dünnen Stiel und flachen Fuß; das Bierglas ist leicht kegelförmig mit dickem Boden. Wein und Bier sind eigene, etwas kleinere Körper in der Innenform; der Schaum ist ein Körper darüber.
-- **Glas:** fast durchsichtig mit Spiegelung des Raums (Aufnahme aus `ball-reflection.js`), ohne Schatten. Das Bier schimmert durch (leicht selbstleuchtend).
+- **Glas:** fast durchsichtig mit Spiegelung des Raums (Aufnahme aus `ball-reflection.js`), ohne Schatten. Damit es glänzt, behalten Glanzlichter und Spiegelung ihre volle Stärke, auch wenn das Material durchsichtig ist (`clearGlass` in `applyBallReflection`; normale Transparenz würde sie mit dem Körper ausblenden). Das Bier ist so durchsichtig wie das Glas (Alpha 0,5, goldfarben, leicht selbstleuchtend); Wein ist etwas dichter (rot 0,8, weiß 0,5). Der Schaum bleibt deckend. Dasselbe gilt für den Aschenbecher.
 - **Tische:** Pro Tisch zufällig 0–2 Gläser (feste Startwerte), je zu 45 % Wein (davon 70 % rot), sonst Bier. Sie stehen 12–28 cm von der Mitte entfernt und halten Abstand zu Kerze, Aschenbecher und zueinander.
 - **Billardtisch:** Je Spieler ein zufälliges Getränk auf dem Holzrahmen der linken Längsseite, neben dem Aschenbecher.
 

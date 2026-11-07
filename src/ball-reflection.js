@@ -52,11 +52,14 @@ const vec3 = (a) => `vec3(${a.map((v) => v.toFixed(4)).join(", ")})`;
  * (the environment adds no diffuse light, so the balls do not get brighter).
  * @param {THREE.MeshPhysicalMaterial} material
  * @param {{ texture: THREE.Texture, center: THREE.Vector3 }} reflection
+ * @param {{ clearGlass?: boolean }} [options] — clearGlass: for see-through materials, keep the
+ *   highlights and reflections at full strength (normal transparency would fade them with the
+ *   body, and the glass would look matt)
  */
-export function applyBallReflection(material, reflection) {
+export function applyBallReflection(material, reflection, { clearGlass = false } = {}) {
   material.envMap = reflection.texture;
   material.envMapIntensity = BALL_REFLECTION_INTENSITY;
-  material.customProgramCacheKey = () => "ball-reflection";
+  material.customProgramCacheKey = () => (clearGlass ? "ball-reflection-glass" : "ball-reflection");
   material.needsUpdate = true; // recompile if the material was already used
   material.onBeforeCompile = (shader) => {
     const proxy = `
@@ -84,5 +87,25 @@ export function applyBallReflection(material, reflection) {
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <envmap_physical_pars_fragment>", proxy + radianceChunk)
       .replace("#include <lights_fragment_maps>", mapsChunk);
+    if (clearGlass) {
+      // alpha = body alpha + specular, and the color is chosen so that the blend adds the
+      // specular part completely: final = body * alpha0 + specular
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <opaque_fragment>",
+        `
+        {
+          vec3 glossLight = totalSpecular;
+          #ifdef USE_CLEARCOAT
+            glossLight += ( clearcoatSpecularDirect + clearcoatSpecularIndirect ) * material.clearcoat;
+          #endif
+          float glossAlpha = max( glossLight.r, max( glossLight.g, glossLight.b ) );
+          float bodyAlpha = diffuseColor.a;
+          float alpha = clamp( bodyAlpha + glossAlpha, 0.0, 1.0 );
+          outgoingLight = ( max( outgoingLight - glossLight, vec3( 0.0 ) ) * bodyAlpha + glossLight ) / max( alpha, 0.001 );
+          diffuseColor.a = alpha;
+        }
+        #include <opaque_fragment>`
+      );
+    }
   };
 }

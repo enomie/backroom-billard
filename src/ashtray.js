@@ -77,7 +77,6 @@ export function createAshtrays(scene) {
     clearcoatRoughness: 0.02,
     depthWrite: false,
   });
-  mat.envMapIntensity = 2.5; // transparency dims the reflection
 
   const taken = []; // the ashtrays on the round tables
   const place = (x, y, z, scale = 1) => {
@@ -110,8 +109,8 @@ export function createAshtrays(scene) {
     taken,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
-      applyBallReflection(mat, reflection);
-      mat.envMapIntensity = 2.5; // applyBallReflection resets the intensity
+      applyBallReflection(mat, reflection, { clearGlass: true });
+      mat.envMapIntensity = 1.6;
     },
   };
 }

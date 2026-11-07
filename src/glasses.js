@@ -139,9 +139,9 @@ export function createGlasses(scene, taken) {
   const liquid = (color, opacity, roughness = 0.1) =>
     new THREE.MeshPhysicalMaterial({ color, transparent: opacity < 1, opacity, roughness, clearcoat: 0.6, clearcoatRoughness: 0.1 });
   const mats = {
-    red: liquid(WINE_COLOR_RED, 0.93),
-    white: liquid(WINE_COLOR_WHITE, 0.85),
-    beer: liquid(BEER_COLOR, 0.88),
+    red: liquid(WINE_COLOR_RED, 0.8),
+    white: liquid(WINE_COLOR_WHITE, 0.5),
+    beer: liquid(BEER_COLOR, 0.5),
     foam: liquid(BEER_FOAM_COLOR, 1, 0.9),
   };
 
@@ -208,8 +208,10 @@ export function createGlasses(scene, taken) {
     group,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
-      applyBallReflection(glassMat, reflection);
-      glassMat.envMapIntensity = 3; // transparency dims the reflection
+      for (const m of [glassMat, mats.red, mats.white, mats.beer]) {
+        applyBallReflection(m, reflection, { clearGlass: true }); // the drinks are glossy and see-through too
+        m.envMapIntensity = 1.6;
+      }
     },
   };
 }
