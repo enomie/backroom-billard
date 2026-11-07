@@ -1,6 +1,6 @@
 # Glas und Tischdeko
 
-> **Status:** Der **Kerzenhalter** ist umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
+> **Status:** **Kerzenhalter** und **Aschenbecher** sind umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
 
 Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinteile. Sie müssen **wie Glas aussehen** und in der **Größe stimmen**; die Form darf einfach sein und wird **per Formel berechnet**, ohne externe Modelle.
 
@@ -11,12 +11,20 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 - **Flackern:** Die Flamme streckt sich und wiegt sich, der Schein (weicher Lichtfleck) und das Licht schwanken unregelmäßig (überlagerte Sinus-Wellen).
 - **Licht:** Alle Flammen leuchten. **Echtes Licht** (Punktlicht, schwach, 2,5 m Reichweite, ohne Schatten) bekommen nur die **3 Kerzen, die der Kamera am nächsten sind**; beim Wechsel blendet das Licht aus und an der neuen Kerze wieder ein (`CANDLE_REAL_LIGHTS`, `CANDLE_LIGHT_*`). So bleibt die Zahl der Lichter im Raum klein.
 
+## Aschenbecher (umgesetzt)
+
+- **Code:** `src/ashtray.js`, Werte in `src/ashtray-constants.js`.
+- **Form:** Ein dickes Glasschälchen als Drehkörper mit breitem, flachem Rand. Der Rand ist an 5 gleich verteilten Stellen ausgerundet abgesenkt (Kerben, 8 mm tief).
+- **Glas:** leicht grünlich, größtenteils durchsichtig, mit Klarlack-Glanz und Spiegelung des Raums (Aufnahme aus `ball-reflection.js`). Es wirft keinen Schatten.
+- **Tische:** Etwa zwei Drittel der runden Tische haben einen (zufällig, fester Startwert), 25 cm von der Mitte entfernt, damit er neben der Kerze steht.
+- **Billardtisch:** Zwei Aschenbecher (je Spieler einer) auf dem Holzrahmen der linken Längsseite, zwischen der letzten Raute und der Ecktasche. Sie sind auf 65 % verkleinert (Ø 9 cm), weil der Rahmen nur 11 cm breit ist.
+
 ## Die Objekte
 
 | Objekt | Größe (ca.) | Inhalt / Besonderheit |
 |--------|-------------|------------------------|
 | **Kerzenhalter** | Schale Ø 13 cm, Röhre 6 cm hoch | **Umgesetzt.** Dunkelrote Glasur (Schale mit Rand, Röhre für die Kerze, kleine Kugel an der Seite), **weiße Wachskerze** Ø 3 cm, 13 cm hoch, mit Flamme und flackerndem Schein. Steht **auf jedem Tisch**, ungefähr in der Mitte (zufällig bis 12 cm daneben, fester Startwert). |
-| **Aschenbecher** | Ø 14 cm, 3 cm hoch | Glas, am Rand **5 Kerben** für Zigaretten. |
+| **Aschenbecher** | Ø 14 cm, 3 cm hoch | **Umgesetzt.** Schweres Glas, am Rand **5 Kerben** für Zigaretten. |
 | **Weinglas** | 20 cm hoch, Kelch Ø 8 cm | Stiel und Fuß, ca. ein Drittel mit Wein gefüllt (rot oder weiß). |
 | **Bierglas** | 15 cm hoch, oben Ø 7 cm | Goldenes Bier mit **Schaumkrone** (ca. 2 cm). |
 | **Weinflasche** | 30 cm hoch, Ø 7,5 cm | Dunkelgrünes Glas, Etikett, Hals. |
@@ -55,7 +63,7 @@ Alle Maße sind Parameter (eigene `*-constants.js`, wie bei den Möbeln), nichts
 ## Am Billardtisch
 
 - Auf dem **Holzrahmen** stehen je Spieler **ein Aschenbecher und ein Glas** (zufälliges Getränk). Bei zwei Spielern also **2 Aschenbecher und 2 Gläser**.
-- **Platz:** Der Rahmen ist nur **11 cm breit** (`RAIL_WOOD_DEPTH`). Ein Aschenbecher mit Ø 14 cm passt nicht; hier einen **kleineren** (Ø ≤ 10 cm) nehmen. Das Glas (Ø 7 cm) passt.
+- **Platz:** Der Rahmen ist nur **11 cm breit** (`RAIL_WOOD_DEPTH`). Ein Aschenbecher mit Ø 14 cm passt nicht; der Aschenbecher dort ist kleiner (Ø 9 cm, umgesetzt). Das Glas (Ø 7 cm) passt.
 - **Stelle:** neben einer Tasche oder an einer Ecke, nicht auf den Diamanten und nicht zu nah an der Bande, damit sie beim Spiel nicht im Weg stehen (Kamera und Cue-Ansicht).
 - Wer „Spieler 1 und 2“ ist und an welcher Seite sie stehen, kommt mit den Rollen aus [`game-concept.md`](game-concept.md). Bis dahin: feste Plätze auf der linken Längsseite.
 
