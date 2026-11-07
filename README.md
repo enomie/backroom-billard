@@ -66,6 +66,8 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 - [`_docs/sound.md`](_docs/sound.md) — Klänge: Stoß, Kugeln, Bande, Rollen, Becher
 - [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen, Vorschnalzen und physischer Cue-Spitze
 - [`_docs/radio.md`](_docs/radio.md) — Radio auf dem Sideboard mit Display, Stream und Stereo-Lautsprechern
+- [`_docs/glass-objects.md`](_docs/glass-objects.md) — Konzept: Gläser, Flaschen, Aschenbecher, Kerzenhalter (noch nicht umgesetzt)
+- [`_docs/cigarettes.md`](_docs/cigarettes.md) — Konzept: Zigaretten, Schachtel und Rauch-Shader (noch nicht umgesetzt)
 - [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
 
 ## Backup
