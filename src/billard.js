@@ -77,6 +77,8 @@ const BALL_COLORS = [
 /** "playing" | "won" | "lost" — die schwarze 8 muss als letzte Kugel versenkt werden */
 let gameState = "playing";
 const BLACK_BALL_ID = 8;
+/** Kugelnummern in Reihenfolge der Dreiecks-Positionen; die 8 sitzt in der Mitte der dritten Reihe. */
+const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 
 /** @type {typeof balls} versenkte Kugeln, die nach dem Physikschritt gelöscht werden */
 const pendingRemoval = [];
@@ -347,7 +349,8 @@ function setupBalls() {
     for (let c = 0; c < count; c++) {
       const px = startX + c * (BALL_R * 2.04);
       const pz = startZ - r * rowGap;
-      createBall(px, pz, BALL_COLORS[idx], false, idx + 1);
+      const number = RACK_ORDER[idx];
+      createBall(px, pz, BALL_COLORS[number - 1], false, number);
       idx++;
     }
   }
