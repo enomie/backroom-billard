@@ -14,6 +14,10 @@ import {
   SKIRT_THICKNESS,
   SKIRT_HEIGHT,
   RAIL_EDGE_RADIUS,
+  DIAMOND_LENGTH,
+  DIAMOND_WIDTH,
+  DIAMOND_HEIGHT,
+  DIAMONDS_PER_SPAN,
 } from "./table-constants.js";
 
 /**
@@ -323,6 +327,50 @@ export function buildAuthenticTableWithHoles(
   }
   for (const sz of [-1, 1]) {
     addSkirt(2 * (outerX - SKIRT_THICKNESS), SKIRT_THICKNESS, 0, sz * (outerZ - SKIRT_THICKNESS / 2));
+  }
+
+  // Diamonds: mother-of-pearl rhombi on top of the frame, dividing each span between two
+  // neighbouring pockets evenly (long sides: corner–side–corner, short sides: corner–corner)
+  const diamondShape = new THREE.Shape();
+  diamondShape.moveTo(-DIAMOND_LENGTH / 2, 0);
+  diamondShape.lineTo(0, DIAMOND_WIDTH / 2);
+  diamondShape.lineTo(DIAMOND_LENGTH / 2, 0);
+  diamondShape.lineTo(0, -DIAMOND_WIDTH / 2);
+  diamondShape.closePath();
+  const diamondGeo = new THREE.ExtrudeGeometry(diamondShape, {
+    depth: DIAMOND_HEIGHT,
+    bevelEnabled: true,
+    bevelSize: 0.0006,
+    bevelThickness: 0.0006,
+    bevelSegments: 1,
+  });
+  diamondGeo.rotateX(-Math.PI / 2);
+  const pearlMat = new THREE.MeshPhysicalMaterial({
+    color: 0xf3ece4,
+    roughness: 0.25,
+    clearcoat: 1,
+    clearcoatRoughness: 0.1,
+    iridescence: 1,
+    iridescenceIOR: 1.6,
+    sheen: 1,
+    sheenColor: new THREE.Color(0xd9e6ff),
+  });
+  const diamondTop = TABLE_H + railH + 0.01;
+  const addDiamonds = (fixed, from, to, alongX) => {
+    for (let i = 1; i <= DIAMONDS_PER_SPAN; i++) {
+      const pos = from + ((to - from) * i) / (DIAMONDS_PER_SPAN + 1);
+      const d = new THREE.Mesh(diamondGeo, pearlMat);
+      d.position.set(alongX ? pos : fixed, diamondTop, alongX ? fixed : pos);
+      if (!alongX) d.rotation.y = Math.PI / 2;
+      d.name = "table-diamond";
+      scene.add(d);
+    }
+  };
+  for (const side of [-1, 1]) {
+    const mid = side * (hw + railThick / 2); // middle of the frame width
+    addDiamonds(mid, -hl, 0, false);
+    addDiamonds(mid, 0, hl, false);
+    addDiamonds(side * (hl + railThick / 2), -hw, hw, true);
   }
 
   // Legs: one below each corner pocket cup, from the floor up to LEG_CUP_GAP below the cup bottom

@@ -18,6 +18,7 @@ Ursprung in der Tischmitte, Filzoberkante bei `y = TABLE_H` (0,85 m). Alle Maße
 | Holzrahmen | 110 mm, **Kanten abgerundet** (`RAIL_EDGE_RADIUS` 12 mm), dunkles Mahagoni mit Klarlack-Glanz (`wood.js`, gilt auch für Zargen und Beine) |
 | Spielplatte (grün) | 5 mm dick |
 | Taschenbecher | beginnt direkt unter der Platte, Boden bei `TABLE_H − 0,15` |
+| Diamanten | Perlmutt-Rauten (26 × 15 mm, `DIAMOND_*`) auf dem Holzrahmen, **3 zwischen je zwei benachbarten Taschen** (lange Seiten 2 × 3, kurze Seiten 3). Nur Optik, ohne Physik. |
 | Zargen (Bretter rundherum) | **2 cm dick, 40 cm hoch** (`SKIRT_THICKNESS`, `SKIRT_HEIGHT`), bündig mit der Außenkante des Holzrahmens, Oberkante an der Unterkante des Rahmens (y = 0,85 m). Verdecken die Taschenbecher von außen. |
 | Tischbeine | 4 Stück, **direkt unter den Eckbechern**, vom Boden bis **2 cm unter den Becherboden** (`LEG_CUP_GAP`), also 0,68 m hoch |
 

@@ -37,6 +37,12 @@ export const RAIL_WOOD_DEPTH = 0.11;
 /** Rounding of the wooden frame's edges. */
 export const RAIL_EDGE_RADIUS = 0.012;
 
+/** Sight marks ("diamonds") on the frame: mother-of-pearl rhombi, 3 between neighbouring pockets. */
+export const DIAMOND_LENGTH = 0.026; // along the rail
+export const DIAMOND_WIDTH = 0.015;
+export const DIAMOND_HEIGHT = 0.0018;
+export const DIAMONDS_PER_SPAN = 3;
+
 /** Green playing plate (felt on a carrier): 5 mm thick; the pocket cup starts below it. */
 export const FELT_BED_DEPTH = 0.005;
 
