@@ -52,13 +52,15 @@ export const COLLISION_MAX_SPEED = 4.5;
 /** Two balls count as touching when their surfaces are closer than this (m). */
 export const BALL_TOUCH_DISTANCE = 0.0015;
 /** Bright, hard "klack" of phenolic balls. */
-export const BALL_HIT_SECONDS = 0.12;
+export const BALL_HIT_SECONDS = 0.28;
 export const BALL_HIT_STAGES = 5;
 export const BALL_HIT_VARIANTS = 4;
 export const BALL_HIT_GAIN_MIN = 0.06;
 export const BALL_HIT_GAIN_MAX = 0.7;
-/** Pitch of the klack: all body modes are scaled by this (1 = default, 0.8 = deeper, 1.2 = brighter). */
-export const BALL_HIT_PITCH = 1;
+/** The tone that fades out after the klack: pitch (Hz) and decay time (s), longer for harder hits. */
+export const BALL_HIT_RING_HZ = 2750;
+export const BALL_HIT_RING_DECAY_MIN = 0.012;
+export const BALL_HIT_RING_DECAY_MAX = 0.05;
 /** Duller "thump" of a ball on the rubber cushion. */
 export const CUSHION_HIT_SECONDS = 0.22;
 export const CUSHION_HIT_STAGES = 4;

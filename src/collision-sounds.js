@@ -10,7 +10,9 @@ import {
   BALL_HIT_VARIANTS,
   BALL_HIT_GAIN_MIN,
   BALL_HIT_GAIN_MAX,
-  BALL_HIT_PITCH,
+  BALL_HIT_RING_HZ,
+  BALL_HIT_RING_DECAY_MIN,
+  BALL_HIT_RING_DECAY_MAX,
   CUSHION_HIT_SECONDS,
   CUSHION_HIT_STAGES,
   CUSHION_HIT_VARIANTS,
@@ -37,48 +39,33 @@ function ring(sampleRate, seconds, modes, clickGain, clickHz, clickDecay) {
 const detune = () => 1 + (Math.random() - 0.5) * 0.06; // every variant rings slightly differently
 
 /**
- * The "klack" of two phenolic balls. Contact is a very short Hertz pulse (a fraction of a
- * millisecond, shorter for harder hits); it excites a few woody, inharmonic body modes between
- * about 0.5 and 4 kHz. The pulse length limits the high end by itself (a longer pulse = fewer
- * highs), so there is no noise burst and no clipping: the sound is a dry "tock", not a whip crack.
+ * The "klack" of two phenolic balls: first a crisp, dry click (the contact), then a tone around
+ * BALL_HIT_RING_HZ that fades out — the harder the hit, the longer it rings.
  */
 function synthBallHit(sampleRate, stage) {
   const hard = stage / Math.max(1, BALL_HIT_STAGES - 1); // 0 soft … 1 hard
   const n = Math.floor(BALL_HIT_SECONDS * sampleRate);
   const out = new Float32Array(n);
-  const contact = 0.00016 - 0.00007 * hard; // contact time (s)
-  const spread = 1 + (Math.random() - 0.5) * 0.1; // every variant is a slightly different ball pair
-  // Spectrum of a half-sine pulse: how strongly the pulse excites a mode of frequency f
-  const excite = (f) => {
-    const x = 2 * f * contact;
-    return Math.abs(Math.abs(x - 1) < 1e-3 ? Math.PI / 4 : Math.cos(Math.PI * x / 2) / (1 - x * x));
-  };
-  // [Hz, amplitude, decay seconds]
+  const contact = 0.00016 - 0.00005 * hard; // length of the click pulse (s)
+  const ringHz = BALL_HIT_RING_HZ * (1 + (Math.random() - 0.5) * 0.06);
+  const ringTau = lerp(BALL_HIT_RING_DECAY_MIN, BALL_HIT_RING_DECAY_MAX, hard);
+  // [Hz, amplitude, decay seconds]: the ringing tone (a split pair, so it shimmers a little)
+  // plus a short woody body underneath
   const modes = [
-    [520 * detune(), 0.3, 0.02], // knock
-    [1200 * spread, 0.6, 0.015],
-    [2000 * spread, 1.0, 0.011],
-    [3000 * spread, 0.7, 0.0075],
-    [4200 * spread, 0.3, 0.0045],
-  ].map(([f, a, tau]) => ({
-    f: f * BALL_HIT_PITCH,
-    a: a * excite(f),
-    tau,
-    split: 1 + 0.006 + Math.random() * 0.012, // split pair: beats like a real ball
-    phase: Math.random() * 0.6,
-  }));
-  let low = 0; // gentle lowpass over everything (~9 kHz): nothing harsh
-  const k = 1 - Math.exp((-2 * Math.PI * 9000) / sampleRate);
+    [ringHz, 1.0, ringTau],
+    [ringHz * (1.007 + Math.random() * 0.01), 0.7, ringTau * 0.9],
+    [1250 * detune(), 0.35, 0.012],
+    [520 * detune(), 0.2, 0.018],
+  ];
+  const click = bandpass(sampleRate, 1.2);
   for (let i = 0; i < n; i++) {
     const t = i / sampleRate;
-    let v = t < contact ? 1.6 * Math.sin((Math.PI * t) / contact) : 0; // the contact pulse itself
-    for (const m of modes) {
-      v += m.a * (Math.sin(2 * Math.PI * m.f * t + m.phase) + 0.7 * Math.sin(2 * Math.PI * m.f * m.split * t)) * Math.exp(-t / m.tau);
-    }
-    low += k * (v - low);
-    out[i] = low;
+    let v = t < contact ? 2.2 * Math.sin((Math.PI * t) / contact) : 0; // the contact pulse
+    v += 0.9 * click(Math.random() * 2 - 1, 3200) * Math.exp(-t / 0.0006); // dry crack of the contact
+    for (const [f, a, tau] of modes) v += a * Math.sin(2 * Math.PI * f * t) * Math.exp(-t / tau);
+    out[i] = v;
   }
-  return finish(out, sampleRate, 0.9, 0.0002);
+  return finish(out, sampleRate, 0.9, 0.00005);
 }
 
 /** Duller and longer: ball on rubber over wood, low-mid thump, muffled click. */
