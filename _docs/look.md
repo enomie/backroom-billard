@@ -1,6 +1,6 @@
 # Optik — 80er-Backroom
 
-> **Status:** Die **drei Deckenleuchten sind umgesetzt** (`src/ceiling-lamps.js`, Parameter in `src/room-constants.js`). **Raum und Nebel sind noch Vorgaben**, nicht umgesetzt. Umgesetzt wird erst, wenn es ausdrücklich beauftragt wird.
+> **Status:** **Raum, Nebel und die drei Deckenleuchten sind umgesetzt** (`src/room.js`, `src/ceiling-lamps.js`, alle Parameter in `src/room-constants.js`). Offene Punkte stehen unten.
 
 Das Spiel spielt in den **80ern** in einem verrauchten, schummrigen Billardcafé. Die Optik soll genau das transportieren: wenig Licht, Rauch in der Luft, ein heller Tisch im Dunkeln.
 
@@ -10,14 +10,14 @@ Ein geschlossener Raum mit **Boden, 4 Wänden und Decke**, proportional zum Tisc
 
 | Teil | Vorgabe |
 |------|---------|
-| Länge (lange Tischseite) | ca. **10 m** (Richtung der Tischlänge) |
-| Breite | proportional zum Tisch (Tisch 1 : 2 → ca. 5 m), noch zu bestätigen |
-| Höhe | **4,50 m** |
-| Boden | **Teppich** |
-| Decke | **Holz** |
-| Wände | noch offen |
+| Länge (lange Tischseite) | **10 m** (`ROOM_LENGTH`, Richtung der Tischlänge) |
+| Breite | **5 m** (`ROOM_WIDTH`, proportional zum Tisch 1 : 2) |
+| Höhe | **4,50 m** (`ROOM_HEIGHT`) |
+| Boden | **Teppich**, dunkles Weinrot, mit feinem Rauschmuster |
+| Decke | **Holz**, Bretter längs |
+| Wände | **Creme-Gelb** („verrauchtes Weiß“), nach oben hin dunkler (Rauch sammelt sich an der Decke) |
 
-Maße sollen im Code als Parameter einstellbar sein.
+Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera bleibt im Raum.
 
 ## Deckenleuchten
 
@@ -38,12 +38,12 @@ Maße sollen im Code als Parameter einstellbar sein.
 
 ## Nebel / Rauch
 
-- **Linearer Nebel von 1 m bis 12 m**: Ab 1 m beginnt er, bei 12 m ist alles komplett im Dunst.
-- **Rauchfarben** (warmes, bräunliches Grau), der Raum soll **wirklich schummrig** wirken.
-- Hinweis: Aktuell nutzt die Szene exponentiellen Nebel (`FogExp2`); die Vorgabe meint einen linearen Nebel mit Anfang und Ende.
+- **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist alles komplett im Dunst.
+- **Rauchfarben** (`FOG_COLOR`, warmes, bräunliches Grau), der Raum soll **wirklich schummrig** wirken.
+- Damit die Wände im Dunkeln lesbar bleiben, gibt es ein schwaches warmes Umgebungslicht (`ROOM_AMBIENT_*`).
 
 ## Offene Punkte
 
-- Wandmaterial und Dekoration (Poster, Tapete, Holz?).
-- Genaue Rauchfarbe und ob zusätzlich Rauchschwaden im Lichtkegel sichtbar sein sollen.
+- Wanddekoration (Poster, Tapete, Leisten, Fenster, Tür).
+- Ob zusätzlich Rauchschwaden im Lichtkegel sichtbar sein sollen.
 - Abstand der Leuchten zueinander.

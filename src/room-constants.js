@@ -10,7 +10,7 @@ export const FREE_CAM_LOOK_SENSITIVITY = 0.0025;
  * Default pose of the free (observer) camera when it is first activated with C:
  * a side view on the table and the lamps — deliberately NOT the active player's view.
  */
-export const FREE_CAM_START_POSITION = [3.2, 2.1, 3.0];
+export const FREE_CAM_START_POSITION = [2.1, 2.1, 3.0];
 export const FREE_CAM_START_TARGET = [0, 1.7, 0];
 /** The free camera cannot go below this height (keeps it above the floor). */
 export const FREE_CAM_MIN_Y = 0.15;
@@ -45,3 +45,29 @@ export const LAMP_LIGHT_DECAY = 1.4;
 export const LAMP_LIGHT_DISTANCE = 6;
 export const LAMP_SHADOW_MAP_SIZE = 1024;
 export const LAMP_SHADOW_RADIUS = 4; // soft shadow edge
+
+/* ---- Room (see _docs/look.md) ---------------------------------------------------------
+ * Origin = table center, floor at y = 0. Length runs along the table length (z),
+ * width along x. */
+export const ROOM_LENGTH = 10;
+export const ROOM_WIDTH = 5;
+export const ROOM_HEIGHT = 4.5;
+
+/** Carpet floor (dark wine red), wooden ceiling, walls in cream yellow ("smoke-stained white"). */
+export const ROOM_COLOR_CARPET = 0x5a2226;
+export const ROOM_COLOR_WALL = 0xdccb94;
+/** Walls get darker/browner towards the ceiling (smoke collects there); 0 = none, 1 = strong. */
+export const ROOM_WALL_SMOKE_GRADIENT = 0.35;
+export const ROOM_COLOR_CEILING_WOOD = 0x6b4426;
+
+/** Linear fog in smoke color: starts at FOG_NEAR, completely opaque at FOG_FAR. */
+export const FOG_COLOR = 0x3d372f;
+export const FOG_NEAR = 1;
+export const FOG_FAR = 12;
+
+/** Weak warm ambient light so the cream walls stay readable in the dim room. */
+export const ROOM_AMBIENT_COLOR = 0xa89c80;
+export const ROOM_AMBIENT_INTENSITY = 2.0;
+
+/** The free camera stays inside the room, this far away from the walls/ceiling. */
+export const FREE_CAM_ROOM_MARGIN = 0.2;

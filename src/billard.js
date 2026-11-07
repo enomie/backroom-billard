@@ -13,12 +13,19 @@ import {
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
+import { createRoom } from "./room.js";
 import {
   FREE_CAM_SPEED,
   FREE_CAM_LOOK_SENSITIVITY,
   FREE_CAM_MIN_Y,
   FREE_CAM_START_POSITION,
   FREE_CAM_START_TARGET,
+  FREE_CAM_ROOM_MARGIN,
+  ROOM_LENGTH,
+  ROOM_WIDTH,
+  ROOM_HEIGHT,
+  ROOM_AMBIENT_COLOR,
+  ROOM_AMBIENT_INTENSITY,
 } from "./room-constants.js";
 import { t, onLanguageChange } from "./i18n/index.js";
 import {
@@ -131,8 +138,7 @@ function init() {
 
   // 2.1 Scene & fog (backroom atmosphere without distracting dust/snow)
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x06070a);
-  scene.fog = new THREE.FogExp2(0x06070a, 0.07);
+  // (background and linear smoke fog are set up in createRoom)
 
   // 2.2 Camera
   camera = new THREE.PerspectiveCamera(
@@ -222,20 +228,14 @@ function snapFpsCamera() {
 
 function setupLightingAndRoom() {
   // Weak, dimmed ambient light
-  const ambLight = new THREE.AmbientLight(0x111622, 0.4);
+  const ambLight = new THREE.AmbientLight(ROOM_AMBIENT_COLOR, ROOM_AMBIENT_INTENSITY);
   scene.add(ambLight);
 
   // Three identical ceiling lamps above the table (parameters: room-constants.js)
   createCeilingLamps(scene, TABLE_H);
 
-  // Dark backroom floor
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(16, 16),
-    new THREE.MeshStandardMaterial({ color: 0x08090d, roughness: 0.9 })
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  // Room: carpet floor, cream walls, wooden ceiling + smoke fog
+  createRoom(scene);
 }
 
 /* ====================================================
@@ -687,7 +687,11 @@ function updateFreeCamera(dt) {
   if (move.lengthSq() > 0) {
     move.normalize().multiplyScalar(FREE_CAM_SPEED * dt);
     camera.position.add(move);
-    camera.position.y = Math.max(FREE_CAM_MIN_Y, camera.position.y);
+    // Stay inside the room
+    const m = FREE_CAM_ROOM_MARGIN;
+    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
+    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
+    camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, ROOM_HEIGHT - m);
   }
 }
 
