@@ -60,7 +60,8 @@ function random(seed) {
 
 /**
  * @param {THREE.Scene} scene
- * @returns {{ group: THREE.Group, applyReflection: (reflection: object) => void }}
+ * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
+ *            applyReflection: (reflection: object) => void }}
  */
 export function createAshtrays(scene) {
   const group = new THREE.Group();
@@ -78,6 +79,7 @@ export function createAshtrays(scene) {
   });
   mat.envMapIntensity = 2.5; // transparency dims the reflection
 
+  const taken = []; // the ashtrays on the round tables
   const place = (x, y, z, scale = 1) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
@@ -91,11 +93,10 @@ export function createAshtrays(scene) {
   for (const table of FURNITURE_TABLES) {
     const angle = rnd() * Math.PI * 2;
     if (rnd() > ASHTRAY_TABLE_SHARE) continue;
-    place(
-      table.x + Math.cos(angle) * ASHTRAY_TABLE_RING,
-      FURNITURE_TABLE_HEIGHT,
-      table.z + Math.sin(angle) * ASHTRAY_TABLE_RING
-    );
+    const x = table.x + Math.cos(angle) * ASHTRAY_TABLE_RING;
+    const z = table.z + Math.sin(angle) * ASHTRAY_TABLE_RING;
+    place(x, FURNITURE_TABLE_HEIGHT, z);
+    taken.push({ x, z, r: ASHTRAY_RADIUS });
   }
 
   // Billard table: one per player on the left long side of the frame
@@ -106,6 +107,7 @@ export function createAshtrays(scene) {
   scene.add(group);
   return {
     group,
+    taken,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       applyBallReflection(mat, reflection);

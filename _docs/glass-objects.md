@@ -1,6 +1,6 @@
 # Glas und Tischdeko
 
-> **Status:** **Kerzenhalter** und **Aschenbecher** sind umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
+> **Status:** **Kerzenhalter**, **Aschenbecher**, **Weinglas** und **Bierglas** sind umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
 
 Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinteile. Sie müssen **wie Glas aussehen** und in der **Größe stimmen**; die Form darf einfach sein und wird **per Formel berechnet**, ohne externe Modelle.
 
@@ -19,14 +19,22 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 - **Tische:** Etwa zwei Drittel der runden Tische haben einen (zufällig, fester Startwert), 25 cm von der Mitte entfernt, damit er neben der Kerze steht.
 - **Billardtisch:** Zwei Aschenbecher (je Spieler einer) auf dem Holzrahmen der linken Längsseite, zwischen der letzten Raute und der Ecktasche. Sie sind auf 65 % verkleinert (Ø 9 cm), weil der Rahmen nur 11 cm breit ist.
 
+## Weinglas und Bierglas (umgesetzt)
+
+- **Code:** `src/glasses.js`, Werte in `src/glasses-constants.js`.
+- **Form:** Beide sind Drehkörper aus Formeln. Das Weinglas hat einen tulpenförmigen Kelch (Radius per Sinus-Kurve), dünnen Stiel und flachen Fuß; das Bierglas ist leicht kegelförmig mit dickem Boden. Wein und Bier sind eigene, etwas kleinere Körper in der Innenform; der Schaum ist ein Körper darüber.
+- **Glas:** fast durchsichtig mit Spiegelung des Raums (Aufnahme aus `ball-reflection.js`), ohne Schatten. Das Bier schimmert durch (leicht selbstleuchtend).
+- **Tische:** Pro Tisch zufällig 0–2 Gläser (feste Startwerte), je zu 45 % Wein (davon 70 % rot), sonst Bier. Sie stehen 12–28 cm von der Mitte entfernt und halten Abstand zu Kerze, Aschenbecher und zueinander.
+- **Billardtisch:** Je Spieler ein zufälliges Getränk auf dem Holzrahmen der linken Längsseite, neben dem Aschenbecher.
+
 ## Die Objekte
 
 | Objekt | Größe (ca.) | Inhalt / Besonderheit |
 |--------|-------------|------------------------|
 | **Kerzenhalter** | Schale Ø 13 cm, Röhre 6 cm hoch | **Umgesetzt.** Dunkelrote Glasur (Schale mit Rand, Röhre für die Kerze, kleine Kugel an der Seite), **weiße Wachskerze** Ø 3 cm, 13 cm hoch, mit Flamme und flackerndem Schein. Steht **auf jedem Tisch**, ungefähr in der Mitte (zufällig bis 12 cm daneben, fester Startwert). |
 | **Aschenbecher** | Ø 14 cm, 3 cm hoch | **Umgesetzt.** Schweres Glas, am Rand **5 Kerben** für Zigaretten. |
-| **Weinglas** | 20 cm hoch, Kelch Ø 8 cm | Stiel und Fuß, ca. ein Drittel mit Wein gefüllt (rot oder weiß). |
-| **Bierglas** | 15 cm hoch, oben Ø 7 cm | Goldenes Bier mit **Schaumkrone** (ca. 2 cm). |
+| **Weinglas** | 20 cm hoch, Kelch Ø 8 cm | **Umgesetzt.** Stiel und Fuß, zu 40 % des Kelchs mit Wein gefüllt (rot oder weiß). |
+| **Bierglas** | 15 cm hoch, oben Ø 7 cm | **Umgesetzt.** Goldenes Bier mit **Schaumkrone** (3,7 cm, leicht über dem Rand gewölbt). |
 | **Weinflasche** | 30 cm hoch, Ø 7,5 cm | Dunkelgrünes Glas, Etikett, Hals. |
 | **Bierflasche** | 23 cm hoch, Ø 6 cm | Braunes Glas, Etikett, Kronkorken. |
 
@@ -63,7 +71,7 @@ Alle Maße sind Parameter (eigene `*-constants.js`, wie bei den Möbeln), nichts
 ## Am Billardtisch
 
 - Auf dem **Holzrahmen** stehen je Spieler **ein Aschenbecher und ein Glas** (zufälliges Getränk). Bei zwei Spielern also **2 Aschenbecher und 2 Gläser**.
-- **Platz:** Der Rahmen ist nur **11 cm breit** (`RAIL_WOOD_DEPTH`). Ein Aschenbecher mit Ø 14 cm passt nicht; der Aschenbecher dort ist kleiner (Ø 9 cm, umgesetzt). Das Glas (Ø 7 cm) passt.
+- **Platz:** Der Rahmen ist nur **11 cm breit** (`RAIL_WOOD_DEPTH`). Ein Aschenbecher mit Ø 14 cm passt nicht; der Aschenbecher dort ist kleiner (Ø 9 cm, umgesetzt). Das Glas (Ø 7 cm) passt (umgesetzt).
 - **Stelle:** neben einer Tasche oder an einer Ecke, nicht auf den Diamanten und nicht zu nah an der Bande, damit sie beim Spiel nicht im Weg stehen (Kamera und Cue-Ansicht).
 - Wer „Spieler 1 und 2“ ist und an welcher Seite sie stehen, kommt mit den Rollen aus [`game-concept.md`](game-concept.md). Bis dahin: feste Plätze auf der linken Längsseite.
 

@@ -87,7 +87,8 @@ const flicker = (t, phase) =>
 
 /**
  * @param {THREE.Scene} scene
- * @returns {{ group: THREE.Group, update: (dt: number, camera: THREE.Camera) => void,
+ * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
+ *            update: (dt: number, camera: THREE.Camera) => void,
  *            applyReflection: (reflection: object) => void }}
  */
 export function createCandles(scene) {
@@ -178,6 +179,8 @@ export function createCandles(scene) {
 
   return {
     group,
+    /** Where the holders stand (so other things keep clear of them). */
+    taken: candles.map((c) => ({ x: c.root.position.x, z: c.root.position.z, r: HOLDER_DISH_RADIUS })),
     update(dt, camera) {
       time += dt;
       sinceAssign += dt;
