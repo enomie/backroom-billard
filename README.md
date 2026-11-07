@@ -58,6 +58,8 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 - [`_docs/table.md`](_docs/table.md) — Maße und Geometrie von Tisch, Bande und Taschen
 - [`_docs/physics.md`](_docs/physics.md) — Physik-Modell und Stellschrauben
 - [`_docs/game-concept.md`](_docs/game-concept.md) — Spielideen (nur Ideen, nicht umgesetzt)
+- [`_docs/sound.md`](_docs/sound.md) — Klänge: Stoß, Kugeln, Bande, Rollen, Becher (nur Konzept, nicht umgesetzt)
+- [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen und Vorschnalzen (nur Konzept)
 - [`_docs/radio.md`](_docs/radio.md) — Radio mit Display und Stream (nur Konzept, nicht umgesetzt)
 - [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
 
