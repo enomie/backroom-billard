@@ -1,0 +1,24 @@
+{
+  "name": "billiard",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 8181",
+    "backup": "node _Scripts/_BACKUP/backup.mjs",
+    "backup:structure": "node _Scripts/_BACKUP/backup.mjs --structure-only",
+    "backup:all": "node _Scripts/_BACKUP/backup.mjs ALL"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-simd": "^0.21.0",
+    "three": "^0.187.0",
+    "three-bvh-csg": "^0.0.18",
+    "three-mesh-bvh": "^0.9.18"
+  },
+  "devDependencies": {
+    "vite": "^6.4.1",
+    "vite-plugin-wasm": "^3.6.0"
+  }
+}

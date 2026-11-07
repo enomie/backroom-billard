@@ -1,5 +1,27 @@
 "use strict";
 
+import {
+  PLAY_L,
+  PLAY_W,
+  TABLE_H,
+  BALL_RADIUS_REAL,
+  CUSHION_NOSE_TO_BED,
+  CUSHION_PROFILE_WIDTH,
+  RAIL_WOOD_DEPTH,
+  FELT_BED_DEPTH,
+} from "./table-constants.js";
+import {
+  createPocketSpecs,
+  checkPocketSink,
+  addPocketDebugMeshes,
+} from "./pocket-spec.js";
+
+/** @type {typeof import("three")} */
+const THREE = window.THREE;
+if (!THREE) {
+  throw new Error("THREE fehlt — src/entry.js muss vor billiard.js laden.");
+}
+
 /* ====================================================
    1. GLOBALE VARIABLEN & KONSTANTEN
 ==================================================== */
@@ -8,18 +30,28 @@ let balls = []; // { mesh, pos, vel, radius, isCue, id, inPocket }
 let cueBall = null;
 let cueStickPivot, cueStickMesh, aimLine;
 
-// Tisch-Parameter
-const PLAY_L = 2.44; // Spielfeldlänge (Z)
-const PLAY_W = 1.22; // Spielfeldbreite (X)
-const TABLE_H = 0.85; // Höhe des Tisches
-const BALL_R = 0.036; // Kugelradius (3.6 cm)
-const POCKET_R = 0.075; // Radius der Taschen / Löcher
-const HALF_W = PLAY_W / 2 - BALL_R;
-const HALF_L = PLAY_L / 2 - BALL_R;
+// Tisch-Parameter (WPA 9-Fuß) → table-constants.js
+const CUSHION_H = CUSHION_NOSE_TO_BED;
+const BALL_R = BALL_RADIUS_REAL;
+const CUSHION_RESTITUTION = 0.82;
+
+const tableDimensions = {
+  playW: PLAY_W,
+  playL: PLAY_L,
+  tableH: TABLE_H,
+  cushionH: CUSHION_H,
+};
+const pocketSpecs = createPocketSpecs(tableDimensions);
+
+/** CSG / Blueprint: dieselben Specs wie Versenk-Physik */
+window.BilliardPocketSpecs = pocketSpecs;
+
+/** Wireframe-Zylinder zur Kontrolle von Position/Höhe (vor Feintuning ausschalten) */
+const DEBUG_POCKET_CYLINDERS = true;
 
 // Zustand
 let cameraMode = "fps"; // 'fps' oder 'overhead'
-let aimAngle = Math.PI * 0.5; // Zielen um weiße Kugel
+let aimAngle = 0; // Stoßrichtung −Z (Rack liegt in −Z)
 let aimPitch = 0.12;
 let selectedPower = 0.4; // 0.10 bis 1.0 (Standard: sanfte 40%)
 let isCueMoving = false;
@@ -82,7 +114,7 @@ function init() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
   container.appendChild(renderer.domElement);
@@ -95,14 +127,22 @@ function init() {
     playL: PLAY_L,
     playW: PLAY_W,
     tableH: TABLE_H,
-    pocketR: POCKET_R,
+    railH: CUSHION_NOSE_TO_BED,
+    rubberThick: CUSHION_PROFILE_WIDTH,
+    railThick: RAIL_WOOD_DEPTH,
+    feltDepth: FELT_BED_DEPTH,
   };
   window.BilliardTableBlueprint.buildAuthenticTableWithHoles(
     scene,
     tableDims,
     pockets,
-    cushions
+    cushions,
+    { pocketSpecs }
   );
+
+  if (DEBUG_POCKET_CYLINDERS) {
+    addPocketDebugMeshes(scene, pocketSpecs);
+  }
 
   // 2.6 Kugeln initialisieren
   setupBalls();
@@ -112,7 +152,27 @@ function init() {
 
   // 2.8 Events & UI
   setupControls();
+  snapFpsCamera();
 
+  // Animation Loop starten
+  requestAnimationFrame(gameLoop);
+}
+
+/** FP-Kamera hinter der weißen Kugel, Blick entlang der Stoßrichtung (kein Lerp beim Start). */
+function snapFpsCamera() {
+  if (cameraMode !== "fps" || !cueBall) return;
+  const camDist = 0.62;
+  const camH = 0.25 + aimPitch * 0.45;
+  camera.position.set(
+    cueBall.pos.x + Math.sin(aimAngle) * camDist,
+    cueBall.pos.y + camH,
+    cueBall.pos.z + Math.cos(aimAngle) * camDist
+  );
+  camera.lookAt(
+    cueBall.pos.x - Math.sin(aimAngle) * 1.8,
+    cueBall.pos.y,
+    cueBall.pos.z - Math.cos(aimAngle) * 1.8
+  );
   // Animation Loop starten
   requestAnimationFrame(gameLoop);
 }
@@ -334,15 +394,13 @@ function updateStatusDisplay(moving) {
   const dot = document.getElementById("status-dot");
   const txt = document.getElementById("status-text");
   if (moving) {
-    dot.className =
-      "w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b] animate-pulse";
+    dot.className = "status-dot status-dot--moving";
     txt.innerText = "Kugeln rollen...";
-    txt.className = "text-xs text-amber-300 font-medium tracking-wide";
+    txt.className = "status-text status-text--moving";
   } else {
-    dot.className =
-      "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]";
+    dot.className = "status-dot status-dot--idle";
     txt.innerText = "Bereit zum Stoß";
-    txt.className = "text-xs text-neutral-400 font-medium tracking-wide";
+    txt.className = "status-text status-text--idle";
   }
 }
 
@@ -510,6 +568,41 @@ function toggleCamera() {
 /* ====================================================
    8. EXAKTE PHYSIK-SIMULATION (Kugeln, Banden, Taschen)
 ==================================================== */
+
+/**
+ * Banden = grüne Kissen-Innenfläche (`cushions[]` aus Blueprint), nicht Filz-/Holzkante.
+ *
+ * @param {{ pos: { x: number; z: number }; vel: { x: number; z: number } }} b
+ */
+function resolveCushionCollisions(b) {
+  const r = BALL_R;
+  for (let c = 0; c < cushions.length; c++) {
+    const seg = cushions[c];
+    const sdx = seg.x2 - seg.x1;
+    const sdz = seg.z2 - seg.z1;
+    const lenSq = sdx * sdx + sdz * sdz;
+    if (lenSq < 1e-10) continue;
+
+    let t = ((b.pos.x - seg.x1) * sdx + (b.pos.z - seg.z1) * sdz) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const cx = seg.x1 + t * sdx;
+    const cz = seg.z1 + t * sdz;
+
+    const sd = (b.pos.x - cx) * seg.nx + (b.pos.z - cz) * seg.nz;
+    if (sd >= r) continue;
+
+    b.pos.x += seg.nx * (r - sd);
+    b.pos.z += seg.nz * (r - sd);
+
+    const vn = b.vel.x * seg.nx + b.vel.z * seg.nz;
+    if (vn < 0) {
+      b.vel.x -= (1 + CUSHION_RESTITUTION) * vn * seg.nx;
+      b.vel.z -= (1 + CUSHION_RESTITUTION) * vn * seg.nz;
+      playClackSound(Math.min(Math.abs(vn) * 0.4, 0.5), 550);
+    }
+  }
+}
+
 function updatePhysics(dt) {
   const friction = 0.985; // Realistische Ausrollreibung auf Billardtuch
   let totalMotion = 0;
@@ -535,46 +628,27 @@ function updatePhysics(dt) {
       totalMotion += speedSq;
     }
 
-    // Banden-Kollision (X-Achse) mit Dämpfung
-    if (b.pos.x < -HALF_W) {
-      b.pos.x = -HALF_W;
-      b.vel.x = -b.vel.x * 0.82;
-      playClackSound(Math.min(Math.abs(b.vel.x) * 0.4, 0.5), 550);
-    } else if (b.pos.x > HALF_W) {
-      b.pos.x = HALF_W;
-      b.vel.x = -b.vel.x * 0.82;
-      playClackSound(Math.min(Math.abs(b.vel.x) * 0.4, 0.5), 550);
-    }
+    resolveCushionCollisions(b);
 
-    // Banden-Kollision (Z-Achse) mit Dämpfung
-    if (b.pos.z < -HALF_L) {
-      b.pos.z = -HALF_L;
-      b.vel.z = -b.vel.z * 0.82;
-      playClackSound(Math.min(Math.abs(b.vel.z) * 0.4, 0.5), 550);
-    } else if (b.pos.z > HALF_L) {
-      b.pos.z = HALF_L;
-      b.vel.z = -b.vel.z * 0.82;
-      playClackSound(Math.min(Math.abs(b.vel.z) * 0.4, 0.5), 550);
-    }
+    if (b.inPocket) continue;
 
-    // Taschen-Erkennung (Löcher)
-    for (let p = 0; p < pockets.length; p++) {
-      const pock = pockets[p];
-      const distSq = (b.pos.x - pock.x) ** 2 + (b.pos.z - pock.z) ** 2;
-      if (distSq < pock.radius * pock.radius) {
-        b.inPocket = true;
-        b.vel.set(0, 0, 0);
-        b.mesh.position.y = -10; // Kugel fällt in die Tasche
+    const sunkPocketId = checkPocketSink(
+      b.pos,
+      BALL_R,
+      pocketSpecs,
+      TABLE_H
+    );
+    if (sunkPocketId) {
+      b.inPocket = true;
+      b.vel.set(0, 0, 0);
+      b.mesh.position.y = -10;
 
-        // Falls weiße Spielkugel versenkt wurde -> Neu aufstellen
-        if (b.isCue) {
-          setTimeout(() => {
-            b.inPocket = false;
-            b.pos.set(0, TABLE_H + BALL_R, PLAY_L * 0.28);
-            b.vel.set(0, 0, 0);
-          }, 600);
-        }
-        break;
+      if (b.isCue) {
+        setTimeout(() => {
+          b.inPocket = false;
+          b.pos.set(0, TABLE_H + BALL_R, PLAY_L * 0.28);
+          b.vel.set(0, 0, 0);
+        }, 600);
       }
     }
   }
@@ -708,4 +782,11 @@ function gameLoop(currentTime) {
   renderer.render(scene, camera);
 }
 
-window.addEventListener("DOMContentLoaded", init);
+function scheduleInit() {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+}
+scheduleInit();
