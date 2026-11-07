@@ -24,6 +24,27 @@ import {
   LAMP_SHADOW_RADIUS,
 } from "./room-constants.js";
 
+/** Blue outside / golden inside shade materials, shared by the ceiling and the wall lamps. */
+export function createLampShadeMaterials() {
+  const outside = new THREE.MeshStandardMaterial({
+    color: LAMP_COLOR_OUTSIDE,
+    emissive: LAMP_COLOR_OUTSIDE, // slight self-glow so the blue stays readable in the dark room
+    emissiveIntensity: 0.3,
+    roughness: 0.35,
+    metalness: 0.5,
+    side: THREE.FrontSide,
+  });
+  const inside = new THREE.MeshStandardMaterial({
+    color: LAMP_COLOR_INSIDE,
+    emissive: LAMP_COLOR_INSIDE,
+    emissiveIntensity: 0.55,
+    roughness: 0.3,
+    metalness: 0.8,
+    side: THREE.BackSide,
+  });
+  return { outside, inside };
+}
+
 /**
  * @param {THREE.Scene} scene
  * @param {number} tableTopY — felt surface height, the light targets point here
@@ -35,22 +56,7 @@ export function createCeilingLamps(scene, tableTopY) {
 
   // Shared geometry and materials: all lamps are identical
   const shadeGeo = new THREE.ConeGeometry(LAMP_SHADE_RADIUS, LAMP_SHADE_HEIGHT, 48, 1, true);
-  const outsideMat = new THREE.MeshStandardMaterial({
-    color: LAMP_COLOR_OUTSIDE,
-    emissive: LAMP_COLOR_OUTSIDE, // slight self-glow so the blue stays readable in the dark room
-    emissiveIntensity: 0.3,
-    roughness: 0.35,
-    metalness: 0.5,
-    side: THREE.FrontSide,
-  });
-  const insideMat = new THREE.MeshStandardMaterial({
-    color: LAMP_COLOR_INSIDE,
-    emissive: LAMP_COLOR_INSIDE,
-    emissiveIntensity: 0.55,
-    roughness: 0.3,
-    metalness: 0.8,
-    side: THREE.BackSide,
-  });
+  const { outside: outsideMat, inside: insideMat } = createLampShadeMaterials();
   const cableGeo = new THREE.CylinderGeometry(0.006, 0.006, LAMP_CABLE_LENGTH, 8);
   const cableMat = new THREE.MeshStandardMaterial({ color: LAMP_COLOR_CABLE, roughness: 0.8 });
 

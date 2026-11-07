@@ -79,3 +79,28 @@ export const ROOM_AMBIENT_INTENSITY = 0.9;
 
 /** The free camera stays inside the room, this far away from the walls/ceiling. */
 export const FREE_CAM_ROOM_MARGIN = 0.2;
+
+/* ---- Wall lamps: subtle cone lights on a bracket, pointing down ------------------------------
+ * Same shade as the ceiling lamps (blue outside, golden inside), just smaller. */
+/** Lamps per short wall (z = ±ROOM_LENGTH/2) and per long wall (x = ±ROOM_WIDTH/2). */
+export const WALL_LAMPS_PER_SHORT_WALL = 2;
+export const WALL_LAMPS_PER_LONG_WALL = 3;
+
+/** How far the arm reaches out of the wall (m) — the shade hangs at its end. */
+export const WALL_LAMP_ARM_LENGTH = 0.25;
+/** Height of the shade's lower rim above the floor. */
+export const WALL_LAMP_HEIGHT = 2.0;
+/** Shade = ceiling lamp shade scaled down by this factor. */
+export const WALL_LAMP_SCALE = 0.45;
+/** Length of the stem between the arm and the shade apex. */
+export const WALL_LAMP_STEM = 0.08;
+/** Bracket (wall plate, arm, stem): brass. */
+export const WALL_LAMP_COLOR_BRASS = 0x9a7b3c;
+
+/** Subtle spot light of each wall lamp (no shadows, they only wash the wall and the floor). */
+export const WALL_LAMP_LIGHT_COLOR = 0xffd9a0;
+export const WALL_LAMP_LIGHT_INTENSITY = 1.2;
+export const WALL_LAMP_LIGHT_ANGLE = 0.6;
+export const WALL_LAMP_LIGHT_PENUMBRA = 0.7;
+export const WALL_LAMP_LIGHT_DECAY = 1.6;
+export const WALL_LAMP_LIGHT_DISTANCE = 7;

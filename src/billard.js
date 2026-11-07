@@ -14,6 +14,7 @@ import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
 import { createRoom } from "./room.js";
+import { createWallLamps } from "./wall-lamps.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import {
   CUE_FOLLOW_THROUGH_TIME,
@@ -256,8 +257,9 @@ function setupLightingAndRoom() {
   // Three identical ceiling lamps above the table (parameters: room-constants.js)
   createCeilingLamps(scene, TABLE_H);
 
-  // Room: carpet floor, cream walls, wooden ceiling + smoke fog
+  // Room: carpet floor, cream walls, wooden ceiling + smoke fog, and subtle wall lamps
   createRoom(scene);
+  createWallLamps(scene);
 }
 
 /* ====================================================

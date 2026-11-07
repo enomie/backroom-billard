@@ -36,6 +36,15 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
 
+## Wandleuchten (umgesetzt)
+
+Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in `src/room-constants.js`):
+
+- **Anzahl:** 2 pro kurzer Wand, 3 pro langer Wand (zusammen 10), gleichmäßig verteilt.
+- **Form:** derselbe Kegel-Lampenschirm wie die Deckenleuchten (außen blau, innen golden), nur kleiner (Faktor 0,45), an einer **Messing-Halterung**: Wandplatte, Arm (25 cm aus der Wand, `WALL_LAMP_ARM_LENGTH`), kurzer Stiel, Knauf.
+- **Höhe:** Schirmunterkante 2,0 m über dem Boden (`WALL_LAMP_HEIGHT`).
+- **Licht:** je ein weicher, warmer Spot nach unten ohne Schatten. Er wirft einen sanften Lichtkegel auf Wand und Boden.
+
 ## Nebel / Rauch
 
 - **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist der Dunst am dichtesten (aber nie komplett deckend).
@@ -44,6 +53,7 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 
 ## Offene Punkte
 
+- Genaue Armlänge, Höhe und Verteilung der Wandleuchten.
 - Wanddekoration (Poster, Tapete, Leisten, Fenster, Tür).
 - Ob zusätzlich Rauchschwaden im Lichtkegel sichtbar sein sollen.
 - Abstand der Leuchten zueinander.

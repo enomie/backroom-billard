@@ -44,7 +44,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `physics-rapier.js` | Kugel-Körper, Trimesh-Helfer |
 | `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
-| `room.js`, `ceiling-lamps.js`, `room-constants.js` | Raum (Teppich, Wände, Holzdecke, Nebel), drei Deckenleuchten und alle Parameter dazu |
+| `room.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände, Holzdecke, Nebel), Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
