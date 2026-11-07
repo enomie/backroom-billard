@@ -3,7 +3,6 @@
  */
 import * as THREE from "three";
 import {
-  BALL_RADIUS_REAL,
   POCKET_R_CORNER,
   POCKET_R_SIDE,
   POCKET_CORNER_OFFSET_FACTOR,
@@ -14,8 +13,6 @@ import {
   CUSHION_END_RECESS_SIDE,
   CUSHION_PROFILE_WIDTH,
 } from "./table-constants.js";
-
-export { BALL_RADIUS_REAL };
 
 export const POCKET_DIM_DEFAULTS = {
   r_corner: POCKET_R_CORNER,
@@ -143,32 +140,6 @@ export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
     yBottom,
     axis: /** @type {const} */ ([0, 1, 0]),
   }));
-}
-
-/**
- * @param {{ x: number; y: number; z: number }} ballPos
- * @param {number} ballRadius
- * @param {ReturnType<typeof createPocketSpecs>} pocketSpecs
- * @param {number} tableH — Filzebene Y
- * @returns {string | null}
- */
-export function checkPocketSink(ballPos, ballRadius, pocketSpecs, tableH) {
-  for (let i = 0; i < pocketSpecs.length; i++) {
-    const p = pocketSpecs[i];
-
-    // Rollende Kugel: Mittelpunkt auf tableH + ballRadius. Nur fliegende Kugeln (Sprung) auslassen.
-    if (ballPos.y > tableH + ballRadius * 1.5 || ballPos.y < p.yBottom) {
-      continue;
-    }
-
-    const dx = ballPos.x - p.center[0];
-    const dz = ballPos.z - p.center[2];
-
-    if (dx * dx + dz * dz < p.radius * p.radius) {
-      return p.id;
-    }
-  }
-  return null;
 }
 
 /**

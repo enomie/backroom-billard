@@ -103,26 +103,3 @@ export function buildTableWithPocketsCSG(partMeshes, pocketSpecs, linerMaterial)
 
   return finalTableMesh;
 }
-
-/**
- * Einzelnes Teil (z. B. Trapez-Bande): nur Taschen ausschneiden, kein Union.
- *
- * @param {import("three").Mesh} mesh
- * @param {Array<{ center: [number, number, number]; radius: number; height: number }>} pocketSpecs
- * @param {import("three").Material} linerMaterial
- * @returns {import("three").Mesh}
- */
-export function meshWithPocketHolesCSG(mesh, pocketSpecs, linerMaterial) {
-  mesh.updateMatrixWorld(true);
-  const evaluator = new Evaluator();
-  let brush = meshToBrush(mesh);
-  mesh.geometry.dispose();
-
-  brush = subtractPockets(brush, pocketSpecs, linerMaterial, evaluator);
-  brush.geometry.computeVertexNormals();
-
-  const out = new THREE.Mesh(brush.geometry, mesh.material);
-  out.castShadow = true;
-  out.receiveShadow = true;
-  return out;
-}

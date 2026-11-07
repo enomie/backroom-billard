@@ -31,20 +31,8 @@ export const CUSHION_PROFILE_BOTTOM_OUTSET = 0.002;
  */
 export const CUSHION_PROFILE_FACE_RECESS = 0.012;
 
-/**
- * Kugelmittelpunkt-Abstand zur Nasenlinie beim Bandenkontakt: Die Kugel berührt die
- * Nase (Punkt in Höhe `CUSHION_NOSE_TO_BED`), ihr Mittelpunkt liegt aber nur
- * `BALL_RADIUS_REAL` über dem Tuch → horizontaler Abstand √(R² − (H − R)²) ≈ 27,5 mm.
- */
-export const CUSHION_BALL_CONTACT_R = Math.sqrt(
-  BALL_RADIUS_REAL ** 2 - (CUSHION_NOSE_TO_BED - BALL_RADIUS_REAL) ** 2
-);
-
 /** Holzrahmen außerhalb der Filzkante (Turnier-üblich ~110 mm). */
 export const RAIL_WOOD_DEPTH = 0.11;
-
-/** Nasenlinie → Tisch-Außenkante (~150 mm / 6″, WPA 4″–7½″). */
-export const RAIL_CAP_WIDTH = CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH;
 
 /** Grüne Spielplatte (Filz auf Träger): 5 mm dick; darunter beginnt der Taschenbecher. */
 export const FELT_BED_DEPTH = 0.005;

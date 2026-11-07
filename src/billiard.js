@@ -143,8 +143,6 @@ function init() {
     window.BilliardTableBlueprint.buildAuthenticTableWithHoles(
       scene,
       tableDims,
-      pockets,
-      cushions,
       { pocketSpecs }
     );
 
@@ -264,15 +262,7 @@ function setupLightingAndRoom() {
 }
 
 /* ====================================================
-   3. TASCHEN & BANDEN (Physik-Daten aus table-blueprint.js)
-==================================================== */
-/** @type {Array<{ x: number; z: number; radius: number; isSide: boolean }>} */
-const pockets = [];
-/** @type {Array<{ x1: number; z1: number; x2: number; z2: number; nx: number; nz: number }>} */
-const cushions = [];
-
-/* ====================================================
-   4. HOCHGLÄNZENDE KUGELN MIT REFLEXIONEN
+   3. HOCHGLÄNZENDE KUGELN MIT REFLEXIONEN
 ==================================================== */
 function setupBalls() {
   if (cueRespawnTimer) {
@@ -370,7 +360,7 @@ function findFreeCueSpot() {
 }
 
 /* ====================================================
-   5. FIRST-PERSON QUEUE & ZIELLINIE
+   4. FIRST-PERSON QUEUE & ZIELLINIE
 ==================================================== */
 function setupCueAndAimLine() {
   cueStickPivot = new THREE.Group();
@@ -416,7 +406,7 @@ function setupCueAndAimLine() {
 }
 
 /* ====================================================
-   6. FEHLERFREIE & AUSBALANCIERTE STOSS-MECHANIK
+   5. FEHLERFREIE & AUSBALANCIERTE STOSS-MECHANIK
 ==================================================== */
 function fireCueStrike() {
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
@@ -464,7 +454,7 @@ function updateStatusDisplay(moving) {
 }
 
 /* ====================================================
-   7. INTERAKTIONEN, MAUSRAD-STEUERUNG & EVENTS
+   6. INTERAKTIONEN, MAUSRAD-STEUERUNG & EVENTS
 ==================================================== */
 function setupControls() {
   const container = renderer.domElement;
@@ -628,7 +618,7 @@ function toggleCamera() {
 }
 
 /* ====================================================
-   8. EXAKTE PHYSIK-SIMULATION (Kugeln, Banden, Taschen)
+   7. EXAKTE PHYSIK-SIMULATION (Kugeln, Banden, Taschen)
 ==================================================== */
 
 /**
@@ -720,7 +710,7 @@ function stepPhysics(frameDt) {
 }
 
 /* ====================================================
-   9. GAME LOOP
+   8. GAME LOOP
 ==================================================== */
 let lastTime = performance.now();
 

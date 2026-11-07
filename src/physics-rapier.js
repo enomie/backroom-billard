@@ -3,28 +3,12 @@
  * @see _docs/physics.md
  */
 import {
-  CUSHION_RESTITUTION,
-  CUSHION_FRICTION,
   BALL_RESTITUTION,
   BALL_FRICTION,
   BALL_MASS_KG,
   LINEAR_DAMPING,
   ANGULAR_DAMPING,
-  CONTACT_SKIN_M,
 } from "./physics-constants.js";
-
-/**
- * @param {import("@dimforge/rapier3d-simd").default} RAPIER
- * @param {{ x: number; y: number; z: number }} halfExtents
- */
-export function createCushionColliderDesc(RAPIER, halfExtents) {
-  return RAPIER.ColliderDesc.cuboid(halfExtents.x, halfExtents.y, halfExtents.z)
-    .setRestitution(CUSHION_RESTITUTION)
-    .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Multiply)
-    .setFriction(CUSHION_FRICTION)
-    .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average)
-    .setContactSkin(CONTACT_SKIN_M);
-}
 
 /**
  * @param {import("@dimforge/rapier3d-simd").default} RAPIER

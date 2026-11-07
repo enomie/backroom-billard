@@ -98,23 +98,16 @@ function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, 
  *   railThick: number;
  *   feltDepth: number;
  * }} dims
- * @param {Array<{ x: number; z: number; radius: number; isSide: boolean }>} pockets
- * @param {Array<{ x1: number; z1: number; x2: number; z2: number; nx: number; nz: number }>} cushions
  * @param {{ pocketSpecs?: ReturnType<import("./pocket-spec.js").createPocketSpecs> }} [options]
  */
 export function buildAuthenticTableWithHoles(
   scene,
   dims,
-  pockets,
-  cushions,
   options = {}
 ) {
   const PLAY_L = dims.playL;
   const PLAY_W = dims.playW;
   const TABLE_H = dims.tableH;
-
-  pockets.length = 0;
-  cushions.length = 0;
 
   // PLAY_W/PLAY_L gelten Nase zu Nase (WPA); der Filz reicht um die Gummibreite weiter nach außen.
   const hw = PLAY_W / 2 + dims.rubberThick;
@@ -181,20 +174,7 @@ export function buildAuthenticTableWithHoles(
    * @param {number} inwardNz — Normale ins Spielfeld (+1 / −1)
    */
   function addRailAlongX(feltEdgeZ, inwardNz) {
-    const x1 = -hw;
-    const x2 = hw;
     const outwardZ = -inwardNz;
-    const noseZ = feltEdgeZ + inwardNz * rubberThick;
-    // Kurze Bande: zwischen den beiden Ecktaschen-Spitzen
-    cushions.push({
-      x1: -(hwNose - cornerTip),
-      z1: noseZ,
-      x2: hwNose - cornerTip,
-      z2: noseZ,
-      nx: 0,
-      nz: inwardNz,
-    });
-
     const profile = buildCushionProfile(
       feltEdgeZ,
       inwardNz,
@@ -232,17 +212,9 @@ export function buildAuthenticTableWithHoles(
    * @param {number} inwardNx
    */
   function addRailAlongZ(feltEdgeX, inwardNx) {
-    const z1 = -hl;
-    const z2 = hl;
     const outwardX = -inwardNx;
-    const noseX = feltEdgeX + inwardNx * rubberThick;
     // Lange Bande: zwei Teilstücke zwischen Seitentasche und Ecktaschen-Spitze
     const zEnd = hlNose - cornerTip;
-    cushions.push(
-      { x1: noseX, z1: sideTip, x2: noseX, z2: zEnd, nx: inwardNx, nz: 0 },
-      { x1: noseX, z1: -zEnd, x2: noseX, z2: -sideTip, nx: inwardNx, nz: 0 }
-    );
-
     const profile = buildCushionProfile(
       feltEdgeX,
       inwardNx,

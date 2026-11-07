@@ -1,6 +1,6 @@
 # `src/` — Verzeichnisbaum
 
-_Automatisch erzeugt von `_Scripts/_BACKUP/backup.mjs` (2026-11-07T18:37:26.720Z)._
+_Automatisch erzeugt von `_Scripts/_BACKUP/backup.mjs` (2026-11-07T18:40:43.668Z)._
 
 ```
 src/
