@@ -295,16 +295,11 @@ export function buildAuthenticTableWithHoles(
       scene.add(rubber);
     }
 
-    // Taschenbecher (rund, schwarzes Leder) unter dem Bett + Lippe um das Loch
+    // Taschenbecher (rund) beginnt direkt unter der 5-mm-Spielplatte, steht nirgends über
     const cupMat = new THREE.MeshStandardMaterial({
       color: 0x050505,
       roughness: 0.95,
       side: THREE.BackSide,
-    });
-    const lipMat = new THREE.MeshStandardMaterial({
-      color: 0x0b0b0b,
-      roughness: 0.6,
-      metalness: 0.1,
     });
     for (const spec of pocketSpecs) {
       const yTopCup = TABLE_H - feltDepth;
@@ -316,14 +311,6 @@ export function buildAuthenticTableWithHoles(
       cup.position.set(spec.center[0], spec.yBottom + cupH / 2, spec.center[2]);
       cup.name = `pocket-cup-${spec.id}`;
       scene.add(cup);
-
-      const lip = new THREE.Mesh(
-        new THREE.TorusGeometry(spec.radius, 0.004, 8, 48),
-        lipMat
-      );
-      lip.rotation.x = Math.PI / 2;
-      lip.position.set(spec.center[0], TABLE_H + 0.001, spec.center[2]);
-      scene.add(lip);
     }
   } else {
     for (const m of csgBaseMeshes) {

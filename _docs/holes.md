@@ -23,7 +23,7 @@ Ursprung Tischmitte; Filz **`y = TABLE_H`** (`0,85 m` Möbelhöhe, Spielnorm una
 | **Spielfläche** | `±hw`, `±hl` (Nasenlinie) | **`1,27 m × 2,54 m` Nase zu Nase** (`PLAY_W`, `PLAY_L`); Filzkante liegt 40 mm weiter außen |
 | **Bande (Gummi)** | Trapez (~K-66), Nase **oben** (63,5 % Ø), 40 mm breit | **`CUSHION_PROFILE_WIDTH` = 40 mm** · Unterkante +6 mm außen · Fuß der Fläche 12 mm hinter der Nase (`CUSHION_PROFILE_FACE_RECESS`) |
 | **Holzrahmen** | außerhalb Filz | **`RAIL_WOOD_DEPTH` = 110 mm** · **`RAIL_CAP_WIDTH` = 150 mm** (Nase→Außenkante) |
-| **Platte** | — | **`FELT_BED_DEPTH` = 25,4 mm** (1″ min.) |
+| **Spielplatte (grün)** | — | **`FELT_BED_DEPTH` = 5 mm**, darunter beginnt der Taschenbecher |
 
 `hw = **0,635 m**` | `hl = **1,27 m**`
 
@@ -89,5 +89,5 @@ Anker = **Schnittpunkt der Nasen** (`hw|hl − 40 mm`), danach `r × Faktor` nac
 - **Loch rund**, Mitte genau auf der **Filzkante** (Ecke: Filzkanten-Ecke, Seite: Filzkante bei z = 0), Radius = Mouth/2 (`POCKET_R_*`).
 - **Facette** an jedem Bandenende: Die Rückseite des Gummis (an der Filzkante) endet am Loch, die **Nase ist zurückgeschnitten**. Ecke 45° (`CUSHION_END_RECESS_CORNER = 1`), Seite ≈ 14° (`CUSHION_END_RECESS_SIDE = 0,25`).
 - Daraus folgen die Nasen-Spitzen (`cushionTipOffsets` in `src/pocket-spec.js`); die Banden-Physik endet dort.
-- Unter dem Bett: runder Taschenbecher (`pocket-cup-*`), um das Loch eine schwarze Lippe.
+- Unter der 5-mm-Platte: runder Taschenbecher (`pocket-cup-*`), nichts steht über der Platte hinaus.
 - Schritt 2 (Physik) baut die Kollisionskörper aus genau dieser Geometrie.

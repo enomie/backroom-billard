@@ -46,8 +46,8 @@ export const RAIL_WOOD_DEPTH = 0.11;
 /** Nasenlinie → Tisch-Außenkante (~150 mm / 6″, WPA 4″–7½″). */
 export const RAIL_CAP_WIDTH = CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH;
 
-/** Platte / Schiefer mind. 1″ */
-export const FELT_BED_DEPTH = 0.0254;
+/** Grüne Spielplatte (Filz auf Träger): 5 mm dick; darunter beginnt der Taschenbecher. */
+export const FELT_BED_DEPTH = 0.005;
 
 /** Taschen-Mündung (mouth) WPA-Mittel → Zylinder-Näherung radius = mouth/2 */
 const CORNER_MOUTH =
