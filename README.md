@@ -27,7 +27,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 - Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
 - Nach dem Stoß bleiben Kamera und Queue hinter der Schussposition. Erst wenn alle Kugeln (nahezu) stillstehen, kehrt die Kamera zur neuen Schussposition zurück; bis dahin ist kein neuer Stoß möglich.
-- Während die Kugeln rollen **und** mit der freien Kamera hält der Spieler den Queue entspannt diagonal im Bild (rechts unten); nach dem Stillstand schwingt er sanft zurück an die Kugel. Die Pose steht in `src/cue-constants.js`.
+- Während die Kugeln rollen **und** mit der freien Kamera hält der Spieler den Queue entspannt vor sich: Griff unten im Bild, Spitze oberhalb rechts; nach dem Stillstand schwingt er sanft zurück an die Kugel. Die Pose steht in `src/cue-constants.js`.
 - Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (oder `R`) startet neu.
 
 ## Aufbau
