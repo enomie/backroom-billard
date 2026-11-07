@@ -52,6 +52,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 - [`_docs/table.md`](_docs/table.md) — Maße und Geometrie von Tisch, Bande und Taschen
 - [`_docs/physics.md`](_docs/physics.md) — Physik-Modell und Stellschrauben
 - [`_docs/game-concept.md`](_docs/game-concept.md) — Spielideen (nur Ideen, nicht umgesetzt)
+- [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
 
 ## Backup
 
