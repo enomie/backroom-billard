@@ -172,8 +172,9 @@ const variation = () => 1 + (Math.random() * 2 - 1) * PITCH_VARIATION;
  * The cue is drawn back: sliding sound (stretched to the draw-back time) and a soft inhale.
  * @param {number} strength — 0 (weakest) … 1 (strongest shot)
  * @param {number} seconds — duration of the draw-back animation
+ * @param {{ cue: [number, number, number], head: [number, number, number] }} positions — the cue (sliding) and the player's head (breath)
  */
-export function playDrawBackSound(strength, seconds) {
+export function playDrawBackSound(strength, seconds, positions) {
   const b = ensureBuffers();
   if (!b) return;
   // Closest generated length (by ratio), played a little faster/slower to fit the draw-back time
@@ -184,11 +185,13 @@ export function playDrawBackSound(strength, seconds) {
   playBuffer(pick(b.slide[best]), {
     gain: lerp(SLIDE_GAIN_MIN, SLIDE_GAIN_MAX, strength),
     rate: (SLIDE_LENGTHS[best] / seconds) * variation(),
+    position: positions.cue,
   });
   if (BREATH_ENABLED) {
     playBuffer(pick(b.breathIn), {
       gain: lerp(BREATH_IN_GAIN_MIN, BREATH_IN_GAIN_MAX, strength),
       rate: variation(),
+      position: positions.head,
     });
   }
 }
@@ -197,19 +200,22 @@ export function playDrawBackSound(strength, seconds) {
  * The cue snaps forward: air swish whose peak lands on the moment of contact, and a short exhale.
  * @param {number} strength — 0 … 1
  * @param {number} seconds — duration of the forward stroke (until the tip hits the ball)
+ * @param {{ cue: [number, number, number], head: [number, number, number] }} positions — the cue (swish) and the player's head (breath)
  */
-export function playForwardSound(strength, seconds) {
+export function playForwardSound(strength, seconds, positions) {
   const b = ensureBuffers();
   if (!b) return;
   const stage = Math.round(strength * (WHOOSH_STAGES - 1));
   playBuffer(pick(b.whoosh[stage]), {
     gain: lerp(WHOOSH_GAIN_MIN, WHOOSH_GAIN_MAX, strength * strength),
     rate: ((WHOOSH_SECONDS * WHOOSH_PEAK) / seconds) * variation(), // peak lands on the contact
+    position: positions.cue,
   });
   if (BREATH_ENABLED) {
     playBuffer(pick(b.breathOut), {
       gain: lerp(BREATH_OUT_GAIN_MIN, BREATH_OUT_GAIN_MAX, strength),
       rate: variation(),
+      position: positions.head,
     });
   }
 }
@@ -217,13 +223,15 @@ export function playForwardSound(strength, seconds) {
 /**
  * The tip hits the ball ("tock"). Call at the moment of contact.
  * @param {number} strength — 0 (weakest) … 1 (strongest shot)
+ * @param {[number, number, number]} position — the cue ball
  */
-export function playStrikeSound(strength) {
+export function playStrikeSound(strength, position) {
   const b = ensureBuffers();
   if (!b) return;
   const stage = Math.round(strength * (STRIKE_STAGES - 1));
   playBuffer(pick(b.strike[stage]), {
     gain: lerp(STRIKE_GAIN_MIN, STRIKE_GAIN_MAX, Math.sqrt(strength)),
     rate: variation(),
+    position,
   });
 }

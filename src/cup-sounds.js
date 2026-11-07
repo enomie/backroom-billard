@@ -148,22 +148,24 @@ const variation = () => 1 + (Math.random() * 2 - 1) * PITCH_VARIATION;
  * A ball rolls over the rim and starts to fall: a tick on the edge, then the slide into the cup.
  * @param {number} speed — horizontal speed of the ball (m/s)
  * @param {string} sourceKey
+ * @param {[number, number, number]} position — the ball
  */
-export function playPocketEntrySound(speed, sourceKey) {
+export function playPocketEntrySound(speed, sourceKey, position) {
   if (!allowSound(sourceKey)) return;
   const b = ensureBuffers();
   if (!b) return;
   const s = Math.min(1, speed / 3);
-  playBuffer(pick(b.rim), { gain: lerp(CUP_RIM_GAIN_MIN, CUP_RIM_GAIN_MAX, s), rate: variation() });
-  playBuffer(pick(b.fall), { gain: CUP_FALL_GAIN * (0.5 + 0.5 * s), rate: variation(), delay: 0.01 });
+  playBuffer(pick(b.rim), { gain: lerp(CUP_RIM_GAIN_MIN, CUP_RIM_GAIN_MAX, s), rate: variation(), position });
+  playBuffer(pick(b.fall), { gain: CUP_FALL_GAIN * (0.5 + 0.5 * s), rate: variation(), delay: 0.01, position });
 }
 
 /**
  * The ball lands on the cup floor.
  * @param {number} speed — impact speed (m/s)
  * @param {string} sourceKey
+ * @param {[number, number, number]} position — the ball
  */
-export function playCupLandingSound(speed, sourceKey) {
+export function playCupLandingSound(speed, sourceKey, position) {
   const s = impactStrength(speed);
   if (s < 0 || !allowSound(sourceKey)) return;
   const b = ensureBuffers();
@@ -172,6 +174,7 @@ export function playCupLandingSound(speed, sourceKey) {
   playBuffer(pick(b.landing[stage]), {
     gain: lerp(CUP_LANDING_GAIN_MIN, CUP_LANDING_GAIN_MAX, Math.sqrt(s)),
     rate: variation(),
+    position,
   });
 }
 
@@ -179,8 +182,9 @@ export function playCupLandingSound(speed, sourceKey) {
  * The ball hits the cup wall.
  * @param {number} speed — impact speed (m/s)
  * @param {string} sourceKey
+ * @param {[number, number, number]} position — the ball
  */
-export function playCupWallSound(speed, sourceKey) {
+export function playCupWallSound(speed, sourceKey, position) {
   const s = impactStrength(speed);
   if (s < 0 || !allowSound(sourceKey)) return;
   const b = ensureBuffers();
@@ -189,5 +193,6 @@ export function playCupWallSound(speed, sourceKey) {
   playBuffer(pick(b.wall[stage]), {
     gain: lerp(CUP_WALL_GAIN_MIN, CUP_WALL_GAIN_MAX, Math.sqrt(s)),
     rate: variation(),
+    position,
   });
 }

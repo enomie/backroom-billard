@@ -1,7 +1,7 @@
 /**
  * Radio playback: an <audio> element for the stream, routed through Web Audio so the sound comes
  * from the radio's two speakers (left and right channel, positioned in the room, the listener is
- * the camera). If the stream does not allow cross-origin audio processing (CORS), it falls back to
+ * the camera, see audio.js). If the stream does not allow cross-origin audio processing (CORS), it falls back to
  * plain playback with a volume that follows the distance.
  */
 import { getAudioContext, getMasterNode } from "./audio.js";
@@ -149,34 +149,14 @@ export class RadioAudio {
   }
 
   /**
-   * Per frame: the listener follows the camera; without spatial audio the volume follows the
-   * distance to the radio.
+   * Per frame: without spatial audio the volume follows the distance to the radio.
    * @param {import("three").Camera} camera
    * @param {import("three").Vector3} radioPosition
    */
   update(camera, radioPosition) {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    if (this.spatial) {
-      const l = ctx.listener;
-      camera.updateMatrixWorld();
-      const e = camera.matrixWorld.elements;
-      // camera looks along its local −z, up is its local +y
-      if (l.positionX) {
-        l.positionX.value = e[12];
-        l.positionY.value = e[13];
-        l.positionZ.value = e[14];
-        l.forwardX.value = -e[8];
-        l.forwardY.value = -e[9];
-        l.forwardZ.value = -e[10];
-        l.upX.value = e[4];
-        l.upY.value = e[5];
-        l.upZ.value = e[6];
-      }
-    } else if (this.element) {
-      const d = camera.position.distanceTo(radioPosition);
-      const gain = RADIO_REF_DISTANCE / (RADIO_REF_DISTANCE + RADIO_ROLLOFF * Math.max(0, d - RADIO_REF_DISTANCE));
-      this.element.volume = Math.min(1, gain * RADIO_VOLUME);
-    }
+    if (this.spatial || !this.element) return;
+    const d = camera.position.distanceTo(radioPosition);
+    const gain = RADIO_REF_DISTANCE / (RADIO_REF_DISTANCE + RADIO_ROLLOFF * Math.max(0, d - RADIO_REF_DISTANCE));
+    this.element.volume = Math.min(1, gain * RADIO_VOLUME);
   }
 }

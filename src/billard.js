@@ -22,6 +22,7 @@ import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
 import { playPocketEntrySound, playCupLandingSound, playCupWallSound } from "./cup-sounds.js";
+import { updateAudioListener } from "./audio.js";
 import { updateRollingSound } from "./rolling-sound.js";
 import { BALL_TOUCH_DISTANCE } from "./sound-constants.js";
 import {
@@ -515,12 +516,23 @@ function startCueStroke() {
     gap: CUE_AIM_GAP,
     strength: f,
   };
-  playDrawBackSound(f, stroke.tBack); // hand sliding on the shaft + inhale
+  playDrawBackSound(f, stroke.tBack, shotSoundPositions(aimAngle)); // hand sliding on the shaft + inhale
 }
 
 /** Cue elevation for the current camera elevation: slightly below the line of sight. */
 function aimCuePitch() {
   return THREE.MathUtils.clamp(aimElevation - CUE_PITCH_BELOW_CAMERA, CUE_PITCH_MIN, CUE_PITCH_MAX);
+}
+
+/** Where the shot sounds come from: the cue behind the ball and the player's head further back. */
+function shotSoundPositions(angle) {
+  const back = [Math.sin(angle), 0, Math.cos(angle)];
+  const at = (distance, up) => [
+    cueBall.pos.x + back[0] * distance,
+    cueBall.pos.y + up,
+    cueBall.pos.z + back[2] * distance,
+  ];
+  return { cue: at(0.5, 0.06), head: at(1.1, 0.5) };
 }
 
 /** Advance the stroke by one physics step and move the kinematic cue tip body accordingly. */
@@ -538,7 +550,7 @@ function advanceCueStroke(dt) {
     if (s.t >= s.tHold) {
       [s.phase, s.t] = ["forward", 0];
       physics.cue.collider.setEnabled(true);
-      playForwardSound(s.strength, s.tForward); // air swish peaking at the contact + exhale
+      playForwardSound(s.strength, s.tForward, shotSoundPositions(s.aimAngle)); // air swish peaking at the contact + exhale
     }
   } else if (s.phase === "forward") {
     const k = Math.min(1, s.t / s.tForward);
@@ -575,7 +587,7 @@ function advanceCueStroke(dt) {
 
 /** The tip reaches the ball: sound, status, and the follow-through timer starts. */
 function onCueContact() {
-  playStrikeSound(stroke.strength); // the "tock" of the tip hitting the ball
+  playStrikeSound(stroke.strength, cueBall.pos.toArray()); // the "tock" of the tip hitting the ball
   updateStatusDisplay(true);
   strokeContacted = true;
   cueShotTime = 0;
@@ -1048,7 +1060,7 @@ function checkPocketEntry(b, horizontalSpeed) {
   }
   if (overHole && dropping && !b.inHole) {
     b.inHole = true;
-    playPocketEntrySound(horizontalSpeed, `r${b.id}`);
+    playPocketEntrySound(horizontalSpeed, `r${b.id}`, b.pos.toArray());
   } else if (!overHole) {
     b.inHole = false;
   }
@@ -1086,7 +1098,7 @@ function detectBallImpacts() {
       const closingBefore = (a.preVel.x - b.preVel.x) * nx + (a.preVel.z - b.preVel.z) * nz;
       const closingAfter = (va.x - vb.x) * nx + (va.z - vb.z) * nz;
       if (closingBefore > 0 && closingAfter < closingBefore * 0.5) {
-        playBallHitSound(closingBefore, `b${a.id}-${b.id}`);
+        playBallHitSound(closingBefore, `b${a.id}-${b.id}`, [(pa.x + pb.x) / 2, (pa.y + pb.y) / 2, (pa.z + pb.z) / 2]);
       }
     }
   }
@@ -1125,7 +1137,7 @@ function stepPhysics(frameDt) {
           const ball = ball1 ?? ball2;
           if (ball) {
             // Landing on the cup floor: Δv = (1 + restitution) × impact speed
-            playCupLandingSound(velocityChange(ball) / 1.5, `f${ball.id}`);
+            playCupLandingSound(velocityChange(ball) / 1.5, `f${ball.id}`, ball.pos.toArray());
             onBallPocketed(ball, pocketId);
           }
         } else if (
@@ -1133,14 +1145,14 @@ function stepPhysics(frameDt) {
           (ball2 && physics.cupWalls.has(h1))
         ) {
           const ball = ball1 ?? ball2;
-          playCupWallSound(velocityChange(ball) / 1.5, `w${ball.id}`);
+          playCupWallSound(velocityChange(ball) / 1.5, `w${ball.id}`, ball.pos.toArray());
         } else if (
           (ball1 && physics.cushionColliders.has(h2)) ||
           (ball2 && physics.cushionColliders.has(h1))
         ) {
           // Ball–cushion: Δv = (1 + restitution) × impact speed
           const ball = ball1 ?? ball2;
-          playCushionHitSound(velocityChange(ball) / (1 + CUSHION_RESTITUTION), `c${ball.id}`);
+          playCushionHitSound(velocityChange(ball) / (1 + CUSHION_RESTITUTION), `c${ball.id}`, ball.pos.toArray());
         }
       });
     }
@@ -1154,7 +1166,7 @@ function stepPhysics(frameDt) {
   while (pendingRemoval.length) removeBall(pendingRemoval.pop());
 
   let moving = false;
-  const rollingSpeeds = []; // horizontal speeds of balls rolling on the table (rolling sound)
+  const rolling = []; // balls rolling on the table: speed and position (rolling sound)
   for (let i = 0; i < balls.length; i++) {
     const b = balls[i];
     syncBallFromBody(b);
@@ -1174,7 +1186,7 @@ function stepPhysics(frameDt) {
     const speed = Math.hypot(lin.x, lin.y, lin.z);
     const surface = Math.hypot(ang.x, ang.y, ang.z) * BALL_R;
     const onTable = b.pos.y > TABLE_H - 0.01;
-    if (onTable && !b.inPocket && speed > 0.03) rollingSpeeds.push(Math.hypot(lin.x, lin.z));
+    if (onTable && !b.inPocket && speed > 0.03) rolling.push({ speed: Math.hypot(lin.x, lin.z), position: b.pos.toArray() });
     checkPocketEntry(b, Math.hypot(lin.x, lin.z));
     if (onTable && speed < REST_LINEAR_SPEED && surface < REST_SURFACE_SPEED) {
       b.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
@@ -1184,7 +1196,7 @@ function stepPhysics(frameDt) {
     }
   }
 
-  updateRollingSound(rollingSpeeds);
+  updateRollingSound(rolling);
 
   if (moving !== isCueMoving) {
     updateStatusDisplay(moving);
@@ -1259,6 +1271,7 @@ function gameLoop(currentTime) {
     updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
   }
 
+  updateAudioListener(camera); // the ears follow the camera
   if (radio) radio.update(frameSeconds, camera);
 
   // The cue is placed after the camera so a carried cue never lags behind it

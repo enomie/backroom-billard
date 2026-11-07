@@ -2,7 +2,7 @@
  * Very quiet rolling noise: one looping, seamless noise buffer through a lowpass; the level and
  * brightness follow how fast the balls roll on the table. See _docs/sound.md.
  */
-import { getAudioContext, getMasterNode } from "./audio.js";
+import { getAudioContext, getMasterNode, createSoundPanner, setPannerPosition } from "./audio.js";
 import { lerp } from "./synth-utils.js";
 import {
   ROLL_GAIN_MAX,
@@ -55,28 +55,34 @@ function ensureNodes() {
   gain.gain.value = 0;
   source.connect(filter);
   filter.connect(gain);
-  gain.connect(master);
+  const panner = createSoundPanner(audio, [0, 0, 0]);
+  gain.connect(panner);
+  panner.connect(master);
   source.start();
-  nodes = { audio, filter, gain };
+  nodes = { audio, filter, gain, panner };
   return nodes;
 }
 
 /**
- * Call regularly (e.g. once per frame) with the speeds of all balls rolling on the table (m/s).
- * @param {number[]} speeds
+ * Call regularly (e.g. once per frame) with the balls rolling on the table. The sound comes from
+ * the speed-weighted center of the rolling balls.
+ * @param {{ speed: number, position: [number, number, number] }[]} rolling — speeds in m/s
  */
-export function updateRollingSound(speeds) {
+export function updateRollingSound(rolling) {
   if (!nodes) {
-    if (speeds.length === 0) return; // nothing to hear: do not even create the nodes
+    if (rolling.length === 0) return; // nothing to hear: do not even create the nodes
     if (!ensureNodes()) return;
   }
-  const { audio, filter, gain } = nodes;
+  const { audio, filter, gain, panner } = nodes;
   let activity = 0;
   let fastest = 0;
-  for (const v of speeds) {
-    activity += v;
-    fastest = Math.max(fastest, v);
+  const center = [0, 0, 0];
+  for (const { speed, position } of rolling) {
+    activity += speed;
+    fastest = Math.max(fastest, speed);
+    for (let i = 0; i < 3; i++) center[i] += position[i] * speed;
   }
+  if (activity > 0) setPannerPosition(panner, center.map((v) => v / activity));
   const level = Math.min(1, Math.sqrt(activity / ROLL_FULL_ACTIVITY));
   const now = audio.currentTime;
   gain.gain.setTargetAtTime(level * ROLL_GAIN_MAX, now, ROLL_SMOOTHING);

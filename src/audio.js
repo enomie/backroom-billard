@@ -6,6 +6,8 @@ import {
   COLLISION_COOLDOWN,
   COLLISION_MAX_VOICES,
   COLLISION_VOICE_WINDOW,
+  SOUND_REF_DISTANCE,
+  SOUND_ROLLOFF,
 } from "./sound-constants.js";
 
 let ctx = null;
@@ -32,11 +34,56 @@ export function getAudioContext() {
 }
 
 /**
- * Play an AudioBuffer once through the master gain.
- * @param {AudioBuffer} buffer
- * @param {{ gain?: number, rate?: number, delay?: number }} [options]
+ * A panner at a world position (equal-power panning, gentle distance falloff).
+ * @param {AudioContext} audio
+ * @param {[number, number, number]} position
  */
-export function playBuffer(buffer, { gain = 1, rate = 1, delay = 0 } = {}) {
+export function createSoundPanner(audio, position) {
+  const panner = audio.createPanner();
+  panner.panningModel = "equalpower";
+  panner.distanceModel = "inverse";
+  panner.refDistance = SOUND_REF_DISTANCE;
+  panner.rolloffFactor = SOUND_ROLLOFF;
+  setPannerPosition(panner, position);
+  return panner;
+}
+
+/** Move a panner (Safari without AudioParam positions uses setPosition). */
+export function setPannerPosition(panner, [x, y, z]) {
+  if (panner.positionX) {
+    panner.positionX.value = x;
+    panner.positionY.value = y;
+    panner.positionZ.value = z;
+  } else {
+    panner.setPosition(x, y, z);
+  }
+}
+
+/** The listener (ears) follows the camera. Call once per frame. */
+export function updateAudioListener(camera) {
+  if (!ctx) return;
+  const l = ctx.listener;
+  if (!l.positionX) return;
+  camera.updateMatrixWorld();
+  const e = camera.matrixWorld.elements;
+  // the camera looks along its local −z, up is its local +y
+  l.positionX.value = e[12];
+  l.positionY.value = e[13];
+  l.positionZ.value = e[14];
+  l.forwardX.value = -e[8];
+  l.forwardY.value = -e[9];
+  l.forwardZ.value = -e[10];
+  l.upX.value = e[4];
+  l.upY.value = e[5];
+  l.upZ.value = e[6];
+}
+
+/**
+ * Play an AudioBuffer once through the master gain, from a world position if given.
+ * @param {AudioBuffer} buffer
+ * @param {{ gain?: number, rate?: number, delay?: number, position?: [number, number, number] }} [options]
+ */
+export function playBuffer(buffer, { gain = 1, rate = 1, delay = 0, position } = {}) {
   const audio = getAudioContext();
   if (!audio || !buffer) return;
   const source = audio.createBufferSource();
@@ -45,7 +92,13 @@ export function playBuffer(buffer, { gain = 1, rate = 1, delay = 0 } = {}) {
   const g = audio.createGain();
   g.gain.value = gain;
   source.connect(g);
-  g.connect(master);
+  if (position) {
+    const panner = createSoundPanner(audio, position);
+    g.connect(panner);
+    panner.connect(master);
+  } else {
+    g.connect(master);
+  }
   source.start(audio.currentTime + delay);
 }
 

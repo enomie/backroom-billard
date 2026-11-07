@@ -2,6 +2,14 @@
 
 export const MASTER_GAIN = 0.6;
 
+/**
+ * Positional sound: every sound comes from where it happens (the listener is the camera). Within
+ * SOUND_REF_DISTANCE the level is unchanged; beyond it the level falls off gently
+ * (inverse model, SOUND_ROLLOFF = steepness).
+ */
+export const SOUND_REF_DISTANCE = 1.2;
+export const SOUND_ROLLOFF = 0.7;
+
 /** Hand sliding on the shaft while the cue is drawn back. */
 /** Generated lengths; the closest one is played slightly faster/slower to fit the draw-back time. */
 export const SLIDE_LENGTHS = [0.3, 0.45, 0.6];

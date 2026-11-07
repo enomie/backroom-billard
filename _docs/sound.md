@@ -87,7 +87,8 @@ Die Becher-Klänge sollen **bei jeder Kollision** ausgelöst werden, nicht nur b
 - **Auslöser** liefert die Physik: Rapier meldet Kollisionen (Kontakte mit Geschwindigkeit/Kraft). Heute gibt es nur das Event „Kugel trifft Becherboden“; für Kugel–Kugel, Bande und Becherwand braucht es mehr Kollisionsereignisse.
 - **Stimmenlimit** und kurze Sperrzeit pro Kugelpaar, damit Dauerberührung nicht rattert.
 - **Autoplay:** Browser erlauben Ton erst nach der ersten Nutzeraktion; der Audio-Kontext startet beim ersten Klick/Tastendruck.
-- **Raum:** Der große, dunkle Raum könnte einen kurzen, leisen **Hall** bekommen; optional **3D-Ton** (Lautstärke/Panorama nach Position der Kamera).
+- **3D-Ton (umgesetzt):** Jeder Klang kommt von dem Ort, an dem er entsteht, und die Kamera ist der Hörer (`playBuffer` mit `position`, Panner mit sanftem Abfall, `SOUND_REF_DISTANCE`/`SOUND_ROLLOFF`). Kugel–Kugel am Berührpunkt, Bande, Tasche und Becher an der Kugel, der Abstoß an der Weißen, Zurückziehen und Vorschnalzen am Cue, das Atmen am Kopf des Spielers. Das Rollen kommt vom geschwindigkeitsgewichteten Mittelpunkt der rollenden Kugeln. Der Hörer wird einmal pro Bild in `audio.js` gesetzt (`updateAudioListener`), auch das Radio nutzt ihn.
+- **Raum:** Der große, dunkle Raum könnte einen kurzen, leisen **Hall** bekommen.
 - **Bedienung:** Ein Stumm-Schalter und eine Lautstärkeregelung in der Oberfläche (Texte über `src/i18n`).
 
 ## Offene Punkte
@@ -96,5 +97,5 @@ Die Becher-Klänge sollen **bei jeder Kollision** ausgelöst werden, nicht nur b
 - Atem- und Muskelgeräusche: ja oder nein, und wie stark?
 - Wie viele Kraftstufen und Varianten pro Klang (Speicher gegen Qualität)?
 - Soll das Rollen pro Kugel oder als ein Gesamt-Mix klingen?
-- Raumhall und 3D-Ton: gewollt?
+- Raumhall: gewollt?
 - Lautstärke-Mix gegenüber dem Radio (`radio.md`).

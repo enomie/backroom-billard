@@ -129,8 +129,9 @@ const variation = () => 1 + (Math.random() * 2 - 1) * PITCH_VARIATION;
  * Two balls hit each other.
  * @param {number} speed — impact speed along the collision normal (m/s)
  * @param {string} sourceKey — identifies the pair (cooldown)
+ * @param {[number, number, number]} position — contact point
  */
-export function playBallHitSound(speed, sourceKey) {
+export function playBallHitSound(speed, sourceKey, position) {
   const s = impactStrength(speed);
   if (s < 0 || !allowSound(sourceKey)) return;
   const b = ensureBuffers();
@@ -139,6 +140,7 @@ export function playBallHitSound(speed, sourceKey) {
   playBuffer(pick(b.ball[stage]), {
     gain: lerp(BALL_HIT_GAIN_MIN, BALL_HIT_GAIN_MAX, Math.sqrt(s)),
     rate: variation(),
+    position,
   });
 }
 
@@ -146,8 +148,9 @@ export function playBallHitSound(speed, sourceKey) {
  * A ball hits the cushion.
  * @param {number} speed — impact speed along the cushion normal (m/s)
  * @param {string} sourceKey — identifies the ball (cooldown)
+ * @param {[number, number, number]} position — the ball
  */
-export function playCushionHitSound(speed, sourceKey) {
+export function playCushionHitSound(speed, sourceKey, position) {
   const s = impactStrength(speed);
   if (s < 0 || !allowSound(sourceKey)) return;
   const b = ensureBuffers();
@@ -156,5 +159,6 @@ export function playCushionHitSound(speed, sourceKey) {
   playBuffer(pick(b.cushion[stage]), {
     gain: lerp(CUSHION_HIT_GAIN_MIN, CUSHION_HIT_GAIN_MAX, Math.sqrt(s)),
     rate: variation(),
+    position,
   });
 }
