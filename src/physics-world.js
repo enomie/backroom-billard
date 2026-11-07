@@ -105,17 +105,21 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
   // Pocket cup: wall (open at the top) + floor; only the floor reports collisions → "pocketed"
   /** @type {Map<number, string>} floor collider handle → pocket id */
   const cupFloors = new Map();
+  /** @type {Set<number>} cup wall collider handles (collision events → wall sounds) */
+  const cupWalls = new Set();
   for (const spec of pocketSpecs) {
     const c = pocketCupDims(spec, tableH, feltDepth);
 
     const wallGeo = new THREE.CylinderGeometry(c.rTop, c.rBottom, c.height, 48, 1, true);
     wallGeo.translate(c.cx, c.yBottom + c.height / 2, c.cz);
-    world.createCollider(
+    const wall = world.createCollider(
       trimeshDescFromGeometry(RAPIER, wallGeo)
         .setRestitution(CUP_RESTITUTION)
         .setFriction(CUP_FRICTION)
         .setCollisionGroups(GROUP_STATIC)
+        .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS)
     );
+    cupWalls.add(wall.handle);
     wallGeo.dispose();
 
     const floor = world.createCollider(
@@ -155,6 +159,7 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
     world,
     eventQueue,
     cupFloors,
+    cupWalls,
     cushionColliders,
     cue: { body: cueBody, collider: cueCollider },
     /** @returns {{ body: import("@dimforge/rapier3d-simd").RigidBody; collider: import("@dimforge/rapier3d-simd").Collider }} */

@@ -1,10 +1,10 @@
 # Sound — Konzept
 
-> **Status:** Umgesetzt sind die Klänge zur **Stoß-Animation**: Zurückziehen (Gleiten), Vorschnalzen (Luftzug), dezentes Atmen der **Abstoß-Klang** sowie **Kugel–Kugel und Bande** (siehe „Umgesetzt“). **Alles andere** (Rollen, Becher) ist nur Konzept und wird erst auf ausdrücklichen Auftrag umgesetzt. Unabhängig vom Radio (`radio.md`).
+> **Status: umgesetzt.** Alle hier beschriebenen Klänge gibt es: Stoß-Animation, Abstoß, Kugel–Kugel, Bande, Rollen und Becher. Unter „Offene Punkte“ stehen nur noch Feinheiten. Unabhängig vom Radio (`radio.md`).
 
 ## Umgesetzt
 
-Code: `src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kollisionen), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`.
+Code: `src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kugel–Kugel, Bande), `src/cup-sounds.js` (Tasche und Becher), `src/rolling-sound.js` (Rollen), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`.
 
 ### Stoß-Animation
 
@@ -21,6 +21,16 @@ Code: `src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kollision
 - **Lautstärke und Helligkeit** folgen der **Aufprallgeschwindigkeit** entlang der Kollisionsrichtung (leiser als 0,06 m/s ist stumm, 4,5 m/s ist am lautesten), dazu zufällige Tonhöhe.
 - **Kugel–Kugel erkennen:** Rapier meldet nur *neue* Kontakte. Im Dreieck berühren sich die Kugeln aber schon, ein Stoß würde also lautlos durchlaufen. Deshalb prüft das Spiel nach jedem Physikschritt berührende Kugelpaare: Näherten sie sich vorher und stoppen/trennen sie sich nachher, ist das ein Treffer. Der Anstoß erzeugt so mehrere Klacks nacheinander. Bande nutzt die Kollisionsereignisse von Rapier (Geschwindigkeitsänderung der Kugel).
 - **Entprellen:** Pro Kugelpaar bzw. Kugel 50 ms Sperre und höchstens 8 gleichzeitige Klänge pro 40 ms, damit der Anstoß nicht ratterte.
+
+### Rollen
+- **Sehr leises** Rauschen („Schhh“): eine nahtlos geloopte Rauschdatei durch einen Tiefpass. Eine Mischung für alle Kugeln, kein Klang pro Kugel.
+- **Pegel:** höchstens 0,05 (`ROLL_GAIN_MAX`). Lautstärke und Helligkeit folgen der Summe der Geschwindigkeiten aller rollenden Kugeln auf dem Tisch; bei Stillstand wird es sanft ausgeblendet. Gemessen: 0,0125 bei 0,4 m/s, 0,035 bei 3 m/s, 0 im Stillstand.
+
+### Tasche und Becher
+- **Lochkante:** kurzes, leises „Tick“, sobald eine Kugel über der Öffnung zu fallen beginnt, dazu das weiche **Rutschen** ins Dunkle (0,2 s). Die Stärke folgt der Rollgeschwindigkeit.
+- **Aufprall am Becherboden:** dumpfer Schlag (Leder auf Holz) mit **zwei kleinen Nachhüpfern** und kurzem, leisem Ausrollen (0,55 s). 3 Kraftstufen mal 2 Varianten, nach Fallgeschwindigkeit. Da die Kugel nach dem Aufprall aus dem Becher gelöscht wird, stecken Nachhüpfer und Ausrollen im Klang selbst.
+- **Becherwand:** gedämpfter „Tok“ (dumpfer als Kugel–Kugel), bei jedem Anstoß an die Wand nach Aufprallgeschwindigkeit (3 Stufen mal 2 Varianten).
+- Der Fall in die Tasche ergibt bei einem Test in der Seitentasche genau diese Folge: Rand-Tick, Rutschen, Becherwand, Becherboden.
 
 Der Rest dieser Seite ist das Konzept für die übrigen Klänge.
 
@@ -82,6 +92,7 @@ Die Becher-Klänge sollen **bei jeder Kollision** ausgelöst werden, nicht nur b
 
 ## Offene Punkte
 
+- *Kugel trifft Kugel im Becher* gibt es nicht, weil versenkte Kugeln sofort aus dem Becher gelöscht werden.
 - Atem- und Muskelgeräusche: ja oder nein, und wie stark?
 - Wie viele Kraftstufen und Varianten pro Klang (Speicher gegen Qualität)?
 - Soll das Rollen pro Kugel oder als ein Gesamt-Mix klingen?

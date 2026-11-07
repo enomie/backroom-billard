@@ -2,14 +2,9 @@
  * Generated, buffered collision sounds: ball–ball "klack" and ball–cushion "thump".
  * Loudness and brightness follow the impact speed. See _docs/sound.md.
  */
-import { getAudioContext, playBuffer } from "./audio.js";
+import { getAudioContext, playBuffer, allowSound, impactStrength } from "./audio.js";
 import { lerp, pick, bandpass, finish } from "./synth-utils.js";
 import {
-  COLLISION_MIN_SPEED,
-  COLLISION_MAX_SPEED,
-  COLLISION_COOLDOWN,
-  COLLISION_MAX_VOICES,
-  COLLISION_VOICE_WINDOW,
   BALL_HIT_SECONDS,
   BALL_HIT_STAGES,
   BALL_HIT_VARIANTS,
@@ -109,24 +104,6 @@ function ensureBuffers() {
   return buffers;
 }
 
-/** Recent play times for the voice limit and per-source cooldowns. */
-const recent = [];
-const lastBySource = new Map();
-
-function allowed(sourceKey) {
-  const now = performance.now() / 1000;
-  if (now - (lastBySource.get(sourceKey) ?? -1) < COLLISION_COOLDOWN) return false;
-  while (recent.length && now - recent[0] > COLLISION_VOICE_WINDOW) recent.shift();
-  if (recent.length >= COLLISION_MAX_VOICES) return false;
-  lastBySource.set(sourceKey, now);
-  recent.push(now);
-  return true;
-}
-
-/** 0 … 1 from the impact speed, or -1 if too soft to be heard. */
-const strengthOf = (speed) =>
-  speed < COLLISION_MIN_SPEED ? -1 : Math.min(1, speed / COLLISION_MAX_SPEED);
-
 const variation = () => 1 + (Math.random() * 2 - 1) * PITCH_VARIATION;
 
 /**
@@ -135,8 +112,8 @@ const variation = () => 1 + (Math.random() * 2 - 1) * PITCH_VARIATION;
  * @param {string} sourceKey — identifies the pair (cooldown)
  */
 export function playBallHitSound(speed, sourceKey) {
-  const s = strengthOf(speed);
-  if (s < 0 || !allowed(sourceKey)) return;
+  const s = impactStrength(speed);
+  if (s < 0 || !allowSound(sourceKey)) return;
   const b = ensureBuffers();
   if (!b) return;
   const stage = Math.round(s * (BALL_HIT_STAGES - 1));
@@ -152,8 +129,8 @@ export function playBallHitSound(speed, sourceKey) {
  * @param {string} sourceKey — identifies the ball (cooldown)
  */
 export function playCushionHitSound(speed, sourceKey) {
-  const s = strengthOf(speed);
-  if (s < 0 || !allowed(sourceKey)) return;
+  const s = impactStrength(speed);
+  if (s < 0 || !allowSound(sourceKey)) return;
   const b = ensureBuffers();
   if (!b) return;
   const stage = Math.round(s * (CUSHION_HIT_STAGES - 1));

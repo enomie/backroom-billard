@@ -59,3 +59,26 @@ export const CUSHION_HIT_GAIN_MAX = 0.55;
 export const COLLISION_COOLDOWN = 0.05;
 export const COLLISION_MAX_VOICES = 8;
 export const COLLISION_VOICE_WINDOW = 0.04;
+
+/* ---- Rolling: one very quiet looping noise whose level and brightness follow the balls ------- */
+export const ROLL_GAIN_MAX = 0.05;
+/** Summed speed of all rolling balls (m/s) at which the rolling sound reaches its maximum. */
+export const ROLL_FULL_ACTIVITY = 6;
+export const ROLL_CUTOFF_MIN = 350; // Hz, slow
+export const ROLL_CUTOFF_MAX = 1700; // Hz, fast
+export const ROLL_LOOP_SECONDS = 2;
+export const ROLL_SMOOTHING = 0.08; // gain smoothing time constant (s)
+
+/* ---- Pocket and cup ------------------------------------------------------------------------ */
+export const CUP_RIM_GAIN_MIN = 0.05;
+export const CUP_RIM_GAIN_MAX = 0.3;
+export const CUP_FALL_GAIN = 0.1;
+export const CUP_LANDING_SECONDS = 0.55;
+export const CUP_LANDING_STAGES = 3;
+export const CUP_LANDING_VARIANTS = 2;
+export const CUP_LANDING_GAIN_MIN = 0.15;
+export const CUP_LANDING_GAIN_MAX = 0.8;
+export const CUP_WALL_STAGES = 3;
+export const CUP_WALL_VARIANTS = 2;
+export const CUP_WALL_GAIN_MIN = 0.05;
+export const CUP_WALL_GAIN_MAX = 0.45;

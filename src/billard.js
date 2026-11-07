@@ -18,6 +18,8 @@ import { createWallLamps } from "./wall-lamps.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
+import { playPocketEntrySound, playCupLandingSound, playCupWallSound } from "./cup-sounds.js";
+import { updateRollingSound } from "./rolling-sound.js";
 import { BALL_TOUCH_DISTANCE } from "./sound-constants.js";
 import {
   CUE_FOLLOW_THROUGH_TIME,
@@ -303,6 +305,7 @@ function setupBalls() {
       id,
       color: colorHex,
       inPocket: false, // true only once the ball has hit the cup floor
+      inHole: false, // currently dropping into a pocket (the entry sound played)
     };
     balls.push(bObj);
     ballByCollider.set(collider.handle, bObj);
@@ -973,6 +976,27 @@ function onBallPocketed(b, pocketId) {
   }, 600);
 }
 
+/** A ball that starts to drop into a pocket makes the rim tick and the slide into the cup. */
+function checkPocketEntry(b, horizontalSpeed) {
+  if (b.inPocket) return;
+  const dropping = b.pos.y < TABLE_H + BALL_R - 0.004;
+  let overHole = false;
+  for (const spec of pocketSpecs) {
+    const dx = b.pos.x - spec.center[0];
+    const dz = b.pos.z - spec.center[2];
+    if (dx * dx + dz * dz < spec.radius * spec.radius) {
+      overHole = true;
+      break;
+    }
+  }
+  if (overHole && dropping && !b.inHole) {
+    b.inHole = true;
+    playPocketEntrySound(horizontalSpeed, `r${b.id}`);
+  } else if (!overHole) {
+    b.inHole = false;
+  }
+}
+
 /** Remember the ball's velocity before the physics step (to measure impact strength afterwards). */
 function rememberVelocity(b) {
   const v = b.body.linvel();
@@ -1042,7 +1066,17 @@ function stepPhysics(frameDt) {
         const pocketId = physics.cupFloors.get(h1) ?? physics.cupFloors.get(h2);
         if (pocketId) {
           const ball = ball1 ?? ball2;
-          if (ball) onBallPocketed(ball, pocketId);
+          if (ball) {
+            // Landing on the cup floor: Δv = (1 + restitution) × impact speed
+            playCupLandingSound(velocityChange(ball) / 1.5, `f${ball.id}`);
+            onBallPocketed(ball, pocketId);
+          }
+        } else if (
+          (ball1 && physics.cupWalls.has(h2)) ||
+          (ball2 && physics.cupWalls.has(h1))
+        ) {
+          const ball = ball1 ?? ball2;
+          playCupWallSound(velocityChange(ball) / 1.5, `w${ball.id}`);
         } else if (
           (ball1 && physics.cushionColliders.has(h2)) ||
           (ball2 && physics.cushionColliders.has(h1))
@@ -1063,6 +1097,7 @@ function stepPhysics(frameDt) {
   while (pendingRemoval.length) removeBall(pendingRemoval.pop());
 
   let moving = false;
+  const rollingSpeeds = []; // horizontal speeds of balls rolling on the table (rolling sound)
   for (let i = 0; i < balls.length; i++) {
     const b = balls[i];
     syncBallFromBody(b);
@@ -1082,6 +1117,8 @@ function stepPhysics(frameDt) {
     const speed = Math.hypot(lin.x, lin.y, lin.z);
     const surface = Math.hypot(ang.x, ang.y, ang.z) * BALL_R;
     const onTable = b.pos.y > TABLE_H - 0.01;
+    if (onTable && !b.inPocket && speed > 0.03) rollingSpeeds.push(Math.hypot(lin.x, lin.z));
+    checkPocketEntry(b, Math.hypot(lin.x, lin.z));
     if (onTable && speed < REST_LINEAR_SPEED && surface < REST_SURFACE_SPEED) {
       b.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
       b.body.setAngvel({ x: 0, y: 0, z: 0 }, false);
@@ -1089,6 +1126,8 @@ function stepPhysics(frameDt) {
       moving = true;
     }
   }
+
+  updateRollingSound(rollingSpeeds);
 
   if (moving !== isCueMoving) {
     updateStatusDisplay(moving);
