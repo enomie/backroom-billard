@@ -20,6 +20,7 @@ import { createCandles } from "./candle.js";
 import { createAshtrays } from "./ashtray.js";
 import { createGlasses } from "./glasses.js";
 import { createBottles } from "./bottles.js";
+import { createCigarettes } from "./cigarettes.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -155,6 +156,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
+let cigarettes = null; // single cigarettes in the ashtrays (cigarettes.js)
 let bottles = null; // wine and beer bottles (bottles.js)
 let glasses = null; // wine and beer glasses (glasses.js)
 let ashtrays = null; // glass ashtrays (ashtray.js)
@@ -287,6 +289,7 @@ function setupLightingAndRoom() {
   ashtrays = createAshtrays(scene);
   glasses = createGlasses(scene, [...candles.taken, ...ashtrays.taken]);
   bottles = createBottles(scene, glasses.taken);
+  cigarettes = createCigarettes(scene, ashtrays.slots);
   radio = createRadio(scene);
 }
 
@@ -1289,6 +1292,7 @@ function gameLoop(currentTime) {
 
   updateAudioListener(camera); // the ears follow the camera
   if (candles) candles.update(frameSeconds, camera);
+  if (cigarettes) cigarettes.update(dt);
   if (radio) radio.update(frameSeconds, camera);
 
   // The cue is placed after the camera so a carried cue never lags behind it

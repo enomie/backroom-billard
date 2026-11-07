@@ -1,6 +1,6 @@
 # Zigaretten und Rauch
 
-> **Status: Konzept, nichts davon ist umgesetzt.** Erst bauen, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
+> **Status:** Die **einzelne Zigarette** ist umgesetzt (Test: sie liegt in den Aschenbechern). **Schachtel, Rauch, Ziehen/Ausatmen und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
 
 Zur 80er-Kneipe gehört Rauch. Es gibt eine **Zigarettenschachtel zum Aufklappen**, **einzelne Zigaretten** (unangezündet, glimmend, Stummel) und **Rauch** per Shader. Wer an einer Zigarette zieht, **atmet danach eine Rauchwolke aus**.
 
@@ -20,7 +20,15 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 - **Stehen:** auf den Tischen, auf dem Holzrahmen des Billardtisches (Platz: 11 cm Breite, die Schachtel liegt flach) und im Aschenbecher-Umfeld. Zufällige Verteilung wie bei den Gläsern.
 - **Inhalt:** Die Zigaretten sind echte Objekte; wird eine entnommen, fehlt sie in der Schachtel (20 → 19 …).
 
-## Einzelne Zigarette
+## Einzelne Zigarette (umgesetzt)
+
+- **Code:** `src/cigarettes.js`, Werte in `src/cigarette-constants.js`.
+- **Form:** 84 mm lang, Ø 8 mm, Filter 25 mm in Orange mit feinen Sprenkeln, weißer Papierschaft. Zustände: unangezündet, glimmend, Stummel.
+- **Glimmend:** Die Spitze trägt Asche (bis 6 mm) und eine pulsierende Glut mit weichem Schein (nur leuchtend, kein echtes Licht). Die Zigarette **brennt über die Zeit herunter** (7 Minuten Spielzeit, `CIGARETTE_BURN_SECONDS`) und wird danach zum Stummel ohne Glut.
+- **Test-Aufbau:** Jeder Aschenbecher auf den Tischen bekommt 1–3 Zigaretten in zufälligen Kerben, gemischt aus glimmend (45 %), unangezündet (20 %) und Stummel; die Aschenbecher der Spieler am Billardtisch bekommen **genau eine**, glimmend. Sie liegt quer in der Kerbe, die Spitze ruht innen auf dem Schalenboden.
+- **Noch nicht:** Rauch (Shader), Entnehmen, Anzünden, Ziehen und Ausatmen.
+
+## Zustände im Überblick
 
 | Zustand | Aussehen |
 |---------|----------|
@@ -29,7 +37,7 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 | **Zug** | Die Glut leuchtet kurz stark auf, der Faden wird dünner, dann wird eine **Wolke ausgeatmet** (siehe unten). |
 | **Stummel** | nur noch Filter mit etwas Asche; wird im Aschenbecher ausgedrückt. |
 
-- **Brenndauer:** einstellbar (z. B. 6 Minuten Spielzeit), Werte in einer eigenen Konstantendatei.
+- **Brenndauer:** einstellbar (umgesetzt: 7 Minuten Spielzeit), Werte in `cigarette-constants.js`.
 - **Im Aschenbecher:** Zigaretten liegen in den **5 Kerben**, glimmen weiter und rauchen dünn. Auch bei den Tischen sollen einige Aschenbecher mit **qualmenden Zigaretten** stehen (zufällig verteilt, wenige zugleich).
 - **Ablage:** auf der Kerbe, die Glut zeigt nach innen.
 

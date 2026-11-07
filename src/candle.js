@@ -29,6 +29,7 @@ import {
   CANDLE_LIGHT_REASSIGN,
 } from "./candle-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
+import { glowTexture } from "./glow.js";
 
 /** Small deterministic random generator (same layout on every start). */
 function random(seed) {
@@ -65,20 +66,6 @@ function flameGeometry(scale = 1) {
     pts.push(new THREE.Vector2(Math.max(0.0001, FLAME_RADIUS * scale * Math.sin(Math.PI * Math.pow(t, 0.7)) * (1 - 0.4 * t)), t * FLAME_HEIGHT * scale));
   }
   return new THREE.LatheGeometry(pts, 12);
-}
-
-/** Soft round glow texture. */
-function glowTexture() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 64;
-  const ctx = c.getContext("2d");
-  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, "rgba(255,200,120,1)");
-  g.addColorStop(0.25, "rgba(255,150,60,0.45)");
-  g.addColorStop(1, "rgba(255,120,40,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 64, 64);
-  return new THREE.CanvasTexture(c);
 }
 
 /** Irregular flicker around 1 (sum of incommensurate sines). */

@@ -11,6 +11,9 @@ export const ASHTRAY_NOTCH_DEPTH = 0.008;
 /** Half width of a notch as an angle (rad). */
 export const ASHTRAY_NOTCH_HALF_ANGLE = 0.15;
 
+/** Height of the dish floor inside (m). */
+export const ASHTRAY_FLOOR = 0.0095;
+
 /** Glass: slightly green, mostly clear. */
 export const ASHTRAY_COLOR = 0xb9d6d0;
 export const ASHTRAY_OPACITY = 0.45;

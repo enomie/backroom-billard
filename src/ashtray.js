@@ -11,6 +11,7 @@ import {
   ASHTRAY_NOTCHES,
   ASHTRAY_NOTCH_DEPTH,
   ASHTRAY_NOTCH_HALF_ANGLE,
+  ASHTRAY_FLOOR,
   ASHTRAY_COLOR,
   ASHTRAY_OPACITY,
   ASHTRAY_FRAME_SCALE,
@@ -27,7 +28,7 @@ function ashtrayGeometry() {
   const H = ASHTRAY_HEIGHT;
   const pts = [
     [0, 0], [R - 0.009, 0], [R - 0.002, 0.004], [R, 0.009], [R, H - 0.003], [R - 0.002, H],
-    [R - 0.01, H], [R - 0.013, H - 0.004], [R - 0.022, 0.014], [R - 0.03, 0.0105], [0.02, 0.0095], [0, 0.0095],
+    [R - 0.01, H], [R - 0.013, H - 0.004], [R - 0.022, 0.014], [R - 0.03, 0.0105], [0.02, ASHTRAY_FLOOR], [0, ASHTRAY_FLOOR],
   ];
   const geo = new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), 160);
   const pos = geo.attributes.position;
@@ -61,6 +62,7 @@ function random(seed) {
 /**
  * @param {THREE.Scene} scene
  * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
+ *            slots: { x: number, y: number, z: number, yaw: number, scale: number, onFrame: boolean }[],
  *            applyReflection: (reflection: object) => void }}
  */
 export function createAshtrays(scene) {
@@ -79,13 +81,15 @@ export function createAshtrays(scene) {
   });
 
   const taken = []; // the ashtrays on the round tables
-  const place = (x, y, z, scale = 1) => {
+  const slots = []; // every ashtray: where it stands (for the cigarettes lying in it)
+  const place = (x, y, z, scale = 1, onFrame = false) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
     m.scale.setScalar(scale);
     m.rotation.y = rnd() * Math.PI * 2;
     m.renderOrder = 1; // after the opaque objects behind it
     group.add(m);
+    slots.push({ x, y, z, yaw: m.rotation.y, scale, onFrame });
   };
 
   // Round tables: some have one, off to the side of the candle
@@ -101,12 +105,13 @@ export function createAshtrays(scene) {
   // Billard table: one per player on the left long side of the frame
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
-  for (const sz of [-1, 1]) place(frameX, frameTop, sz * ASHTRAY_FRAME_Z, ASHTRAY_FRAME_SCALE);
+  for (const sz of [-1, 1]) place(frameX, frameTop, sz * ASHTRAY_FRAME_Z, ASHTRAY_FRAME_SCALE, true);
 
   scene.add(group);
   return {
     group,
     taken,
+    slots,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       applyBallReflection(mat, reflection, { clearGlass: true });
