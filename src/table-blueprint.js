@@ -20,6 +20,31 @@ import {
   DIAMONDS_PER_SPAN,
 } from "./table-constants.js";
 
+/** Size of one wood texture tile on the frame and the apron (m): the grain runs along the board. */
+const WOOD_TILE_ALONG = 0.8;
+const WOOD_TILE_ACROSS = 0.4;
+
+/**
+ * UVs in meters, so the grain has the same scale and runs along the board's length on every
+ * face (box UVs would stretch the texture over each face and differ between long and short sides).
+ * @param {THREE.BufferGeometry} geo — centered on the board
+ * @param {"x" | "z"} along — the board's long axis
+ */
+function setWoodUVs(geo, along) {
+  const pos = geo.attributes.position;
+  const nor = geo.attributes.normal;
+  const uv = geo.attributes.uv;
+  const across = along === "x" ? "getZ" : "getX";
+  for (let i = 0; i < pos.count; i++) {
+    const top = Math.abs(nor.getY(i)) > 0.5;
+    const u = (along === "x" ? pos.getX(i) : pos.getZ(i)) / WOOD_TILE_ALONG;
+    const v = (top ? pos[across](i) : pos.getY(i)) / WOOD_TILE_ACROSS;
+    uv.setXY(i, u, v);
+  }
+  uv.needsUpdate = true;
+  return geo;
+}
+
 /**
  * K-66 approximation: trapezoid cross-section with the nose on TOP (63.5 % of the ball diameter);
  * the rubber face recedes downwards towards the cloth.
@@ -210,7 +235,7 @@ export function buildAuthenticTableWithHoles(
 
     const woodZ = feltEdgeZ + (outwardZ * railThick) / 2;
     const woodRail = new THREE.Mesh(
-      new RoundedBoxGeometry(2 * (hw + railThick), woodRailH, railThick, 4, RAIL_EDGE_RADIUS),
+      setWoodUVs(new RoundedBoxGeometry(2 * (hw + railThick), woodRailH, railThick, 4, RAIL_EDGE_RADIUS), "x"),
       woodMat
     );
     woodRail.position.set(0, railY + 0.005, woodZ);
@@ -250,7 +275,7 @@ export function buildAuthenticTableWithHoles(
 
     const woodX = feltEdgeX + (outwardX * railThick) / 2;
     const woodRail = new THREE.Mesh(
-      new RoundedBoxGeometry(railThick, woodRailH, 2 * hl, 4, RAIL_EDGE_RADIUS),
+      setWoodUVs(new RoundedBoxGeometry(railThick, woodRailH, 2 * hl, 4, RAIL_EDGE_RADIUS), "z"),
       woodMat
     );
     woodRail.position.set(woodX, railY + 0.005, 0);
@@ -314,7 +339,7 @@ export function buildAuthenticTableWithHoles(
   const outerZ = hl + railThick;
   const skirtY = TABLE_H - SKIRT_HEIGHT / 2;
   const addSkirt = (sizeX, sizeZ, x, z) => {
-    const board = new THREE.Mesh(new THREE.BoxGeometry(sizeX, SKIRT_HEIGHT, sizeZ), woodMat);
+    const board = new THREE.Mesh(setWoodUVs(new THREE.BoxGeometry(sizeX, SKIRT_HEIGHT, sizeZ), sizeX > sizeZ ? "x" : "z"), woodMat);
     board.position.set(x, skirtY, z);
     board.castShadow = true;
     board.receiveShadow = true;
