@@ -1,10 +1,12 @@
 # Sound — Konzept
 
-> **Status:** Umgesetzt sind die Klänge zur **Stoß-Animation**: Zurückziehen (Gleiten), Vorschnalzen (Luftzug), dezentes Atmen und der **Abstoß-Klang** (siehe „Umgesetzt“). **Alles andere** (Kugel–Kugel, Bande, Rollen, Becher) ist nur Konzept und wird erst auf ausdrücklichen Auftrag umgesetzt. Unabhängig vom Radio (`radio.md`).
+> **Status:** Umgesetzt sind die Klänge zur **Stoß-Animation**: Zurückziehen (Gleiten), Vorschnalzen (Luftzug), dezentes Atmen der **Abstoß-Klang** sowie **Kugel–Kugel und Bande** (siehe „Umgesetzt“). **Alles andere** (Rollen, Becher) ist nur Konzept und wird erst auf ausdrücklichen Auftrag umgesetzt. Unabhängig vom Radio (`radio.md`).
 
-## Umgesetzt: Klänge der Stoß-Animation
+## Umgesetzt
 
-Code: `src/shot-sounds.js` (Synthese und Abspielen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`.
+Code: `src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kollisionen), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`.
+
+### Stoß-Animation
 
 - **Zurückziehen:** Gleiten der Hand auf dem Schaft, gefiltertes Rauschen mit rauer Textur, am lautesten in der Mitte der Bewegung. Es gibt 3 Längen (0,3 / 0,45 / 0,6 s) mit je 2 Varianten; die nächstliegende Länge wird leicht gestreckt, damit sie zur Zugdauer passt. Dazu ein sehr leises **Einatmen**.
 - **Vorschnalzen:** Luftzug, dessen Tonhöhe und Lautstärke ansteigen und der **genau im Moment des Treffens** am lautesten ist und abrupt endet. 3 Stufen (weich, mittel, hart, mit zunehmender Helligkeit) mal 2 Varianten. Dazu ein kurzes, leises **Ausatmen** (Atem lässt sich mit `BREATH_ENABLED` abschalten).
@@ -12,6 +14,13 @@ Code: `src/shot-sounds.js` (Synthese und Abspielen), `src/audio.js` (gemeinsamer
 - **Gebuffert:** Die Klänge werden beim ersten Stoß einmal erzeugt (ca. 100 ms) und danach nur noch abgespielt.
 - **Autoplay:** Der Audio-Kontext startet mit dem ersten Stoß (Klick oder Taste).
 - **Abstoß** (Spitze trifft Kugel, im Moment des Treffens): kurzer „Tock“ aus einem Anschlagsklick (ca. 1,5 ms), dem Klingen der Kugel (hohe, schnell abklingende Anteile), der Schaft-Resonanz und einem leisen tiefen Schlag. 4 Kraftstufen mal 3 Varianten: weich = dumpfer und mit mehr tiefem Anteil, hart = heller und schärfer; Länge etwa 30–50 ms. Lautstärke wächst mit der Kraft. Der frühere einfache Computer-Ton ist ersetzt und entfernt.
+
+### Kollisionen
+- **Kugel–Kugel:** heller, harter „Klack“ (hohe, sehr schnell abklingende Anteile der Phenolharz-Kugel, ca. 10–15 ms). 5 Kraftstufen mal 4 Varianten.
+- **Kugel–Bande:** dumpferer „Thump“ (tiefe Anteile um 200–400 Hz, ca. 70–80 ms, gedämpfter Klick). 4 Kraftstufen mal 3 Varianten.
+- **Lautstärke und Helligkeit** folgen der **Aufprallgeschwindigkeit** entlang der Kollisionsrichtung (leiser als 0,06 m/s ist stumm, 4,5 m/s ist am lautesten), dazu zufällige Tonhöhe.
+- **Kugel–Kugel erkennen:** Rapier meldet nur *neue* Kontakte. Im Dreieck berühren sich die Kugeln aber schon, ein Stoß würde also lautlos durchlaufen. Deshalb prüft das Spiel nach jedem Physikschritt berührende Kugelpaare: Näherten sie sich vorher und stoppen/trennen sie sich nachher, ist das ein Treffer. Der Anstoß erzeugt so mehrere Klacks nacheinander. Bande nutzt die Kollisionsereignisse von Rapier (Geschwindigkeitsänderung der Kugel).
+- **Entprellen:** Pro Kugelpaar bzw. Kugel 50 ms Sperre und höchstens 8 gleichzeitige Klänge pro 40 ms, damit der Anstoß nicht ratterte.
 
 Der Rest dieser Seite ist das Konzept für die übrigen Klänge.
 
@@ -47,8 +56,8 @@ Die zugehörige Bewegung steht in `shot-animation.md`.
 ### Kugeln
 | Ereignis | Beschreibung |
 |----------|--------------|
-| **Kugel–Kugel** | Heller, harter „Klack“ (Phenolharz auf Phenolharz). Stärke nach der Aufprallgeschwindigkeit entlang der Kollisionsrichtung. Beim Anstoß treffen viele Kugeln fast gleichzeitig, deshalb gibt es ein **Limit gleichzeitiger Stimmen**. |
-| **Kugel–Bande** | Dumpfer, kurzer „Tock/Thump“ (Gummi über Holz), tiefer und weicher als Kugel–Kugel. Stärke nach der Aufprallgeschwindigkeit senkrecht zur Bande. |
+| **Kugel–Kugel** | *Umgesetzt (siehe oben).* Heller, harter „Klack“ (Phenolharz auf Phenolharz). Stärke nach der Aufprallgeschwindigkeit entlang der Kollisionsrichtung. Beim Anstoß treffen viele Kugeln fast gleichzeitig, deshalb gibt es ein **Limit gleichzeitiger Stimmen**. |
+| **Kugel–Bande** | *Umgesetzt (siehe oben).* Dumpfer, kurzer „Tock/Thump“ (Gummi über Holz), tiefer und weicher als Kugel–Kugel. Stärke nach der Aufprallgeschwindigkeit senkrecht zur Bande. |
 | **Rollen** | **Sehr leises** Rollgeräusch auf Filz: tiefes, weiches Rauschen („Schhh“). Lautstärke und Helligkeit steigen mit der Geschwindigkeit, bei Stillstand wird es ausgeblendet. Es soll nur unterschwellig mitlaufen. |
 
 ### Taschen und Becher

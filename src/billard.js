@@ -17,6 +17,8 @@ import { createRoom } from "./room.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
+import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
+import { BALL_TOUCH_DISTANCE } from "./sound-constants.js";
 import {
   CUE_FOLLOW_THROUGH_TIME,
   CUE_RELAX_TIME,
@@ -57,6 +59,7 @@ import {
   PHYSICS_STEP,
   REST_LINEAR_SPEED,
   REST_SURFACE_SPEED,
+  CUSHION_RESTITUTION,
 } from "./physics-constants.js";
 
 /** @type {typeof import("three")} */
@@ -294,6 +297,7 @@ function setupBalls() {
       collider,
       pos: new THREE.Vector3(x, TABLE_H + BALL_R, z),
       vel: new THREE.Vector3(0, 0, 0),
+      preVel: new THREE.Vector3(0, 0, 0), // velocity before the last physics step
       radius: BALL_R,
       isCue,
       id,
@@ -969,6 +973,50 @@ function onBallPocketed(b, pocketId) {
   }, 600);
 }
 
+/** Remember the ball's velocity before the physics step (to measure impact strength afterwards). */
+function rememberVelocity(b) {
+  const v = b.body.linvel();
+  b.preVel.set(v.x, v.y, v.z);
+}
+
+/**
+ * Ball–ball impacts for the sounds. Rapier only reports NEW contacts, but in a rack the balls
+ * already touch, so a shock travelling through them would be silent. Instead: two touching balls
+ * that were approaching each other before the step and are separating/stopped after it hit.
+ */
+function detectBallImpacts() {
+  const touch = 2 * BALL_R + BALL_TOUCH_DISTANCE;
+  for (let i = 0; i < balls.length; i++) {
+    const a = balls[i];
+    if (a.inPocket) continue;
+    const pa = a.body.translation();
+    for (let j = i + 1; j < balls.length; j++) {
+      const b = balls[j];
+      if (b.inPocket) continue;
+      const pb = b.body.translation();
+      const dx = pb.x - pa.x;
+      const dz = pb.z - pa.z;
+      if (dx * dx + dz * dz > touch * touch) continue;
+      const d = Math.hypot(dx, dz) || 1;
+      const nx = dx / d;
+      const nz = dz / d;
+      const va = a.body.linvel();
+      const vb = b.body.linvel();
+      const closingBefore = (a.preVel.x - b.preVel.x) * nx + (a.preVel.z - b.preVel.z) * nz;
+      const closingAfter = (va.x - vb.x) * nx + (va.z - vb.z) * nz;
+      if (closingBefore > 0 && closingAfter < closingBefore * 0.5) {
+        playBallHitSound(closingBefore, `b${a.id}-${b.id}`);
+      }
+    }
+  }
+}
+
+/** How much the ball's velocity changed in the last physics step (m/s). */
+function velocityChange(b) {
+  const v = b.body.linvel();
+  return Math.hypot(v.x - b.preVel.x, v.y - b.preVel.y, v.z - b.preVel.z);
+}
+
 /**
  * Physics with a fixed time step (Rapier). A ball only counts as pocketed on impact in the cup.
  * @param {number} frameDt — frame time in seconds
@@ -984,13 +1032,25 @@ function stepPhysics(frameDt) {
     physics.world.timestep = PHYSICS_STEP / sub;
     for (let i = 0; i < sub; i++) {
       advanceCueStroke(PHYSICS_STEP / sub);
+      for (const b of balls) rememberVelocity(b);
       physics.world.step(physics.eventQueue);
+      detectBallImpacts();
       physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
         if (!started) return;
+        const ball1 = ballByCollider.get(h1);
+        const ball2 = ballByCollider.get(h2);
         const pocketId = physics.cupFloors.get(h1) ?? physics.cupFloors.get(h2);
-        if (!pocketId) return;
-        const ball = ballByCollider.get(h1) ?? ballByCollider.get(h2);
-        if (ball) onBallPocketed(ball, pocketId);
+        if (pocketId) {
+          const ball = ball1 ?? ball2;
+          if (ball) onBallPocketed(ball, pocketId);
+        } else if (
+          (ball1 && physics.cushionColliders.has(h2)) ||
+          (ball2 && physics.cushionColliders.has(h1))
+        ) {
+          // Ball–cushion: Δv = (1 + restitution) × impact speed
+          const ball = ball1 ?? ball2;
+          playCushionHitSound(velocityChange(ball) / (1 + CUSHION_RESTITUTION), `c${ball.id}`);
+        }
       });
     }
     physicsAcc -= PHYSICS_STEP;

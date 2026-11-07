@@ -36,3 +36,26 @@ export const STRIKE_GAIN_MAX = 0.9;
 
 /** Random pitch variation (± fraction) so repeated sounds do not sound identical. */
 export const PITCH_VARIATION = 0.05;
+
+/* ---- Collisions: ball–ball and ball–cushion --------------------------------------------- */
+/** Impact speeds (m/s, along the collision normal): below MIN is silent, MAX is the loudest. */
+export const COLLISION_MIN_SPEED = 0.06;
+export const COLLISION_MAX_SPEED = 4.5;
+/** Two balls count as touching when their surfaces are closer than this (m). */
+export const BALL_TOUCH_DISTANCE = 0.0015;
+/** Bright, hard "klack" of phenolic balls. */
+export const BALL_HIT_SECONDS = 0.12;
+export const BALL_HIT_STAGES = 5;
+export const BALL_HIT_VARIANTS = 4;
+export const BALL_HIT_GAIN_MIN = 0.06;
+export const BALL_HIT_GAIN_MAX = 0.7;
+/** Duller "thump" of a ball on the rubber cushion. */
+export const CUSHION_HIT_SECONDS = 0.22;
+export const CUSHION_HIT_STAGES = 4;
+export const CUSHION_HIT_VARIANTS = 3;
+export const CUSHION_HIT_GAIN_MIN = 0.05;
+export const CUSHION_HIT_GAIN_MAX = 0.55;
+/** Same pair/ball is silent for this long after a sound (s); at most this many sounds per window. */
+export const COLLISION_COOLDOWN = 0.05;
+export const COLLISION_MAX_VOICES = 8;
+export const COLLISION_VOICE_WINDOW = 0.04;

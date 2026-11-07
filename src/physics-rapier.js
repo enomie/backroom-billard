@@ -34,7 +34,8 @@ export function createBallPhysics(RAPIER, world, position, ballRadius) {
     .setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Multiply)
     .setFriction(BALL_FRICTION)
     .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Average)
-    .setCollisionGroups(GROUP_BALL);
+    .setCollisionGroups(GROUP_BALL)
+    .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS); // ball–ball / ball–cushion sounds
 
   const collider = world.createCollider(colliderDesc, body);
 

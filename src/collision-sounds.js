@@ -1,0 +1,164 @@
+/**
+ * Generated, buffered collision sounds: ball–ball "klack" and ball–cushion "thump".
+ * Loudness and brightness follow the impact speed. See _docs/sound.md.
+ */
+import { getAudioContext, playBuffer } from "./audio.js";
+import { lerp, pick, bandpass, finish } from "./synth-utils.js";
+import {
+  COLLISION_MIN_SPEED,
+  COLLISION_MAX_SPEED,
+  COLLISION_COOLDOWN,
+  COLLISION_MAX_VOICES,
+  COLLISION_VOICE_WINDOW,
+  BALL_HIT_SECONDS,
+  BALL_HIT_STAGES,
+  BALL_HIT_VARIANTS,
+  BALL_HIT_GAIN_MIN,
+  BALL_HIT_GAIN_MAX,
+  CUSHION_HIT_SECONDS,
+  CUSHION_HIT_STAGES,
+  CUSHION_HIT_VARIANTS,
+  CUSHION_HIT_GAIN_MIN,
+  CUSHION_HIT_GAIN_MAX,
+  PITCH_VARIATION,
+} from "./sound-constants.js";
+
+/** Sum of damped sinusoids plus a short noise click. modes: [Hz, amplitude, decay seconds] */
+function ring(sampleRate, seconds, modes, clickGain, clickHz, clickDecay) {
+  const n = Math.floor(seconds * sampleRate);
+  const out = new Float32Array(n);
+  const click = bandpass(sampleRate, 0.8);
+  for (let i = 0; i < n; i++) {
+    const t = i / sampleRate;
+    let v = 0;
+    for (const [f, a, tau] of modes) v += a * Math.sin(2 * Math.PI * f * t) * Math.exp(-t / tau);
+    v += clickGain * click(Math.random() * 2 - 1, clickHz) * Math.exp(-t / clickDecay);
+    out[i] = v;
+  }
+  return finish(out, sampleRate, 0.9, 0.0003);
+}
+
+const detune = () => 1 + (Math.random() - 0.5) * 0.06; // every variant rings slightly differently
+
+/** Hard, bright, very short: high partials of a phenolic ball, almost no low content. */
+function synthBallHit(sampleRate, stage) {
+  const hard = stage / Math.max(1, BALL_HIT_STAGES - 1); // 0 soft … 1 hard
+  const f = 1 + 0.35 * hard;
+  return ring(
+    sampleRate,
+    BALL_HIT_SECONDS,
+    [
+      [2900 * f * detune(), 1.0, 0.007 - 0.002 * hard],
+      [4700 * f * detune(), 0.7, 0.005],
+      [7300 * detune(), 0.35 * (0.3 + hard), 0.003],
+      [1500 * detune(), 0.35, 0.012], // a little body
+    ],
+    0.9 + 0.5 * hard,
+    6500,
+    0.0012
+  );
+}
+
+/** Duller and longer: ball on rubber over wood, low-mid thump, muffled click. */
+function synthCushionHit(sampleRate, stage) {
+  const hard = stage / Math.max(1, CUSHION_HIT_STAGES - 1);
+  return ring(
+    sampleRate,
+    CUSHION_HIT_SECONDS,
+    [
+      [210 * detune(), 1.0, 0.03 + 0.01 * hard],
+      [380 * detune(), 0.7, 0.022],
+      [900 * (1 + 0.3 * hard) * detune(), 0.35 + 0.3 * hard, 0.012],
+      [90 * detune(), 0.5, 0.05], // wooden body
+    ],
+    0.35 + 0.4 * hard,
+    1800,
+    0.003
+  );
+}
+
+/**
+ * Synthesize all collision samples (pure, no Web Audio needed).
+ * @param {number} sampleRate
+ */
+export function synthesizeCollisionSounds(sampleRate) {
+  return {
+    ball: Array.from({ length: BALL_HIT_STAGES }, (_, s) =>
+      Array.from({ length: BALL_HIT_VARIANTS }, () => synthBallHit(sampleRate, s))
+    ),
+    cushion: Array.from({ length: CUSHION_HIT_STAGES }, (_, s) =>
+      Array.from({ length: CUSHION_HIT_VARIANTS }, () => synthCushionHit(sampleRate, s))
+    ),
+  };
+}
+
+let buffers = null;
+const toBuffer = (audio, samples) => {
+  const buffer = audio.createBuffer(1, samples.length, audio.sampleRate);
+  buffer.copyToChannel(samples, 0);
+  return buffer;
+};
+
+function ensureBuffers() {
+  if (buffers) return buffers;
+  const audio = getAudioContext();
+  if (!audio) return null;
+  const raw = synthesizeCollisionSounds(audio.sampleRate);
+  const convert = (stages) => stages.map((variants) => variants.map((s) => toBuffer(audio, s)));
+  buffers = { ball: convert(raw.ball), cushion: convert(raw.cushion) };
+  return buffers;
+}
+
+/** Recent play times for the voice limit and per-source cooldowns. */
+const recent = [];
+const lastBySource = new Map();
+
+function allowed(sourceKey) {
+  const now = performance.now() / 1000;
+  if (now - (lastBySource.get(sourceKey) ?? -1) < COLLISION_COOLDOWN) return false;
+  while (recent.length && now - recent[0] > COLLISION_VOICE_WINDOW) recent.shift();
+  if (recent.length >= COLLISION_MAX_VOICES) return false;
+  lastBySource.set(sourceKey, now);
+  recent.push(now);
+  return true;
+}
+
+/** 0 … 1 from the impact speed, or -1 if too soft to be heard. */
+const strengthOf = (speed) =>
+  speed < COLLISION_MIN_SPEED ? -1 : Math.min(1, speed / COLLISION_MAX_SPEED);
+
+const variation = () => 1 + (Math.random() * 2 - 1) * PITCH_VARIATION;
+
+/**
+ * Two balls hit each other.
+ * @param {number} speed — impact speed along the collision normal (m/s)
+ * @param {string} sourceKey — identifies the pair (cooldown)
+ */
+export function playBallHitSound(speed, sourceKey) {
+  const s = strengthOf(speed);
+  if (s < 0 || !allowed(sourceKey)) return;
+  const b = ensureBuffers();
+  if (!b) return;
+  const stage = Math.round(s * (BALL_HIT_STAGES - 1));
+  playBuffer(pick(b.ball[stage]), {
+    gain: lerp(BALL_HIT_GAIN_MIN, BALL_HIT_GAIN_MAX, Math.sqrt(s)),
+    rate: variation(),
+  });
+}
+
+/**
+ * A ball hits the cushion.
+ * @param {number} speed — impact speed along the cushion normal (m/s)
+ * @param {string} sourceKey — identifies the ball (cooldown)
+ */
+export function playCushionHitSound(speed, sourceKey) {
+  const s = strengthOf(speed);
+  if (s < 0 || !allowed(sourceKey)) return;
+  const b = ensureBuffers();
+  if (!b) return;
+  const stage = Math.round(s * (CUSHION_HIT_STAGES - 1));
+  playBuffer(pick(b.cushion[stage]), {
+    gain: lerp(CUSHION_HIT_GAIN_MIN, CUSHION_HIT_GAIN_MAX, Math.sqrt(s)),
+    rate: variation(),
+  });
+}

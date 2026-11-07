@@ -85,9 +85,11 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
       .setCollisionGroups(GROUP_STATIC)
   );
 
-  // Cushion rubber (nose + facets)
+  // Cushion rubber (nose + facets); collision events feed the cushion sounds
+  /** @type {Set<number>} */
+  const cushionColliders = new Set();
   for (const geo of colliderGeometries.rubber) {
-    world.createCollider(
+    const cushion = world.createCollider(
       trimeshDescFromGeometry(RAPIER, geo)
         .setRestitution(CUSHION_RESTITUTION)
         .setRestitutionCombineRule(Multiply)
@@ -95,7 +97,9 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
         .setFrictionCombineRule(Average)
         .setContactSkin(CONTACT_SKIN_M)
         .setCollisionGroups(GROUP_STATIC)
+        .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS)
     );
+    cushionColliders.add(cushion.handle);
   }
 
   // Pocket cup: wall (open at the top) + floor; only the floor reports collisions → "pocketed"
@@ -151,6 +155,7 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
     world,
     eventQueue,
     cupFloors,
+    cushionColliders,
     cue: { body: cueBody, collider: cueCollider },
     /** @returns {{ body: import("@dimforge/rapier3d-simd").RigidBody; collider: import("@dimforge/rapier3d-simd").Collider }} */
     addBall(position, radius) {
