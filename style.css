@@ -443,3 +443,51 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: inset -2px -2px 3px rgba(0, 0, 0, 0.35);
 }
+
+/* Spielende */
+.game-over {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.game-over[hidden] {
+  display: none;
+}
+
+.game-over__panel {
+  text-align: center;
+  padding: 28px 36px;
+  max-width: 22rem;
+  background: rgba(10, 6, 6, 0.92);
+  border: 1px solid rgba(220, 38, 38, 0.6);
+  border-radius: 14px;
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.25);
+}
+
+.game-over__title {
+  margin: 0 0 8px;
+  font-family: "Cinzel", serif;
+  font-size: 2rem;
+  letter-spacing: 0.12em;
+  color: #f87171;
+}
+
+.game-over__text {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  color: #d4d4d8;
+}
+
+.game-over--won .game-over__panel {
+  border-color: rgba(250, 204, 21, 0.6);
+  box-shadow: 0 0 40px rgba(250, 204, 21, 0.25);
+}
+
+.game-over--won .game-over__title {
+  color: #facc15;
+}

@@ -74,6 +74,10 @@ const BALL_COLORS = [
   0xd946ef, // 15 magenta
 ];
 
+/** "playing" | "won" | "lost" — die schwarze 8 muss als letzte Kugel versenkt werden */
+let gameState = "playing";
+const BLACK_BALL_ID = 8;
+
 /** @type {typeof balls} versenkte Kugeln, die nach dem Physikschritt gelöscht werden */
 const pendingRemoval = [];
 let physics = null; // Rapier-Welt (physics-world.js)
@@ -288,6 +292,7 @@ function setupBalls() {
   ballByCollider.clear();
   pendingRemoval.length = 0;
   clearPocketedHud();
+  hideGameOver();
 
   const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
 
@@ -416,6 +421,7 @@ function setupCueAndAimLine() {
    5. FEHLERFREIE & AUSBALANCIERTE STOSS-MECHANIK
 ==================================================== */
 function fireCueStrike() {
+  if (gameState !== "playing") return;
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
   // Doppelt ausgelöste Events (Button+Leertaste, Touch+Maus) ignorieren
@@ -602,6 +608,10 @@ function setupControls() {
 
   // Header Buttons
   document.getElementById("btn-camera").addEventListener("click", toggleCamera);
+  document.getElementById("btn-restart").addEventListener("click", () => {
+    setupBalls();
+    updateStatusDisplay(false);
+  });
   document.getElementById("btn-reset").addEventListener("click", () => {
     setupBalls();
     updateStatusDisplay(false);
@@ -658,6 +668,23 @@ function clearPocketedHud() {
   if (host) host.replaceChildren();
 }
 
+/** Ende des Spiels anzeigen; weitere Stöße sind gesperrt, bis neu aufgebaut wird. */
+function endGame(won, reason) {
+  gameState = won ? "won" : "lost";
+  const overlay = document.getElementById("game-over");
+  if (!overlay) return;
+  document.getElementById("game-over-title").textContent = won ? "GEWONNEN" : "GAME LOST";
+  document.getElementById("game-over-text").textContent = reason;
+  overlay.classList.toggle("game-over--won", won);
+  overlay.hidden = false;
+}
+
+function hideGameOver() {
+  gameState = "playing";
+  const overlay = document.getElementById("game-over");
+  if (overlay) overlay.hidden = true;
+}
+
 /** Versenkte Objektkugel komplett aus der Welt nehmen (Körper, Mesh, Verwaltung). */
 function removeBall(b) {
   physics.removeBall(b.body);
@@ -679,6 +706,18 @@ function onBallPocketed(b, pocketId) {
   if (!b.isCue) {
     addPocketedToHud(b);
     pendingRemoval.push(b); // erst nach dem Physikschritt entfernen
+    if (b.id === BLACK_BALL_ID && gameState === "playing") {
+      // Schwarze 8: nur als LETZTE Kugel erlaubt, sonst Game Lost
+      const othersLeft = balls.some(
+        (o) => !o.isCue && o.id !== BLACK_BALL_ID && !o.inPocket
+      );
+      endGame(
+        !othersLeft,
+        othersLeft
+          ? "Die schwarze 8 wurde versenkt, obwohl noch Kugeln auf dem Tisch liegen."
+          : "Alle Kugeln versenkt — die schwarze 8 kam zuletzt."
+      );
+    }
     return;
   }
 

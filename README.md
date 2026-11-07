@@ -20,6 +20,12 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Stoß | Klick, Leertaste, Button |
 | Kamera / Reset | `C` / `R` |
 
+## Regeln
+
+- Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
+- Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
+- Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (oder `R`) startet neu.
+
 ## Aufbau
 
 | Datei (`src/`) | Rolle |
