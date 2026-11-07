@@ -13,7 +13,7 @@ import {
  * the rubber face recedes downwards towards the cloth.
  *
  * @param {number} feltEdge — felt edge on this axis (X or Z)
- * @param {number} inwardSign — +1 / −1 Richtung Spielfeld
+ * @param {number} inwardSign — +1 / −1 towards the playing field
  * @param {number} rubberThick
  * @param {number} railH
  * @param {number} tableH

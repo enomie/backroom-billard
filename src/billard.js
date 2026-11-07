@@ -12,6 +12,7 @@ import {
 } from "./table-constants.js";
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
+import { createCeilingLamps } from "./ceiling-lamps.js";
 import { t, onLanguageChange } from "./i18n/index.js";
 import {
   PHYSICS_STEP,
@@ -51,7 +52,7 @@ const pocketSpecs = createPocketSpecs(tableDimensions);
 let cameraMode = "fps"; // 'fps' oder 'overhead'
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
 let aimPitch = 0.12;
-let selectedPower = 0.4; // 0.10 bis 1.0 (Standard: sanfte 40%)
+let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
 let isCueMoving = false;
 let cueStrikeAnim = 0; // drives the cue strike animation
 let cueRespawnTimer = null; // timer for re-spotting the cue ball
@@ -83,7 +84,8 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 
 /** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
-let physics = null; // Rapier-Welt (physics-world.js)
+let physics = null; // Rapier world (physics-world.js)
+let ceilingLamps = null; // lamp bodies + lights (ceiling-lamps.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 
 // Audio context for synthetic ball collision sounds
@@ -217,58 +219,8 @@ function setupLightingAndRoom() {
   const ambLight = new THREE.AmbientLight(0x111622, 0.4);
   scene.add(ambLight);
 
-  // Warm ceiling spot above the table
-  const lampY = TABLE_H + 1.4;
-  const spot = new THREE.SpotLight(0xffdfa4, 4.5);
-  spot.position.set(0, lampY, 0);
-  spot.angle = Math.PI / 3.4;
-  spot.penumbra = 0.55;
-  spot.decay = 1.4;
-  spot.distance = 6.0;
-  spot.castShadow = true;
-  spot.shadow.mapSize.width = 2048;
-  spot.shadow.mapSize.height = 2048;
-  spot.shadow.bias = -0.0003;
-  spot.target.position.set(0, TABLE_H, 0);
-  scene.add(spot);
-  scene.add(spot.target);
-
-  // Glowing point light at the lamp
-  const bulb = new THREE.PointLight(0xffa834, 1.2, 3.0);
-  bulb.position.set(0, lampY - 0.05, 0);
-  scene.add(bulb);
-
-  // Lamp shade (classic brass / dark green)
-  const shade = new THREE.Mesh(
-    new THREE.ConeGeometry(0.35, 0.22, 32, 1, true),
-    new THREE.MeshStandardMaterial({
-      color: 0x0f291e,
-      roughness: 0.3,
-      metalness: 0.7,
-      side: THREE.DoubleSide,
-    })
-  );
-  shade.position.set(0, lampY + 0.08, 0);
-  scene.add(shade);
-
-  // Volumetric warm light cone
-  const coneHeight = 1.38;
-  const coneR = Math.tan(spot.angle) * coneHeight * 0.95;
-  const coneGeo = new THREE.ConeGeometry(coneR, coneHeight, 32, 1, true);
-  coneGeo.translate(0, -coneHeight / 2, 0);
-  const lightCone = new THREE.Mesh(
-    coneGeo,
-    new THREE.MeshBasicMaterial({
-      color: 0xffd290,
-      transparent: true,
-      opacity: 0.08,
-      side: THREE.BackSide,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
-  );
-  lightCone.position.set(0, lampY, 0);
-  scene.add(lightCone);
+  // Three identical ceiling lamps above the table (parameters: room-constants.js)
+  ceilingLamps = createCeilingLamps(scene, TABLE_H);
 
   // Dark backroom floor
   const floor = new THREE.Mesh(
@@ -642,6 +594,8 @@ function toggleCamera() {
     cameraMode === "fps" ? "flex" : "none";
   cueStickPivot.visible = cameraMode === "fps";
   aimLine.visible = cameraMode === "fps";
+  // The top-view camera hangs above the lamps: hide the lamp bodies there (lights stay on)
+  ceilingLamps.setMeshesVisible(cameraMode === "fps");
 }
 
 /* ====================================================
@@ -758,7 +712,7 @@ function onBallPocketed(b, pocketId) {
 
 /**
  * Physics with a fixed time step (Rapier). A ball only counts as pocketed on impact in the cup.
- * @param {number} frameDt — Frame-Zeit in Sekunden
+ * @param {number} frameDt — frame time in seconds
  */
 function stepPhysics(frameDt) {
   physicsAcc += frameDt;

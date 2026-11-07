@@ -1,6 +1,6 @@
 # Optik — 80er-Backroom
 
-> **Status: Vorgaben, noch nicht umgesetzt.** Umgesetzt wird erst, wenn es ausdrücklich beauftragt wird.
+> **Status:** Die **drei Deckenleuchten sind umgesetzt** (`src/ceiling-lamps.js`, Parameter in `src/room-constants.js`). **Raum und Nebel sind noch Vorgaben**, nicht umgesetzt. Umgesetzt wird erst, wenn es ausdrücklich beauftragt wird.
 
 Das Spiel spielt in den **80ern** in einem verrauchten, schummrigen Billardcafé. Die Optik soll genau das transportieren: wenig Licht, Rauch in der Luft, ein heller Tisch im Dunkeln.
 
@@ -28,11 +28,12 @@ Maße sollen im Code als Parameter einstellbar sein.
 - **Form:** Kegel-Lampenschirm (Dreieck im Profil), an einem **schwarzen Kabel** von der Decke hängend.
 - **Farben:** außen **blau**, innen **golden**.
 - **Licht:** Kegel-Spot (cone light) mit **Softshadow**. Die Lichtkegel der drei Leuchten überlappen sich auf dem Tisch (siehe gestrichelte Linien in der Skizze).
-- **Anordnung:** nebeneinander in einer Reihe über dem Tisch.
+- **Anordnung:** nebeneinander in einer Reihe entlang der Tischlänge, Abstand 0,85 m (`LAMP_SPACING`).
+- **Draufsicht:** In der Draufsicht (Kamera über den Leuchten) sind die Lampenkörper ausgeblendet, das Licht bleibt an.
 
-### Höhe als Parameter
+### Höhe als Parameter (umgesetzt)
 
-- Die **Aufhängehöhe** (Unterkante der Leuchten über dem Boden) ist ein **Parameter im Code**, z. B. **2,40 m**.
+- Die **Aufhängehöhe** (Unterkante der Leuchten über dem Boden) ist der **Parameter `LAMP_HEIGHT`** in `src/room-constants.js`, Standard **2,40 m**. Dort stehen auch Abstand, Kabellänge, Schirm- und Lichtwerte.
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
 

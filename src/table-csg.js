@@ -69,7 +69,7 @@ export function buildTableWithPocketsCSG(partMeshes, pocketSpecs, linerMaterial)
   evaluator.useGroups = true;
 
   if (partMeshes.length === 0) {
-    throw new Error("buildTableWithPocketsCSG: keine Tischteile");
+    throw new Error("buildTableWithPocketsCSG: no table parts");
   }
 
   partMeshes.forEach((m) => m.updateMatrixWorld(true));

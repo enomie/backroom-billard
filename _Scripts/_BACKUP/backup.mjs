@@ -5,7 +5,7 @@
  *    With the argument `ALL`, `public/` is copied as well (required when ALL is set).
  *    `--structure-only`: only write `structure.md`, no backup folder.
  *
- * npm: `npm run backup` · optional Suffix: `npm run backup -- vor-refactor`
+ * npm: `npm run backup` · optional suffix: `npm run backup -- vor-refactor`
  */
 import fs from 'node:fs';
 import path from 'node:path';

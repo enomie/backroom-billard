@@ -13,7 +13,7 @@ export const TABLE_H = 0.85;
 export const BALL_DIAMETER = 0.05715;
 export const BALL_RADIUS_REAL = BALL_DIAMETER / 2;
 
-/** Kissen: Nose-Line bis Tuch, 63,5 % des Kugeldurchmessers (WPA-Mitte) */
+/** Cushion: nose line to cloth, 63.5 % of the ball diameter (WPA mid value) */
 export const CUSHION_NOSE_TO_BED = 0.635 * BALL_DIAMETER;
 
 /**

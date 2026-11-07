@@ -48,7 +48,7 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
       .setFrictionCombineRule(Average)
   );
 
-  // Bandengummi (Nase + Facetten)
+  // Cushion rubber (nose + facets)
   for (const geo of colliderGeometries.rubber) {
     world.createCollider(
       trimeshDescFromGeometry(RAPIER, geo)
@@ -85,7 +85,7 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
     cupFloors.set(floor.handle, spec.id);
   }
 
-  // Sicherheitsboden weit unten (Streuner)
+  // Safety floor far below (stray balls)
   world.createCollider(
     RAPIER.ColliderDesc.cuboid(5, 0.05, 5).setTranslation(0, 0.3, 0)
   );
