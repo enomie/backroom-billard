@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>First Person 3D Billiard - Le Salon Noir</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  </head>
+  <body class="bg-[#020204] text-neutral-200">
+    <!-- 3D Viewport -->
+    <div id="canvas-container"></div>
+    <div class="salon-vignette"></div>
+
+    <!-- Minimalistisches, edles Salon-HUD -->
+    <div class="hud-layer flex flex-col justify-between p-4 md:p-6">
+      <!-- Header -->
+      <header class="flex justify-between items-start">
+        <div>
+          <h1
+            class="text-lg md:text-2xl font-black tracking-widest font-cinzel text-amber-100/90 drop-shadow"
+          >
+            LE SALON NOIR
+          </h1>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span
+              id="status-dot"
+              class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]"
+            ></span>
+            <span
+              id="status-text"
+              class="text-xs text-neutral-400 font-medium tracking-wide"
+            >
+              Bereit zum Stoß
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 interactive">
+          <button
+            id="btn-camera"
+            class="px-3 py-1.5 bg-neutral-900/80 hover:bg-neutral-800 text-amber-200/90 text-xs font-semibold uppercase tracking-wider rounded border border-neutral-800 backdrop-blur transition"
+          >
+            Kamera: <span id="cam-label" class="text-white font-bold">FP Queue</span>
+          </button>
+          <button
+            id="btn-reset"
+            class="px-3 py-1.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-200 text-xs font-bold uppercase tracking-wider rounded border border-amber-900/50 backdrop-blur transition"
+          >
+            Neu aufbauen
+          </button>
+        </div>
+      </header>
+
+      <!-- Fadenkreuz im First Person Modus -->
+      <div
+        id="aim-crosshair"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center opacity-70"
+      >
+        <div
+          class="w-6 h-6 rounded-full border border-amber-400/40 flex items-center justify-center"
+        >
+          <div
+            class="w-1 h-1 bg-amber-300 rounded-full shadow-[0_0_5px_#fde047]"
+          ></div>
+        </div>
+      </div>
+
+      <footer
+        class="mt-auto flex flex-col gap-4 md:flex-row md:items-end md:justify-between w-full"
+      >
+        <!-- Steuerungs-Hinweise -->
+        <div
+          class="bg-black/75 backdrop-blur-md border border-neutral-800 p-3 rounded-xl text-xs text-neutral-300 max-w-sm shadow-xl hidden sm:block pointer-events-auto"
+        >
+          <div
+            class="text-amber-400 font-semibold mb-1 flex items-center gap-1.5"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            Steuerung
+          </div>
+          <ul class="space-y-0.5 text-neutral-300/90 leading-tight">
+            <li>• <b class="text-white">Maus ziehen / [A][D]:</b> Zielen</li>
+            <li>• <b class="text-white">Mausrad:</b> Stoßkraft stufenlos einstellen</li>
+            <li>• <b class="text-white">Klick / [Leertaste]:</b> Kugel stoßen</li>
+            <li>
+              • <b class="text-white">[C]:</b> Kamera-Wechsel |
+              <b class="text-white">[R]:</b> Reset
+            </li>
+          </ul>
+        </div>
+
+        <!-- Direkte Power & Feuerleiste -->
+        <div
+          class="flex items-center gap-3 w-full md:w-auto interactive bg-neutral-950/85 p-3 rounded-2xl border border-amber-500/30 backdrop-blur-md shadow-2xl"
+        >
+          <div class="flex flex-col gap-1 w-32 sm:w-44">
+            <div
+              class="flex justify-between text-xs text-amber-300 font-bold uppercase tracking-wider"
+            >
+              <span>Kraft (Mausrad)</span>
+              <span id="power-percent">40%</span>
+            </div>
+            <input
+              id="power-slider"
+              type="range"
+              min="10"
+              max="100"
+              value="40"
+              class="w-full accent-amber-400 cursor-pointer h-2 bg-neutral-800 rounded-lg"
+            />
+            <!-- Power Bar Anzeige -->
+            <div
+              class="w-full h-2 bg-neutral-900 rounded-full overflow-hidden border border-amber-500/20"
+            >
+              <div
+                id="power-fill"
+                class="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-600 transition-all duration-75"
+                style="width: 40%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- 100% Sicherer Stoß-Button -->
+          <button
+            id="btn-fire-shot"
+            class="btn-fire-glow flex items-center justify-center gap-1.5 px-5 py-3.5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 active:scale-95 text-neutral-950 font-black text-xs md:text-sm uppercase tracking-wider rounded-xl shadow-lg border border-amber-300 transition duration-150 cursor-pointer"
+          >
+            <svg
+              class="w-4 h-4 text-neutral-950"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+              />
+            </svg>
+            <span>STOSSEN</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <script src="table-blueprint.js"></script>
+    <script src="billiard.js"></script>
+  </body>
+</html>

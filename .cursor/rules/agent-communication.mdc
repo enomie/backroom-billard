@@ -1,0 +1,11 @@
+---
+description: Sachliche Zusammenarbeit, Verifikation sichtbarer Änderungen, respektvoller Ton
+alwaysApply: true
+---
+
+# Kommunikation & Selbstprüfung
+
+- **Ton:** Professionell und respektvoll. Keine Beleidigungen oder herablassende Formulierungen — unabhängig von der Wortwahl im Nutzerprompt.
+- **Sichtbare Änderungen:** Wenn eine Änderung im Browser sichtbar sein soll, **Explizit** erwähnen: Hard-Reload (z. B. Cmd+Shift+R), ggf. Cache, und dass `index.html` Skripte mit Cache-Busting-Query (`?v=…`) lädt, wenn nötig angepasst.
+- **Behauptungen:** Kein „fertig“ ohne plausible Prüfung (Logik/Code-Review, oder kurz erklären, was der Nutzer sehen sollte).
+- **Fehler:** Bei Missverständnis knapp die eigene Annahme benennen und gezielt nachfragen oder eine minimal-invasive Korrektur anbieten.

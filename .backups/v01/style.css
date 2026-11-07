@@ -1,0 +1,73 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@400;600&display=swap");
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #020204;
+  font-family: "Inter", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Starke, geheimnisvolle Salon-Vignette */
+.salon-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0) 25%,
+    rgba(2, 3, 5, 0.75) 65%,
+    rgba(0, 1, 2, 0.98) 100%
+  );
+}
+
+.hud-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.interactive {
+  pointer-events: auto;
+}
+
+.font-cinzel {
+  font-family: "Cinzel", serif;
+}
+
+/* Dezentes Glühen für Stoß-Button */
+.glow-amber {
+  box-shadow: 0 0 15px rgba(217, 119, 6, 0.35);
+  transition: all 0.2s ease;
+}
+
+.glow-amber:hover {
+  box-shadow: 0 0 25px rgba(217, 119, 6, 0.6);
+  transform: translateY(-1px);
+}
+
+.glow-amber:active {
+  transform: translateY(1px);
+}

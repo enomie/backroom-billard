@@ -1,0 +1,18 @@
+---
+description: Striktes, sauberes JavaScript/TypeScript (kein Schludern).
+globs: "**/*.{js,mjs,cjs,ts,tsx}"
+alwaysApply: false
+---
+
+# JavaScript & TypeScript
+
+- **DRY / KISS / YAGNI:** Keine sinnlosen Duplikate (Ausnahme: bewusste Klärheit gegenüber cleverem Abstrahieren). Einfachste Lösung, die korrekt bleibt. Keine Features, APIs oder Abstraktionen „für später“, wenn der aktuelle Bedarf sie nicht rechtfertigt.
+- **TypeScript:** `strict` konsequent; **`any` vermeiden** (lieber `unknown` + Narrowing, oder konkrete Typen). Kein `@ts-ignore` außer mit kurzer Begründung und Alternativen ausgeschlossen.
+- **Plain JS:** Sinnvolle **JSDoc** (`@param`, `@returns`, `@typedef`) wo Signaturen nicht offensichtlich sind; komplexe Datenstrukturen dokumentieren oder kapseln.
+- **`use strict`** in Skripten, wo es passt; bevorzugt **`const`/`let`**, kein `var`; keine impliziten Globals.
+- **Vergleiche:** bevorzugt `===` / `!==`; kein Loose Equality ohne Begründung.
+- **Async:** Fehler sichtbar behandeln (`try/catch` oder `.catch()`), keine leeren `catch`-Blöcke.
+- **Stil:** Eine klare Konvention pro Datei (z. B. Funktionsdeklaration vs. Arrow) konsistent halten; Magic Numbers als benannte Konstanten.
+- **APIs:** Browser- und Node-APIs korrekt prüfen (z. B. Optional Chaining nur wo sinnvoll); polyfills nur wenn im Projekt abgesprochen.
+- **Abgehärtet / sauber:** Eingaben und Grenzfälle validieren oder begrenzen (Indizes, Array-Längen, numerische `min`/`max`, Division durch Null). Große oder unbegrenzte Schleifen/Queues vermeiden bzw. begrenzen (`dt`-Caps o. Ä.), um Hänger oder Speicher-Explosion zu verhindern.
+- **Leaks vermeiden:** Bei wiederholten Ressourcen (`addEventListener`, `requestAnimationFrame`, `setInterval`, `AudioContext`, Observer, Worker) an geeigneter Stelle abmelden oder abbrechen (z. B. vor Neuaufbau, bei Seitenwechsel oder explizitem Teardown); keine wachsenden Listener- oder Cache-Listen ohne Strategie.
