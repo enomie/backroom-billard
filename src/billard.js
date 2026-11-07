@@ -15,6 +15,7 @@ import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
 import { captureRoomReflection, applyBallReflection } from "./ball-reflection.js";
 import { createRoom } from "./room.js";
+import { createFurniture } from "./furniture.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -149,6 +150,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
+let furnitureKeepOut = []; // circles the free camera stays out of (furniture.js)
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 
@@ -267,6 +269,7 @@ function setupLightingAndRoom() {
   // Room: carpet floor, cream walls, wooden ceiling + smoke fog, and subtle wall lamps
   createRoom(scene);
   createWallLamps(scene);
+  furnitureKeepOut = createFurniture(scene).keepOut;
   radio = createRadio(scene);
 }
 
@@ -904,6 +907,17 @@ function updateFreeCamera(dt) {
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
     camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
     camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, ROOM_HEIGHT - m);
+    // Tables with their chairs are closed off: push the camera out of the circle
+    for (const c of furnitureKeepOut) {
+      const dx = camera.position.x - c.x;
+      const dz = camera.position.z - c.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist < c.r) {
+        const k = dist > 1e-6 ? c.r / dist : 0;
+        camera.position.x = c.x + (k ? dx * k : c.r);
+        camera.position.z = c.z + (k ? dz * k : 0);
+      }
+    }
   }
 }
 

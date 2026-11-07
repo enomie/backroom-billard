@@ -37,6 +37,12 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
 
+## Tische und Sessel (umgesetzt)
+
+- **8 runde Tische** (80 cm, Mahagoni mit Klarlack, Messing-Säule) in zwei Reihen links und rechts vom Billardtisch, jeweils mit 2–3 **Clubsesseln** in weinrotem Leder; die Sessel sind leicht verdreht und teils zurückgeschoben. Lage und Zahl stehen in `furniture-constants.js`, der Bau in `furniture.js` (Sessel als Instanzen).
+- **Sperrkreis:** Die freie Kamera hält 1,5 m Abstand zur Tischmitte jeder Gruppe (`FURNITURE_KEEP_OUT_RADIUS`). Die Möbel haben sonst keine Kollision.
+- Die Beleuchtung bleibt wie sie ist; im dunklen Raum erscheinen die Möbel nur als gedämpfte Formen.
+
 ## Spiegelungen in den Kugeln (umgesetzt)
 
 - **Prinzip:** Beim Start wird der Raum einmal als Würfel-Karte aufgenommen (Tischmitte, Kugelhöhe, noch ohne Kugeln und Cue, HDR). Nur die Kugel-Materialien benutzen sie (`ball-reflection.js`), und zwar nur als Spiegelung, nicht als Licht: Die Kugeln werden dadurch nicht heller.
