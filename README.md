@@ -44,6 +44,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `physics-world.js` | Rapier-Welt, Collider aus der gerenderten Geometrie |
 | `physics-rapier.js` | Kugel-Körper, Trimesh-Helfer |
 | `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
+| `radio.js`, `radio-audio.js`, `radio-constants.js` | Sideboard mit Radio, Stream und Raumklang über zwei Lautsprecher |
 | `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
 | `room.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände, Holzdecke, Nebel), Decken- und Wandleuchten und alle Parameter dazu |
@@ -62,7 +63,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 - [`_docs/game-concept.md`](_docs/game-concept.md) — Spielideen (nur Ideen, nicht umgesetzt)
 - [`_docs/sound.md`](_docs/sound.md) — Klänge: Stoß, Kugeln, Bande, Rollen, Becher
 - [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen, Vorschnalzen und physischer Cue-Spitze
-- [`_docs/radio.md`](_docs/radio.md) — Radio mit Display und Stream (nur Konzept, nicht umgesetzt)
+- [`_docs/radio.md`](_docs/radio.md) — Radio auf dem Sideboard mit Display, Stream und Stereo-Lautsprechern
 - [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
 
 ## Backup

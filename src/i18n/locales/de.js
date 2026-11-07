@@ -27,6 +27,10 @@ export default {
   "game.lost.reason": "Die schwarze 8 wurde versenkt, obwohl noch Kugeln auf dem Tisch liegen.",
   "game.won.title": "GEWONNEN",
   "game.won.reason": "Alle Kugeln versenkt — die schwarze 8 kam zuletzt.",
+  "radio.start": "KLICK ZUM STARTEN",
+  "radio.connecting": "VERBINDE…",
+  "radio.live": "LIVE",
+  "radio.nosignal": "KEIN SIGNAL",
   "lang.label": "Sprache",
   "boot.failed": "Start fehlgeschlagen – Konsole prüfen",
 };

@@ -15,6 +15,7 @@ import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
 import { createRoom } from "./room.js";
 import { createWallLamps } from "./wall-lamps.js";
+import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
@@ -139,6 +140,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 /** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
+let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 
 /* ====================================================
@@ -248,6 +250,7 @@ function setupLightingAndRoom() {
   // Room: carpet floor, cream walls, wooden ceiling + smoke fog, and subtle wall lamps
   createRoom(scene);
   createWallLamps(scene);
+  radio = createRadio(scene);
 }
 
 /* ====================================================
@@ -653,6 +656,7 @@ function setupControls() {
       // Free camera: drag to look; a click also tries to capture the pointer
       if (e.button === 0) {
         freeLookDragging = true;
+        freeClickDistance = 0;
         requestPointerLockSafe();
       }
       return;
@@ -665,11 +669,26 @@ function setupControls() {
     }
   });
 
-  window.addEventListener("mouseup", () => {
+  /** A click on the radio's power knob toggles the radio (true if the knob was hit). */
+  function tryRadioClick(e) {
+    if (!radio) return false;
+    const rect = renderer.domElement.getBoundingClientRect();
+    // With the mouse captured (free camera) the crosshair in the screen center is the pointer
+    const ndc = document.pointerLockElement
+      ? { x: 0, y: 0 }
+      : {
+          x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+          y: -(((e.clientY - rect.top) / rect.height) * 2 - 1),
+        };
+    return radio.handleClick(camera, ndc);
+  }
+
+  window.addEventListener("mouseup", (e) => {
+    if (freeLookDragging && freeClickDistance < 5 && cameraMode === "free") tryRadioClick(e);
     freeLookDragging = false;
     if (isMouseDown && cameraMode === "fps") {
-      // Mouse was only clicked briefly (no aim rotation) -> take the shot
-      if (totalDragDist < 5) {
+      // Mouse was only clicked briefly (no aim rotation) -> radio knob or take the shot
+      if (totalDragDist < 5 && !tryRadioClick(e)) {
         fireCueStrike();
       }
     }
@@ -679,6 +698,7 @@ function setupControls() {
   window.addEventListener("mousemove", (e) => {
     if (cameraMode === "free") {
       // Mouse look: pointer locked (relative movement) or while dragging
+      if (freeLookDragging) freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
       if (document.pointerLockElement || freeLookDragging) {
         freeYaw -= e.movementX * FREE_CAM_LOOK_SENSITIVITY;
         freePitch -= e.movementY * FREE_CAM_LOOK_SENSITIVITY;
@@ -797,6 +817,7 @@ function renderCameraLabel() {
 let freeYaw = 0;
 let freePitch = 0;
 let freeLookDragging = false;
+let freeClickDistance = 0; // mouse movement since the button went down (a click, not a drag)
 /** Where the free camera was left when switching back to the cue view. */
 const freeSavedPosition = new THREE.Vector3();
 let freePoseSaved = false;
@@ -1208,6 +1229,8 @@ function gameLoop(currentTime) {
   } else if (cameraMode === "free") {
     updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
   }
+
+  if (radio) radio.update(frameSeconds, camera);
 
   // The cue is placed after the camera so a carried cue never lags behind it
   if (cueBall && cueStickPivot) {

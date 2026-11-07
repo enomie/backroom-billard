@@ -27,6 +27,10 @@ export default {
   "game.lost.reason": "The black 8 was pocketed while other balls were still on the table.",
   "game.won.title": "YOU WIN",
   "game.won.reason": "All balls pocketed — the black 8 came last.",
+  "radio.start": "CLICK TO START",
+  "radio.connecting": "CONNECTING…",
+  "radio.live": "LIVE",
+  "radio.nosignal": "NO SIGNAL",
   "lang.label": "Language",
   "boot.failed": "Start failed – check the console",
 };

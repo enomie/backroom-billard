@@ -1,62 +1,46 @@
-# Radio — Konzept
+# Radio
 
-> **Status: nur Konzept, nichts davon ist umgesetzt.** Umgesetzt wird erst, wenn es ausdrücklich beauftragt wird.
+> **Status: umgesetzt** (Radio, Sideboard, Ein/Aus, Display, Stereo-Lautsprecher, Stream). **Nicht umgesetzt:** Titel- und Playlist-Anzeige im Display (siehe „Offene Punkte“).
 
-Ein altes Röhren-Holzradio im Raum, das Musik spielt und die Stimmung des 80er-Billardcafés trägt.
+Ein altes Röhren-Holzradio auf einem Sideboard an einer langen Wand. Es ist **standardmäßig eingeschaltet**; der **rechte Knopf** ist der Ein/Aus-Schalter und wird angeklickt.
 
-## Idee
+## Aufbau (Code)
 
-- Das Radio steht auf einem **Sideboard an einer Wand** im Raum.
-- Es ist **standardmäßig eingeschaltet**: Skala und Display leuchten, Musik läuft.
-- Man kann es **ein- und ausschalten**, indem man den Schalter am Radio **anklickt**.
-- Das Radio hat ein **Display** (siehe unten), das die **Playlist** bzw. den laufenden Titel zeigt.
+| Datei | Inhalt |
+|-------|--------|
+| `src/radio.js` | Meshes (Sideboard, Radio), Display, Klick auf den Knopf |
+| `src/radio-audio.js` | Stream, Web Audio, zwei Lautsprecher im Raum |
+| `src/radio-constants.js` | Stream-Adresse, Position, Maße, Lautstärke, Farben |
 
-## Aussehen (als Mesh-Modell, nach dem Referenzfoto)
+## Aussehen
 
-Vorbild ist ein altes Holzradio aus den 50er/60er Jahren (Referenzfoto liegt nicht im Repo, da Bildrechte ungeklärt):
+- **Sideboard:** Holz mit Maserung, Deckplatte, zwei Türen mit Messing-Griffen, vier kurze Füße (1,6 × 0,42 × 0,78 m).
+- **Radio** (0,56 × 0,31 × 0,26 m): dunkles Nussbaum-Gehäuse mit abgerundeten Kanten und Messing-Füßchen; oben ein **goldenes Lautsprechergewebe** im Messingrahmen; darunter die schwarze **Skala**; links ein Zierknopf, **rechts der Ein/Aus-Knopf**; grüne Kontrolllampe; fünf Tasten.
+- **Beleuchtung:** Bei eingeschaltetem Radio leuchtet die Skala warm und das Radio erhellt Gewebe und Sideboard leicht. Aus: alles dunkel, der Knopf dreht sich um 90°.
 
-- **Gehäuse:** dunkles Nussbaum-/Furnierholz, leicht abgerundete Kanten, kleine Füße.
-- **Oben:** große **Lautsprecherbespannung** aus goldbeigem Gewebe mit feinem Gittermuster, von einem hellen Rahmen eingefasst.
-- **Darunter:** schwarze **Skalenfläche** mit feiner Frequenzskala und Beschriftung — hier sitzt das Display.
-- **Links und rechts:** je ein runder **Drehknopf**, creme/metallisch mit Rändelung.
-- **Kleine Kontrolllampe** (rund, grünlich) an der Skala.
-- **Unten:** eine Leiste mit **Tasten** (Klaviertasten, creme/messing), mittig eine schmale Messingblende.
-- Gebaut wird es als **eigenes Mesh aus Grundformen** (kein importiertes Modell), im selben Stil wie der Tisch.
+## Standort
 
-Das **Sideboard** darunter ist ein einfaches Holzmöbel passend zum Rahmen des Tischs (grob 1,4 × 0,45 × 0,8 m, Radio ca. 0,55 × 0,3 × 0,28 m).
+Das Sideboard steht an der **+x-Wand** (lange Seite), in Höhe der Tischmitte (`z = 0`), unter der mittleren Wandleuchte. Wand und Position stehen in `radio-constants.js` (`RADIO_WALL_SIDE`, `RADIO_WALL_Z`).
 
 ## Bedienung
 
-- **Ein/Aus:** ein Schalter bzw. Knopf am Radio, den man mit der Maus **anklickt** (Klick auf das 3D-Objekt).
-- Ein: Skala leuchtet warm, Musik spielt, Display zeigt den Titel. Aus: alles dunkel, Stille.
-- Weitere Knöpfe (Lautstärke, Sender) sind **nicht** gefordert.
+- **Ein/Aus:** den rechten Knopf anklicken, aus höchstens 6 m Abstand (mit der freien Kamera `C`). Ein Klick auf den Knopf löst keinen Stoß aus.
+- **Erster Klick:** Browser erlauben Ton erst nach einer Nutzeraktion. Das Radio ist von Anfang an „an“, die Skala zeigt bis zum ersten Klick oder Tastendruck **KLICK ZUM STARTEN**.
 
 ## Display
 
-- Zeigt auf der Skalenfläche den **Sender** und die **Playlist** bzw. den **aktuellen Titel** (Interpret, Titel).
-- Leuchtet nur bei eingeschaltetem Radio.
-- Texte der Oberfläche (z. B. „Aus“) laufen durch `src/i18n`; Sender- und Titelnamen sind Daten und werden nicht übersetzt.
+Die Skala zeigt den **Sender (KNKX)** und den **Zustand**: *Klick zum Starten*, *Verbinde…*, *Live*, *Kein Signal*. Die Wörter laufen durch `src/i18n`, der Sendername nicht.
 
-## Quellen
+## Audio
 
-Zwei direkte Links zum Sender (laut URL KNKX):
-
-| Art | Link |
-|-----|------|
-| Direkter Stream, AAC 256k | `https://knkx-live-a.edge.audiocdn.com/6285_256k` |
-| Playlist (HLS, AAC 256k) | `https://knkx-live-a.edge.audiocdn.com/6285_256k/playlist.m3u8` |
-
-## Technische Hinweise (Ideen, noch nicht entschieden)
-
-- **Direkter Stream:** läuft in jedem Browser über ein normales Audio-Element.
-- **HLS-Playlist (`.m3u8`):** nur Safari spielt sie nativ, sonst bräuchte man eine Bibliothek (z. B. hls.js).
-- **Autoplay:** Browser erlauben Ton erst **nach der ersten Nutzeraktion** (Klick oder Taste). „Standardmäßig eingeschaltet“ heißt daher: das Radio ist im Zustand „an“ (Display leuchtet), der Ton startet beim ersten Klick im Spiel.
-- **Räumlicher Ton:** Die Lautstärke könnte mit dem Abstand zum Radio sinken (3D-Audio).
-- **Titelinfos:** Ob und wie der Stream Interpret und Titel liefert (z. B. über Stream-Metadaten), ist noch zu klären.
+- **Quelle:** der direkte AAC-Stream (`RADIO_STREAM_URL`). Die HLS-Playlist (`.m3u8`) wird nicht genutzt, weil sie außerhalb von Safari eine Zusatzbibliothek braucht.
+- **Zwei Lautsprecher:** Der Stream wird in linken und rechten Kanal getrennt. Jeder Kanal kommt aus einem eigenen Lautsprecher links und rechts im Radio (±15 cm). Ein Mono-Stream läuft auf beiden. Hörer ist die Kamera: Richtung und Abstand zum Radio ändern Panorama und Lautstärke, bis 2,5 m volle Lautstärke, danach leiser.
+- **Fallback:** Erlaubt der Server keine Audio-Verarbeitung von einer anderen Domain (CORS), wird der Stream ohne Raumklang abgespielt; die Lautstärke folgt dann nur dem Abstand.
+- **Lautstärke:** `RADIO_VOLUME`, `RADIO_REF_DISTANCE`, `RADIO_ROLLOFF` in `radio-constants.js`.
 
 ## Offene Punkte
 
-- An welcher Wand und wie weit vom Tisch steht das Sideboard (damit man das Radio sieht, ohne dass es stört)?
-- Woher kommen die Titelinfos für das Display?
-- Dürfen wir den Stream im Spiel nutzen (Nutzungsbedingungen des Senders)?
-- Wird das Referenzfoto später in die Docs aufgenommen (Rechte klären)?
+- **Titel und Playlist im Display:** Der Stream liefert im Browser keine Titelinfos über das Audio-Element. Dafür bräuchte es einen Metadaten-Weg (z. B. Stream-Metadaten oder eine Sender-Schnittstelle). Bis dahin zeigt das Display nur Sender und Zustand.
+- **Rechte:** Dürfen wir den Stream im Spiel nutzen (Nutzungsbedingungen des Senders)?
+- **Referenzfoto:** Es liegt nicht im Repo (Bildrechte ungeklärt).
+- **Touch:** Das Anklicken des Knopfes geht mit der Maus, nicht per Antippen.
