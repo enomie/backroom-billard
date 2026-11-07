@@ -81,3 +81,13 @@ Anker = **Schnittpunkt der Nasen** (`hw|hl − 40 mm`), danach `r × Faktor` nac
 ---
 
 *Achs-Offsets (0 / 0,20) sind geometrische Platzierung für CSG, nicht WPA-normiert — Radien und Spielfeld sind normiert.*
+
+---
+
+## 6. Banden-Enden & Taschen-Ausschnitt (visuell, Stand Schritt 1)
+
+- Gummi-Spitzen (Nase) bei **Mouth-Maß**: Ecke `r_corner·√2` von der Nasenlinien-Ecke (Spitzenabstand ≈ 116 mm), Seite `z = ±r_side`.
+- Endflächen weichen nach außen zurück: Ecke 45° (`CUSHION_END_RECESS_CORNER = 1`), Seite `k = 0,6`.
+- Ausschnitt in Filz/Holz = **konvexe Hülle** aus Spitzen, Verlängerung der Endflächen (`POCKET_FUNNEL_DEPTH`) und Taschenrohr (`POCKET_TUBE_*`), siehe `pocketCavityPolygon` in `src/pocket-spec.js`.
+- Unter dem Bett sitzt ein Taschenbecher mit derselben Kontur (`pocket-cup-*`).
+- Physik (Banden-Segmente) endet an denselben Spitzen; Versenken/Fallen folgt in Schritt 2 aus dieser Geometrie.

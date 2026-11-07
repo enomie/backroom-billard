@@ -10,6 +10,13 @@ import {
   POCKET_SIDE_OFFSET_FACTOR,
   POCKET_OVERHANG_TOP,
   POCKET_DEPTH_BOTTOM,
+  CUSHION_END_RECESS_CORNER,
+  CUSHION_END_RECESS_SIDE,
+  POCKET_FUNNEL_DEPTH,
+  POCKET_TUBE_CORNER_OFFSET,
+  POCKET_TUBE_CORNER_R,
+  POCKET_TUBE_SIDE_OFFSET,
+  POCKET_TUBE_SIDE_R,
 } from "./table-constants.js";
 
 export { BALL_RADIUS_REAL };
@@ -24,21 +31,90 @@ export const POCKET_DIM_DEFAULTS = {
 };
 
 /**
- * Abstand der Gummi-Spitzen (Taschen-Ausschnitt ∩ Nasenlinie) vom Schnittpunkt der Nasenlinien
- * (Ecke) bzw. von der Tischmitte-Quermarke (Seite). Single Source für Banden-Physik und CSG.
+ * Abstand der Gummi-Spitzen (Mouth-Maße) von der Nasenlinien-Ecke (Ecke) bzw. von der Tischmitte (Seite). Single Source für Banden-Physik und CSG.
  *
  * @param {typeof POCKET_DIM_DEFAULTS} [dims]
  * @returns {{ cornerTip: number; sideTip: number }}
  */
 export function cushionTipOffsets(dims = POCKET_DIM_DEFAULTS) {
-  const oc = dims.r_corner * dims.cornerOffsetFactor;
-  const os = dims.r_side * dims.sideOffsetFactor;
   return {
-    // Eckentasche: Tipp liegt auf der Nasenlinie, Mittelpunkt `oc` hinter der Nasenlinie
-    cornerTip: Math.sqrt(dims.r_corner ** 2 - oc ** 2) - oc,
-    // Seitentasche: Tipp-Abstand von der Mitte (z = ±sideTip)
-    sideTip: Math.sqrt(dims.r_side ** 2 - os ** 2),
+    // Eckentasche: Spitzenabstand (Mouth) = 2·r_corner → je Bande r·√2 von der Nasenlinien-Ecke
+    cornerTip: dims.r_corner * Math.SQRT2,
+    // Seitentasche: Mouth = 2·r_side → Spitzen bei z = ±r_side
+    sideTip: dims.r_side,
   };
+}
+
+/** Konvexe Hülle (Monotone Chain) von [x, z]-Punkten. */
+function convexHull(points) {
+  const pts = points.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o, a, b) =>
+    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0)
+      lower.pop();
+    lower.push(p);
+  }
+  const upper = [];
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0)
+      upper.pop();
+    upper.push(p);
+  }
+  lower.pop();
+  upper.pop();
+  return lower.concat(upper);
+}
+
+function circlePoints(cx, cz, r, n = 24) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    out.push([cx + Math.cos(a) * r, cz + Math.sin(a) * r]);
+  }
+  return out;
+}
+
+/**
+ * Taschen-Ausschnitt (Draufsicht, konvex): Spitzen der Bande, Verlängerung der Endflächen
+ * (Trichter) und das Taschenrohr dahinter. Genau diese Kontur schneidet Filz/Holz aus.
+ *
+ * @param {number} hwN — halbe Spielfeldbreite an der Nasenlinie
+ * @param {number} hlN — halbe Spielfeldlänge an der Nasenlinie
+ * @param {string} id — z. B. "corner-tr", "side-l"
+ * @returns {Array<[number, number]>}
+ */
+function pocketCavityPolygon(hwN, hlN, id, dims = POCKET_DIM_DEFAULTS) {
+  const { cornerTip: a, sideTip: s } = cushionTipOffsets(dims);
+  const D = POCKET_FUNNEL_DEPTH;
+  const sx = id.endsWith("l") ? -1 : 1;
+
+  if (id.startsWith("side")) {
+    const k = CUSHION_END_RECESS_SIDE;
+    return convexHull([
+      [sx * hwN, s],
+      [sx * hwN, -s],
+      [sx * (hwN + D), s + k * D],
+      [sx * (hwN + D), -(s + k * D)],
+      ...circlePoints(sx * (hwN + POCKET_TUBE_SIDE_OFFSET), 0, POCKET_TUBE_SIDE_R),
+    ]);
+  }
+
+  const sz = id.includes("-t") ? -1 : 1;
+  const k = CUSHION_END_RECESS_CORNER;
+  return convexHull([
+    [sx * hwN, sz * (hlN - a)],
+    [sx * (hwN - a), sz * hlN],
+    [sx * (hwN + D), sz * (hlN - a - k * D)],
+    [sx * (hwN - a - k * D), sz * (hlN + D)],
+    ...circlePoints(
+      sx * (hwN + POCKET_TUBE_CORNER_OFFSET),
+      sz * (hlN + POCKET_TUBE_CORNER_OFFSET),
+      POCKET_TUBE_CORNER_R
+    ),
+  ]);
 }
 
 /**
@@ -115,6 +191,7 @@ export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
 
   return pockets.map((p) => ({
     id: p.id,
+    cavity: pocketCavityPolygon(hw, hl, p.id, dims),
     center: [p.x, yCenter, p.z],
     radius: p.radius,
     height,

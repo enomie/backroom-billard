@@ -1,12 +1,11 @@
 import * as THREE from "three";
-import {
-  buildTableWithPocketsCSG,
-  meshWithPocketHolesCSG,
-} from "./table-csg.js";
+import { buildTableWithPocketsCSG, cavityPrismGeometry } from "./table-csg.js";
 import { cushionTipOffsets } from "./pocket-spec.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
   CUSHION_PROFILE_FACE_RECESS,
+  CUSHION_END_RECESS_CORNER,
+  CUSHION_END_RECESS_SIDE,
 } from "./table-constants.js";
 
 /**
@@ -39,12 +38,18 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
 }
 
 /**
+ * Bandenstück mit schrägen Endflächen (Spitze an der Nase, Fläche weicht nach außen zurück).
+ *
  * @param {ReturnType<typeof buildCushionProfile>} profile
- * @param {number} length — Extrusionslänge entlang der Bahn
- * @param {"x" | "z"} along
+ * @param {"x" | "z"} along — Verlaufsrichtung der Bande in der Welt
+ * @param {number} inwardSign — +1 / −1 Richtung Spielfeld (quer zur Bande)
+ * @param {number} sStart — Weltkoordinate der Spitze am unteren Ende (entlang `along`)
+ * @param {number} sEnd — Weltkoordinate der Spitze am oberen Ende
+ * @param {number} kStart — Rückversatz der Endfläche pro Meter nach außen (unteres Ende)
+ * @param {number} kEnd — dito (oberes Ende)
  * @returns {THREE.BufferGeometry}
  */
-function cushionExtrudeGeometry(profile, length, along) {
+function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, kEnd) {
   const shape = new THREE.Shape();
   shape.moveTo(profile.edgeBottom, profile.yBottom);
   shape.lineTo(profile.foot, profile.yBottom);
@@ -52,14 +57,28 @@ function cushionExtrudeGeometry(profile, length, along) {
   shape.lineTo(profile.edgeTopOuter, profile.yTop);
   shape.closePath();
 
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: length,
-    bevelEnabled: false,
-  });
-  geo.translate(0, 0, -length / 2);
-  if (along === "x") {
-    geo.rotateY(-Math.PI / 2);
+  const depth = sEnd - sStart;
+  const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    const outward = inwardSign * (profile.nose - u); // Abstand hinter der Nase
+    const s = z < depth / 2 ? sStart + kStart * outward : sEnd - kEnd * outward;
+    if (along === "z") pos.setXYZ(i, u, y, s);
+    else pos.setXYZ(i, s, y, u);
   }
+  if (along === "x") {
+    // Achsentausch spiegelt → Dreiecks-Umlaufsinn umdrehen
+    for (let i = 0; i < pos.count; i += 3) {
+      const x1 = pos.getX(i + 1), y1 = pos.getY(i + 1), z1 = pos.getZ(i + 1);
+      pos.setXYZ(i + 1, pos.getX(i + 2), pos.getY(i + 2), pos.getZ(i + 2));
+      pos.setXYZ(i + 2, x1, y1, z1);
+    }
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
   return geo;
 }
 
@@ -178,16 +197,23 @@ export function buildAuthenticTableWithHoles(
       TABLE_H
     );
     const rubber = new THREE.Mesh(
-      cushionExtrudeGeometry(profile, PLAY_W, "x"),
+      cushionPieceGeometry(
+        profile,
+        "x",
+        inwardNz,
+        -(hwNose - cornerTip),
+        hwNose - cornerTip,
+        CUSHION_END_RECESS_CORNER,
+        CUSHION_END_RECESS_CORNER
+      ),
       cushionRubberMat
     );
-    rubber.position.set(0, 0, 0);
     rubber.castShadow = true;
     cushionMeshes.push(rubber);
 
     const woodZ = feltEdgeZ + (outwardZ * railThick) / 2;
     const woodRail = new THREE.Mesh(
-      new THREE.BoxGeometry(PLAY_W, woodRailH, railThick),
+      new THREE.BoxGeometry(2 * (hw + railThick), woodRailH, railThick),
       woodMat
     );
     woodRail.position.set(0, railY + 0.005, woodZ);
@@ -218,17 +244,21 @@ export function buildAuthenticTableWithHoles(
       railH,
       TABLE_H
     );
-    const rubber = new THREE.Mesh(
-      cushionExtrudeGeometry(profile, PLAY_L, "z"),
-      cushionRubberMat
-    );
-    rubber.position.set(0, 0, 0);
-    rubber.castShadow = true;
-    cushionMeshes.push(rubber);
+    for (const [sa, sb, ka, kb] of [
+      [sideTip, zEnd, CUSHION_END_RECESS_SIDE, CUSHION_END_RECESS_CORNER],
+      [-zEnd, -sideTip, CUSHION_END_RECESS_CORNER, CUSHION_END_RECESS_SIDE],
+    ]) {
+      const rubber = new THREE.Mesh(
+        cushionPieceGeometry(profile, "z", inwardNx, sa, sb, ka, kb),
+        cushionRubberMat
+      );
+      rubber.castShadow = true;
+      cushionMeshes.push(rubber);
+    }
 
     const woodX = feltEdgeX + (outwardX * railThick) / 2;
     const woodRail = new THREE.Mesh(
-      new THREE.BoxGeometry(railThick, woodRailH, PLAY_L),
+      new THREE.BoxGeometry(railThick, woodRailH, 2 * hl),
       woodMat
     );
     woodRail.position.set(woodX, railY + 0.005, 0);
@@ -254,8 +284,29 @@ export function buildAuthenticTableWithHoles(
       m.geometry.dispose();
     }
 
+    // Banden enden an den Spitzen selbst (keine CSG nötig)
     for (const rubber of cushionMeshes) {
-      scene.add(meshWithPocketHolesCSG(rubber, pocketSpecs, pocketLinerMat));
+      scene.add(rubber);
+    }
+
+    // Taschenbecher unter dem Bett (gleiche Kontur wie der Ausschnitt), Innenseiten sichtbar
+    const cupMat = new THREE.MeshStandardMaterial({
+      color: 0x050505,
+      roughness: 0.95,
+      side: THREE.BackSide,
+    });
+    for (const spec of pocketSpecs) {
+      if (!spec.cavity) continue;
+      const cup = new THREE.Mesh(
+        cavityPrismGeometry({
+          cavity: spec.cavity,
+          yBottom: spec.yBottom,
+          yTop: TABLE_H - feltDepth,
+        }),
+        cupMat
+      );
+      cup.name = `pocket-cup-${spec.id}`;
+      scene.add(cup);
     }
   } else {
     for (const m of csgBaseMeshes) {

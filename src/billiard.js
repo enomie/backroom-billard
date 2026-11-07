@@ -48,7 +48,7 @@ const pocketSpecs = createPocketSpecs(tableDimensions);
 window.BilliardPocketSpecs = pocketSpecs;
 
 /** Wireframe-Zylinder zur Kontrolle von Position/Höhe (vor Feintuning ausschalten) */
-const DEBUG_POCKET_CYLINDERS = true;
+const DEBUG_POCKET_CYLINDERS = false;
 
 // Zustand
 let cameraMode = "fps"; // 'fps' oder 'overhead'

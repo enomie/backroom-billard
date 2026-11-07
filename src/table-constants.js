@@ -62,3 +62,19 @@ export const POCKET_CORNER_OFFSET_FACTOR = 0;
 export const POCKET_SIDE_OFFSET_FACTOR = 0.2;
 export const POCKET_OVERHANG_TOP = 0.02;
 export const POCKET_DEPTH_BOTTOM = 0.15;
+
+/**
+ * Bandenenden an den Taschen: Die Gummi-Spitze (Nase) ist der am weitesten vorstehende Punkt,
+ * die Endfläche weicht nach außen um `k` pro Meter Tiefe zurück (k = 1 → 45°).
+ */
+export const CUSHION_END_RECESS_CORNER = 1.0;
+export const CUSHION_END_RECESS_SIDE = 0.6;
+
+/** Taschen-Ausschnitt: Trichter reicht so weit hinter die Filzkante (Verlängerung der Endflächen). */
+export const POCKET_FUNNEL_DEPTH = 0.08;
+
+/** Rundung hinter dem Trichter (Taschenrohr): Mittelpunkt-Versatz hinter der Nasenlinie, Radius. */
+export const POCKET_TUBE_CORNER_OFFSET = 0.045;
+export const POCKET_TUBE_CORNER_R = 0.0625;
+export const POCKET_TUBE_SIDE_OFFSET = 0.055;
+export const POCKET_TUBE_SIDE_R = 0.065;
