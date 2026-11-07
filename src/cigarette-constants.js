@@ -37,3 +37,23 @@ export const SMOKE_WIDTH = 0.05;
 export const SMOKE_HEIGHT = 0.4;
 export const SMOKE_OPACITY = 0.45;
 export const SMOKE_COLOR = 0x8c8c94;
+
+/* ---- Pack: flip-top box with 20 cigarettes (7 – 6 – 7, filters up) ---- */
+export const PACK_WIDTH = 0.058;
+export const PACK_DEPTH = 0.0235;
+export const PACK_HEIGHT = 0.088;
+/** Height of the hinged lid (its front reaches this far down). */
+export const PACK_LID_HEIGHT = 0.028;
+export const PACK_CARDBOARD = 0.0006;
+/** How far the open lid is swung back (rad). */
+export const PACK_LID_OPEN_ANGLE = 1.95;
+export const PACK_COLOR = 0x15110e;
+
+/** On the round tables: share of tables with a pack, share of the packs that are open. */
+export const PACK_TABLE_SHARE = 0.5;
+export const PACK_OPEN_SHARE = 0.5;
+export const PACK_RING_MIN = 0.12;
+export const PACK_RING_MAX = 0.28;
+/** On the frame of the billard table: along z (between two diamonds), packs lie across the frame. */
+export const PACK_FRAME_Z = -0.5;
+export const PACK_SEED = 53;

@@ -21,6 +21,7 @@ import { createAshtrays } from "./ashtray.js";
 import { createGlasses } from "./glasses.js";
 import { createBottles } from "./bottles.js";
 import { createCigarettes } from "./cigarettes.js";
+import { createCigarettePacks } from "./cigarette-pack.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -290,6 +291,7 @@ function setupLightingAndRoom() {
   glasses = createGlasses(scene, [...candles.taken, ...ashtrays.taken]);
   bottles = createBottles(scene, glasses.taken);
   cigarettes = createCigarettes(scene, ashtrays.slots);
+  createCigarettePacks(scene, bottles.taken);
   radio = createRadio(scene);
 }
 

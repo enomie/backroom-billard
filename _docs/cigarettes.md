@@ -1,6 +1,6 @@
 # Zigaretten und Rauch
 
-> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). **Schachtel, Ausatem-Wolke, Ziehen und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
+> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). die **Schachtel** (Optik, noch nicht bedienbar) ebenfalls. **Ausatem-Wolke, Ziehen, Entnehmen, Anzünden und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
 
 Zur 80er-Kneipe gehört Rauch. Es gibt eine **Zigarettenschachtel zum Aufklappen**, **einzelne Zigaretten** (unangezündet, glimmend, Stummel) und **Rauch** per Shader. Wer an einer Zigarette zieht, **atmet danach eine Rauchwolke aus**.
 
@@ -12,7 +12,16 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 2. **Rauchfaden:** durchscheinende, weißblaue Bänder, die sich nach oben verdrehen, unten die Glut. Das ist der Zielstil für den **Rauch einer glimmenden Zigarette**.
 3. **Rauchwolke:** dichte, wolkige Fläche mit dunkel ausgefransten Rändern (im Bild lila eingefärbt, bei uns grau-weiß). Zielstil für die **ausgeatmete Wolke**.
 
-## Schachtel
+## Schachtel (umgesetzt, nur Optik)
+
+- **Code:** `src/cigarette-pack.js`, Werte `PACK_*` in `cigarette-constants.js`.
+- **Form:** Klappschachtel aus dünnen Kartonplatten, 58 × 88 × 23,5 mm: Boden, Rückwand, Seiten und unterer Teil der Front als Körper, dazu ein **Klappdeckel** mit Scharnier hinten oben (Front, Oberseite, Seiten). Innen **20 Zigaretten** in drei Reihen (7 – 6 – 7, dicht gepackt), Filter nach oben.
+- **Gestaltung:** Schwarzer Karton mit goldenen Linien und rotem Band, Aufschrift „BACKROOM · Premium Blend · No. 20“ (erfundene Marke). Die Front-Grafik ist auf Körper und Deckel aufgeteilt.
+- **Zustand:** geschlossen oder **offen** (Deckel um etwa 110° nach hinten geklappt, die Filter sind zu sehen). Eine Animation zum Auf- und Zuklappen gibt es noch nicht.
+- **Verteilung:** Die Hälfte der Tische hat eine Schachtel (liegt auf dem Rücken, zufällig gedreht, zur Hälfte offen, mit Abstand zu Kerze, Aschenbecher, Gläsern und Flaschen). Eine geschlossene Schachtel liegt auf dem Rahmen des Billardtisches (links, zwischen zwei Rauten, quer zum Rahmen).
+- **Noch nicht:** Entnehmen einer Zigarette (die Anzahl in der Schachtel bleibt 20), Klappen per Klick.
+
+Die ursprünglichen Vorgaben:
 
 - **Größe:** ca. 86 × 55 × 23 mm, innen **20 Zigaretten** in drei Reihen **7 – 6 – 7**.
 - **Aufbau:** Unterteil und **Klappdeckel** mit Scharnier an der Rückseite; Deckel öffnet in einer kurzen Animation (ca. 0,4 s). Innen Silberpapier, vorne ein Ausschnitt, damit man die Zigaretten greift.
