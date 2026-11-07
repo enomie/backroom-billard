@@ -1,14 +1,21 @@
 # Glas und Tischdeko
 
-> **Status: Konzept, nichts davon ist umgesetzt.** Erst bauen, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
+> **Status:** Der **Kerzenhalter** ist umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
 
 Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinteile. Sie müssen **wie Glas aussehen** und in der **Größe stimmen**; die Form darf einfach sein und wird **per Formel berechnet**, ohne externe Modelle.
+
+## Kerzenhalter (umgesetzt)
+
+- **Code:** `src/candle.js`, Werte in `src/candle-constants.js`. Die Plätze folgen `FURNITURE_TABLES`.
+- **Form:** Schale und Röhre sind ein Drehkörper, dazu Kugel, Kerze (Zylinder), Docht und Flamme (Tropfenform, zwei Schichten). Die Glasur spiegelt den Raum (die Aufnahme der Kugel-Spiegelung, `ball-reflection.js`).
+- **Flackern:** Die Flamme streckt sich und wiegt sich, der Schein (weicher Lichtfleck) und das Licht schwanken unregelmäßig (überlagerte Sinus-Wellen).
+- **Licht:** Alle Flammen leuchten. **Echtes Licht** (Punktlicht, schwach, 2,5 m Reichweite, ohne Schatten) bekommen nur die **3 Kerzen, die der Kamera am nächsten sind**; beim Wechsel blendet das Licht aus und an der neuen Kerze wieder ein (`CANDLE_REAL_LIGHTS`, `CANDLE_LIGHT_*`). So bleibt die Zahl der Lichter im Raum klein.
 
 ## Die Objekte
 
 | Objekt | Größe (ca.) | Inhalt / Besonderheit |
 |--------|-------------|------------------------|
-| **Kerzenhalter** | Ø 7 cm, 8 cm hoch | **Dunkelrotes Glas** mit Kerze (Teelicht) und **flackerndem Licht**. Steht **auf jedem Tisch**. |
+| **Kerzenhalter** | Schale Ø 13 cm, Röhre 6 cm hoch | **Umgesetzt.** Dunkelrote Glasur (Schale mit Rand, Röhre für die Kerze, kleine Kugel an der Seite), **weiße Wachskerze** Ø 3 cm, 13 cm hoch, mit Flamme und flackerndem Schein. Steht **auf jedem Tisch**, ungefähr in der Mitte (zufällig bis 12 cm daneben, fester Startwert). |
 | **Aschenbecher** | Ø 14 cm, 3 cm hoch | Glas, am Rand **5 Kerben** für Zigaretten. |
 | **Weinglas** | 20 cm hoch, Kelch Ø 8 cm | Stiel und Fuß, ca. ein Drittel mit Wein gefüllt (rot oder weiß). |
 | **Bierglas** | 15 cm hoch, oben Ø 7 cm | Goldenes Bier mit **Schaumkrone** (ca. 2 cm). |

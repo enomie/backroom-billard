@@ -57,6 +57,7 @@ export function applyBallReflection(material, reflection) {
   material.envMap = reflection.texture;
   material.envMapIntensity = BALL_REFLECTION_INTENSITY;
   material.customProgramCacheKey = () => "ball-reflection";
+  material.needsUpdate = true; // recompile if the material was already used
   material.onBeforeCompile = (shader) => {
     const proxy = `
       vec3 proxyBoxDirection( vec3 dir ) {

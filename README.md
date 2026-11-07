@@ -48,6 +48,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
 | `furniture.js`, `furniture-constants.js` | Runde Tische mit Clubsesseln, Sperrkreise für die freie Kamera |
+| `candle.js`, `candle-constants.js` | Kerzenhalter mit Kerze, Flamme und flackerndem Schein auf jedem Tisch |
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
@@ -66,7 +67,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 - [`_docs/sound.md`](_docs/sound.md) — Klänge: Stoß, Kugeln, Bande, Rollen, Becher
 - [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen, Vorschnalzen und physischer Cue-Spitze
 - [`_docs/radio.md`](_docs/radio.md) — Radio auf dem Sideboard mit Display, Stream und Stereo-Lautsprechern
-- [`_docs/glass-objects.md`](_docs/glass-objects.md) — Konzept: Gläser, Flaschen, Aschenbecher, Kerzenhalter (noch nicht umgesetzt)
+- [`_docs/glass-objects.md`](_docs/glass-objects.md) — Gläser, Flaschen, Aschenbecher (Konzept) und Kerzenhalter (umgesetzt)
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Konzept: Zigaretten, Schachtel und Rauch-Shader (noch nicht umgesetzt)
 - [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
 
