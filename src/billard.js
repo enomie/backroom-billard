@@ -16,6 +16,8 @@ import { createCeilingLamps } from "./ceiling-lamps.js";
 import { createRoom } from "./room.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
+import { getAudioContext } from "./audio.js";
+import { playDrawBackSound, playForwardSound } from "./shot-sounds.js";
 import {
   CUE_FOLLOW_THROUGH_TIME,
   CUE_RELAX_TIME,
@@ -135,13 +137,11 @@ const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 
-// Audio context for synthetic ball collision sounds
-let audioCtx = null;
+// Synthetic strike click (to be replaced by the generated impact sounds, see _docs/sound.md)
 function playClackSound(volume = 0.5, pitch = 800) {
   try {
-    if (!audioCtx)
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    const audioCtx = getAudioContext();
+    if (!audioCtx) return;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = "triangle";
@@ -510,7 +510,9 @@ function startCueStroke() {
     ballSpeed,
     tForward: (2 * backGap) / vCue, // quadratic ease-in: the end speed is exactly vCue
     gap: CUE_AIM_GAP,
+    strength: f,
   };
+  playDrawBackSound(f, stroke.tBack); // hand sliding on the shaft + inhale
 }
 
 /** Advance the stroke by one physics step and move the kinematic cue tip body accordingly. */
@@ -528,6 +530,7 @@ function advanceCueStroke(dt) {
     if (s.t >= s.tHold) {
       [s.phase, s.t] = ["forward", 0];
       physics.cue.collider.setEnabled(true);
+      playForwardSound(s.strength, s.tForward); // air swish peaking at the contact + exhale
     }
   } else if (s.phase === "forward") {
     const k = Math.min(1, s.t / s.tForward);

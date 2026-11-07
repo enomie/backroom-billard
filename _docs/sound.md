@@ -1,6 +1,19 @@
 # Sound — Konzept
 
-> **Status: nur Konzept, nichts davon ist umgesetzt.** Umgesetzt wird erst, wenn es ausdrücklich beauftragt wird. Unabhängig vom Radio (`radio.md`).
+> **Status:** Umgesetzt sind die Klänge zur **Stoß-Animation**: Zurückziehen (Gleiten), Vorschnalzen (Luftzug) und das dezente Atmen (siehe „Umgesetzt“). **Alles andere** (Abstoß-Klang, Kugel–Kugel, Bande, Rollen, Becher) ist nur Konzept und wird erst auf ausdrücklichen Auftrag umgesetzt. Unabhängig vom Radio (`radio.md`).
+
+## Umgesetzt: Klänge der Stoß-Animation
+
+Code: `src/shot-sounds.js` (Synthese und Abspielen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`.
+
+- **Zurückziehen:** Gleiten der Hand auf dem Schaft, gefiltertes Rauschen mit rauer Textur, am lautesten in der Mitte der Bewegung. Es gibt 3 Längen (0,3 / 0,45 / 0,6 s) mit je 2 Varianten; die nächstliegende Länge wird leicht gestreckt, damit sie zur Zugdauer passt. Dazu ein sehr leises **Einatmen**.
+- **Vorschnalzen:** Luftzug, dessen Tonhöhe und Lautstärke ansteigen und der **genau im Moment des Treffens** am lautesten ist und abrupt endet. 3 Stufen (weich, mittel, hart, mit zunehmender Helligkeit) mal 2 Varianten. Dazu ein kurzes, leises **Ausatmen** (Atem lässt sich mit `BREATH_ENABLED` abschalten).
+- **Kraftabhängig:** Lautstärke wächst mit der Stoßkraft (Luftzug quadratisch), dazu eine zufällige Tonhöhe von ±5 %.
+- **Gebuffert:** Die Klänge werden beim ersten Stoß einmal erzeugt (ca. 70 ms) und danach nur noch abgespielt.
+- **Autoplay:** Der Audio-Kontext startet mit dem ersten Stoß (Klick oder Taste).
+- **Offen:** Der Abstoß selbst klingt noch wie vorher (alter, einfacher Ton).
+
+Der Rest dieser Seite ist das Konzept für die übrigen Klänge.
 
 ## Ausgangslage
 
