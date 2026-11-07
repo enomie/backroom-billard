@@ -12,11 +12,7 @@ import {
   POCKET_DEPTH_BOTTOM,
   CUSHION_END_RECESS_CORNER,
   CUSHION_END_RECESS_SIDE,
-  POCKET_FUNNEL_DEPTH,
-  POCKET_TUBE_CORNER_OFFSET,
-  POCKET_TUBE_CORNER_R,
-  POCKET_TUBE_SIDE_OFFSET,
-  POCKET_TUBE_SIDE_R,
+  CUSHION_PROFILE_WIDTH,
 } from "./table-constants.js";
 
 export { BALL_RADIUS_REAL };
@@ -31,90 +27,19 @@ export const POCKET_DIM_DEFAULTS = {
 };
 
 /**
- * Abstand der Gummi-Spitzen (Mouth-Maße) von der Nasenlinien-Ecke (Ecke) bzw. von der Tischmitte (Seite). Single Source für Banden-Physik und CSG.
+ * Nasen-Spitzen der Banden an den Taschen (Abstand von der Nasenlinien-Ecke bzw. von der Mitte).
+ * Rückseite des Gummis endet am runden Loch (`r` von der Lochmitte auf der Filzkante),
+ * die Nase ist um `k · Gummibreite` zurückgeschnitten (Facette).
  *
  * @param {typeof POCKET_DIM_DEFAULTS} [dims]
  * @returns {{ cornerTip: number; sideTip: number }}
  */
 export function cushionTipOffsets(dims = POCKET_DIM_DEFAULTS) {
+  const W = CUSHION_PROFILE_WIDTH;
   return {
-    // Eckentasche: Spitzenabstand (Mouth) = 2·r_corner → je Bande r·√2 von der Nasenlinien-Ecke
-    cornerTip: dims.r_corner * Math.SQRT2,
-    // Seitentasche: Mouth = 2·r_side → Spitzen bei z = ±r_side
-    sideTip: dims.r_side,
+    cornerTip: dims.r_corner + (CUSHION_END_RECESS_CORNER - 1) * W,
+    sideTip: dims.r_side + CUSHION_END_RECESS_SIDE * W,
   };
-}
-
-/** Konvexe Hülle (Monotone Chain) von [x, z]-Punkten. */
-function convexHull(points) {
-  const pts = points.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const cross = (o, a, b) =>
-    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const lower = [];
-  for (const p of pts) {
-    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0)
-      lower.pop();
-    lower.push(p);
-  }
-  const upper = [];
-  for (let i = pts.length - 1; i >= 0; i--) {
-    const p = pts[i];
-    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0)
-      upper.pop();
-    upper.push(p);
-  }
-  lower.pop();
-  upper.pop();
-  return lower.concat(upper);
-}
-
-function circlePoints(cx, cz, r, n = 24) {
-  const out = [];
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2;
-    out.push([cx + Math.cos(a) * r, cz + Math.sin(a) * r]);
-  }
-  return out;
-}
-
-/**
- * Taschen-Ausschnitt (Draufsicht, konvex): Spitzen der Bande, Verlängerung der Endflächen
- * (Trichter) und das Taschenrohr dahinter. Genau diese Kontur schneidet Filz/Holz aus.
- *
- * @param {number} hwN — halbe Spielfeldbreite an der Nasenlinie
- * @param {number} hlN — halbe Spielfeldlänge an der Nasenlinie
- * @param {string} id — z. B. "corner-tr", "side-l"
- * @returns {Array<[number, number]>}
- */
-function pocketCavityPolygon(hwN, hlN, id, dims = POCKET_DIM_DEFAULTS) {
-  const { cornerTip: a, sideTip: s } = cushionTipOffsets(dims);
-  const D = POCKET_FUNNEL_DEPTH;
-  const sx = id.endsWith("l") ? -1 : 1;
-
-  if (id.startsWith("side")) {
-    const k = CUSHION_END_RECESS_SIDE;
-    return convexHull([
-      [sx * hwN, s],
-      [sx * hwN, -s],
-      [sx * (hwN + D), s + k * D],
-      [sx * (hwN + D), -(s + k * D)],
-      ...circlePoints(sx * (hwN + POCKET_TUBE_SIDE_OFFSET), 0, POCKET_TUBE_SIDE_R),
-    ]);
-  }
-
-  const sz = id.includes("-t") ? -1 : 1;
-  const k = CUSHION_END_RECESS_CORNER;
-  return convexHull([
-    [sx * hwN, sz * (hlN - a)],
-    [sx * (hwN - a), sz * hlN],
-    [sx * (hwN + D), sz * (hlN - a - k * D)],
-    [sx * (hwN - a - k * D), sz * (hlN + D)],
-    ...circlePoints(
-      sx * (hwN + POCKET_TUBE_CORNER_OFFSET),
-      sz * (hlN + POCKET_TUBE_CORNER_OFFSET),
-      POCKET_TUBE_CORNER_R
-    ),
-  ]);
 }
 
 /**
@@ -137,16 +62,16 @@ function pocketCavityPolygon(hwN, hlN, id, dims = POCKET_DIM_DEFAULTS) {
  * }>}
  */
 export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
-  // playW/playL = Nase zu Nase → hw/hl liegen auf der Nasenlinie
-  const hw = table.playW / 2;
-  const hl = table.playL / 2;
+  // playW/playL = Nase zu Nase; die runden Löcher sitzen mit der Mitte auf der Filzkante
+  const hw = table.playW / 2 + CUSHION_PROFILE_WIDTH; // Filzkante (Lochmitte liegt darauf)
+  const hl = table.playL / 2 + CUSHION_PROFILE_WIDTH;
 
   const yTop = table.tableH + table.cushionH + dims.overhangTop;
   const yBottom = table.tableH - dims.depthBottom;
   const height = yTop - yBottom;
   const yCenter = (yTop + yBottom) / 2;
 
-  /** Schnittpunkt der Nasenlinien, dann leicht nach außen. */
+  /** Optionaler Versatz der Lochmitte nach außen (0 = genau auf der Filzkante). */
   const cornerOut = dims.r_corner * dims.cornerOffsetFactor;
   const sideOut = dims.r_side * dims.sideOffsetFactor;
 
@@ -191,7 +116,6 @@ export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
 
   return pockets.map((p) => ({
     id: p.id,
-    cavity: pocketCavityPolygon(hw, hl, p.id, dims),
     center: [p.x, yCenter, p.z],
     radius: p.radius,
     height,

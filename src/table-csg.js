@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { Evaluator, SUBTRACTION, ADDITION } from "three-bvh-csg";
 import { Brush } from "./csg-brush.js";
 
-/** Weniger Segmente → schnellere CSG auf dem Main Thread */
-const POCKET_CYLINDER_SEGMENTS = 16;
+/** Runde Löcher: genug Segmente, damit die Kante rund wirkt */
+const POCKET_CYLINDER_SEGMENTS = 48;
 
 /**
  * @param {import("three").Mesh} mesh
@@ -21,24 +21,6 @@ function meshToBrush(mesh) {
 }
 
 /**
- * Senkrechtes Prisma aus der Draufsicht-Kontur `spec.cavity` ([x, z]-Punkte), von yBottom bis yTop.
- *
- * @param {{ cavity: Array<[number, number]>; yBottom: number; yTop: number }} spec
- * @returns {import("three").BufferGeometry}
- */
-export function cavityPrismGeometry(spec) {
-  // Shape-Y = −Welt-Z, damit rotateX(−90°) die Kontur wieder auf Welt-Z abbildet
-  const shape = new THREE.Shape(spec.cavity.map(([x, z]) => new THREE.Vector2(x, -z)));
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: spec.yTop - spec.yBottom,
-    bevelEnabled: false,
-  });
-  geo.rotateX(-Math.PI / 2);
-  geo.translate(0, spec.yBottom, 0);
-  return geo;
-}
-
-/**
  * @param {Brush} brush
  * @param {Array<{ center: [number, number, number]; radius: number; height: number }>} pocketSpecs
  * @param {import("three").Material} linerMaterial
@@ -48,21 +30,16 @@ export function cavityPrismGeometry(spec) {
 function subtractPockets(brush, pocketSpecs, linerMaterial, evaluator) {
   let current = brush;
   for (const spec of pocketSpecs) {
-    let pocketBrush;
-    if (spec.cavity) {
-      pocketBrush = new Brush(cavityPrismGeometry(spec), linerMaterial);
-    } else {
-      const cylinderGeom = new THREE.CylinderGeometry(
-        spec.radius,
-        spec.radius,
-        spec.height,
-        POCKET_CYLINDER_SEGMENTS,
-        1,
-        false
-      );
-      pocketBrush = new Brush(cylinderGeom, linerMaterial);
-      pocketBrush.position.set(spec.center[0], spec.center[1], spec.center[2]);
-    }
+    const cylinderGeom = new THREE.CylinderGeometry(
+      spec.radius,
+      spec.radius,
+      spec.height,
+      POCKET_CYLINDER_SEGMENTS,
+      1,
+      false
+    );
+    const pocketBrush = new Brush(cylinderGeom, linerMaterial);
+    pocketBrush.position.set(spec.center[0], spec.center[1], spec.center[2]);
     pocketBrush.updateMatrixWorld(true);
 
     const prev = current;

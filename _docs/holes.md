@@ -84,10 +84,10 @@ Anker = **Schnittpunkt der Nasen** (`hw|hl − 40 mm`), danach `r × Faktor` nac
 
 ---
 
-## 6. Banden-Enden & Taschen-Ausschnitt (visuell, Stand Schritt 1)
+## 6. Banden-Enden & Löcher (visuell, Stand Schritt 1)
 
-- Gummi-Spitzen (Nase) bei **Mouth-Maß**: Ecke `r_corner·√2` von der Nasenlinien-Ecke (Spitzenabstand ≈ 116 mm), Seite `z = ±r_side`.
-- Endflächen weichen nach außen zurück: Ecke 45° (`CUSHION_END_RECESS_CORNER = 1`), Seite `k = 0,6`.
-- Ausschnitt in Filz/Holz = **konvexe Hülle** aus Spitzen, Verlängerung der Endflächen (`POCKET_FUNNEL_DEPTH`) und Taschenrohr (`POCKET_TUBE_*`), siehe `pocketCavityPolygon` in `src/pocket-spec.js`.
-- Unter dem Bett sitzt ein Taschenbecher mit derselben Kontur (`pocket-cup-*`).
-- Physik (Banden-Segmente) endet an denselben Spitzen; Versenken/Fallen folgt in Schritt 2 aus dieser Geometrie.
+- **Loch rund**, Mitte genau auf der **Filzkante** (Ecke: Filzkanten-Ecke, Seite: Filzkante bei z = 0), Radius = Mouth/2 (`POCKET_R_*`).
+- **Facette** an jedem Bandenende: Die Rückseite des Gummis (an der Filzkante) endet am Loch, die **Nase ist zurückgeschnitten**. Ecke 45° (`CUSHION_END_RECESS_CORNER = 1`), Seite ≈ 14° (`CUSHION_END_RECESS_SIDE = 0,25`).
+- Daraus folgen die Nasen-Spitzen (`cushionTipOffsets` in `src/pocket-spec.js`); die Banden-Physik endet dort.
+- Unter dem Bett: runder Taschenbecher (`pocket-cup-*`), um das Loch eine schwarze Lippe.
+- Schritt 2 (Physik) baut die Kollisionskörper aus genau dieser Geometrie.

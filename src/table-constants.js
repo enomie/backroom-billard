@@ -57,24 +57,17 @@ const SIDE_MOUTH = (0.127 + 0.130175) / 2;
 export const POCKET_R_CORNER = CORNER_MOUTH / 2;
 export const POCKET_R_SIDE = SIDE_MOUTH / 2;
 
-/** 0 = Taschenmitte auf dem Schnittpunkt der Nasenlinien → Spitzenabstand ≈ 82 mm (Kugel 57 mm passt). */
+/** 0 = Lochmitte genau auf der Filzkanten-Ecke (Skizze). */
 export const POCKET_CORNER_OFFSET_FACTOR = 0;
-export const POCKET_SIDE_OFFSET_FACTOR = 0.2;
+/** 0 = Lochmitte genau auf der Filzkante (Skizze). */
+export const POCKET_SIDE_OFFSET_FACTOR = 0;
 export const POCKET_OVERHANG_TOP = 0.02;
 export const POCKET_DEPTH_BOTTOM = 0.15;
 
 /**
- * Bandenenden an den Taschen: Die Gummi-Spitze (Nase) ist der am weitesten vorstehende Punkt,
- * die Endfläche weicht nach außen um `k` pro Meter Tiefe zurück (k = 1 → 45°).
+ * Bandenenden an den Taschen (Facette): Die Rückseite des Gummis (an der Filzkante) endet am runden
+ * Loch, die Nase ist zurückgeschnitten. `k` = Rücksprung der Endfläche pro Meter Gummitiefe
+ * (k = 1 → 45°, k = 0,25 → ca. 14°).
  */
 export const CUSHION_END_RECESS_CORNER = 1.0;
-export const CUSHION_END_RECESS_SIDE = 0.6;
-
-/** Taschen-Ausschnitt: Trichter reicht so weit hinter die Filzkante (Verlängerung der Endflächen). */
-export const POCKET_FUNNEL_DEPTH = 0.08;
-
-/** Rundung hinter dem Trichter (Taschenrohr): Mittelpunkt-Versatz hinter der Nasenlinie, Radius. */
-export const POCKET_TUBE_CORNER_OFFSET = 0.045;
-export const POCKET_TUBE_CORNER_R = 0.0625;
-export const POCKET_TUBE_SIDE_OFFSET = 0.055;
-export const POCKET_TUBE_SIDE_R = 0.065;
+export const CUSHION_END_RECESS_SIDE = 0.25;

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { buildTableWithPocketsCSG, cavityPrismGeometry } from "./table-csg.js";
+import { buildTableWithPocketsCSG } from "./table-csg.js";
 import { cushionTipOffsets } from "./pocket-spec.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
@@ -28,6 +28,7 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
     feltEdge + inwardSign * (rubberThick - CUSHION_PROFILE_FACE_RECESS);
 
   return {
+    feltEdge,
     yBottom: tableH,
     yTop: tableH + railH,
     edgeBottom,
@@ -38,14 +39,15 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
 }
 
 /**
- * Bandenstück mit schrägen Endflächen (Spitze an der Nase, Fläche weicht nach außen zurück).
+ * Bandenstück mit Facetten an den Enden: Die Rückseite (Filzkante) reicht bis ans runde Loch,
+ * die Nase ist zurückgeschnitten (Endfläche weicht zur Nase hin vom Loch weg).
  *
  * @param {ReturnType<typeof buildCushionProfile>} profile
  * @param {"x" | "z"} along — Verlaufsrichtung der Bande in der Welt
  * @param {number} inwardSign — +1 / −1 Richtung Spielfeld (quer zur Bande)
- * @param {number} sStart — Weltkoordinate der Spitze am unteren Ende (entlang `along`)
- * @param {number} sEnd — Weltkoordinate der Spitze am oberen Ende
- * @param {number} kStart — Rückversatz der Endfläche pro Meter nach außen (unteres Ende)
+ * @param {number} sStart — Weltkoordinate des unteren Endes an der Gummi-RÜCKSEITE (Filzkante)
+ * @param {number} sEnd — Weltkoordinate des oberen Endes an der Rückseite
+ * @param {number} kStart — Rücksprung der Endfläche pro Meter Gummitiefe Richtung Nase (unten)
  * @param {number} kEnd — dito (oberes Ende)
  * @returns {THREE.BufferGeometry}
  */
@@ -64,8 +66,9 @@ function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, 
     const u = pos.getX(i);
     const y = pos.getY(i);
     const z = pos.getZ(i);
-    const outward = inwardSign * (profile.nose - u); // Abstand hinter der Nase
-    const s = z < depth / 2 ? sStart + kStart * outward : sEnd - kEnd * outward;
+    // Tiefe ab Filzkante Richtung Nase (hinter der Filzkante: Rückseite bleibt bündig)
+    const d = Math.max(0, inwardSign * (u - profile.feltEdge));
+    const s = z < depth / 2 ? sStart + kStart * d : sEnd - kEnd * d;
     if (along === "z") pos.setXYZ(i, u, y, s);
     else pos.setXYZ(i, s, y, u);
   }
@@ -201,8 +204,8 @@ export function buildAuthenticTableWithHoles(
         profile,
         "x",
         inwardNz,
-        -(hwNose - cornerTip),
-        hwNose - cornerTip,
+        -(hwNose - cornerTip + CUSHION_END_RECESS_CORNER * rubberThick),
+        hwNose - cornerTip + CUSHION_END_RECESS_CORNER * rubberThick,
         CUSHION_END_RECESS_CORNER,
         CUSHION_END_RECESS_CORNER
       ),
@@ -244,9 +247,12 @@ export function buildAuthenticTableWithHoles(
       railH,
       TABLE_H
     );
+    // Rückseiten-Enden (Filzkante) = Nasen-Ende + Rücksprung · Gummibreite
+    const sBack = sideTip - CUSHION_END_RECESS_SIDE * rubberThick;
+    const zBack = zEnd + CUSHION_END_RECESS_CORNER * rubberThick;
     for (const [sa, sb, ka, kb] of [
-      [sideTip, zEnd, CUSHION_END_RECESS_SIDE, CUSHION_END_RECESS_CORNER],
-      [-zEnd, -sideTip, CUSHION_END_RECESS_CORNER, CUSHION_END_RECESS_SIDE],
+      [sBack, zBack, CUSHION_END_RECESS_SIDE, CUSHION_END_RECESS_CORNER],
+      [-zBack, -sBack, CUSHION_END_RECESS_CORNER, CUSHION_END_RECESS_SIDE],
     ]) {
       const rubber = new THREE.Mesh(
         cushionPieceGeometry(profile, "z", inwardNx, sa, sb, ka, kb),
@@ -289,24 +295,35 @@ export function buildAuthenticTableWithHoles(
       scene.add(rubber);
     }
 
-    // Taschenbecher unter dem Bett (gleiche Kontur wie der Ausschnitt), Innenseiten sichtbar
+    // Taschenbecher (rund, schwarzes Leder) unter dem Bett + Lippe um das Loch
     const cupMat = new THREE.MeshStandardMaterial({
       color: 0x050505,
       roughness: 0.95,
       side: THREE.BackSide,
     });
+    const lipMat = new THREE.MeshStandardMaterial({
+      color: 0x0b0b0b,
+      roughness: 0.6,
+      metalness: 0.1,
+    });
     for (const spec of pocketSpecs) {
-      if (!spec.cavity) continue;
+      const yTopCup = TABLE_H - feltDepth;
+      const cupH = yTopCup - spec.yBottom;
       const cup = new THREE.Mesh(
-        cavityPrismGeometry({
-          cavity: spec.cavity,
-          yBottom: spec.yBottom,
-          yTop: TABLE_H - feltDepth,
-        }),
+        new THREE.CylinderGeometry(spec.radius, spec.radius * 0.9, cupH, 48, 1, false),
         cupMat
       );
+      cup.position.set(spec.center[0], spec.yBottom + cupH / 2, spec.center[2]);
       cup.name = `pocket-cup-${spec.id}`;
       scene.add(cup);
+
+      const lip = new THREE.Mesh(
+        new THREE.TorusGeometry(spec.radius, 0.004, 8, 48),
+        lipMat
+      );
+      lip.rotation.x = Math.PI / 2;
+      lip.position.set(spec.center[0], TABLE_H + 0.001, spec.center[2]);
+      scene.add(lip);
     }
   } else {
     for (const m of csgBaseMeshes) {
