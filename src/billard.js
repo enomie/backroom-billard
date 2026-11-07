@@ -93,7 +93,7 @@ function playClackSound(volume = 0.5, pitch = 800) {
 function init() {
   const container = document.getElementById("canvas-container");
 
-  // 2.1 Szene & Nebel (Salon-Atmosphäre ohne störenden Staub/Schnee)
+  // 2.1 Szene & Nebel (Backroom-Atmosphäre ohne störenden Staub/Schnee)
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x06070a);
   scene.fog = new THREE.FogExp2(0x06070a, 0.07);
@@ -120,7 +120,7 @@ function init() {
   renderer.toneMappingExposure = 1.15;
   container.appendChild(renderer.domElement);
 
-  // 2.4 Licht & Salon
+  // 2.4 Licht & Backroom
   setupLightingAndRoom();
 
   // 2.5 Tisch & Taschen mit echten Löchern (Bauplan: table-blueprint.js)
@@ -241,7 +241,7 @@ function setupLightingAndRoom() {
   lightCone.position.set(0, lampY, 0);
   scene.add(lightCone);
 
-  // Dunkler Salon-Boden
+  // Dunkler Backroom-Boden
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(16, 16),
     new THREE.MeshStandardMaterial({ color: 0x08090d, roughness: 0.9 })
