@@ -58,16 +58,10 @@ html {
 }
 
 /* Dezentes Glühen für Stoß-Button */
-.glow-amber {
+.btn-fire-glow {
   box-shadow: 0 0 15px rgba(217, 119, 6, 0.35);
-  transition: all 0.2s ease;
 }
 
-.glow-amber:hover {
+.btn-fire-glow:hover {
   box-shadow: 0 0 25px rgba(217, 119, 6, 0.6);
-  transform: translateY(-1px);
-}
-
-.glow-amber:active {
-  transform: translateY(1px);
 }
