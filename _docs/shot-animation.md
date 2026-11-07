@@ -15,7 +15,12 @@ Ein Klick, die Leertaste oder der SHOOT-Button löst **nicht sofort** den Stoß 
 | **4. Treffer** | Die Spitze berührt die Kugel: Kollision in Rapier, Abstoß-Klang. | – |
 | **5. Nachschwung** | Der Cue läuft noch 2 cm weiter, bleibt kurz stehen und schwingt dann in die Haltepose (siehe unten). | – |
 
-Während der Animation sind Zielen, Kraft und ein zweiter Stoß ohne Wirkung. Die Kamera dreht sich ohne Glättung direkt um die Schussposition (`placeAimCamera`, Winkel und Höhe 10°–80°, `FP_CAM_*`), damit Kamera, Zielhilfe und Cue nie gegeneinander ruckeln. Sie bleibt dort, bis alle Kugeln stillstehen, und ist die ganze Zeit drehbar. Der Cue geht mit: gleiche Richtung wie die Kamera, die Neigung folgt der Kamerahöhe und liegt etwas darunter (`CUE_PITCH_*`, höchstens ca. 29°, damit die Spitze die Kugel nie in den Filz drückt; die Stoßgeschwindigkeit wird dafür ausgeglichen).
+Während der Animation sind Zielen, Kraft und ein zweiter Stoß ohne Wirkung.
+
+## Kamera und Cue-Ausrichtung
+
+- **Kamera:** Sie kreist ohne Glättung direkt um die Schussposition (`placeAimCamera`, Winkel und Höhe 10°–80°, `FP_CAM_*`), damit Kamera, Zielhilfe und Cue nie gegeneinander ruckeln. Sie bleibt dort, bis alle Kugeln stillstehen, und ist die ganze Zeit drehbar.
+- **Cue:** Er zeigt in Blickrichtung der Kamera, seine Neigung folgt der Kamerahöhe und liegt etwas darunter (`CUE_PITCH_*`, höchstens ca. 29°). Die Stoßgeschwindigkeit wird für die Neigung ausgeglichen.
 
 ## Die Spitze ist physisch
 
@@ -24,7 +29,7 @@ Die Cue-Spitze ist ein eigener Körper in Rapier (kinematisch, `physics-world.js
 - **Material:** Reibung 0,8 (Leder mit Kreide), Restitution 0 (die Spitze federt nicht; die Kugel verlässt die Spitze mit deren Geschwindigkeit).
 - **Nur gegen Kugeln:** Die Spitze kollidiert mit keinem Tisch, keiner Bande und keinem Becher. Sie ist nur während des Vorschnalzens aktiv.
 - **Genauigkeit:** Beim Vorschnalzen läuft die Physik in 8 Teilschritten, damit die schnelle Spitze nicht in die Kugel eindringt. Die Kugelgeschwindigkeit liegt dadurch bei allen Kraftstufen auf ±1 % am Sollwert.
-- **Neigung:** Die Cue-Achse geht durch die Kugelmitte. Ein geneigter Cue (Maus senkrecht ziehen) drückt die Kugel leicht auf den Tisch.
+- **Neigung:** Die Cue-Achse geht durch die Kugelmitte. Ein geneigter Cue drückt die Kugel leicht auf den Tisch; deshalb ist die Neigung begrenzt.
 - **Sicherheitsnetz:** Falls der Stoß die Kugel nicht bewegt, bekommt sie den vorgesehenen Impuls und es gibt eine Konsolen-Warnung.
 
 ## Haltepose nach dem Stoß
@@ -38,5 +43,5 @@ Alle Werte stehen in `src/cue-constants.js` (Abstände, Zeiten, Nachlaufweg, Tei
 ## Offene Punkte
 
 - Abbruch vor dem Vorschnalzen (z. B. `Esc`)?
-- Soll die Kamera beim Zurückziehen leicht mitgehen (Zoom oder Wackeln bei viel Kraft)?
+- Soll die Kamera beim Zurückziehen leicht zoomen oder wackeln (bei viel Kraft)?
 - Seitlicher oder hoher/tiefer Treffpunkt auf der Kugel (Effet): Die Spitzenform erlaubt es, die Steuerung gibt es noch nicht.
