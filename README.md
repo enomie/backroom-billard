@@ -52,7 +52,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `ashtray.js`, `ashtray-constants.js` | Glas-Aschenbecher auf Tischen und am Billardtisch |
 | `glasses.js`, `glasses-constants.js` | Wein-, Bier- und Whiskeyglas mit Getränk auf Tischen und am Billardtisch |
 | `bottles.js`, `bottles-constants.js` | Wein- und Bierflaschen auf den Tischen |
-| `cigarettes.js`, `cigarette-constants.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern |
+| `cigarettes.js`, `cigarette-constants.js`, `smoke.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
@@ -72,7 +72,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 - [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen, Vorschnalzen und physischer Cue-Spitze
 - [`_docs/radio.md`](_docs/radio.md) — Radio auf dem Sideboard mit Display, Stream und Stereo-Lautsprechern
 - [`_docs/glass-objects.md`](_docs/glass-objects.md) — Kerzenhalter, Aschenbecher, Gläser und Flaschen (alles umgesetzt)
-- [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten (einzelne umgesetzt), Schachtel und Rauch-Shader (Konzept)
+- [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten und Rauchfaden (umgesetzt), Schachtel und Ausatem-Wolke (Konzept)
 - [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
 
 ## Backup

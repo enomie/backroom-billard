@@ -1292,7 +1292,7 @@ function gameLoop(currentTime) {
 
   updateAudioListener(camera); // the ears follow the camera
   if (candles) candles.update(frameSeconds, camera);
-  if (cigarettes) cigarettes.update(dt);
+  if (cigarettes) cigarettes.update(dt, camera);
   if (radio) radio.update(frameSeconds, camera);
 
   // The cue is placed after the camera so a carried cue never lags behind it

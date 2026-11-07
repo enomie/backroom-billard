@@ -31,8 +31,13 @@ import {
   CIGARETTE_SHARE_UNLIT,
   CIGARETTE_START_BURN_MAX,
   CIGARETTE_SEED,
+  SMOKE_WIDTH,
+  SMOKE_HEIGHT,
+  SMOKE_OPACITY,
+  SMOKE_COLOR,
 } from "./cigarette-constants.js";
 import { glowTexture } from "./glow.js";
+import { createSmokeColumn, faceCamera } from "./smoke.js";
 
 const PAPER_FULL = CIGARETTE_LENGTH - CIGARETTE_FILTER_LENGTH;
 const R = CIGARETTE_DIAMETER / 2;
@@ -83,7 +88,7 @@ function restingPose(slot, k, tipSupport) {
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, y: number, z: number, yaw: number, scale: number, onFrame: boolean }[]} ashtraySlots
- * @returns {{ group: THREE.Group, update: (dt: number) => void }}
+ * @returns {{ group: THREE.Group, update: (dt: number, camera: THREE.Camera) => void }}
  */
 export function createCigarettes(scene, ashtraySlots) {
   const group = new THREE.Group();
@@ -98,7 +103,7 @@ export function createCigarettes(scene, ashtraySlots) {
   const ashMat = new THREE.MeshStandardMaterial({ color: CIGARETTE_COLOR_ASH, roughness: 1 });
   const glowMap = glowTexture();
 
-  /** @type {{ root: THREE.Group, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
+  /** @type {{ root: THREE.Group, smoke: THREE.Mesh | null, tipX: number, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
   const cigarettes = [];
 
   function add(slot, notch, state) {
@@ -123,7 +128,12 @@ export function createCigarettes(scene, ashtraySlots) {
     group.add(root);
 
     const burn = state === "butt" ? 1 : state === "glowing" ? rnd() * CIGARETTE_START_BURN_MAX : 0;
-    const c = { root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow };
+    const smoke = state === "glowing" ? createSmokeColumn({ width: SMOKE_WIDTH, height: SMOKE_HEIGHT, opacity: SMOKE_OPACITY, color: SMOKE_COLOR, seed: rnd() * 50 }) : null;
+    if (smoke) {
+      smoke.visible = false; // shown (and placed) by the first update
+      group.add(smoke);
+    }
+    const c = { root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow, smoke, tipX: 0 };
     cigarettes.push(c);
     shape(c, 0);
   }
@@ -138,6 +148,7 @@ export function createCigarettes(scene, ashtraySlots) {
     c.ash.visible = ashLen > 0;
     c.ash.position.x = CIGARETTE_FILTER_LENGTH + paperLen + ashLen / 2;
     const tipX = CIGARETTE_FILTER_LENGTH + paperLen + ashLen;
+    c.tipX = tipX;
     const lit = c.state === "glowing" && c.burn < 1;
     c.ember.visible = c.glow.visible = lit;
     if (lit) {
@@ -165,11 +176,20 @@ export function createCigarettes(scene, ashtraySlots) {
   let time = 0;
   return {
     group,
-    update(dt) {
+    update(dt, camera) {
       time += dt;
       for (const c of cigarettes) {
-        if (c.state === "glowing" && c.burn < 1) c.burn = Math.min(1, c.burn + dt / CIGARETTE_BURN_SECONDS);
-        if (c.state === "glowing") shape(c, time);
+        if (c.state !== "glowing") continue;
+        if (c.burn < 1) c.burn = Math.min(1, c.burn + dt / CIGARETTE_BURN_SECONDS);
+        shape(c, time);
+        // the smoke thread rises from the ember while the cigarette glows
+        c.smoke.visible = c.burn < 1;
+        if (c.smoke.visible) {
+          c.root.updateMatrixWorld();
+          c.smoke.position.copy(c.root.localToWorld(new THREE.Vector3(c.tipX + 0.004, 0, 0)));
+          faceCamera(c.smoke, camera);
+          c.smoke.material.uniforms.uTime.value = time;
+        }
       }
     },
   };

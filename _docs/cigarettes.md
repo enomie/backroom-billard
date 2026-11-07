@@ -1,6 +1,6 @@
 # Zigaretten und Rauch
 
-> **Status:** Die **einzelne Zigarette** ist umgesetzt (Test: sie liegt in den Aschenbechern). **Schachtel, Rauch, Ziehen/Ausatmen und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
+> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). **Schachtel, Ausatem-Wolke, Ziehen und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
 
 Zur 80er-Kneipe gehört Rauch. Es gibt eine **Zigarettenschachtel zum Aufklappen**, **einzelne Zigaretten** (unangezündet, glimmend, Stummel) und **Rauch** per Shader. Wer an einer Zigarette zieht, **atmet danach eine Rauchwolke aus**.
 
@@ -26,7 +26,8 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 - **Form:** 84 mm lang, Ø 8 mm, Filter 25 mm in Orange mit feinen Sprenkeln, weißer Papierschaft. Zustände: unangezündet, glimmend, Stummel.
 - **Glimmend:** Die Spitze trägt Asche (bis 6 mm) und eine pulsierende Glut mit weichem Schein (nur leuchtend, kein echtes Licht). Die Zigarette **brennt über die Zeit herunter** (7 Minuten Spielzeit, `CIGARETTE_BURN_SECONDS`) und wird danach zum Stummel ohne Glut.
 - **Test-Aufbau:** Jeder Aschenbecher auf den Tischen bekommt 1–3 Zigaretten in zufälligen Kerben, gemischt aus glimmend (45 %), unangezündet (20 %) und Stummel; die Aschenbecher der Spieler am Billardtisch bekommen **genau eine**, glimmend. Sie liegt quer in der Kerbe, die Spitze ruht innen auf dem Schalenboden.
-- **Noch nicht:** Rauch (Shader), Entnehmen, Anzünden, Ziehen und Ausatmen.
+- **Rauch:** Jede glimmende Zigarette hat einen Rauchfaden (siehe „Rauch“). Er endet mit der Glut.
+- **Noch nicht:** Entnehmen, Anzünden, Ziehen und Ausatmen.
 
 ## Zustände im Überblick
 
@@ -51,6 +52,10 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 - **Texte:** alle sichtbaren Texte (Tasten-Hinweis) laufen durch `src/i18n`.
 
 ## Rauch (Shader)
+
+**Umgesetzt ist der Rauchfaden** (`src/smoke.js`, Werte `SMOKE_*` in `cigarette-constants.js`): eine hohe, schmale Fläche (5 × 40 cm), die sich um die senkrechte Achse zur Kamera dreht. Der Fragment-Shader zeichnet aus vier Schichten Rauschen (fBm) mit Verwirbelung (Domain Warping) einen langsam nach oben wandernden Streifen, unten dünn und deutlich, oben breit und blass. Im Vertex-Shader schwankt der Faden umso mehr, je höher er steigt. Grau, durchscheinend, ohne Tiefenschreiben, mit dem Raumnebel. Eine Fläche pro glimmender Zigarette; **die Ausatem-Wolke fehlt noch.** Die Quellen unten habe ich nicht ausgewertet, der Shader ist eigenständig nach dem üblichen Verfahren gebaut.
+
+Die ursprünglichen Vorgaben:
 
 **Ziel:** Weicher, durchscheinender Rauch, der sich träge nach oben dreht, im Lichtkegel der Lampen heller wird und die Stimmung des dunklen Raums nicht heller macht.
 

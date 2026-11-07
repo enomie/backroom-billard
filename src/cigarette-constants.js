@@ -31,3 +31,9 @@ export const CIGARETTE_SHARE_UNLIT = 0.2;
 /** A glowing cigarette starts somewhere between fresh and this far burnt (0…1). */
 export const CIGARETTE_START_BURN_MAX = 0.6;
 export const CIGARETTE_SEED = 41;
+
+/** Smoke thread rising from a glowing cigarette (see smoke.js). */
+export const SMOKE_WIDTH = 0.05;
+export const SMOKE_HEIGHT = 0.4;
+export const SMOKE_OPACITY = 0.45;
+export const SMOKE_COLOR = 0x8c8c94;
