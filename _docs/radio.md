@@ -1,6 +1,6 @@
 # Radio
 
-> **Status: umgesetzt** (Radio, Sideboard, Ein/Aus, Display, Stereo-Lautsprecher, Stream). Titelanzeige per ICY-Metadaten; **nicht umgesetzt:** Playlist.
+> **Status: umgesetzt** (Radio, Sideboard, Ein/Aus, Display, Stereo-Lautsprecher, Stream). Titelanzeige.
 
 Ein altes Röhren-Holzradio auf einem Sideboard an einer langen Wand. Es ist **standardmäßig eingeschaltet**; der **rechte Knopf** ist der Ein/Aus-Schalter und wird angeklickt.
 
@@ -31,6 +31,8 @@ Das Sideboard steht an der **+x-Wand** (lange Seite), in Höhe der Tischmitte (`
 
 Die Skala zeigt den **Sender (KNKX)** und den **Zustand**: *Klick zum Starten*, *Verbinde…*, *Live*, *Kein Signal*. Die Wörter laufen durch `src/i18n`, der Sendername nicht.
 
+**Titel:** Darunter steht der aktuelle Titel (zu lang → „…“). Das Audio-Element liefert keine Titelinfos, deshalb fragt `radio-metadata.js` den Stream alle 20 s zusätzlich mit `Icy-MetaData: 1` an, liest nur den ersten Metadatenblock (`StreamTitle`) und bricht ab. Das braucht CORS-Freigabe von `icy-metaint`; sonst bleibt es bei Sender und „LIVE“.
+
 ## Audio
 
 - **Quelle:** der direkte AAC-Stream (`RADIO_STREAM_URL`). Die HLS-Playlist (`.m3u8`) wird nicht genutzt, weil sie außerhalb von Safari eine Zusatzbibliothek braucht.
@@ -40,7 +42,6 @@ Die Skala zeigt den **Sender (KNKX)** und den **Zustand**: *Klick zum Starten*, 
 
 ## Offene Punkte
 
-- **Titel im Display:** Das Audio-Element liefert keine Titelinfos. `radio-metadata.js` fragt den Stream deshalb alle 20 s zusätzlich mit `Icy-MetaData: 1` an, liest nur den ersten Metadatenblock (`StreamTitle`) und bricht ab. Das funktioniert nur, wenn der Server per CORS `icy-metaint` freigibt; sonst zeigt das Display weiter nur Sender und „LIVE“. Am echten Stream getestet: funktioniert. Hinweis: Kanal `6285` ist laut KNKX-Seite der Jazz24-Stream. Eine Playlist-Anzeige ist offen.
 - **Rechte:** Dürfen wir den Stream im Spiel nutzen (Nutzungsbedingungen des Senders)?
 - **Referenzfoto:** Es liegt nicht im Repo (Bildrechte ungeklärt).
 - **Touch:** Das Anklicken des Knopfes geht mit der Maus, nicht per Antippen.
