@@ -10,7 +10,7 @@ import {
   RAIL_WOOD_DEPTH,
   FELT_BED_DEPTH,
 } from "./table-constants.js";
-import { createPocketSpecs, addPocketDebugMeshes } from "./pocket-spec.js";
+import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import {
   PHYSICS_STEP,
@@ -45,12 +45,6 @@ const tableDimensions = {
   cushionH: CUSHION_H,
 };
 const pocketSpecs = createPocketSpecs(tableDimensions);
-
-/** CSG / Blueprint: dieselben Specs wie Versenk-Physik */
-window.BilliardPocketSpecs = pocketSpecs;
-
-/** Wireframe-Zylinder zur Kontrolle von Position/Höhe (vor Feintuning ausschalten) */
-const DEBUG_POCKET_CYLINDERS = false;
 
 // Zustand
 let cameraMode = "fps"; // 'fps' oder 'overhead'
@@ -157,10 +151,6 @@ function init() {
     TABLE_H,
     FELT_BED_DEPTH
   );
-
-  if (DEBUG_POCKET_CYLINDERS) {
-    addPocketDebugMeshes(scene, pocketSpecs);
-  }
 
   // 2.6 Kugeln initialisieren
   setupBalls();

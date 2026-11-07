@@ -1,7 +1,6 @@
 /**
  * pocket-spec.js — Single Source of Truth für Tisch-Taschen (CSG & Physik)
  */
-import * as THREE from "three";
 import {
   POCKET_R_CORNER,
   POCKET_R_SIDE,
@@ -140,37 +139,4 @@ export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
     yBottom,
     axis: /** @type {const} */ ([0, 1, 0]),
   }));
-}
-
-/**
- * Wireframe-Zylinder zu allen PocketSpecs (Debug vor / neben CSG).
- *
- * @param {import("three").Scene} scene
- * @param {ReturnType<typeof createPocketSpecs>} pocketSpecs
- * @returns {import("three").Group}
- */
-export function addPocketDebugMeshes(scene, pocketSpecs) {
-  const group = new THREE.Group();
-  group.name = "pocket-debug-group";
-
-  for (const spec of pocketSpecs) {
-    const geom = new THREE.CylinderGeometry(
-      spec.radius,
-      spec.radius,
-      spec.height,
-      24
-    );
-    const mat = new THREE.MeshBasicMaterial({
-      color: spec.id.startsWith("corner") ? 0xff4444 : 0xffaa00,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.6,
-    });
-    const mesh = new THREE.Mesh(geom, mat);
-    mesh.position.set(spec.center[0], spec.center[1], spec.center[2]);
-    group.add(mesh);
-  }
-
-  scene.add(group);
-  return group;
 }
