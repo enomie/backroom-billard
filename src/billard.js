@@ -55,6 +55,27 @@ let isCueMoving = false;
 let cueStrikeAnim = 0; // Für visuelle Vorstoß-Animation
 let cueRespawnTimer = null; // Timer für das Wiederaufstellen der weißen Kugel
 let lastShotTime = 0; // Schutz gegen doppelt ausgelöste Stöße
+/** 15 Objektkugeln, alle verschieden; Nr. 8 bleibt schwarz. Dieselben Farben im HUD. */
+const BALL_COLORS = [
+  0xfacc15, // 1 gelb
+  0x1d4ed8, // 2 blau
+  0xdc2626, // 3 rot
+  0x7c3aed, // 4 violett
+  0xf97316, // 5 orange
+  0x15803d, // 6 grün
+  0x7f1d1d, // 7 bordeaux
+  0x111827, // 8 schwarz
+  0x38bdf8, // 9 hellblau
+  0xf472b6, // 10 rosa
+  0x14b8a6, // 11 türkis
+  0x92400e, // 12 braun
+  0xa3e635, // 13 limette
+  0x94a3b8, // 14 grau
+  0xd946ef, // 15 magenta
+];
+
+/** @type {typeof balls} versenkte Kugeln, die nach dem Physikschritt gelöscht werden */
+const pendingRemoval = [];
 let physics = null; // Rapier-Welt (physics-world.js)
 let physicsAcc = 0; // Zeit-Akkumulator für feste Physik-Schritte
 
@@ -265,15 +286,10 @@ function setupBalls() {
   });
   balls = [];
   ballByCollider.clear();
+  pendingRemoval.length = 0;
+  clearPocketedHud();
 
   const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
-
-  // Satte, edle Poolfarben
-  const ballColors = [
-    0xf59e0b, 0x1d4ed8, 0xdc2626, 0x6d28d9, 0xea580c, 0x15803d, 0x881337,
-    0x111827, 0xfacc15, 0x0284c7, 0xef4444, 0x8b5cf6, 0xf97316, 0x22c55e,
-    0x4c0519,
-  ];
 
   function createBall(x, z, colorHex, isCue = false, id = 0) {
     const mat = new THREE.MeshPhysicalMaterial({
@@ -303,6 +319,7 @@ function setupBalls() {
       radius: BALL_R,
       isCue,
       id,
+      color: colorHex,
       inPocket: false, // erst true, wenn die Kugel den Becherboden getroffen hat
     };
     balls.push(bObj);
@@ -325,7 +342,7 @@ function setupBalls() {
     for (let c = 0; c < count; c++) {
       const px = startX + c * (BALL_R * 2.04);
       const pz = startZ - r * rowGap;
-      createBall(px, pz, ballColors[idx % ballColors.length], false, idx + 1);
+      createBall(px, pz, BALL_COLORS[idx], false, idx + 1);
       idx++;
     }
   }
@@ -625,6 +642,32 @@ function syncBallFromBody(b) {
   b.mesh.quaternion.set(q.x, q.y, q.z, q.w);
 }
 
+/** Versenkte Kugeln als runde Kreise in Kugelfarbe anzeigen. */
+function addPocketedToHud(b) {
+  const host = document.getElementById("pocketed-balls");
+  if (!host) return;
+  const dot = document.createElement("span");
+  dot.className = "pocketed-ball";
+  dot.style.backgroundColor = "#" + b.color.toString(16).padStart(6, "0");
+  dot.title = `Kugel ${b.id}`;
+  host.appendChild(dot);
+}
+
+function clearPocketedHud() {
+  const host = document.getElementById("pocketed-balls");
+  if (host) host.replaceChildren();
+}
+
+/** Versenkte Objektkugel komplett aus der Welt nehmen (Körper, Mesh, Verwaltung). */
+function removeBall(b) {
+  physics.removeBall(b.body);
+  scene.remove(b.mesh);
+  b.mesh.material.dispose();
+  ballByCollider.delete(b.collider.handle);
+  const i = balls.indexOf(b);
+  if (i >= 0) balls.splice(i, 1);
+}
+
 /** Kugel hat den Becherboden getroffen → zählt als versenkt. */
 function onBallPocketed(b, pocketId) {
   if (b.inPocket) return;
@@ -633,16 +676,21 @@ function onBallPocketed(b, pocketId) {
     `[Backroom Billard] Kugel ${b.id} versenkt in ${pocketId} (Aufprall Becherboden, y=${b.pos.y.toFixed(3)})`
   );
 
-  if (b.isCue) {
-    cueRespawnTimer = setTimeout(() => {
-      cueRespawnTimer = null;
-      const spot = findFreeCueSpot();
-      b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
-      b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-      b.inPocket = false;
-    }, 600);
+  if (!b.isCue) {
+    addPocketedToHud(b);
+    pendingRemoval.push(b); // erst nach dem Physikschritt entfernen
+    return;
   }
+
+  // Weiße Kugel: nach kurzer Pause auf einem freien Platz neu auflegen
+  cueRespawnTimer = setTimeout(() => {
+    cueRespawnTimer = null;
+    const spot = findFreeCueSpot();
+    b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
+    b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    b.inPocket = false;
+  }, 600);
 }
 
 /**
@@ -665,6 +713,9 @@ function stepPhysics(frameDt) {
     steps++;
   }
   if (steps === 16) physicsAcc = 0; // nach langem Hänger nicht aufholen
+
+  // Versenkte Objektkugeln aus dem Auffangbehälter löschen
+  while (pendingRemoval.length) removeBall(pendingRemoval.pop());
 
   let moving = false;
   for (let i = 0; i < balls.length; i++) {

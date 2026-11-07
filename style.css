@@ -426,3 +426,20 @@ html {
 .btn-fire:active {
   transform: scale(0.95) translateY(0);
 }
+
+/* Versenkte Kugeln: runde Kreise in Kugelfarbe */
+.pocketed-balls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  max-width: 14rem;
+}
+
+.pocketed-ball {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset -2px -2px 3px rgba(0, 0, 0, 0.35);
+}
