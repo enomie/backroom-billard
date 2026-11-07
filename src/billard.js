@@ -19,6 +19,7 @@ import { createFurniture } from "./furniture.js";
 import { createCandles } from "./candle.js";
 import { createAshtrays } from "./ashtray.js";
 import { createGlasses } from "./glasses.js";
+import { createBottles } from "./bottles.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -154,6 +155,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
+let bottles = null; // wine and beer bottles (bottles.js)
 let glasses = null; // wine and beer glasses (glasses.js)
 let ashtrays = null; // glass ashtrays (ashtray.js)
 let candles = null; // candle holders on the tables (candle.js)
@@ -230,6 +232,7 @@ function init() {
   candles.applyReflection(ballReflection);
   ashtrays.applyReflection(ballReflection);
   glasses.applyReflection(ballReflection);
+  bottles.applyReflection(ballReflection);
 
   // 2.6 Initialize balls
   setupBalls();
@@ -283,6 +286,7 @@ function setupLightingAndRoom() {
   candles = createCandles(scene);
   ashtrays = createAshtrays(scene);
   glasses = createGlasses(scene, [...candles.taken, ...ashtrays.taken]);
+  bottles = createBottles(scene, glasses.taken);
   radio = createRadio(scene);
 }
 

@@ -1,6 +1,6 @@
 # Glas und Tischdeko
 
-> **Status:** **Kerzenhalter**, **Aschenbecher**, **Weinglas**, **Bierglas** und **Whiskeyglas** sind umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
+> **Status: umgesetzt** (alle Objekte dieser Seite). Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
 
 Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinteile. Sie müssen **wie Glas aussehen** und in der **Größe stimmen**; die Form darf einfach sein und wird **per Formel berechnet**, ohne externe Modelle.
 
@@ -27,6 +27,13 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 - **Tische:** Pro Tisch zufällig 0–2 Gläser (feste Startwerte), je zu 35 % Wein (davon 70 % rot), 25 % Whiskey, sonst Bier. Sie stehen 12–28 cm von der Mitte entfernt und halten Abstand zu Kerze, Aschenbecher und zueinander.
 - **Billardtisch:** Je Spieler ein zufälliges Getränk auf dem Holzrahmen der linken Längsseite, neben dem Aschenbecher.
 
+## Flaschen (umgesetzt)
+
+- **Code:** `src/bottles.js`, Werte in `src/bottles-constants.js`.
+- **Form:** Drehkörper: runder Boden, gerader Körper, weich geschwungene Schulter, Hals und Mundring. Das Etikett ist ein Streifen über etwa 140° an der Vorderseite (Canvas-Textur mit erfundenen Namen „Château Backroom“ und „Backroom Original Lager“, keine echten Marken); die Flasche steht zufällig gedreht. Wein trägt eine Folienkapsel (dunkelrot, metallisch), Bier einen Kronkorken (golden).
+- **Glas:** dunkles Glas (Wein grün, Bier braun) mit Glanz und Spiegelung wie die Gläser, aber fast undurchsichtig (Alpha 0,9 bzw. 0,88). Die Flaschen sind leer gedacht, innen ist nichts zu sehen.
+- **Tische:** Etwa 40 % der Tische haben eine Flasche (je zur Hälfte Wein oder Bier, feste Startwerte). Sie steht im Abstand von 12–28 cm von der Mitte und hält Abstand zu Kerze, Aschenbecher und Gläsern. Am Billardtisch stehen keine Flaschen.
+
 ## Die Objekte
 
 | Objekt | Größe (ca.) | Inhalt / Besonderheit |
@@ -36,8 +43,8 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 | **Weinglas** | 20 cm hoch, Kelch Ø 8 cm | **Umgesetzt.** Stiel und Fuß, zu 40 % des Kelchs mit Wein gefüllt (rot oder weiß). |
 | **Bierglas** | 15 cm hoch, oben Ø 7 cm | **Umgesetzt.** Goldenes Bier mit **Schaumkrone** (3,7 cm, leicht über dem Rand gewölbt). |
 | **Whiskeyglas** | 9 cm hoch, oben Ø 7,5 cm | **Umgesetzt.** Kurzer, breiter Tumbler mit dickem Glasboden, zwei Finger hoch Whiskey (bernsteinfarben, durchsichtig). |
-| **Weinflasche** | 30 cm hoch, Ø 7,5 cm | Dunkelgrünes Glas, Etikett, Hals. |
-| **Bierflasche** | 23 cm hoch, Ø 6 cm | Braunes Glas, Etikett, Kronkorken. |
+| **Weinflasche** | 30 cm hoch, Ø 7,5 cm | **Umgesetzt.** Dunkelgrünes Glas (Bordeaux-Form), Etikett, dunkelrote Folienkapsel auf dem Hals. |
+| **Bierflasche** | 23 cm hoch, Ø 6 cm | **Umgesetzt.** Braunes Glas, Etikett, goldener Kronkorken. |
 
 Alle Maße sind Parameter (eigene `*-constants.js`, wie bei den Möbeln), nichts davon im Code verstreut.
 

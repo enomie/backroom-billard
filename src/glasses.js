@@ -126,7 +126,8 @@ function random(seed) {
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, z: number, r: number }[]} taken — objects already on the tables (candles, ashtrays)
- * @returns {{ group: THREE.Group, applyReflection: (reflection: object) => void }}
+ * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
+ *            applyReflection: (reflection: object) => void }}
  */
 export function createGlasses(scene, taken) {
   const group = new THREE.Group();
@@ -224,6 +225,8 @@ export function createGlasses(scene, taken) {
   scene.add(group);
   return {
     group,
+    /** Everything standing on the round tables so far (for what comes next). */
+    taken: occupied,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       for (const m of [glassMat, mats.red, mats.white, mats.beer, mats.whiskey]) {
