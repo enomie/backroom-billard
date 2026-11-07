@@ -57,6 +57,8 @@ export const BALL_HIT_STAGES = 5;
 export const BALL_HIT_VARIANTS = 4;
 export const BALL_HIT_GAIN_MIN = 0.06;
 export const BALL_HIT_GAIN_MAX = 0.7;
+/** Pitch of the klack: all body modes are scaled by this (1 = default, 0.8 = deeper, 1.2 = brighter). */
+export const BALL_HIT_PITCH = 1;
 /** Duller "thump" of a ball on the rubber cushion. */
 export const CUSHION_HIT_SECONDS = 0.22;
 export const CUSHION_HIT_STAGES = 4;
