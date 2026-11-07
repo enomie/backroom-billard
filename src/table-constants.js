@@ -64,3 +64,7 @@ export const CUSHION_END_RECESS_SIDE = 0.25;
 export const LEG_CUP_GAP = 0.02;
 export const LEG_RADIUS_TOP = 0.075;
 export const LEG_RADIUS_BOTTOM = 0.055;
+
+/** Apron boards around the table (hide the pocket cups): thickness and height; top edge = bottom of the wooden frame. */
+export const SKIRT_THICKNESS = 0.02;
+export const SKIRT_HEIGHT = 0.4;

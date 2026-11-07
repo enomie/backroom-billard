@@ -9,6 +9,8 @@ import {
   LEG_CUP_GAP,
   LEG_RADIUS_TOP,
   LEG_RADIUS_BOTTOM,
+  SKIRT_THICKNESS,
+  SKIRT_HEIGHT,
 } from "./table-constants.js";
 
 /**
@@ -298,6 +300,27 @@ export function buildAuthenticTableWithHoles(
     for (const m of cushionMeshes) {
       scene.add(m);
     }
+  }
+
+  // Apron boards around the table: flush with the outer edge of the wooden frame, hanging down
+  // from the frame's bottom edge (y = TABLE_H), so the pocket cups cannot be seen from outside
+  const outerX = hw + railThick;
+  const outerZ = hl + railThick;
+  const skirtY = TABLE_H - SKIRT_HEIGHT / 2;
+  const addSkirt = (sizeX, sizeZ, x, z) => {
+    const board = new THREE.Mesh(new THREE.BoxGeometry(sizeX, SKIRT_HEIGHT, sizeZ), woodMat);
+    board.position.set(x, skirtY, z);
+    board.castShadow = true;
+    board.receiveShadow = true;
+    board.name = "table-skirt";
+    scene.add(board);
+  };
+  // Long sides (along z) run the full length; short sides fit between them
+  for (const sx of [-1, 1]) {
+    addSkirt(SKIRT_THICKNESS, 2 * outerZ, sx * (outerX - SKIRT_THICKNESS / 2), 0);
+  }
+  for (const sz of [-1, 1]) {
+    addSkirt(2 * (outerX - SKIRT_THICKNESS), SKIRT_THICKNESS, 0, sz * (outerZ - SKIRT_THICKNESS / 2));
   }
 
   // Legs: one below each corner pocket cup, from the floor up to LEG_CUP_GAP below the cup bottom
