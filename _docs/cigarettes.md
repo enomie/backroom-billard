@@ -18,7 +18,7 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 - **Form:** Klappschachtel aus dünnen Kartonplatten, 58 × 88 × 23,5 mm: Boden, Rückwand, Seiten und unterer Teil der Front als Körper, dazu ein **Klappdeckel** mit Scharnier hinten oben (Front, Oberseite, Seiten). Innen **20 Zigaretten** in drei Reihen (7 – 6 – 7, dicht gepackt), Filter nach oben.
 - **Gestaltung:** Schwarzer Karton mit goldenen Linien und rotem Band, Aufschrift „BACKROOM · Premium Blend · No. 20“ (erfundene Marke). Die Front-Grafik ist auf Körper und Deckel aufgeteilt.
 - **Zustand:** geschlossen oder **offen** (Deckel um etwa 110° nach hinten geklappt, die Filter sind zu sehen). Eine Animation zum Auf- und Zuklappen gibt es noch nicht.
-- **Verteilung:** Die Hälfte der Tische hat eine Schachtel (liegt auf dem Rücken, zufällig gedreht, zur Hälfte offen, mit Abstand zu Kerze, Aschenbecher, Gläsern und Flaschen). Eine geschlossene Schachtel liegt auf dem Rahmen des Billardtisches (links, zwischen zwei Rauten, quer zum Rahmen).
+- **Verteilung:** Die Hälfte der Tische hat eine Schachtel (liegt auf dem Rücken, zufällig gedreht, zur Hälfte offen, mit Abstand zu Kerze, Aschenbecher, Gläsern und Flaschen). Auf dem Rahmen des Billardtisches liegt **je Spieler eine** (links, zwischen zwei Rauten, quer zum Rahmen), offen oder geschlossen, bei jedem Laden neu gewürfelt.
 - **Noch nicht:** Entnehmen einer Zigarette (die Anzahl in der Schachtel bleibt 20), Klappen per Klick.
 
 Die ursprünglichen Vorgaben:

@@ -54,6 +54,6 @@ export const PACK_TABLE_SHARE = 0.5;
 export const PACK_OPEN_SHARE = 0.5;
 export const PACK_RING_MIN = 0.12;
 export const PACK_RING_MAX = 0.28;
-/** On the frame of the billard table: along z (between two diamonds), packs lie across the frame. */
-export const PACK_FRAME_Z = -0.5;
+/** On the frame of the billard table: one pack per player at ±this z (between two diamonds), lying across the frame. */
+export const PACK_FRAME_Z = 0.5;
 export const PACK_SEED = 53;

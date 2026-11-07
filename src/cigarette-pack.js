@@ -194,10 +194,10 @@ export function createCigarettePacks(scene, taken) {
     }
   }
 
-  // Billard table: one closed pack on the left frame, lying across it
+  // Billard table: one pack per player on the left frame, lying across it (open or closed, chosen anew on every load)
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
-  lay(buildPack(false), frameX, frameTop, PACK_FRAME_Z, Math.PI / 2);
+  for (const sz of [-1, 1]) lay(buildPack(Math.random() < PACK_OPEN_SHARE), frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2);
 
   scene.add(group);
   return { group };
