@@ -23,6 +23,12 @@ import {
   BEER_FOAM_HEIGHT,
   BEER_COLOR,
   BEER_FOAM_COLOR,
+  WHISKEY_GLASS_HEIGHT,
+  WHISKEY_GLASS_RADIUS_BOTTOM,
+  WHISKEY_GLASS_RADIUS_TOP,
+  WHISKEY_GLASS_BASE,
+  WHISKEY_LEVEL,
+  WHISKEY_COLOR,
   GLASS_WALL,
   GLASS_COLOR,
   GLASS_OPACITY,
@@ -31,6 +37,7 @@ import {
   GLASSES_RING_MAX,
   GLASSES_SEED,
   GLASSES_WINE_SHARE,
+  GLASSES_WHISKEY_SHARE,
   GLASSES_RED_SHARE,
   GLASSES_FRAME_Z,
 } from "./glasses-constants.js";
@@ -74,24 +81,23 @@ function wineLiquidGeometry() {
   return lathe(pts, 48);
 }
 
-/** Beer glass inner radius at height y. */
-const beerInnerRadius = (y) =>
-  THREE.MathUtils.lerp(BEER_GLASS_RADIUS_BOTTOM, BEER_GLASS_RADIUS_TOP, y / BEER_GLASS_HEIGHT) - GLASS_WALL;
-
-function beerGlassGeometry() {
-  const H = BEER_GLASS_HEIGHT;
-  const pts = [
-    [0, 0], [BEER_GLASS_RADIUS_BOTTOM - 0.003, 0], [BEER_GLASS_RADIUS_BOTTOM, 0.003], [BEER_GLASS_RADIUS_TOP, H],
-    [beerInnerRadius(H), H], [beerInnerRadius(BEER_GLASS_BASE), BEER_GLASS_BASE], [0, BEER_GLASS_BASE - 0.001],
-  ];
-  return lathe(pts, 64);
+/**
+ * A tapered, thick-bottomed glass (beer glass, whiskey tumbler): the glass and, inside, the drink
+ * up to `level`.
+ */
+function taperedGlass({ height, rBottom, rTop, base }) {
+  const inner = (y) => THREE.MathUtils.lerp(rBottom, rTop, y / height) - GLASS_WALL;
+  const glass = lathe(
+    [[0, 0], [rBottom - 0.003, 0], [rBottom, 0.003], [rTop, height], [inner(height), height], [inner(base), base], [0, base - 0.001]],
+    64
+  );
+  const liquid = (level) => lathe([[0, base], [inner(base) - 0.0004, base], [inner(level) - 0.0004, level], [0, level]], 48);
+  return { glass, liquid, inner };
 }
 
-function beerLiquidGeometry() {
-  const y0 = BEER_GLASS_BASE;
-  const r = (y) => beerInnerRadius(y) - 0.0004;
-  return lathe([[0, y0], [r(y0), y0], [r(BEER_LEVEL), BEER_LEVEL], [0, BEER_LEVEL]], 48);
-}
+const beerShape = taperedGlass({ height: BEER_GLASS_HEIGHT, rBottom: BEER_GLASS_RADIUS_BOTTOM, rTop: BEER_GLASS_RADIUS_TOP, base: BEER_GLASS_BASE });
+const whiskeyShape = taperedGlass({ height: WHISKEY_GLASS_HEIGHT, rBottom: WHISKEY_GLASS_RADIUS_BOTTOM, rTop: WHISKEY_GLASS_RADIUS_TOP, base: WHISKEY_GLASS_BASE });
+const beerInnerRadius = beerShape.inner;
 
 /** Foam head: sits on the beer, reaches the rim and domes slightly above it. */
 function beerFoamGeometry() {
@@ -142,34 +148,46 @@ export function createGlasses(scene, taken) {
     red: liquid(WINE_COLOR_RED, 0.8),
     white: liquid(WINE_COLOR_WHITE, 0.5),
     beer: liquid(BEER_COLOR, 0.5),
+    whiskey: liquid(WHISKEY_COLOR, 0.6),
     foam: liquid(BEER_FOAM_COLOR, 1, 0.9),
   };
 
-  mats.beer.emissive.set(0x3a2204); // a little light shines through the beer
+  mats.beer.emissive.set(0x3a2204); // a little light shines through the drinks
+  mats.whiskey.emissive.set(0x2a1604);
 
   const geo = {
     wine: wineGlassGeometry(),
     wineLiquid: wineLiquidGeometry(),
-    beer: beerGlassGeometry(),
-    beerLiquid: beerLiquidGeometry(),
+    beer: beerShape.glass,
+    beerLiquid: beerShape.liquid(BEER_LEVEL),
+    whiskey: whiskeyShape.glass,
+    whiskeyLiquid: whiskeyShape.liquid(WHISKEY_LEVEL),
     foam: beerFoamGeometry(),
   };
 
-  /** Build one glass with its drink. `kind`: "wine-red" | "wine-white" | "beer". */
+  /** Build one glass with its drink. `kind`: "wine-red" | "wine-white" | "beer" | "whiskey". */
   const build = (kind) => {
     const g = new THREE.Group();
-    const parts = kind === "beer"
-      ? [[geo.beer, glassMat, 2], [geo.beerLiquid, mats.beer, 0], [geo.foam, mats.foam, 0]]
-      : [[geo.wine, glassMat, 2], [geo.wineLiquid, kind === "wine-red" ? mats.red : mats.white, 0]];
+    const parts = {
+      beer: [[geo.beer, glassMat, 2], [geo.beerLiquid, mats.beer, 0], [geo.foam, mats.foam, 0]],
+      whiskey: [[geo.whiskey, glassMat, 2], [geo.whiskeyLiquid, mats.whiskey, 0]],
+      "wine-red": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.red, 0]],
+      "wine-white": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.white, 0]],
+    }[kind];
     for (const [geometry, material, order] of parts) {
       const m = new THREE.Mesh(geometry, material);
       m.renderOrder = order;
       g.add(m);
     }
-    return { group: g, radius: kind === "beer" ? BEER_GLASS_RADIUS_TOP : WINE_GLASS_BOWL_RADIUS };
+    const radius = { beer: BEER_GLASS_RADIUS_TOP, whiskey: WHISKEY_GLASS_RADIUS_TOP }[kind] ?? WINE_GLASS_BOWL_RADIUS;
+    return { group: g, radius };
   };
 
-  const randomKind = () => (rnd() < GLASSES_WINE_SHARE ? (rnd() < GLASSES_RED_SHARE ? "wine-red" : "wine-white") : "beer");
+  const randomKind = () => {
+    const r = rnd();
+    if (r < GLASSES_WINE_SHARE) return rnd() < GLASSES_RED_SHARE ? "wine-red" : "wine-white";
+    return r < GLASSES_WINE_SHARE + GLASSES_WHISKEY_SHARE ? "whiskey" : "beer";
+  };
 
   // Round tables: random drinks at free spots on the plate
   const occupied = taken.map((o) => ({ ...o }));
@@ -208,7 +226,7 @@ export function createGlasses(scene, taken) {
     group,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
-      for (const m of [glassMat, mats.red, mats.white, mats.beer]) {
+      for (const m of [glassMat, mats.red, mats.white, mats.beer, mats.whiskey]) {
         applyBallReflection(m, reflection, { clearGlass: true }); // the drinks are glossy and see-through too
         m.envMapIntensity = 1.6;
       }

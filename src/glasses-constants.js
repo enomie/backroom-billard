@@ -24,6 +24,14 @@ export const BEER_FOAM_HEIGHT = 0.037; // foam head, domed above the rim
 export const BEER_COLOR = 0xe0a21b;
 export const BEER_FOAM_COLOR = 0xf4efe0;
 
+/** Whiskey tumbler: short, wide, heavy base; two fingers of whiskey. */
+export const WHISKEY_GLASS_HEIGHT = 0.09;
+export const WHISKEY_GLASS_RADIUS_BOTTOM = 0.033;
+export const WHISKEY_GLASS_RADIUS_TOP = 0.0375;
+export const WHISKEY_GLASS_BASE = 0.018;
+export const WHISKEY_LEVEL = 0.058;
+export const WHISKEY_COLOR = 0xb8681a;
+
 /** Glass wall thickness and glass look (clear with a slight blue-green tint, mostly see-through). */
 export const GLASS_WALL = 0.0012;
 export const GLASS_COLOR = 0xe4f0f0;
@@ -34,8 +42,9 @@ export const GLASSES_PER_TABLE = [0, 1, 1, 2, 2];
 export const GLASSES_RING_MIN = 0.12;
 export const GLASSES_RING_MAX = 0.28;
 export const GLASSES_SEED = 23;
-/** Share of wine glasses (the rest is beer) and of red among the wine. */
-export const GLASSES_WINE_SHARE = 0.45;
+/** Share of wine glasses and of whiskey tumblers (the rest is beer), and of red among the wine. */
+export const GLASSES_WINE_SHARE = 0.35;
+export const GLASSES_WHISKEY_SHARE = 0.25;
 export const GLASSES_RED_SHARE = 0.7;
 
 /** On the billard table frame: along z, between the last diamond and the ashtray (see ashtray-constants.js). */

@@ -1,6 +1,6 @@
 # Glas und Tischdeko
 
-> **Status:** **Kerzenhalter**, **Aschenbecher**, **Weinglas** und **Bierglas** sind umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
+> **Status:** **Kerzenhalter**, **Aschenbecher**, **Weinglas**, **Bierglas** und **Whiskeyglas** sind umgesetzt (siehe unten). Alles andere ist Konzept und wird erst gebaut, wenn es ausdrücklich beauftragt wird. Zigaretten, Schachteln und Rauch stehen in [`cigarettes.md`](cigarettes.md).
 
 Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinteile. Sie müssen **wie Glas aussehen** und in der **Größe stimmen**; die Form darf einfach sein und wird **per Formel berechnet**, ohne externe Modelle.
 
@@ -19,12 +19,12 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 - **Tische:** Etwa zwei Drittel der runden Tische haben einen (zufällig, fester Startwert), 25 cm von der Mitte entfernt, damit er neben der Kerze steht.
 - **Billardtisch:** Zwei Aschenbecher (je Spieler einer) auf dem Holzrahmen der linken Längsseite, zwischen der letzten Raute und der Ecktasche. Sie sind auf 65 % verkleinert (Ø 9 cm), weil der Rahmen nur 11 cm breit ist.
 
-## Weinglas und Bierglas (umgesetzt)
+## Weinglas, Bierglas und Whiskeyglas (umgesetzt)
 
 - **Code:** `src/glasses.js`, Werte in `src/glasses-constants.js`.
-- **Form:** Beide sind Drehkörper aus Formeln. Das Weinglas hat einen tulpenförmigen Kelch (Radius per Sinus-Kurve), dünnen Stiel und flachen Fuß; das Bierglas ist leicht kegelförmig mit dickem Boden. Wein und Bier sind eigene, etwas kleinere Körper in der Innenform; der Schaum ist ein Körper darüber.
-- **Glas:** fast durchsichtig mit Spiegelung des Raums (Aufnahme aus `ball-reflection.js`), ohne Schatten. Damit es glänzt, behalten Glanzlichter und Spiegelung ihre volle Stärke, auch wenn das Material durchsichtig ist (`clearGlass` in `applyBallReflection`; normale Transparenz würde sie mit dem Körper ausblenden). Das Bier ist so durchsichtig wie das Glas (Alpha 0,5, goldfarben, leicht selbstleuchtend); Wein ist etwas dichter (rot 0,8, weiß 0,5). Der Schaum bleibt deckend. Dasselbe gilt für den Aschenbecher.
-- **Tische:** Pro Tisch zufällig 0–2 Gläser (feste Startwerte), je zu 45 % Wein (davon 70 % rot), sonst Bier. Sie stehen 12–28 cm von der Mitte entfernt und halten Abstand zu Kerze, Aschenbecher und zueinander.
+- **Form:** Beide sind Drehkörper aus Formeln. Das Weinglas hat einen tulpenförmigen Kelch (Radius per Sinus-Kurve), dünnen Stiel und flachen Fuß; Bierglas und Whiskeyglas sind leicht kegelförmig mit dickem Boden (dieselbe Formel, nur andere Maße). Wein und Bier sind eigene, etwas kleinere Körper in der Innenform; der Schaum ist ein Körper darüber.
+- **Glas:** fast durchsichtig mit Spiegelung des Raums (Aufnahme aus `ball-reflection.js`), ohne Schatten. Damit es glänzt, behalten Glanzlichter und Spiegelung ihre volle Stärke, auch wenn das Material durchsichtig ist (`clearGlass` in `applyBallReflection`; normale Transparenz würde sie mit dem Körper ausblenden). Bier und Whiskey sind so durchsichtig wie getöntes Glas (Alpha 0,5 bzw. 0,6, goldfarben bzw. bernsteinfarben, leicht selbstleuchtend); Wein ist etwas dichter (rot 0,8, weiß 0,5). Der Schaum bleibt deckend. Dasselbe gilt für den Aschenbecher.
+- **Tische:** Pro Tisch zufällig 0–2 Gläser (feste Startwerte), je zu 35 % Wein (davon 70 % rot), 25 % Whiskey, sonst Bier. Sie stehen 12–28 cm von der Mitte entfernt und halten Abstand zu Kerze, Aschenbecher und zueinander.
 - **Billardtisch:** Je Spieler ein zufälliges Getränk auf dem Holzrahmen der linken Längsseite, neben dem Aschenbecher.
 
 ## Die Objekte
@@ -35,6 +35,7 @@ Auf den Tischen im Raum und am Billardtisch stehen Gläser, Flaschen und Kleinte
 | **Aschenbecher** | Ø 14 cm, 3 cm hoch | **Umgesetzt.** Schweres Glas, am Rand **5 Kerben** für Zigaretten. |
 | **Weinglas** | 20 cm hoch, Kelch Ø 8 cm | **Umgesetzt.** Stiel und Fuß, zu 40 % des Kelchs mit Wein gefüllt (rot oder weiß). |
 | **Bierglas** | 15 cm hoch, oben Ø 7 cm | **Umgesetzt.** Goldenes Bier mit **Schaumkrone** (3,7 cm, leicht über dem Rand gewölbt). |
+| **Whiskeyglas** | 9 cm hoch, oben Ø 7,5 cm | **Umgesetzt.** Kurzer, breiter Tumbler mit dickem Glasboden, zwei Finger hoch Whiskey (bernsteinfarben, durchsichtig). |
 | **Weinflasche** | 30 cm hoch, Ø 7,5 cm | Dunkelgrünes Glas, Etikett, Hals. |
 | **Bierflasche** | 23 cm hoch, Ø 6 cm | Braunes Glas, Etikett, Kronkorken. |
 
@@ -79,6 +80,6 @@ Alle Maße sind Parameter (eigene `*-constants.js`, wie bei den Möbeln), nichts
 
 - Sollen die Gläser mit der Zeit leerer werden (Trinken)?
 - Soll man Gläser anklicken oder bewegen können?
-- Wein: nur rot oder auch weiß, und wie viele Sorten Bier?
+- Whiskey: mit Eiswürfeln? Wie viele Sorten Bier?
 - Kerzen: reichen ein Licht-Sprite und Leuchten, oder sollen alle Tische echtes Licht bekommen (Kosten)?
 - Soll das Glas vorne an der Bande des Billardtisches stehen, wenn ein Spieler nicht am Zug ist?

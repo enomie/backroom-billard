@@ -19,4 +19,4 @@
 - Maße nur in `src/table-constants.js`, Physik-Werte nur in `src/physics-constants.js`.
 - Docs minimal halten (Überblick für Neueinsteiger); beim Ändern von Verhalten die betroffene Doc-Seite mitpflegen.
 - Kein toter Code; nach Änderungen `npm run build` und im Browser prüfen.
-- `_docs/game-concept.md` (Spielideen), `_docs/look.md` (Optik-Vorgaben, teils umgesetzt), `_docs/glass-objects.md` (bis auf Kerzenhalter, Aschenbecher, Wein- und Bierglas) und `_docs/cigarettes.md` (Konzepte, nicht umgesetzt) sind **Konzept-Docs**: nichts davon umsetzen oder einplanen, solange es nicht ausdrücklich beauftragt wird.
+- `_docs/game-concept.md` (Spielideen), `_docs/look.md` (Optik-Vorgaben, teils umgesetzt), `_docs/glass-objects.md` (bis auf Kerzenhalter, Aschenbecher, Wein-, Bier- und Whiskeyglas) und `_docs/cigarettes.md` (Konzepte, nicht umgesetzt) sind **Konzept-Docs**: nichts davon umsetzen oder einplanen, solange es nicht ausdrücklich beauftragt wird.
