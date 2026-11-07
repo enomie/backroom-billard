@@ -43,5 +43,11 @@ export const CUE_STRIKE_RESTITUTION = 0;
 /** Physics sub-steps per tick while the cue snaps forward and hits (finer = more accurate hit). */
 export const CUE_STROKE_SUBSTEPS = 8;
 
-/** Elevation of the cue itself (rad): the butt rises slightly behind the ball. Independent of the camera. */
-export const CUE_AIM_PITCH = 0.12;
+/**
+ * Elevation of the cue (rad) follows the camera: it lies slightly below the camera's line of sight
+ * (CUE_PITCH_BELOW_CAMERA), clamped to a realistic range. Above CUE_PITCH_MAX the cue stays put,
+ * so a steep camera never makes the tip drive the ball into the cloth.
+ */
+export const CUE_PITCH_BELOW_CAMERA = 0.16;
+export const CUE_PITCH_MIN = 0.04;
+export const CUE_PITCH_MAX = 0.5;

@@ -40,7 +40,9 @@ import {
   CUE_FOLLOW_DISTANCE,
   CUE_STRIKE_RESTITUTION,
   CUE_STROKE_SUBSTEPS,
-  CUE_AIM_PITCH,
+  CUE_PITCH_BELOW_CAMERA,
+  CUE_PITCH_MIN,
+  CUE_PITCH_MAX,
 } from "./cue-constants.js";
 import {
   FREE_CAM_SPEED,
@@ -432,7 +434,7 @@ function poseCue(gap) {
 
   // Aiming/strike pose in the pivot's local space (cue origin = tip, +z towards the player).
   // The cue axis passes through the ball center: the tip sits `gap` away from the ball surface.
-  const pitch = CUE_AIM_PITCH;
+  const pitch = stroke ? stroke.pitch : aimCuePitch();
   _cueEuler.set(-pitch, 0, 0);
   _cueQuatAim.setFromEuler(_cueEuler);
   const reach = BALL_R + gap;
@@ -484,14 +486,16 @@ function startCueStroke() {
   const power = selectedPower;
   const f = (power - 0.1) / 0.9; // 0 = weakest, 1 = strongest
   const ballSpeed = 0.8 + power * 3.4; // gently balanced shot strength (m/s)
-  const vCue = ballSpeed / (1 + CUE_STRIKE_RESTITUTION);
+  const pitch = aimCuePitch();
+  // the horizontal part of the cue speed must give the ball the intended speed
+  const vCue = ballSpeed / ((1 + CUE_STRIKE_RESTITUTION) * Math.cos(pitch));
   const backGap = THREE.MathUtils.lerp(CUE_BACK_GAP_MIN, CUE_BACK_GAP_MAX, f);
   const t = cueBall.body.translation();
   stroke = {
     phase: "back",
     t: 0,
     aimAngle,
-    pitch: CUE_AIM_PITCH,
+    pitch,
     ballPos: { x: t.x, y: t.y, z: t.z },
     backGap,
     tBack: THREE.MathUtils.lerp(CUE_BACK_TIME_MIN, CUE_BACK_TIME_MAX, f),
@@ -503,6 +507,11 @@ function startCueStroke() {
     strength: f,
   };
   playDrawBackSound(f, stroke.tBack); // hand sliding on the shaft + inhale
+}
+
+/** Cue elevation for the current camera elevation: slightly below the line of sight. */
+function aimCuePitch() {
+  return THREE.MathUtils.clamp(aimElevation - CUE_PITCH_BELOW_CAMERA, CUE_PITCH_MIN, CUE_PITCH_MAX);
 }
 
 /** Advance the stroke by one physics step and move the kinematic cue tip body accordingly. */
