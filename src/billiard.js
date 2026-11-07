@@ -56,6 +56,9 @@ let aimPitch = 0.12;
 let selectedPower = 0.4; // 0.10 bis 1.0 (Standard: sanfte 40%)
 let isCueMoving = false;
 let cueStrikeAnim = 0; // Für visuelle Vorstoß-Animation
+let cueRespawnTimer = null; // Timer für das Wiederaufstellen der weißen Kugel
+let lastShotTime = 0; // Schutz gegen doppelt ausgelöste Stöße
+const PHYSICS_STEP = 1 / 240; // max. Zeitschritt der Physik (verhindert Durchfliegen)
 
 // Audio-Context für synthetische Kugel-Kollisionsgeräusche
 let audioCtx = null;
@@ -257,6 +260,10 @@ const cushions = [];
    4. HOCHGLÄNZENDE KUGELN MIT REFLEXIONEN
 ==================================================== */
 function setupBalls() {
+  if (cueRespawnTimer) {
+    clearTimeout(cueRespawnTimer);
+    cueRespawnTimer = null;
+  }
   balls.forEach((b) => scene.remove(b.mesh));
   balls = [];
 
@@ -319,6 +326,24 @@ function setupBalls() {
   }
 }
 
+/** Freien Platz für die weiße Kugel suchen (Standardpunkt, sonst weiter hinten). */
+function findFreeCueSpot() {
+  const minDistSq = (BALL_R * 2.1) ** 2;
+  const isFree = (x, z) =>
+    balls.every(
+      (o) =>
+        o.isCue || o.inPocket || (o.pos.x - x) ** 2 + (o.pos.z - z) ** 2 > minDistSq
+    );
+  const baseZ = PLAY_L * 0.28;
+  const maxZ = PLAY_L * 0.45;
+  for (let z = baseZ; z <= maxZ; z += BALL_R * 0.5) {
+    for (const x of [0, BALL_R * 2.5, -BALL_R * 2.5, BALL_R * 5, -BALL_R * 5]) {
+      if (isFree(x, z)) return { x, z };
+    }
+  }
+  return { x: 0, z: baseZ };
+}
+
 /* ====================================================
    5. FIRST-PERSON QUEUE & ZIELLINIE
 ==================================================== */
@@ -370,6 +395,11 @@ function setupCueAndAimLine() {
 ==================================================== */
 function fireCueStrike() {
   if (!cueBall || cueBall.inPocket) return;
+
+  // Doppelt ausgelöste Events (Button+Leertaste, Touch+Maus) ignorieren
+  const now = performance.now();
+  if (now - lastShotTime < 300) return;
+  lastShotTime = now;
 
   // Akustischer Klick
   playClackSound(selectedPower * 0.8, 900);
@@ -447,6 +477,7 @@ function setupControls() {
   fireBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     fireCueStrike();
+    fireBtn.blur(); // Fokus abgeben, damit die Leertaste nicht den Button erneut auslöst
   });
 
   // Maussteuerung (Klicken & Ziehen zum Zielen, Klick ohne Drag = Stoß)
@@ -497,8 +528,9 @@ function setupControls() {
     if (e.code === "ArrowDown" || e.code === "KeyS") {
       setPower(selectedPower - 0.05);
     }
-    if (e.code === "Space" && !e.repeat) {
-      fireCueStrike();
+    if (e.code === "Space") {
+      e.preventDefault();
+      if (!e.repeat) fireCueStrike();
     }
     if (e.code === "KeyC") {
       toggleCamera();
@@ -535,7 +567,8 @@ function setupControls() {
     { passive: true }
   );
 
-  container.addEventListener("touchend", () => {
+  container.addEventListener("touchend", (e) => {
+    e.preventDefault(); // verhindert die zusätzlich erzeugten Maus-Events
     if (!touchMoved) {
       fireCueStrike();
     }
@@ -644,10 +677,13 @@ function updatePhysics(dt) {
       b.mesh.position.y = -10;
 
       if (b.isCue) {
-        setTimeout(() => {
-          b.inPocket = false;
-          b.pos.set(0, TABLE_H + BALL_R, PLAY_L * 0.28);
+        cueRespawnTimer = setTimeout(() => {
+          cueRespawnTimer = null;
+          const spot = findFreeCueSpot();
+          b.pos.set(spot.x, TABLE_H + BALL_R, spot.z);
           b.vel.set(0, 0, 0);
+          b.mesh.position.copy(b.pos);
+          b.inPocket = false;
         }, 600);
       }
     }
@@ -684,16 +720,18 @@ function updatePhysics(dt) {
         // Impulsübertragung entlang Normalen
         const kx = b1.vel.x - b2.vel.x;
         const kz = b1.vel.z - b2.vel.z;
-        const p = 2 * (nx * kx + nz * kz) / 2;
+        const p = nx * kx + nz * kz; // > 0: Kugeln nähern sich an
 
-        b1.vel.x -= p * nx * 0.94;
-        b1.vel.z -= p * nz * 0.94;
-        b2.vel.x += p * nx * 0.94;
-        b2.vel.z += p * nz * 0.94;
+        // Impuls nur, wenn sich die Kugeln annähern (sonst würden sie kleben)
+        if (p > 0) {
+          b1.vel.x -= p * nx * 0.94;
+          b1.vel.z -= p * nz * 0.94;
+          b2.vel.x += p * nx * 0.94;
+          b2.vel.z += p * nz * 0.94;
 
-        const impactSpeed = Math.abs(p);
-        if (impactSpeed > 0.08) {
-          playClackSound(impactSpeed * 0.4, 750 + Math.random() * 200);
+          if (p > 0.08) {
+            playClackSound(p * 0.4, 750 + Math.random() * 200);
+          }
         }
       }
     }
@@ -731,7 +769,8 @@ function gameLoop(currentTime) {
   lastTime = currentTime;
 
   // Physikschritt
-  updatePhysics(dt);
+  const steps = Math.max(1, Math.ceil(dt / PHYSICS_STEP));
+  for (let i = 0; i < steps; i++) updatePhysics(dt / steps);
 
   // Queue-Positionierung & Abstand angepasst an das Mausrad
   if (cueBall && cueStickPivot) {
