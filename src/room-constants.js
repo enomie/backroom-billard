@@ -44,8 +44,8 @@ export const LAMP_COLOR_CABLE = 0x050505;
 
 /** Spot light of each lamp. */
 export const LAMP_LIGHT_COLOR = 0xffd9a0;
-export const LAMP_LIGHT_INTENSITY = 3.6;
-export const LAMP_LIGHT_ANGLE = 0.45; // half opening angle in radians (~26°)
+export const LAMP_LIGHT_INTENSITY = 4.6;
+export const LAMP_LIGHT_ANGLE = 0.6; // half opening angle in radians (~34°)
 export const LAMP_LIGHT_PENUMBRA = 0.5;
 export const LAMP_LIGHT_DECAY = 1.4;
 export const LAMP_LIGHT_DISTANCE = 6;
