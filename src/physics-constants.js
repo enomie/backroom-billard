@@ -1,30 +1,30 @@
 /**
- * Physik-Parameter (Rapier). Werte und Begründung: _docs/physics.md
+ * Physics parameters (Rapier). Values and rationale: _docs/physics.md
  */
 
-/** Fester Zeitschritt der Simulation (240 Hz). */
+/** Fixed simulation time step (240 Hz). */
 export const PHYSICS_STEP = 1 / 240;
 
-/** Bande (K-66-Gummi) */
+/** Cushion (K-66 rubber) */
 export const CUSHION_RESTITUTION = 0.7;
 export const CUSHION_FRICTION = 0.2;
 export const CONTACT_SKIN_M = 0.001;
 
-/** Kugel (Aramith, Phenolharz) */
+/** Ball (Aramith, phenolic resin) */
 export const BALL_MASS_KG = 0.17;
 export const BALL_RESTITUTION = 0.95;
 export const BALL_FRICTION = 0.06;
 export const LINEAR_DAMPING = 0.25;
 export const ANGULAR_DAMPING = 0.4;
 
-/** Spielplatte (Filz auf Träger) */
+/** Playing plate (felt on a carrier) */
 export const TABLE_RESTITUTION = 0.4;
 export const TABLE_FRICTION = 0.15;
 
-/** Taschenbecher (Auffänger, Leder) */
+/** Pocket cup (catcher, leather) */
 export const CUP_RESTITUTION = 0.2;
 export const CUP_FRICTION = 0.5;
 
-/** Kugel gilt als ruhend unterhalb dieser Werte (m/s Schwerpunkt, m/s Oberfläche durch Rotation). */
+/** A ball counts as resting below these values (m/s center of mass, m/s surface speed from rotation). */
 export const REST_LINEAR_SPEED = 0.01;
 export const REST_SURFACE_SPEED = 0.02;

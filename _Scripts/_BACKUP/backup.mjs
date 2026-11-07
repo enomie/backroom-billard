@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * 1) Schreibt Verzeichnisbäume von `src/` und `public/` nach `src/structure.md`.
- * 2) Kopiert `src/` + Projekt-Root-Dateien nach `.backups/backup-YYYYMMDDHHMMSS[-suffix]/`.
- *    Mit Argument `ALL` zusätzlich `public/` (Pflicht, wenn ALL gesetzt).
- *    `--structure-only`: nur `structure.md` schreiben, kein Backup-Ordner.
+ * 1) Writes the directory trees of `src/` and `public/` to `src/structure.md`.
+ * 2) Copies `src/` + the project root files to `.backups/backup-YYYYMMDDHHMMSS[-suffix]/`.
+ *    With the argument `ALL`, `public/` is copied as well (required when ALL is set).
+ *    `--structure-only`: only write `structure.md`, no backup folder.
  *
  * npm: `npm run backup` · optional Suffix: `npm run backup -- vor-refactor`
  */
@@ -18,7 +18,7 @@ const publicDir = path.join(root, 'public');
 const structureFile = path.join(srcDir, 'structure.md');
 const backupsRoot = path.join(root, '.backups');
 
-/** Spiel + Build-Konfiguration im Repo-Root (ohne node_modules/dist). */
+/** Game + build configuration in the repo root (without node_modules/dist). */
 const ROOT_SNAPSHOT_FILES = [
   'index.html',
   'style.css',
@@ -40,8 +40,8 @@ function sanitizeSuffix(raw) {
 }
 
 /**
- * @param {string} absRoot absoluter Pfad zum Ordner
- * @param {string} label Wurzelzeile ohne Slash, z. B. `src` oder `public`
+ * @param {string} absRoot absolute path to the folder
+ * @param {string} label root line without slash, e.g. `src` or `public`
  * @returns {string}
  */
 function formatDirTree(absRoot, label) {
@@ -124,12 +124,12 @@ function main() {
   const { includePublic, suffix, structureOnly } = parseArgs(process.argv);
 
   if (!fs.existsSync(srcDir) || !fs.statSync(srcDir).isDirectory()) {
-    console.error('backup: `src/` fehlt oder ist kein Verzeichnis.');
+    console.error('backup: `src/` is missing or not a directory.');
     process.exit(1);
   }
 
   if (includePublic && (!fs.existsSync(publicDir) || !fs.statSync(publicDir).isDirectory())) {
-    console.error('backup: `ALL` verlangt `public/`, aber Ordner fehlt.');
+    console.error('backup: `ALL` requires `public/`, but the folder is missing.');
     process.exit(1);
   }
 
@@ -137,9 +137,9 @@ function main() {
   const iso = new Date().toISOString();
   /** @type {string[]} */
   const mdParts = [
-    '# `src/` — Verzeichnisbaum',
+    '# `src/` — directory tree',
     '',
-    `_Automatisch erzeugt von \`_Scripts/_BACKUP/backup.mjs\` (${iso})._`,
+    `_Generated automatically by \`_Scripts/_BACKUP/backup.mjs\` (${iso})._`,
     '',
     '```',
     srcTree,
@@ -150,7 +150,7 @@ function main() {
   if (isPublicDirPresent(publicDir)) {
     const publicTree = formatDirTree(publicDir, 'public');
     mdParts.push(
-      '# `public/` — Verzeichnisbaum',
+      '# `public/` — directory tree',
       '',
       '```',
       publicTree,
@@ -164,11 +164,11 @@ function main() {
   fs.writeFileSync(structureFile, md, 'utf8');
 
   console.log(
-    `structure.md aktualisiert (Baum: src/${isPublicDirPresent(publicDir) ? ' + public/' : ''}).`,
+    `structure.md updated (tree: src/${isPublicDirPresent(publicDir) ? ' + public/' : ''}).`,
   );
 
   if (structureOnly) {
-    console.log('(--structure-only: kein Backup-Ordner.)');
+    console.log('(--structure-only: no backup folder.)');
     return;
   }
 
@@ -192,8 +192,8 @@ function main() {
   }
 
   console.log(`Backup: ${path.relative(root, destRoot)}`);
-  console.log(`(src/ + ${copiedRoot} Datei(en) im Projekt-Root.)`);
-  if (includePublic) console.log('(inkl. public/)');
+  console.log(`(src/ + ${copiedRoot} file(s) in the project root.)`);
+  if (includePublic) console.log('(incl. public/)');
 }
 
 main();

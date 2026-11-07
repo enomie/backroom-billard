@@ -39,8 +39,13 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `physics-world.js` | Rapier-Welt, Collider aus der gerenderten Geometrie |
 | `physics-rapier.js` | Kugel-Körper, Trimesh-Helfer |
 | `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
+| `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
+
+## Sprachen
+
+Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Flaggen die Sprache (wird gespeichert). Neue Sprache: Datei in `src/i18n/locales/` anlegen, Flagge in `flags.js` ergänzen, in `LANGUAGES` eintragen. Projektregeln (Sprache, Arbeitsweise): [`CLAUDE.md`](CLAUDE.md).
 
 ## Weiterführend
 

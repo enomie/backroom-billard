@@ -12,6 +12,7 @@ import {
 } from "./table-constants.js";
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
+import { t, onLanguageChange } from "./i18n/index.js";
 import {
   PHYSICS_STEP,
   REST_LINEAR_SPEED,
@@ -21,20 +22,20 @@ import {
 /** @type {typeof import("three")} */
 const THREE = window.THREE;
 if (!THREE) {
-  throw new Error("THREE fehlt — src/entry.js muss vor billard.js laden.");
+  throw new Error("THREE is missing — src/entry.js must load before billard.js.");
 }
 
 /* ====================================================
-   1. GLOBALE VARIABLEN & KONSTANTEN
+   1. GLOBAL VARIABLES & CONSTANTS
 ==================================================== */
 let scene, camera, renderer;
 let balls = []; // { mesh, body, collider, pos, vel, radius, isCue, id, inPocket }
-/** @type {Map<number, object>} Collider-Handle → Kugel */
+/** @type {Map<number, object>} collider handle → ball */
 const ballByCollider = new Map();
 let cueBall = null;
 let cueStickPivot, cueStickMesh, aimLine;
 
-// Tisch-Parameter (WPA 9-Fuß) → table-constants.js
+// Table parameters (WPA 9-foot) → table-constants.js
 const CUSHION_H = CUSHION_NOSE_TO_BED;
 const BALL_R = BALL_RADIUS_REAL;
 
@@ -46,46 +47,46 @@ const tableDimensions = {
 };
 const pocketSpecs = createPocketSpecs(tableDimensions);
 
-// Zustand
+// State
 let cameraMode = "fps"; // 'fps' oder 'overhead'
-let aimAngle = 0; // Stoßrichtung −Z (Rack liegt in −Z)
+let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
 let aimPitch = 0.12;
 let selectedPower = 0.4; // 0.10 bis 1.0 (Standard: sanfte 40%)
 let isCueMoving = false;
-let cueStrikeAnim = 0; // Für visuelle Vorstoß-Animation
-let cueRespawnTimer = null; // Timer für das Wiederaufstellen der weißen Kugel
-let lastShotTime = 0; // Schutz gegen doppelt ausgelöste Stöße
-/** 15 Objektkugeln, alle verschieden; Nr. 8 bleibt schwarz. Dieselben Farben im HUD. */
+let cueStrikeAnim = 0; // drives the cue strike animation
+let cueRespawnTimer = null; // timer for re-spotting the cue ball
+let lastShotTime = 0; // guard against double-triggered shots
+/** 15 object balls, all different; no. 8 stays black. The HUD uses the same colors. */
 const BALL_COLORS = [
-  0xfacc15, // 1 gelb
-  0x1d4ed8, // 2 blau
-  0xdc2626, // 3 rot
-  0x7c3aed, // 4 violett
+  0xfacc15, // 1 yellow
+  0x1d4ed8, // 2 blue
+  0xdc2626, // 3 red
+  0x7c3aed, // 4 purple
   0xf97316, // 5 orange
-  0x15803d, // 6 grün
-  0x7f1d1d, // 7 bordeaux
-  0x111827, // 8 schwarz
-  0x38bdf8, // 9 hellblau
-  0xf472b6, // 10 rosa
-  0x14b8a6, // 11 türkis
-  0x92400e, // 12 braun
-  0xa3e635, // 13 limette
-  0x94a3b8, // 14 grau
+  0x15803d, // 6 green
+  0x7f1d1d, // 7 maroon
+  0x111827, // 8 black
+  0x38bdf8, // 9 light blue
+  0xf472b6, // 10 pink
+  0x14b8a6, // 11 teal
+  0x92400e, // 12 brown
+  0xa3e635, // 13 lime
+  0x94a3b8, // 14 gray
   0xd946ef, // 15 magenta
 ];
 
-/** "playing" | "won" | "lost" — die schwarze 8 muss als letzte Kugel versenkt werden */
+/** "playing" | "won" | "lost" — the black 8 must be pocketed last */
 let gameState = "playing";
 const BLACK_BALL_ID = 8;
-/** Kugelnummern in Reihenfolge der Dreiecks-Positionen; die 8 sitzt in der Mitte der dritten Reihe. */
+/** Ball numbers in rack position order; the 8 sits in the middle of the third row. */
 const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 
-/** @type {typeof balls} versenkte Kugeln, die nach dem Physikschritt gelöscht werden */
+/** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
 let physics = null; // Rapier-Welt (physics-world.js)
-let physicsAcc = 0; // Zeit-Akkumulator für feste Physik-Schritte
+let physicsAcc = 0; // time accumulator for fixed physics steps
 
-// Audio-Context für synthetische Kugel-Kollisionsgeräusche
+// Audio context for synthetic ball collision sounds
 let audioCtx = null;
 function playClackSound(volume = 0.5, pitch = 800) {
   try {
@@ -115,17 +116,17 @@ function playClackSound(volume = 0.5, pitch = 800) {
 }
 
 /* ====================================================
-   2. THREE.JS SZENE & ATMOSPHÄRE
+   2. THREE.JS SCENE & ATMOSPHERE
 ==================================================== */
 function init() {
   const container = document.getElementById("canvas-container");
 
-  // 2.1 Szene & Nebel (Backroom-Atmosphäre ohne störenden Staub/Schnee)
+  // 2.1 Scene & fog (backroom atmosphere without distracting dust/snow)
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x06070a);
   scene.fog = new THREE.FogExp2(0x06070a, 0.07);
 
-  // 2.2 Kamera
+  // 2.2 Camera
   camera = new THREE.PerspectiveCamera(
     50,
     window.innerWidth / window.innerHeight,
@@ -147,10 +148,10 @@ function init() {
   renderer.toneMappingExposure = 1.15;
   container.appendChild(renderer.domElement);
 
-  // 2.4 Licht & Backroom
+  // 2.4 Light & backroom
   setupLightingAndRoom();
 
-  // 2.5 Tisch & Taschen mit echten Löchern (Bauplan: table-blueprint.js)
+  // 2.5 Table & pockets with real holes (blueprint: table-blueprint.js)
   const tableDims = {
     playL: PLAY_L,
     playW: PLAY_W,
@@ -167,9 +168,9 @@ function init() {
       { pocketSpecs }
     );
 
-  // 2.5b Rapier-Welt aus genau dieser Geometrie
+  // 2.5b Rapier world built from exactly this geometry
   if (!window.RAPIER) {
-    throw new Error("Rapier fehlt — src/entry.js muss window.RAPIER vor billard.js setzen.");
+    throw new Error("Rapier is missing — src/entry.js must set window.RAPIER before billard.js.");
   }
   physics = createPhysicsWorld(
     window.RAPIER,
@@ -179,21 +180,22 @@ function init() {
     FELT_BED_DEPTH
   );
 
-  // 2.6 Kugeln initialisieren
+  // 2.6 Initialize balls
   setupBalls();
 
-  // 2.7 Queue & Ziellinie
+  // 2.7 Cue & aim line
   setupCueAndAimLine();
 
   // 2.8 Events & UI
   setupControls();
+  renderCameraLabel();
   snapFpsCamera();
 
-  // Animation Loop starten
+  // Start the animation loop
   requestAnimationFrame(gameLoop);
 }
 
-/** FP-Kamera hinter der weißen Kugel, Blick entlang der Stoßrichtung (kein Lerp beim Start). */
+/** First-person camera behind the cue ball, looking along the shot direction (no lerp at start). */
 function snapFpsCamera() {
   if (cameraMode !== "fps" || !cueBall) return;
   const camDist = 0.62;
@@ -211,11 +213,11 @@ function snapFpsCamera() {
 }
 
 function setupLightingAndRoom() {
-  // Schwaches, gedimmtes Grundlicht
+  // Weak, dimmed ambient light
   const ambLight = new THREE.AmbientLight(0x111622, 0.4);
   scene.add(ambLight);
 
-  // Warmer Decken-Spot über dem Tisch
+  // Warm ceiling spot above the table
   const lampY = TABLE_H + 1.4;
   const spot = new THREE.SpotLight(0xffdfa4, 4.5);
   spot.position.set(0, lampY, 0);
@@ -231,12 +233,12 @@ function setupLightingAndRoom() {
   scene.add(spot);
   scene.add(spot.target);
 
-  // Glüh-Punktlicht an der Lampe
+  // Glowing point light at the lamp
   const bulb = new THREE.PointLight(0xffa834, 1.2, 3.0);
   bulb.position.set(0, lampY - 0.05, 0);
   scene.add(bulb);
 
-  // Lampenschirm (Klassisches Messing / Dunkelgrün)
+  // Lamp shade (classic brass / dark green)
   const shade = new THREE.Mesh(
     new THREE.ConeGeometry(0.35, 0.22, 32, 1, true),
     new THREE.MeshStandardMaterial({
@@ -249,7 +251,7 @@ function setupLightingAndRoom() {
   shade.position.set(0, lampY + 0.08, 0);
   scene.add(shade);
 
-  // Volumetrischer warmer Lichtkegel
+  // Volumetric warm light cone
   const coneHeight = 1.38;
   const coneR = Math.tan(spot.angle) * coneHeight * 0.95;
   const coneGeo = new THREE.ConeGeometry(coneR, coneHeight, 32, 1, true);
@@ -268,7 +270,7 @@ function setupLightingAndRoom() {
   lightCone.position.set(0, lampY, 0);
   scene.add(lightCone);
 
-  // Dunkler Backroom-Boden
+  // Dark backroom floor
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(16, 16),
     new THREE.MeshStandardMaterial({ color: 0x08090d, roughness: 0.9 })
@@ -279,7 +281,7 @@ function setupLightingAndRoom() {
 }
 
 /* ====================================================
-   3. HOCHGLÄNZENDE KUGELN MIT REFLEXIONEN
+   3. GLOSSY BALLS WITH REFLECTIONS
 ==================================================== */
 function setupBalls() {
   if (cueRespawnTimer) {
@@ -327,17 +329,17 @@ function setupBalls() {
       isCue,
       id,
       color: colorHex,
-      inPocket: false, // erst true, wenn die Kugel den Becherboden getroffen hat
+      inPocket: false, // true only once the ball has hit the cup floor
     };
     balls.push(bObj);
     ballByCollider.set(collider.handle, bObj);
     return bObj;
   }
 
-  // Weiße Kugel
+  // Cue ball
   cueBall = createBall(0, PLAY_L * 0.28, 0xf8fafc, true, 0);
 
-  // Dreiecks-Anordnung
+  // Triangle rack
   const startZ = -PLAY_L * 0.22;
   const rows = 5;
   let idx = 0;
@@ -356,7 +358,7 @@ function setupBalls() {
   }
 }
 
-/** Freien Platz für die weiße Kugel suchen (Standardpunkt, sonst weiter hinten). */
+/** Find a free spot for the cue ball (default spot, otherwise further back). */
 function findFreeCueSpot() {
   const minDistSq = (BALL_R * 2.1) ** 2;
   const isFree = (x, z) =>
@@ -375,13 +377,13 @@ function findFreeCueSpot() {
 }
 
 /* ====================================================
-   4. FIRST-PERSON QUEUE & ZIELLINIE
+   4. FIRST-PERSON CUE & AIM LINE
 ==================================================== */
 function setupCueAndAimLine() {
   cueStickPivot = new THREE.Group();
   scene.add(cueStickPivot);
 
-  // Billardqueue aus Holz mit Verjüngung
+  // Wooden cue with taper
   const stickGeo = new THREE.CylinderGeometry(0.0065, 0.015, 1.45, 24);
   stickGeo.translate(0, 0.725, 0);
   stickGeo.rotateX(Math.PI / 2);
@@ -394,7 +396,7 @@ function setupCueAndAimLine() {
   cueStickMesh.castShadow = true;
   cueStickPivot.add(cueStickMesh);
 
-  // Blaue Kreidespitze
+  // Blue chalked tip
   const tip = new THREE.Mesh(
     new THREE.CylinderGeometry(0.0067, 0.0067, 0.025, 16),
     new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.6 })
@@ -403,7 +405,7 @@ function setupCueAndAimLine() {
   tip.rotateX(Math.PI / 2);
   cueStickMesh.add(tip);
 
-  // Edle punktierte Ziellinie
+  // Elegant dotted aim line
   const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -2.2)];
   const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
   aimLine = new THREE.Line(
@@ -421,36 +423,36 @@ function setupCueAndAimLine() {
 }
 
 /* ====================================================
-   5. FEHLERFREIE & AUSBALANCIERTE STOSS-MECHANIK
+   5. SHOT MECHANICS
 ==================================================== */
 function fireCueStrike() {
   if (gameState !== "playing") return;
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
-  // Doppelt ausgelöste Events (Button+Leertaste, Touch+Maus) ignorieren
+  // Ignore double-triggered events (button+space, touch+mouse)
   const now = performance.now();
   if (now - lastShotTime < 300) return;
   lastShotTime = now;
 
-  // Akustischer Klick
+  // Audible click
   playClackSound(selectedPower * 0.8, 900);
 
-  // Sanft ausbalancierte Stoßkraft (Realistisches Rollverhalten statt Übergeschwindigkeit)
+  // Gently balanced shot strength (realistic rolling instead of excess speed)
   const impulseStrength = 0.8 + selectedPower * 3.4;
   const dirX = -Math.sin(aimAngle);
   const dirZ = -Math.cos(aimAngle);
 
-  // Impuls durch den Kugelmittelpunkt (kein Effet); Masse × Geschwindigkeit
+  // Impulse through the ball center (no spin); mass × velocity
   const m = cueBall.body.mass();
   cueBall.body.applyImpulse(
     { x: dirX * impulseStrength * m, y: 0, z: dirZ * impulseStrength * m },
     true
   );
 
-  // Visuelle Schnapp-Animation des Queues
+  // Visual snap animation of the cue
   cueStrikeAnim = 1.0;
 
-  // Status UI aktualisieren
+  // Update the status UI
   updateStatusDisplay(true);
 }
 
@@ -460,17 +462,17 @@ function updateStatusDisplay(moving) {
   const txt = document.getElementById("status-text");
   if (moving) {
     dot.className = "status-dot status-dot--moving";
-    txt.innerText = "Kugeln rollen...";
+    txt.innerText = t("status.rolling");
     txt.className = "status-text status-text--moving";
   } else {
     dot.className = "status-dot status-dot--idle";
-    txt.innerText = "Bereit zum Stoß";
+    txt.innerText = t("status.ready");
     txt.className = "status-text status-text--idle";
   }
 }
 
 /* ====================================================
-   6. INTERAKTIONEN, MAUSRAD-STEUERUNG & EVENTS
+   6. INTERACTION, MOUSE WHEEL & EVENTS
 ==================================================== */
 function setupControls() {
   const container = renderer.domElement;
@@ -479,7 +481,7 @@ function setupControls() {
     lastY = 0;
   let totalDragDist = 0;
 
-  // Power UI Helfer
+  // Power UI helpers
   const slider = document.getElementById("power-slider");
   const powerFill = document.getElementById("power-fill");
   const powerPct = document.getElementById("power-percent");
@@ -496,26 +498,26 @@ function setupControls() {
     setPower(e.target.value / 100);
   });
 
-  // MAUSRAD-STEUERUNG: Stoßkraft stufenlos & präzise einstellen
+  // MOUSE WHEEL: set shot power continuously and precisely
   window.addEventListener(
     "wheel",
     (e) => {
-      // Nach oben scrollen (-deltaY) = mehr Kraft, nach unten (+deltaY) = weniger Kraft
+      // Scroll up (-deltaY) = more power, scroll down (+deltaY) = less power
       const delta = -Math.sign(e.deltaY) * 0.05;
       setPower(selectedPower + delta);
     },
     { passive: true }
   );
 
-  // Direkter On-Screen Stoß-Button
+  // On-screen shoot button
   const fireBtn = document.getElementById("btn-fire-shot");
   fireBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     fireCueStrike();
-    fireBtn.blur(); // Fokus abgeben, damit die Leertaste nicht den Button erneut auslöst
+    fireBtn.blur(); // give up focus so the space bar does not trigger the button again
   });
 
-  // Maussteuerung (Klicken & Ziehen zum Zielen, Klick ohne Drag = Stoß)
+  // Mouse control (click & drag to aim, click without drag = shot)
   container.addEventListener("mousedown", (e) => {
     if (e.button === 0) {
       isMouseDown = true;
@@ -527,7 +529,7 @@ function setupControls() {
 
   window.addEventListener("mouseup", () => {
     if (isMouseDown) {
-      // Wurde die Maus nur kurz geklickt (ohne Zieldrehung) -> Stoß ausführen!
+      // Mouse was only clicked briefly (no aim rotation) -> take the shot
       if (totalDragDist < 5) {
         fireCueStrike();
       }
@@ -543,13 +545,13 @@ function setupControls() {
     lastX = e.clientX;
     lastY = e.clientY;
 
-    // Horizontales Zielen
+    // Horizontal aiming
     aimAngle -= dx * 0.0055;
-    // Vertikale Neigung
+    // Vertical tilt
     aimPitch = Math.max(0.04, Math.min(0.4, aimPitch + dy * 0.002));
   });
 
-  // Tastatur-Steuerung: Pfeiltasten / A & D zum Zielen, Leertaste zum Stoßen
+  // Keyboard: arrow keys / A & D to aim, space to shoot
   window.addEventListener("keydown", (e) => {
     if (e.code === "ArrowLeft" || e.code === "KeyA") {
       aimAngle += 0.05;
@@ -575,7 +577,7 @@ function setupControls() {
     }
   });
 
-  // Touch Steuerung für Mobile
+  // Touch control for mobile
   let touchX = 0;
   let touchMoved = false;
   container.addEventListener(
@@ -603,7 +605,7 @@ function setupControls() {
   );
 
   container.addEventListener("touchend", (e) => {
-    e.preventDefault(); // verhindert die zusätzlich erzeugten Maus-Events
+    e.preventDefault(); // prevents the additionally synthesized mouse events
     if (!touchMoved) {
       fireCueStrike();
     }
@@ -627,10 +629,15 @@ function setupControls() {
   });
 }
 
+function renderCameraLabel() {
+  document.getElementById("cam-label").innerText = t(
+    cameraMode === "fps" ? "camera.fp" : "camera.top"
+  );
+}
+
 function toggleCamera() {
   cameraMode = cameraMode === "fps" ? "overhead" : "fps";
-  document.getElementById("cam-label").innerText =
-    cameraMode === "fps" ? "FP Queue" : "Draufsicht";
+  renderCameraLabel();
   document.getElementById("aim-crosshair").style.display =
     cameraMode === "fps" ? "flex" : "none";
   cueStickPivot.visible = cameraMode === "fps";
@@ -638,11 +645,11 @@ function toggleCamera() {
 }
 
 /* ====================================================
-   7. EXAKTE PHYSIK-SIMULATION (Kugeln, Banden, Taschen)
+   7. PHYSICS (balls, cushions, pockets)
 ==================================================== */
 
 /**
- * Kugel-Zustand aus dem Rapier-Körper in Optik und Spiel-Objekt übernehmen.
+ * Copy the ball state from the Rapier body to the mesh and the game object.
  * @param {typeof balls[number]} b
  */
 function syncBallFromBody(b) {
@@ -655,14 +662,15 @@ function syncBallFromBody(b) {
   b.mesh.quaternion.set(q.x, q.y, q.z, q.w);
 }
 
-/** Versenkte Kugeln als runde Kreise in Kugelfarbe anzeigen. */
+/** Show pocketed balls as round circles in the ball color. */
 function addPocketedToHud(b) {
   const host = document.getElementById("pocketed-balls");
   if (!host) return;
   const dot = document.createElement("span");
   dot.className = "pocketed-ball";
   dot.style.backgroundColor = "#" + b.color.toString(16).padStart(6, "0");
-  dot.title = `Kugel ${b.id}`;
+  dot.dataset.ballId = String(b.id);
+  dot.title = t("pocketed.ball", { n: b.id });
   host.appendChild(dot);
 }
 
@@ -671,16 +679,34 @@ function clearPocketedHud() {
   if (host) host.replaceChildren();
 }
 
-/** Ende des Spiels anzeigen; weitere Stöße sind gesperrt, bis neu aufgebaut wird. */
-function endGame(won, reason) {
+/** Show the end of the game; shots are blocked until the balls are racked again. */
+function endGame(won) {
   gameState = won ? "won" : "lost";
   const overlay = document.getElementById("game-over");
   if (!overlay) return;
-  document.getElementById("game-over-title").textContent = won ? "GEWONNEN" : "GAME LOST";
-  document.getElementById("game-over-text").textContent = reason;
   overlay.classList.toggle("game-over--won", won);
+  renderGameOver();
   overlay.hidden = false;
 }
+
+/** (Re-)render the game-over texts in the current language. */
+function renderGameOver() {
+  if (gameState === "playing") return;
+  const key = gameState === "won" ? "game.won" : "game.lost";
+  document.getElementById("game-over-title").textContent = t(`${key}.title`);
+  document.getElementById("game-over-text").textContent = t(`${key}.reason`);
+}
+
+/** Re-render all dynamic (JS-generated) texts after a language change. */
+function renderDynamicTexts() {
+  updateStatusDisplay(isCueMoving);
+  renderCameraLabel();
+  renderGameOver();
+  document.querySelectorAll(".pocketed-ball").forEach((dot) => {
+    dot.title = t("pocketed.ball", { n: dot.dataset.ballId });
+  });
+}
+onLanguageChange(renderDynamicTexts);
 
 function hideGameOver() {
   gameState = "playing";
@@ -688,7 +714,7 @@ function hideGameOver() {
   if (overlay) overlay.hidden = true;
 }
 
-/** Versenkte Objektkugel komplett aus der Welt nehmen (Körper, Mesh, Verwaltung). */
+/** Remove a pocketed object ball completely (body, mesh, bookkeeping). */
 function removeBall(b) {
   physics.removeBall(b.body);
   scene.remove(b.mesh);
@@ -698,33 +724,28 @@ function removeBall(b) {
   if (i >= 0) balls.splice(i, 1);
 }
 
-/** Kugel hat den Becherboden getroffen → zählt als versenkt. */
+/** The ball hit the cup floor → counts as pocketed. */
 function onBallPocketed(b, pocketId) {
   if (b.inPocket) return;
   b.inPocket = true;
   console.info(
-    `[Backroom Billard] Kugel ${b.id} versenkt in ${pocketId} (Aufprall Becherboden, y=${b.pos.y.toFixed(3)})`
+    `[Backroom Billard] ball ${b.id} pocketed in ${pocketId} (cup floor impact, y=${b.pos.y.toFixed(3)})`
   );
 
   if (!b.isCue) {
     addPocketedToHud(b);
-    pendingRemoval.push(b); // erst nach dem Physikschritt entfernen
+    pendingRemoval.push(b); // remove only after the physics step
     if (b.id === BLACK_BALL_ID && gameState === "playing") {
-      // Schwarze 8: nur als LETZTE Kugel erlaubt, sonst Game Lost
+      // Black 8: only allowed as the LAST ball, otherwise the game is lost
       const othersLeft = balls.some(
         (o) => !o.isCue && o.id !== BLACK_BALL_ID && !o.inPocket
       );
-      endGame(
-        !othersLeft,
-        othersLeft
-          ? "Die schwarze 8 wurde versenkt, obwohl noch Kugeln auf dem Tisch liegen."
-          : "Alle Kugeln versenkt — die schwarze 8 kam zuletzt."
-      );
+      endGame(!othersLeft);
     }
     return;
   }
 
-  // Weiße Kugel: nach kurzer Pause auf einem freien Platz neu auflegen
+  // Cue ball: re-spot on a free spot after a short pause
   cueRespawnTimer = setTimeout(() => {
     cueRespawnTimer = null;
     const spot = findFreeCueSpot();
@@ -736,7 +757,7 @@ function onBallPocketed(b, pocketId) {
 }
 
 /**
- * Physik mit festem Zeitschritt (Rapier). Versenkt wird erst beim Aufprall im Becher.
+ * Physics with a fixed time step (Rapier). A ball only counts as pocketed on impact in the cup.
  * @param {number} frameDt — Frame-Zeit in Sekunden
  */
 function stepPhysics(frameDt) {
@@ -754,9 +775,9 @@ function stepPhysics(frameDt) {
     physicsAcc -= PHYSICS_STEP;
     steps++;
   }
-  if (steps === 16) physicsAcc = 0; // nach langem Hänger nicht aufholen
+  if (steps === 16) physicsAcc = 0; // do not catch up after a long stall
 
-  // Versenkte Objektkugeln aus dem Auffangbehälter löschen
+  // Delete pocketed object balls from the cup
   while (pendingRemoval.length) removeBall(pendingRemoval.pop());
 
   let moving = false;
@@ -764,9 +785,9 @@ function stepPhysics(frameDt) {
     const b = balls[i];
     syncBallFromBody(b);
 
-    // Streuner (aus dem Tisch gesprungen) zurück auf den Tisch
+    // Stray ball (jumped off the table): put it back on the table
     if (!b.inPocket && (Math.abs(b.pos.x) > 1.2 || Math.abs(b.pos.z) > 1.8 || b.pos.y < 0.5)) {
-      console.warn("[Backroom Billard] Kugel außerhalb des Tisches, wird zurückgesetzt", b.id);
+      console.warn("[Backroom Billard] ball outside the table, resetting it", b.id);
       const spot = findFreeCueSpot();
       b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
       b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -803,18 +824,18 @@ function gameLoop(currentTime) {
   const dt = Math.min((currentTime - lastTime) / 1000, 0.033);
   lastTime = currentTime;
 
-  // Physikschritt
+  // Physics step
   stepPhysics(dt);
 
-  // Queue-Positionierung & Abstand angepasst an das Mausrad
+  // Cue positioning & distance adjusted to the selected power
   if (cueBall && cueStickPivot) {
     cueStickPivot.position.set(cueBall.pos.x, cueBall.pos.y, cueBall.pos.z);
     cueStickPivot.rotation.y = aimAngle;
 
-    // Der Queue zieht sich proportional zum eingestellten Mausrad-Powerwert zurück!
+    // The cue pulls back in proportion to the selected power
     let cueDist = 0.05 + selectedPower * 0.28;
     if (cueStrikeAnim > 0) {
-      // Stoß schnellt beim Treffen vor
+      // The strike snaps forward on impact
       cueDist = THREE.MathUtils.lerp(0.012, cueDist, 1 - cueStrikeAnim);
       cueStrikeAnim = Math.max(0, cueStrikeAnim - dt * 6.5);
     }
@@ -822,7 +843,7 @@ function gameLoop(currentTime) {
     cueStickMesh.position.set(0, 0.015 + aimPitch * 0.1, cueDist);
     cueStickMesh.rotation.x = aimPitch;
 
-    // Ziellinie an der Kugel ausrichten
+    // Align the aim line with the ball
     if (aimLine) {
       aimLine.position.set(
         cueBall.pos.x,
@@ -833,7 +854,7 @@ function gameLoop(currentTime) {
     }
   }
 
-  // Kamera-Positionierung
+  // Camera positioning
   if (cameraMode === "fps" && cueBall) {
     const camDist = 0.62;
     const camH = 0.25 + aimPitch * 0.45;

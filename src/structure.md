@@ -1,9 +1,15 @@
-# `src/` — Verzeichnisbaum
+# `src/` — directory tree
 
-_Automatisch erzeugt von `_Scripts/_BACKUP/backup.mjs` (2026-11-07T18:42:42.812Z)._
+_Generated automatically by `_Scripts/_BACKUP/backup.mjs` (2026-11-07T19:05:33.152Z)._
 
 ```
 src/
+├── i18n/
+│   ├── locales/
+│   │   ├── de.js
+│   │   └── en.js
+│   ├── flags.js
+│   └── index.js
 ├── billard.js
 ├── csg-brush.js
 ├── entry.js

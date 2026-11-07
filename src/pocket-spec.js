@@ -1,5 +1,5 @@
 /**
- * pocket-spec.js — Single Source of Truth für Tisch-Taschen (CSG & Physik)
+ * pocket-spec.js — single source of truth for the table pockets (CSG & physics)
  */
 import {
   POCKET_R_CORNER,
@@ -23,9 +23,9 @@ export const POCKET_DIM_DEFAULTS = {
 };
 
 /**
- * Nasen-Spitzen der Banden an den Taschen (Abstand von der Nasenlinien-Ecke bzw. von der Mitte).
- * Rückseite des Gummis endet am runden Loch (`r` von der Lochmitte auf der Filzkante),
- * die Nase ist um `k · Gummibreite` zurückgeschnitten (Facette).
+ * Nose tips of the cushions at the pockets (distance from the nose-line corner or from the center).
+ * The back of the rubber ends at the round hole (`r` from the hole center on the felt edge),
+ * the nose is cut back by `k · rubber width` (facet).
  *
  * @param {typeof POCKET_DIM_DEFAULTS} [dims]
  * @returns {{ cornerTip: number; sideTip: number }}
@@ -39,11 +39,11 @@ export function cushionTipOffsets(dims = POCKET_DIM_DEFAULTS) {
 }
 
 /**
- * Maße des Taschenbechers (Auffänger) unter der Spielplatte — gemeinsam für Optik und Physik.
+ * Dimensions of the pocket cup (catcher) below the playing plate — shared by visuals and physics.
  *
  * @param {{ center: number[]; radius: number; yBottom: number }} spec
  * @param {number} tableH
- * @param {number} feltDepth — Dicke der Spielplatte
+ * @param {number} feltDepth — thickness of the playing plate
  */
 export function pocketCupDims(spec, tableH, feltDepth) {
   const yTop = tableH - feltDepth;
@@ -59,12 +59,12 @@ export function pocketCupDims(spec, tableH, feltDepth) {
 }
 
 /**
- * Erzeugt die verbindlichen PocketSpecs für CSG-Ausschnitte und Versenk-Checks.
+ * Creates the binding pocket specs for the CSG cut-outs and pocketing checks.
  *
  * @param {Object} table
- * @param {number} table.playW — WPA Spielfeldbreite (1,27 m)
- * @param {number} table.playL — WPA Spielfeldlänge (2,54 m)
- * @param {number} table.tableH — Filzeroberfläche Y
+ * @param {number} table.playW — WPA playing field width (1.27 m)
+ * @param {number} table.playL — WPA playing field length (2.54 m)
+ * @param {number} table.tableH — felt surface Y
  * @param {number} table.cushionH — CUSHION_NOSE_TO_BED (Blueprint railH)
  * @param {typeof POCKET_DIM_DEFAULTS} [dims]
  * @returns {Array<{
@@ -78,7 +78,7 @@ export function pocketCupDims(spec, tableH, feltDepth) {
  * }>}
  */
 export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
-  // playW/playL = Nase zu Nase; die runden Löcher sitzen mit der Mitte auf der Filzkante
+  // playW/playL = nose to nose; the round holes are centered on the felt edge
   const hw = table.playW / 2 + CUSHION_PROFILE_WIDTH; // Filzkante (Lochmitte liegt darauf)
   const hl = table.playL / 2 + CUSHION_PROFILE_WIDTH;
 
@@ -87,7 +87,7 @@ export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
   const height = yTop - yBottom;
   const yCenter = (yTop + yBottom) / 2;
 
-  /** Optionaler Versatz der Lochmitte nach außen (0 = genau auf der Filzkante). */
+  /** Optional outward offset of the hole center (0 = exactly on the felt edge). */
   const cornerOut = dims.r_corner * dims.cornerOffsetFactor;
   const sideOut = dims.r_side * dims.sideOffsetFactor;
 

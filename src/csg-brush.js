@@ -1,5 +1,5 @@
 /**
- * Brush wie three-bvh-csg@0.0.18, mit targetLeafSize (three-mesh-bvh-API).
+ * Brush like three-bvh-csg@0.0.18, with targetLeafSize (three-mesh-bvh API).
  * Entfernen, sobald upstream maxLeafSize aktualisiert.
  */
 import { Mesh, Matrix4 } from "three";

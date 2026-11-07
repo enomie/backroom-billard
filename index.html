@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -13,12 +13,12 @@
     <div id="canvas-container"></div>
     <div class="backroom-vignette"></div>
 
-    <!-- Spielende: Game Lost / Gewonnen -->
+    <!-- Game over: game lost / you win -->
     <div id="game-over" class="game-over" hidden>
       <div class="game-over__panel">
         <h2 id="game-over-title" class="game-over__title">GAME LOST</h2>
         <p id="game-over-text" class="game-over__text"></p>
-        <button id="btn-restart" type="button" class="btn btn--reset">Neu aufbauen</button>
+        <button id="btn-restart" type="button" class="btn btn--reset" data-i18n="button.rerack">Re-rack</button>
       </div>
     </div>
 
@@ -29,18 +29,21 @@
           <div class="hud-status-row">
             <span id="status-dot" class="status-dot status-dot--idle"></span>
             <span id="status-text" class="status-text status-text--idle"
-              >Bereit zum Stoß</span
+              data-i18n="status.ready"
+              >Ready to shoot</span
             >
           </div>
-          <div id="pocketed-balls" class="pocketed-balls" aria-label="Versenkte Kugeln"></div>
+          <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
         </div>
 
         <div class="hud-actions interactive">
+          <div id="lang-switch" class="lang-switch" role="group" data-i18n-aria-label="lang.label" aria-label="Language"></div>
           <button id="btn-camera" type="button" class="btn btn--camera">
-            Kamera: <span id="cam-label" class="btn__emphasis">FP Queue</span>
+            <span data-i18n="camera.label">Camera:</span>
+            <span id="cam-label" class="btn__emphasis">Cue view</span>
           </button>
-          <button id="btn-reset" type="button" class="btn btn--reset">
-            Neu aufbauen
+          <button id="btn-reset" type="button" class="btn btn--reset" data-i18n="button.rerack">
+            Re-rack
           </button>
         </div>
       </header>
@@ -68,14 +71,15 @@
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               ></path>
             </svg>
-            Steuerung
+            <span data-i18n="help.title">Controls</span>
           </div>
           <ul class="help-panel__list">
-            <li>• <b>Maus ziehen / [A][D]:</b> Zielen</li>
-            <li>• <b>Mausrad:</b> Stoßkraft stufenlos einstellen</li>
-            <li>• <b>Klick / [Leertaste]:</b> Kugel stoßen</li>
+            <li>• <b data-i18n="help.aim.keys">Drag mouse / [A][D]:</b> <span data-i18n="help.aim.text">Aim</span></li>
+            <li>• <b data-i18n="help.power.keys">Mouse wheel:</b> <span data-i18n="help.power.text">Adjust shot power continuously</span></li>
+            <li>• <b data-i18n="help.shoot.keys">Click / [Space]:</b> <span data-i18n="help.shoot.text">Shoot the cue ball</span></li>
             <li>
-              • <b>[C]:</b> Kamera-Wechsel | <b>[R]:</b> Reset
+              • <b data-i18n="help.camera.keys">[C]:</b> <span data-i18n="help.camera.text">Switch camera</span> |
+              <b data-i18n="help.reset.keys">[R]:</b> <span data-i18n="help.reset.text">Reset</span>
             </li>
           </ul>
         </div>
@@ -83,7 +87,7 @@
         <div class="power-bar interactive">
           <div class="power-bar__controls">
             <div class="power-bar__label-row">
-              <span>Kraft (Mausrad)</span>
+              <span data-i18n="power.label">Power (mouse wheel)</span>
               <span id="power-percent">40%</span>
             </div>
             <input
@@ -110,7 +114,7 @@
                 d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
               />
             </svg>
-            <span>STOSSEN</span>
+            <span data-i18n="button.shoot">SHOOT</span>
           </button>
         </div>
       </footer>

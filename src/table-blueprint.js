@@ -9,10 +9,10 @@ import {
 } from "./table-constants.js";
 
 /**
- * K-66-Näherung: Querschnitt als Trapez mit Nase OBEN (63,5 % Kugeldurchmesser);
- * die Gummifläche weicht nach unten zum Tuch zurück.
+ * K-66 approximation: trapezoid cross-section with the nose on TOP (63.5 % of the ball diameter);
+ * the rubber face recedes downwards towards the cloth.
  *
- * @param {number} feltEdge — Filzkante auf dieser Achse (X oder Z)
+ * @param {number} feltEdge — felt edge on this axis (X or Z)
  * @param {number} inwardSign — +1 / −1 Richtung Spielfeld
  * @param {number} rubberThick
  * @param {number} railH
@@ -22,7 +22,7 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
   const outwardSign = -inwardSign;
   const nose = feltEdge + inwardSign * rubberThick;
   const edgeBottom = feltEdge + outwardSign * CUSHION_PROFILE_BOTTOM_OUTSET;
-  // Rückseite senkrecht und bündig an der Holzwand (leicht ins Holz), kein Spalt
+  // Back side vertical and flush with the wooden wall (slightly into the wood), no gap
   const edgeTopOuter = edgeBottom;
   const foot =
     feltEdge + inwardSign * (rubberThick - CUSHION_PROFILE_FACE_RECESS);
@@ -39,16 +39,16 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
 }
 
 /**
- * Bandenstück mit Facetten an den Enden: Die Rückseite (Filzkante) reicht bis ans runde Loch,
- * die Nase ist zurückgeschnitten (Endfläche weicht zur Nase hin vom Loch weg).
+ * Cushion piece with facets at the ends: the back side (felt edge) reaches the round hole,
+ * the nose is cut back (the end face recedes from the hole towards the nose).
  *
  * @param {ReturnType<typeof buildCushionProfile>} profile
- * @param {"x" | "z"} along — Verlaufsrichtung der Bande in der Welt
- * @param {number} inwardSign — +1 / −1 Richtung Spielfeld (quer zur Bande)
- * @param {number} sStart — Weltkoordinate des unteren Endes an der Gummi-RÜCKSEITE (Filzkante)
- * @param {number} sEnd — Weltkoordinate des oberen Endes an der Rückseite
- * @param {number} kStart — Rücksprung der Endfläche pro Meter Gummitiefe Richtung Nase (unten)
- * @param {number} kEnd — dito (oberes Ende)
+ * @param {"x" | "z"} along — direction the cushion runs in the world
+ * @param {number} inwardSign — +1 / −1 towards the playing field (across the cushion)
+ * @param {number} sStart — world coordinate of the lower end at the BACK of the rubber (felt edge)
+ * @param {number} sEnd — world coordinate of the upper end at the back side
+ * @param {number} kStart — recess of the end face per meter of rubber depth towards the nose (lower end)
+ * @param {number} kEnd — same (upper end)
  * @returns {THREE.BufferGeometry}
  */
 function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, kEnd) {
@@ -66,7 +66,7 @@ function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, 
     const u = pos.getX(i);
     const y = pos.getY(i);
     const z = pos.getZ(i);
-    // Tiefe ab Filzkante Richtung Nase (hinter der Filzkante: Rückseite bleibt bündig)
+    // Depth from the felt edge towards the nose (behind the felt edge the back side stays flush)
     const d = Math.max(0, inwardSign * (u - profile.feltEdge));
     const s = z < depth / 2 ? sStart + kStart * d : sEnd - kEnd * d;
     if (along === "z") pos.setXYZ(i, u, y, s);
@@ -86,7 +86,7 @@ function cushionPieceGeometry(profile, along, inwardSign, sStart, sEnd, kStart, 
 }
 
 /**
- * Billardtisch: Filz, 4× Bande, 4× Holz; optional CSG-Taschen aus `pocketSpecs`.
+ * Pool table: felt, 4× cushion, 4× wood; optional CSG pockets from `pocketSpecs`.
  *
  * @param {THREE.Scene} scene
  * @param {{
@@ -109,7 +109,7 @@ export function buildAuthenticTableWithHoles(
   const PLAY_W = dims.playW;
   const TABLE_H = dims.tableH;
 
-  // PLAY_W/PLAY_L gelten Nase zu Nase (WPA); der Filz reicht um die Gummibreite weiter nach außen.
+  // PLAY_W/PLAY_L are measured nose to nose (WPA); the felt extends outwards by the rubber width.
   const hw = PLAY_W / 2 + dims.rubberThick;
   const hl = PLAY_L / 2 + dims.rubberThick;
 
@@ -161,7 +161,7 @@ export function buildAuthenticTableWithHoles(
   /** @type {THREE.Mesh[]} */
   const cushionMeshes = [];
 
-  /** Welt-Geometrien für die Physik (Rapier-Trimesh) — exakt das, was gerendert wird. */
+  /** World geometries for the physics (Rapier trimesh) — exactly what is rendered. */
   const colliderGeometries = { table: null, rubber: [] };
 
   const bedMesh = new THREE.Mesh(bedGeo, feltMat);
@@ -169,9 +169,9 @@ export function buildAuthenticTableWithHoles(
   csgBaseMeshes.push(bedMesh);
 
   /**
-   * Bande an Filzkante: Gummi ins Feld, Holz nach außen (150 mm Cap gesamt).
-   * @param {number} feltEdgeZ — äußere Filzkante (±hl)
-   * @param {number} inwardNz — Normale ins Spielfeld (+1 / −1)
+   * Cushion at the felt edge: rubber into the field, wood outwards (150 mm cap in total).
+   * @param {number} feltEdgeZ — outer felt edge (±hl)
+   * @param {number} inwardNz — normal pointing into the playing field (+1 / −1)
    */
   function addRailAlongX(feltEdgeZ, inwardNz) {
     const outwardZ = -inwardNz;
@@ -208,12 +208,12 @@ export function buildAuthenticTableWithHoles(
   }
 
   /**
-   * @param {number} feltEdgeX — äußere Filzkante (±hw)
+   * @param {number} feltEdgeX — outer felt edge (±hw)
    * @param {number} inwardNx
    */
   function addRailAlongZ(feltEdgeX, inwardNx) {
     const outwardX = -inwardNx;
-    // Lange Bande: zwei Teilstücke zwischen Seitentasche und Ecktaschen-Spitze
+    // Long cushion: two pieces between the side pocket and the corner pocket tip
     const zEnd = hlNose - cornerTip;
     const profile = buildCushionProfile(
       feltEdgeX,
@@ -222,7 +222,7 @@ export function buildAuthenticTableWithHoles(
       railH,
       TABLE_H
     );
-    // Rückseiten-Enden (Filzkante) = Nasen-Ende + Rücksprung · Gummibreite
+    // Back-side ends (felt edge) = nose end + recess · rubber width
     const sBack = sideTip - CUSHION_END_RECESS_SIDE * rubberThick;
     const zBack = zEnd + CUSHION_END_RECESS_CORNER * rubberThick;
     for (const [sa, sb, ka, kb] of [
@@ -266,13 +266,13 @@ export function buildAuthenticTableWithHoles(
       m.geometry.dispose();
     }
 
-    // Banden enden an den Spitzen selbst (keine CSG nötig)
+    // Cushions end at their tips themselves (no CSG needed)
     for (const rubber of cushionMeshes) {
       scene.add(rubber);
       colliderGeometries.rubber.push(rubber.geometry);
     }
 
-    // Taschenbecher (rund) beginnt direkt unter der 5-mm-Spielplatte, steht nirgends über
+    // Round pocket cup starts directly below the 5 mm playing plate and does not protrude anywhere
     const cupMat = new THREE.MeshStandardMaterial({
       color: 0x050505,
       roughness: 0.95,

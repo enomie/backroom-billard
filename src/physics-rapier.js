@@ -1,5 +1,5 @@
 /**
- * Rapier-Collider-Fabriken (wenn window.RAPIER verfügbar).
+ * Rapier collider factories (when window.RAPIER is available).
  * @see _docs/physics.md
  */
 import {
@@ -22,7 +22,7 @@ export function createBallPhysics(RAPIER, world, position, ballRadius) {
     .setLinearDamping(LINEAR_DAMPING)
     .setAngularDamping(ANGULAR_DAMPING)
     .setCcdEnabled(true)
-    .setCanSleep(false); // Ruhezustand steuert das Spiel selbst (siehe stepPhysics)
+    .setCanSleep(false); // the game controls the resting state itself (see stepPhysics)
 
   const body = world.createRigidBody(bodyDesc);
 
@@ -40,10 +40,10 @@ export function createBallPhysics(RAPIER, world, position, ballRadius) {
 }
 
 /**
- * Dreiecksnetz-Collider direkt aus einer (Welt-)Geometrie des Visuellen.
+ * Triangle mesh collider built directly from a (world-space) geometry of the visuals.
  *
  * @param {import("@dimforge/rapier3d-simd").default} RAPIER
- * @param {import("three").BufferGeometry} geometry — Welt-Koordinaten, ggf. nicht indiziert
+ * @param {import("three").BufferGeometry} geometry — world coordinates, possibly non-indexed
  */
 export function trimeshDescFromGeometry(RAPIER, geometry) {
   const pos = geometry.attributes.position;
@@ -64,8 +64,8 @@ export function trimeshDescFromGeometry(RAPIER, geometry) {
   return RAPIER.ColliderDesc.trimesh(
     vertices,
     indices,
-    // Innenkanten korrigieren (sonst „Geisterkanten“: rollende Kugel wird seitlich abgelenkt),
-    // beidseitig, weil Kugeln im Taschenbecher die Wand von innen treffen
+    // Fix internal edges (otherwise "ghost edges" deflect a rolling ball sideways),
+    // two-sided because balls in the pocket cup hit the wall from the inside
     F.FIX_INTERNAL_EDGES_TWO_SIDED
   );
 }

@@ -1,6 +1,6 @@
 /**
- * Rapier-Welt: Kollisionskörper werden aus der gerenderten Tisch-Geometrie gebaut
- * (Platte mit runden Löchern, Bandenstücke mit Nase und Facetten, Taschenbecher).
+ * Rapier world: colliders are built from the rendered table geometry
+ * (plate with round holes, cushion pieces with nose and facets, pocket cups).
  * @see _docs/physics.md
  */
 import * as THREE from "three";
@@ -25,7 +25,7 @@ import {
  * @param {{
  *   table: import("three").BufferGeometry;
  *   rubber: import("three").BufferGeometry[];
- * }} colliderGeometries — aus buildAuthenticTableWithHoles
+ * }} colliderGeometries — from buildAuthenticTableWithHoles
  * @param {Array<{ id: string; center: number[]; radius: number; yBottom: number }>} pocketSpecs
  * @param {number} tableH
  * @param {number} feltDepth
@@ -39,7 +39,7 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
   const Multiply = RAPIER.CoefficientCombineRule.Multiply;
   const Average = RAPIER.CoefficientCombineRule.Average;
 
-  // Spielplatte + Holz (Loch-Kanten inklusive)
+  // Playing plate + wood (hole edges included)
   world.createCollider(
     trimeshDescFromGeometry(RAPIER, colliderGeometries.table)
       .setRestitution(TABLE_RESTITUTION)
@@ -60,8 +60,8 @@ export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tabl
     );
   }
 
-  // Taschenbecher: Wand (oben offen) + Boden; nur der Boden meldet Kollisionen → "versenkt"
-  /** @type {Map<number, string>} Collider-Handle des Bodens → Taschen-ID */
+  // Pocket cup: wall (open at the top) + floor; only the floor reports collisions → "pocketed"
+  /** @type {Map<number, string>} floor collider handle → pocket id */
   const cupFloors = new Map();
   for (const spec of pocketSpecs) {
     const c = pocketCupDims(spec, tableH, feltDepth);

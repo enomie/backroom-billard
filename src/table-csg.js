@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Evaluator, SUBTRACTION, ADDITION } from "three-bvh-csg";
 import { Brush } from "./csg-brush.js";
 
-/** Runde Löcher: genug Segmente, damit die Kante rund wirkt */
+/** Round holes: enough segments for the edge to look round */
 const POCKET_CYLINDER_SEGMENTS = 48;
 
 /**
@@ -52,9 +52,9 @@ function subtractPockets(brush, pocketSpecs, linerMaterial, evaluator) {
 }
 
 /**
- * Vereinigt Meshes per CSG und subtrahiert Taschen-Zylinder.
+ * Unites meshes via CSG and subtracts the pocket cylinders.
  *
- * @param {import("three").Mesh[]} partMeshes — Filz, Banden, Holz (Welttransform angewendet)
+ * @param {import("three").Mesh[]} partMeshes — felt, cushions, wood (world transform applied)
  * @param {Array<{
  *   id: string;
  *   center: [number, number, number];
