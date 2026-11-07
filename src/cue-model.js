@@ -6,7 +6,10 @@
  */
 import * as THREE from "three";
 
-/** Total length ≈ 1.45 m. All values in meters, measured from the tip. */
+/** Total length of the cue (m); the parts below add up to this. */
+export const CUE_LENGTH = 1.45;
+
+/** All values in meters, measured from the tip. */
 const TIP_LENGTH = 0.008;
 const FERRULE_LENGTH = 0.026;
 const SHAFT_LENGTH = 0.75;

@@ -14,7 +14,16 @@ import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
 import { createRoom } from "./room.js";
-import { createCueModel } from "./cue-model.js";
+import { createCueModel, CUE_LENGTH } from "./cue-model.js";
+import {
+  CUE_FOLLOW_THROUGH_TIME,
+  CUE_RELAX_TIME,
+  CUE_RETURN_TIME,
+  CUE_CARRY_TIP,
+  CUE_CARRY_DIRECTION,
+  CUE_SWAY_AMPLITUDE,
+  CUE_SWAY_SPEED,
+} from "./cue-constants.js";
 import {
   FREE_CAM_SPEED,
   FREE_CAM_LOOK_SENSITIVITY,
@@ -76,6 +85,9 @@ let isCueMoving = false;
 let shotInProgress = false;
 let shotRestTimer = 0;
 let strikeStartDistance = 0; // how far the cue was pulled back when the shot was taken
+let cueTipDistance = 0; // tip distance for this frame (computed before the camera update)
+let cueShotTime = 0; // seconds since the shot
+let cueRelax = 0; // 0 = aiming/strike pose, 1 = relaxed hold (linear; eased when applied)
 const heldCameraPosition = new THREE.Vector3();
 const heldCameraQuaternion = new THREE.Quaternion();
 let cueStrikeAnim = 0; // drives the cue strike animation
@@ -266,6 +278,7 @@ function setupBalls() {
   clearPocketedHud();
   hideGameOver();
   shotInProgress = false;
+  cueRelax = 0;
 
   const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
 
@@ -376,6 +389,63 @@ function setupCueAndAimLine() {
 /* ====================================================
    5. SHOT MECHANICS
 ==================================================== */
+const _cueQuatAim = new THREE.Quaternion();
+const _cueQuatCarry = new THREE.Quaternion();
+const _cueEuler = new THREE.Euler(0, 0, 0, "YXZ");
+const _pivotInverse = new THREE.Quaternion();
+const _cueCarryPos = new THREE.Vector3();
+const _cueCarryDir = new THREE.Vector3();
+const _cueForward = new THREE.Vector3(0, 0, 1);
+
+/**
+ * Blend between the aiming/strike pose (0) and the relaxed hold (1). The hold is active a moment
+ * after the shot until the table is still, and always while the free camera is in use.
+ */
+function updateCueRelax(dt) {
+  if (cameraMode === "free") {
+    cueRelax = Math.min(1, cueRelax + dt / CUE_RELAX_TIME);
+  } else if (shotInProgress) {
+    cueShotTime += dt;
+    if (cueShotTime > CUE_FOLLOW_THROUGH_TIME) {
+      cueRelax = Math.min(1, cueRelax + dt / CUE_RELAX_TIME);
+    }
+  } else {
+    cueRelax = Math.max(0, cueRelax - dt / CUE_RETURN_TIME);
+  }
+}
+
+/**
+ * Place the cue (call after the camera has been updated for this frame).
+ * Aiming/strike pose: tip `tipDistance` behind the ball center, butt rising behind it.
+ * Relaxed hold: the cue is carried in the lower right of the camera view, tip pointing diagonally
+ * into the scene; the two poses are blended smoothly (position lerp, rotation slerp).
+ */
+function poseCue(tipDistance) {
+  const eased = cueRelax * cueRelax * (3 - 2 * cueRelax);
+
+  // Aiming pose in the pivot's local space (cue origin = tip, +z towards the player)
+  _cueEuler.set(-aimPitch, 0, 0);
+  _cueQuatAim.setFromEuler(_cueEuler);
+  cueStickMesh.position.set(0, 0.015 + aimPitch * 0.1, tipDistance);
+  cueStickMesh.quaternion.copy(_cueQuatAim);
+  if (eased <= 0) return;
+
+  // Carried pose: defined in camera space, converted into the pivot's local space
+  const sway = Math.sin((performance.now() / 1000) * CUE_SWAY_SPEED) * CUE_SWAY_AMPLITUDE;
+  camera.updateMatrixWorld(true);
+  cueStickPivot.updateMatrixWorld(true);
+  _cueCarryPos.set(...CUE_CARRY_TIP).applyMatrix4(camera.matrixWorld);
+  _cueCarryDir.set(CUE_CARRY_DIRECTION[0] + sway, CUE_CARRY_DIRECTION[1] + sway * 0.5, CUE_CARRY_DIRECTION[2]).normalize();
+  _cueCarryDir.transformDirection(camera.matrixWorld);
+  _cueQuatCarry.setFromUnitVectors(_cueForward, _cueCarryDir);
+  cueStickPivot.worldToLocal(_cueCarryPos);
+  _pivotInverse.copy(cueStickPivot.quaternion).invert(); // pivot: rotates around y only, no parent
+  _cueQuatCarry.premultiply(_pivotInverse);
+
+  cueStickMesh.position.lerp(_cueCarryPos, eased);
+  cueStickMesh.quaternion.slerp(_cueQuatCarry, eased);
+}
+
 /** Distance from the ball center to the cue tip: grows with the selected power. */
 function pulledCueDistance() {
   return BALL_R + 0.02 + selectedPower * 0.28;
@@ -409,6 +479,7 @@ function fireCueStrike() {
   // Visual snap animation of the cue
   cueStrikeAnim = 1.0;
   strikeStartDistance = pulledCueDistance();
+  cueShotTime = 0;
 
   // The camera and the cue stay where they are until everything has come to rest
   shotInProgress = true;
@@ -900,7 +971,7 @@ function gameLoop(currentTime) {
       cueStickPivot.position.set(cueBall.pos.x, cueBall.pos.y, cueBall.pos.z);
       cueStickPivot.rotation.y = aimAngle;
     }
-    cueStickPivot.visible = cameraMode === "fps";
+    cueStickPivot.visible = true; // also visible with the free camera (carried)
 
     // The cue pulls back in proportion to the selected power
     let cueDist = pulledCueDistance();
@@ -910,8 +981,7 @@ function gameLoop(currentTime) {
       cueDist = THREE.MathUtils.lerp(strikeStartDistance, BALL_R + 0.001, 1 - cueStrikeAnim);
     }
 
-    cueStickMesh.position.set(0, 0.015 + aimPitch * 0.1, cueDist);
-    cueStickMesh.rotation.x = -aimPitch; // negative: the butt end rises (positive would push it into the table)
+    cueTipDistance = cueDist;
 
     // Align the aim line with the ball
     if (aimLine) {
@@ -945,6 +1015,12 @@ function gameLoop(currentTime) {
     );
   } else if (cameraMode === "free") {
     updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
+  }
+
+  // The cue is placed after the camera so a carried cue never lags behind it
+  if (cueBall && cueStickPivot) {
+    updateCueRelax(dt);
+    poseCue(cueTipDistance);
   }
 
   renderer.render(scene, camera);
