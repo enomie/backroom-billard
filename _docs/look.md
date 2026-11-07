@@ -39,8 +39,8 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 ## Nebel / Rauch
 
 - **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist der Dunst am dichtesten (aber nie komplett deckend).
-- **Grauweiß** (`FOG_COLOR`): heller grauer Dunst. Er deckt maximal 60 % (`FOG_MAX_OPACITY`), damit der Raum in der Ferne noch sichtbar bleibt. Es gibt keinen Vignetten-Effekt (kein „Taschenlampen-Look“) mehr.
-- Damit die Wände im Dunkeln lesbar bleiben, gibt es ein schwaches warmes Umgebungslicht (`ROOM_AMBIENT_*`).
+- **Neutral-grauer Dunst** (`FOG_COLOR`, bewusst dunkel). Nebelfarbe wird von Three.js nicht beleuchtet: ein heller Nebel hellt den ganzen Raum auf, deshalb ist er an die dunkle Stimmung angepasst. Er deckt maximal 60 % (`FOG_MAX_OPACITY`). Es gibt keinen Vignetten-Effekt (kein „Taschenlampen-Look“).
+- **Beleuchtung:** Haupt-Lichtquellen sind die drei Deckenleuchten über dem Tisch. Nur ein sehr schwaches, warmes Umgebungslicht (`ROOM_AMBIENT_*`) lässt die Wände als Schemen erahnen. Der Raum bleibt dunkel, gedämpft und weich.
 
 ## Offene Punkte
 

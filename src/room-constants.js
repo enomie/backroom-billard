@@ -67,15 +67,15 @@ export const ROOM_WALL_SMOKE_GRADIENT = 0.35;
 export const ROOM_COLOR_CEILING_WOOD = 0x6b4426;
 
 /** Linear fog in gray-white smoke: starts at FOG_NEAR, completely opaque at FOG_FAR. */
-export const FOG_COLOR = 0xc2c2be;
+export const FOG_COLOR = 0x2f2e2c;
 /** The fog never gets more opaque than this (1 = fully covers far objects at FOG_FAR). */
 export const FOG_MAX_OPACITY = 0.6;
 export const FOG_NEAR = 1;
 export const FOG_FAR = 12;
 
 /** Weak warm ambient light so the cream walls stay readable in the dim room. */
-export const ROOM_AMBIENT_COLOR = 0xa89c80;
-export const ROOM_AMBIENT_INTENSITY = 2.0;
+export const ROOM_AMBIENT_COLOR = 0x3d342a;
+export const ROOM_AMBIENT_INTENSITY = 0.9;
 
 /** The free camera stays inside the room, this far away from the walls/ceiling. */
 export const FREE_CAM_ROOM_MARGIN = 0.2;
