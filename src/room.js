@@ -14,7 +14,17 @@ import {
   FOG_COLOR,
   FOG_NEAR,
   FOG_FAR,
+  FOG_MAX_OPACITY,
 } from "./room-constants.js";
+
+/**
+ * Three.js fog is fully opaque at `far`. Cap its strength at FOG_MAX_OPACITY so the far room
+ * stays visible through the haze. Must run before the first material is compiled.
+ */
+THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(
+  "mix( gl_FragColor.rgb, fogColor, fogFactor )",
+  `mix( gl_FragColor.rgb, fogColor, fogFactor * ${FOG_MAX_OPACITY.toFixed(3)} )`
+);
 
 /** Small procedural canvas texture helper. */
 function canvasTexture(size, draw, repeatX = 1, repeatY = 1) {

@@ -55,8 +55,8 @@ export const LAMP_SHADOW_RADIUS = 4; // soft shadow edge
 /* ---- Room (see _docs/look.md) ---------------------------------------------------------
  * Origin = table center, floor at y = 0. Length runs along the table length (z),
  * width along x. */
-export const ROOM_LENGTH = 10;
-export const ROOM_WIDTH = 5;
+export const ROOM_LENGTH = 30;
+export const ROOM_WIDTH = 15;
 export const ROOM_HEIGHT = 4.5;
 
 /** Carpet floor (dark wine red), wooden ceiling, walls in cream yellow ("smoke-stained white"). */
@@ -66,8 +66,10 @@ export const ROOM_COLOR_WALL = 0xdccb94;
 export const ROOM_WALL_SMOKE_GRADIENT = 0.35;
 export const ROOM_COLOR_CEILING_WOOD = 0x6b4426;
 
-/** Linear fog in smoke color: starts at FOG_NEAR, completely opaque at FOG_FAR. */
-export const FOG_COLOR = 0x3d372f;
+/** Linear fog in gray-white smoke: starts at FOG_NEAR, completely opaque at FOG_FAR. */
+export const FOG_COLOR = 0xc2c2be;
+/** The fog never gets more opaque than this (1 = fully covers far objects at FOG_FAR). */
+export const FOG_MAX_OPACITY = 0.6;
 export const FOG_NEAR = 1;
 export const FOG_FAR = 12;
 

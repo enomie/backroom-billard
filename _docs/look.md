@@ -10,8 +10,8 @@ Ein geschlossener Raum mit **Boden, 4 Wänden und Decke**, proportional zum Tisc
 
 | Teil | Vorgabe |
 |------|---------|
-| Länge (lange Tischseite) | **10 m** (`ROOM_LENGTH`, Richtung der Tischlänge) |
-| Breite | **5 m** (`ROOM_WIDTH`, proportional zum Tisch 1 : 2) |
+| Länge (lange Tischseite) | **30 m** (`ROOM_LENGTH`, Richtung der Tischlänge) |
+| Breite | **15 m** (`ROOM_WIDTH`) |
 | Höhe | **4,50 m** (`ROOM_HEIGHT`) |
 | Boden | **Teppich**, dunkles Weinrot, mit feinem Rauschmuster |
 | Decke | **Holz**, Bretter längs |
@@ -38,8 +38,8 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 
 ## Nebel / Rauch
 
-- **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist alles komplett im Dunst.
-- **Rauchfarben** (`FOG_COLOR`, warmes, bräunliches Grau), der Raum soll **wirklich schummrig** wirken.
+- **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist der Dunst am dichtesten (aber nie komplett deckend).
+- **Grauweiß** (`FOG_COLOR`): heller grauer Dunst. Er deckt maximal 60 % (`FOG_MAX_OPACITY`), damit der Raum in der Ferne noch sichtbar bleibt. Es gibt keinen Vignetten-Effekt (kein „Taschenlampen-Look“) mehr.
 - Damit die Wände im Dunkeln lesbar bleiben, gibt es ein schwaches warmes Umgebungslicht (`ROOM_AMBIENT_*`).
 
 ## Offene Punkte
