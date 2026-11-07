@@ -17,6 +17,8 @@ import {
   FREE_CAM_SPEED,
   FREE_CAM_LOOK_SENSITIVITY,
   FREE_CAM_MIN_Y,
+  FREE_CAM_START_POSITION,
+  FREE_CAM_START_TARGET,
 } from "./room-constants.js";
 import { t, onLanguageChange } from "./i18n/index.js";
 import {
@@ -382,7 +384,7 @@ function setupCueAndAimLine() {
    5. SHOT MECHANICS
 ==================================================== */
 function fireCueStrike() {
-  if (gameState !== "playing") return;
+  if (gameState !== "playing" || cameraMode !== "fps") return; // the free camera only observes
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
   // Ignore double-triggered events (button+space, touch+mouse)
@@ -624,6 +626,9 @@ function renderCameraLabel() {
 let freeYaw = 0;
 let freePitch = 0;
 let freeLookDragging = false;
+/** Where the free camera was left when switching back to the cue view. */
+const freeSavedPosition = new THREE.Vector3();
+let freePoseSaved = false;
 /** Currently held keys (KeyboardEvent.code) for the free camera movement. */
 const heldKeys = new Set();
 
@@ -641,12 +646,20 @@ function toggleCamera() {
   const free = cameraMode === "free";
 
   if (free) {
-    // Start the free camera exactly where the cue camera currently is
-    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
-    freeYaw = euler.y;
-    freePitch = euler.x;
+    // First time: the default observer pose; afterwards: where the free camera was left
+    if (!freePoseSaved) {
+      camera.position.set(...FREE_CAM_START_POSITION);
+      camera.lookAt(...FREE_CAM_START_TARGET);
+      const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
+      freeYaw = euler.y;
+      freePitch = euler.x;
+    } else {
+      camera.position.copy(freeSavedPosition);
+    }
     requestPointerLockSafe();
   } else {
+    freeSavedPosition.copy(camera.position);
+    freePoseSaved = true;
     freeLookDragging = false;
     if (document.pointerLockElement) document.exitPointerLock();
   }

@@ -19,7 +19,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Kraft | Mausrad, Slider, `W` / `S` |
 | Stoß | Klick, Leertaste, Button |
 | Kamera wechseln (Queue-Ansicht ↔ freie Kamera) | `C` |
-| Freie Kamera | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter |
+| Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter |
 | Neu aufbauen | `R` |
 
 ## Regeln

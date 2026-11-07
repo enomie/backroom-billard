@@ -6,6 +6,12 @@
 /** Free camera (key C): movement speed in m/s and mouse-look sensitivity in rad per pixel. */
 export const FREE_CAM_SPEED = 2;
 export const FREE_CAM_LOOK_SENSITIVITY = 0.0025;
+/**
+ * Default pose of the free (observer) camera when it is first activated with C:
+ * a side view on the table and the lamps — deliberately NOT the active player's view.
+ */
+export const FREE_CAM_START_POSITION = [3.2, 2.1, 3.0];
+export const FREE_CAM_START_TARGET = [0, 1.7, 0];
 /** The free camera cannot go below this height (keeps it above the floor). */
 export const FREE_CAM_MIN_Y = 0.15;
 
