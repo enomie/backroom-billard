@@ -29,7 +29,6 @@ Maße sollen im Code als Parameter einstellbar sein.
 - **Farben:** außen **blau**, innen **golden**.
 - **Licht:** Kegel-Spot (cone light) mit **Softshadow**. Die Lichtkegel der drei Leuchten überlappen sich auf dem Tisch (siehe gestrichelte Linien in der Skizze).
 - **Anordnung:** nebeneinander in einer Reihe entlang der Tischlänge, Abstand 0,85 m (`LAMP_SPACING`).
-- **Draufsicht:** In der Draufsicht (Kamera über den Leuchten) sind die Lampenkörper ausgeblendet, das Licht bleibt an.
 
 ### Höhe als Parameter (umgesetzt)
 

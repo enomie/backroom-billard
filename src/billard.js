@@ -13,6 +13,11 @@ import {
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
+import {
+  FREE_CAM_SPEED,
+  FREE_CAM_LOOK_SENSITIVITY,
+  FREE_CAM_MIN_Y,
+} from "./room-constants.js";
 import { t, onLanguageChange } from "./i18n/index.js";
 import {
   PHYSICS_STEP,
@@ -49,7 +54,7 @@ const tableDimensions = {
 const pocketSpecs = createPocketSpecs(tableDimensions);
 
 // State
-let cameraMode = "fps"; // 'fps' oder 'overhead'
+let cameraMode = "fps"; // 'fps' (cue view) or 'free' (free fly camera)
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
 let aimPitch = 0.12;
 let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
@@ -85,7 +90,6 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 /** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
-let ceilingLamps = null; // lamp bodies + lights (ceiling-lamps.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 
 // Audio context for synthetic ball collision sounds
@@ -220,7 +224,7 @@ function setupLightingAndRoom() {
   scene.add(ambLight);
 
   // Three identical ceiling lamps above the table (parameters: room-constants.js)
-  ceilingLamps = createCeilingLamps(scene, TABLE_H);
+  createCeilingLamps(scene, TABLE_H);
 
   // Dark backroom floor
   const floor = new THREE.Mesh(
@@ -454,6 +458,7 @@ function setupControls() {
   window.addEventListener(
     "wheel",
     (e) => {
+      if (cameraMode !== "fps") return;
       // Scroll up (-deltaY) = more power, scroll down (+deltaY) = less power
       const delta = -Math.sign(e.deltaY) * 0.05;
       setPower(selectedPower + delta);
@@ -471,6 +476,14 @@ function setupControls() {
 
   // Mouse control (click & drag to aim, click without drag = shot)
   container.addEventListener("mousedown", (e) => {
+    if (cameraMode === "free") {
+      // Free camera: drag to look; a click also tries to capture the pointer
+      if (e.button === 0) {
+        freeLookDragging = true;
+        requestPointerLockSafe();
+      }
+      return;
+    }
     if (e.button === 0) {
       isMouseDown = true;
       totalDragDist = 0;
@@ -480,7 +493,8 @@ function setupControls() {
   });
 
   window.addEventListener("mouseup", () => {
-    if (isMouseDown) {
+    freeLookDragging = false;
+    if (isMouseDown && cameraMode === "fps") {
       // Mouse was only clicked briefly (no aim rotation) -> take the shot
       if (totalDragDist < 5) {
         fireCueStrike();
@@ -490,6 +504,15 @@ function setupControls() {
   });
 
   window.addEventListener("mousemove", (e) => {
+    if (cameraMode === "free") {
+      // Mouse look: pointer locked (relative movement) or while dragging
+      if (document.pointerLockElement || freeLookDragging) {
+        freeYaw -= e.movementX * FREE_CAM_LOOK_SENSITIVITY;
+        freePitch -= e.movementY * FREE_CAM_LOOK_SENSITIVITY;
+        freePitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, freePitch));
+      }
+      return;
+    }
     if (!isMouseDown) return;
     const dx = e.clientX - lastX;
     const dy = e.clientY - lastY;
@@ -503,8 +526,22 @@ function setupControls() {
     aimPitch = Math.max(0.04, Math.min(0.4, aimPitch + dy * 0.002));
   });
 
-  // Keyboard: arrow keys / A & D to aim, space to shoot
+  // Keyboard: C switches the camera, R resets; in cue view arrow keys / A & D aim and space
+  // shoots; in free camera mode WASD move, space goes up and shift goes down.
   window.addEventListener("keydown", (e) => {
+    heldKeys.add(e.code);
+    if (e.code === "KeyC" && !e.repeat) {
+      toggleCamera();
+      return;
+    }
+    if (e.code === "KeyR" && !e.repeat) {
+      setupBalls();
+      return;
+    }
+    if (cameraMode === "free") {
+      if (e.code === "Space") e.preventDefault(); // no page scroll / button activation
+      return;
+    }
     if (e.code === "ArrowLeft" || e.code === "KeyA") {
       aimAngle += 0.05;
     }
@@ -521,13 +558,9 @@ function setupControls() {
       e.preventDefault();
       if (!e.repeat) fireCueStrike();
     }
-    if (e.code === "KeyC") {
-      toggleCamera();
-    }
-    if (e.code === "KeyR") {
-      setupBalls();
-    }
   });
+  window.addEventListener("keyup", (e) => heldKeys.delete(e.code));
+  window.addEventListener("blur", () => heldKeys.clear());
 
   // Touch control for mobile
   let touchX = 0;
@@ -535,7 +568,7 @@ function setupControls() {
   container.addEventListener(
     "touchstart",
     (e) => {
-      if (e.touches.length === 1) {
+      if (cameraMode === "fps" && e.touches.length === 1) {
         touchX = e.touches[0].clientX;
         touchMoved = false;
       }
@@ -546,7 +579,7 @@ function setupControls() {
   container.addEventListener(
     "touchmove",
     (e) => {
-      if (e.touches.length === 1) {
+      if (cameraMode === "fps" && e.touches.length === 1) {
         const dx = e.touches[0].clientX - touchX;
         if (Math.abs(dx) > 3) touchMoved = true;
         touchX = e.touches[0].clientX;
@@ -558,7 +591,7 @@ function setupControls() {
 
   container.addEventListener("touchend", (e) => {
     e.preventDefault(); // prevents the additionally synthesized mouse events
-    if (!touchMoved) {
+    if (cameraMode === "fps" && !touchMoved) {
       fireCueStrike();
     }
   });
@@ -583,19 +616,66 @@ function setupControls() {
 
 function renderCameraLabel() {
   document.getElementById("cam-label").innerText = t(
-    cameraMode === "fps" ? "camera.fp" : "camera.top"
+    cameraMode === "fps" ? "camera.fp" : "camera.free"
   );
 }
 
+/** Free camera view angles (radians); the camera position itself is `camera.position`. */
+let freeYaw = 0;
+let freePitch = 0;
+let freeLookDragging = false;
+/** Currently held keys (KeyboardEvent.code) for the free camera movement. */
+const heldKeys = new Set();
+
+function requestPointerLockSafe() {
+  try {
+    const result = renderer.domElement.requestPointerLock?.();
+    if (result && typeof result.catch === "function") result.catch(() => {});
+  } catch {
+    /* pointer lock unavailable — dragging with the mouse still looks around */
+  }
+}
+
 function toggleCamera() {
-  cameraMode = cameraMode === "fps" ? "overhead" : "fps";
+  cameraMode = cameraMode === "fps" ? "free" : "fps";
+  const free = cameraMode === "free";
+
+  if (free) {
+    // Start the free camera exactly where the cue camera currently is
+    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
+    freeYaw = euler.y;
+    freePitch = euler.x;
+    requestPointerLockSafe();
+  } else {
+    freeLookDragging = false;
+    if (document.pointerLockElement) document.exitPointerLock();
+  }
+
   renderCameraLabel();
-  document.getElementById("aim-crosshair").style.display =
-    cameraMode === "fps" ? "flex" : "none";
-  cueStickPivot.visible = cameraMode === "fps";
-  aimLine.visible = cameraMode === "fps";
-  // The top-view camera hangs above the lamps: hide the lamp bodies there (lights stay on)
-  ceilingLamps.setMeshesVisible(cameraMode === "fps");
+  document.getElementById("aim-crosshair").style.display = free ? "none" : "flex";
+  cueStickPivot.visible = !free;
+  aimLine.visible = !free;
+}
+
+/** Move and rotate the free camera: WASD, space = up, shift = down, mouse look. */
+function updateFreeCamera(dt) {
+  camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
+
+  const forward = new THREE.Vector3(-Math.sin(freeYaw), 0, -Math.cos(freeYaw));
+  const right = new THREE.Vector3(Math.cos(freeYaw), 0, -Math.sin(freeYaw));
+  const move = new THREE.Vector3();
+  if (heldKeys.has("KeyW")) move.add(forward);
+  if (heldKeys.has("KeyS")) move.sub(forward);
+  if (heldKeys.has("KeyD")) move.add(right);
+  if (heldKeys.has("KeyA")) move.sub(right);
+  if (heldKeys.has("Space")) move.y += 1;
+  if (heldKeys.has("ShiftLeft") || heldKeys.has("ShiftRight")) move.y -= 1;
+
+  if (move.lengthSq() > 0) {
+    move.normalize().multiplyScalar(FREE_CAM_SPEED * dt);
+    camera.position.add(move);
+    camera.position.y = Math.max(FREE_CAM_MIN_Y, camera.position.y);
+  }
 }
 
 /* ====================================================
@@ -775,7 +855,8 @@ let lastTime = performance.now();
 function gameLoop(currentTime) {
   requestAnimationFrame(gameLoop);
 
-  const dt = Math.min((currentTime - lastTime) / 1000, 0.033);
+  const frameSeconds = (currentTime - lastTime) / 1000;
+  const dt = Math.min(frameSeconds, 0.033);
   lastTime = currentTime;
 
   // Physics step
@@ -822,9 +903,8 @@ function gameLoop(currentTime) {
       cueBall.pos.y,
       cueBall.pos.z - Math.cos(aimAngle) * 1.8
     );
-  } else if (cameraMode === "overhead") {
-    camera.position.lerp(new THREE.Vector3(0, TABLE_H + 2.6, 0.01), 0.08);
-    camera.lookAt(0, TABLE_H, 0);
+  } else if (cameraMode === "free") {
+    updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
   }
 
   renderer.render(scene, camera);

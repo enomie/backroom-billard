@@ -27,7 +27,7 @@ import {
 /**
  * @param {THREE.Scene} scene
  * @param {number} tableTopY — felt surface height, the light targets point here
- * @returns {{ group: THREE.Group, setMeshesVisible: (visible: boolean) => void }}
+ * @returns {{ group: THREE.Group }}
  */
 export function createCeilingLamps(scene, tableTopY) {
   const group = new THREE.Group();
@@ -54,9 +54,6 @@ export function createCeilingLamps(scene, tableTopY) {
   const cableGeo = new THREE.CylinderGeometry(0.006, 0.006, LAMP_CABLE_LENGTH, 8);
   const cableMat = new THREE.MeshStandardMaterial({ color: LAMP_COLOR_CABLE, roughness: 0.8 });
 
-  /** @type {THREE.Mesh[]} */
-  const meshes = [];
-
   for (let i = 0; i < LAMP_COUNT; i++) {
     const z = (i - (LAMP_COUNT - 1) / 2) * LAMP_SPACING;
 
@@ -74,7 +71,6 @@ export function createCeilingLamps(scene, tableTopY) {
     cable.position.y = LAMP_SHADE_HEIGHT + LAMP_CABLE_LENGTH / 2;
     lamp.add(cable);
 
-    meshes.push(outside, inside, cable);
     group.add(lamp);
 
     // Spot light inside the shade, pointing straight down onto the table
@@ -94,11 +90,5 @@ export function createCeilingLamps(scene, tableTopY) {
 
   scene.add(group);
 
-  return {
-    group,
-    /** Hide/show only the lamp bodies (the lights stay on), e.g. for the top view. */
-    setMeshesVisible(visible) {
-      meshes.forEach((m) => (m.visible = visible));
-    },
-  };
+  return { group };
 }

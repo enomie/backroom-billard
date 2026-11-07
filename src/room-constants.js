@@ -3,6 +3,12 @@
  * Heights are measured above the floor (y = 0).
  */
 
+/** Free camera (key C): movement speed in m/s and mouse-look sensitivity in rad per pixel. */
+export const FREE_CAM_SPEED = 2;
+export const FREE_CAM_LOOK_SENSITIVITY = 0.0025;
+/** The free camera cannot go below this height (keeps it above the floor). */
+export const FREE_CAM_MIN_Y = 0.15;
+
 /** Number of identical ceiling lamps above the table (arranged along the table length). */
 export const LAMP_COUNT = 3;
 
