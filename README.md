@@ -18,7 +18,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (10°–80° über dem Tisch); `A` / `D` oder Pfeile links/rechts |
 | Kraft (1-%-Schritte) | Mausrad, `W` / `S` oder Pfeil hoch/runter, vertikaler farbiger Slider rechts (auch per Touch) |
 | Stoß | Klick, Leertaste oder der SHOOT-Button unten in der Mitte |
-| Kamera wechseln (Queue-Ansicht ↔ freie Kamera) | `C` |
+| Kamera wechseln (Queue-Ansicht ↔ freie Kamera) | `C` oder der Button unten links |
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
 | Neu aufbauen | `R` |
 

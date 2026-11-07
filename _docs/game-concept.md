@@ -14,7 +14,8 @@ Ein Multiplayer-Billard in einem verrauchten Billardcafé der 80er. Für **alle 
 | **Zuschauer / Anwärter** | Alle anderen betreten den Raum, ohne Limit. |
 
 - Zuschauer erscheinen als **Gesicht**: eine Kugel mit Nase und zwei Augen (à la Pinocchio).
-- Zuschauer haben eine **freie Kamera** zum Herumfliegen, kommen aber **nicht ganz nah an den Tisch**, damit sie die Spieler nicht stören.
+- Zuschauer haben eine **freie Kamera** zum Herumfliegen, kommen aber **nicht ganz nah an den Tisch**: **mindestens 2 m Abstand zur Tischkante**, damit sie die Spieler nicht stören.
+- **Spieler** dürfen mit ihrer freien Kamera (`C`) dicht an den Tisch. Den Button zum Kamerawechsel (unten links) sehen nur Spieler.
 
 ## Tischwette (wer spielt als Nächstes)
 

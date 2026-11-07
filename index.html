@@ -37,10 +37,6 @@
 
         <div class="hud-actions interactive">
           <div id="lang-switch" class="lang-switch" role="group" data-i18n-aria-label="lang.label" aria-label="Language"></div>
-          <button id="btn-camera" type="button" class="btn btn--camera">
-            <span data-i18n="camera.label">Camera:</span>
-            <span id="cam-label" class="btn__emphasis">Cue view</span>
-          </button>
           <button id="btn-reset" type="button" class="btn btn--reset" data-i18n="button.rerack">
             Re-rack
           </button>
@@ -54,34 +50,11 @@
       </div>
 
       <footer class="hud-footer">
-        <div class="help-panel interactive">
-          <div class="help-panel__title">
-            <svg
-              class="icon icon--sm"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              ></path>
-            </svg>
-            <span data-i18n="help.title">Controls</span>
-          </div>
-          <ul class="help-panel__list">
-            <li>• <b data-i18n="help.aim.keys">Drag mouse / [A][D]:</b> <span data-i18n="help.aim.text">Aim</span></li>
-            <li>• <b data-i18n="help.power.keys">Mouse wheel:</b> <span data-i18n="help.power.text">Adjust shot power in 1 % steps</span></li>
-            <li>• <b data-i18n="help.shoot.keys">Click / [Space]:</b> <span data-i18n="help.shoot.text">Shoot the cue ball</span></li>
-            <li>
-              • <b data-i18n="help.camera.keys">[C]:</b> <span data-i18n="help.camera.text">Switch camera</span> |
-              <b data-i18n="help.reset.keys">[R]:</b> <span data-i18n="help.reset.text">Reset</span>
-            </li>
-            <li>• <b data-i18n="help.free.keys">Free camera:</b> <span data-i18n="help.free.text">WASD move, Space up, Shift down, mouse look</span></li>
-          </ul>
+        <div class="footer-actions interactive">
+          <button id="btn-camera" type="button" class="btn btn--camera">
+            <span data-i18n="camera.label">Camera:</span>
+            <span id="cam-label" class="btn__emphasis">Cue view</span>
+          </button>
         </div>
       </footer>
 
