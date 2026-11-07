@@ -1,92 +1,46 @@
 # Billiard — Le Salon Noir
 
-Ein **nettes, simples Billard-Spiel** im Browser: 3D-Tisch, First-Person-Ansicht zum Zielen, klare Bedienung — gedacht für **Desktop und Mobile**.
+3D-Billard im Browser (Three.js + Rapier): First-Person-Queue zum Zielen, echter 9-Fuß-Tisch, Kugeln mit Schwerkraft, die selbst ins Loch fallen.
 
-Ziel ist kein Simulationstitel mit Regelwerk à la Turnier, sondern ein entspanntes Spielgefühl: Tisch, Kugeln, Stoß, Physik — schnell verständlich auf Maus/Tastatur und auf Touch.
-
-## Stand & Richtung
-
-- **Aktuell:** Prototyp mit Three.js (Szene, Tisch, CSG-Taschen, einfache Kugelphysik), Salon-UI ohne Framework-Overhead.
-- **Geplant:** Stabile Physik (Rapier SIMD), touch-taugliche Steuerung, Polish für kleine und große Screens.
-- **Plattformen:** Moderne Browser auf Desktop, Tablet und Smartphone (Portrait/Landscape).
-
-## Projektaufbau
-
-**Root** (Vite-Einstieg, keine Spiel-Logik):
-
-| Teil | Rolle |
-|------|--------|
-| `index.html` / `style.css` | Seite und HUD |
-| `vite.config.js` | Dev-Server Port 8181, WASM/Rapier, CSG-Brush-Alias |
-| `favicon.ico` | Favicon |
-| `_docs/` | Konzept & Maße (siehe unten) |
-| `_Scripts/_BACKUP/` | Backup-Skript (`npm run backup`) |
-
-**`src/`** — gesamter Spiel- und Tisch-Code:
-
-| Datei | Rolle |
-|-------|--------|
-| `entry.js` | Einstieg: Three.js, dynamisches Laden der Spielmodule, Rapier **lazy** |
-| `billiard.js` | Spiel, Kamera, Steuerung, Physik (provisorisch) |
-| `table-constants.js` | WPA 9-Fuß-Maße (Spielfeld, Kugel, Bande, Taschen) |
-| `pocket-spec.js` | Taschen-Specs, Versenken, Debug-Wireframes |
-| `table-csg.js` | Boolean Union + Taschen-Subtract (`three-bvh-csg`) |
-| `csg-brush.js` | CSG-`Brush` (Alias für `three-bvh-csg`) |
-| `table-blueprint.js` | Tisch-Rohling → CSG-Mesh, Beine |
-| `physics-rapier.js` | Helfer für geplante Rapier-Migration (noch nicht im Boot) |
-| `structure.md` | Automatischer Verzeichnisbaum von `src/` (via Backup-Skript) |
-
-Aktueller Baum: siehe [`src/structure.md`](src/structure.md).
-
-**Dokumentation**
-
-| Datei | Inhalt |
-|-------|--------|
-| `_docs/holes.md` | Taschen-Konzept & CSG |
-| `_docs/measurements.md` | Tischzonen und Referenzmaße |
-| `_docs/physics.md` | Physik-Parameter und Rapier-Richtung |
-
-Stack: **Vite**, **Three.js**, **three-bvh-csg**, **@dimforge/rapier3d-simd** (lazy geladen; Migration der Laufzeitphysik folgt).
-
-## Entwicklung
+## Starten
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:8181/
 ```
 
-Im Browser: **http://localhost:8181/**
+Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.config.js`.
 
-Produktions-Build:
+## Steuerung
 
-```bash
-npm run build
-npm run preview
-```
+| Aktion | Eingabe |
+|--------|---------|
+| Zielen | Maus ziehen, `A` / `D` oder Pfeile |
+| Kraft | Mausrad, Slider, `W` / `S` |
+| Stoß | Klick, Leertaste, Button |
+| Kamera / Reset | `C` / `R` |
 
-Port **8181** ist in `vite.config.js` festgelegt. Bei `Address already in use` den anderen Prozess beenden oder den Port anpassen. Server stoppen: `Ctrl+C`.
+## Aufbau
 
-Nach Änderungen an Skripten oder CSS ggf. Hard-Reload (**Cmd+Shift+R**).
+| Datei (`src/`) | Rolle |
+|----------------|-------|
+| `entry.js` | Einstieg: lädt Three.js, Rapier, dann die Spielmodule |
+| `billiard.js` | Szene, Kugeln, Steuerung, Kamera, Spielschleife |
+| `table-constants.js` | Alle Tischmaße (WPA 9 Fuß) |
+| `table-blueprint.js` | Tisch bauen: Platte, Banden, Holz, Becher |
+| `pocket-spec.js` | Taschen-Maße, Bandenspitzen, Becher-Maße |
+| `table-csg.js`, `csg-brush.js` | Löcher per Boolean-Operation ausschneiden |
+| `physics-world.js` | Rapier-Welt, Collider aus der gerenderten Geometrie |
+| `physics-rapier.js` | Kugel-Körper, Trimesh-Helfer |
+| `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
 
-### Backup
+Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
 
-```bash
-npm run backup                              # src/ + Root-Snapshot
-npm run backup -- vor-rapier                # optionales Suffix im Ordnernamen
-npm run backup:structure                    # nur src/structure.md aktualisieren
-npm run backup:all                          # zusätzlich public/ (Ordner muss existieren)
-```
+## Weiterführend
 
-Speicherort: `.backups/backup-YYYYMMDDHHMMSS[-suffix]/`
+- [`_docs/table.md`](_docs/table.md) — Maße und Geometrie von Tisch, Bande und Taschen
+- [`_docs/physics.md`](_docs/physics.md) — Physik-Modell und Stellschrauben
 
-- Vollständige Kopie von **`src/`**
-- Zusätzlich aus dem Root: `index.html`, `style.css`, `vite.config.js`, `package.json`, `package-lock.json`, `README.md`, `favicon.ico`
+## Backup
 
-## Steuerung (Prototyp)
-
-- **Zielen:** Maus ziehen oder `A` / `D`
-- **Kraft:** Mausrad oder Slider
-- **Stoß:** Klick, Leertaste oder Stoß-Button
-- **Kamera / Reset:** `C` bzw. `R` (oder Buttons im HUD)
-
-Mobile-spezifische Gesten kommen mit dem geplanten Touch-UI dazu.
+`npm run backup` kopiert `src/` und die Root-Dateien nach `.backups/` (nicht im Repo). `npm run backup:structure` aktualisiert `src/structure.md`.
