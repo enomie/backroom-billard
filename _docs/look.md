@@ -18,7 +18,7 @@ Ein geschlossener Raum mit **Boden, 4 Wänden und Decke**, proportional zum Tisc
 | Wandvertäfelung | **Glänzendes Holz** (Mahagoni, Klarlack) bis **1,80 m** (`WAINSCOT_HEIGHT`): gerahmte Füllungen (0,8 m breit), unten Fußleiste, oben eine **Abschlussleiste mit Profil** (Platte, Wulst, Rundung). Radio und Sideboard halten den Abstand `WAINSCOT_PROTRUSION`. |
 | Wände (darüber) | **Creme-Gelb** („verrauchtes Weiß“), nach oben hin dunkler (Rauch sammelt sich an der Decke) |
 
-Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera bleibt im Raum.
+Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera geht nicht unter die Tischplatte (`FREE_CAM_MIN_Y`) und hält 1 m Abstand zu Wänden und Decke (`FREE_CAM_ROOM_MARGIN`).
 
 ## Deckenleuchten
 

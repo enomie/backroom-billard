@@ -2,6 +2,7 @@
  * Room and lighting parameters (meters). See _docs/look.md.
  * Heights are measured above the floor (y = 0).
  */
+import { TABLE_H } from "./table-constants.js";
 
 /** Free camera (key C): movement speed in m/s and mouse-look sensitivity in rad per pixel. */
 export const FREE_CAM_SPEED = 2;
@@ -29,8 +30,8 @@ export const FP_CAM_FOCUS_RATE = 8;
 /** The cue camera returns to the shot position once the table has been still for this long (s). */
 export const SHOT_REST_DELAY = 0.4;
 
-/** The free camera cannot go below this height (keeps it above the floor). */
-export const FREE_CAM_MIN_Y = 0.15;
+/** The free camera cannot go below the table top. */
+export const FREE_CAM_MIN_Y = TABLE_H;
 
 /** Number of identical ceiling lamps above the table (arranged along the table length). */
 export const LAMP_COUNT = 3;
@@ -109,8 +110,8 @@ export const FOG_FAR = 12;
 export const ROOM_AMBIENT_COLOR = 0x3d342a;
 export const ROOM_AMBIENT_INTENSITY = 0.9;
 
-/** The free camera stays inside the room, this far away from the walls/ceiling. */
-export const FREE_CAM_ROOM_MARGIN = 0.2;
+/** The free camera keeps this distance (m) from the walls and the ceiling. */
+export const FREE_CAM_ROOM_MARGIN = 1;
 
 /* ---- Wall lamps: subtle cone lights on a bracket, pointing down ------------------------------
  * Same shade as the ceiling lamps (blue outside, golden inside), just smaller. */
