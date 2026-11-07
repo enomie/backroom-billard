@@ -1,7 +1,7 @@
 /**
  * Cue animation while the balls roll (and while flying with the free camera): the cue is held
  * relaxed in front of the player — the butt end at the bottom of the screen, the tip above it,
- * leaning to the right (~30° from vertical on screen). Positions are relative to the camera
+ * almost upright, leaning slightly to the right (~8° from vertical on screen). Positions are relative to the camera
  * (meters, the camera looks along −z).
  */
 
@@ -11,10 +11,10 @@ export const CUE_FOLLOW_THROUGH_TIME = 0.35;
 export const CUE_RELAX_TIME = 0.9;
 export const CUE_RETURN_TIME = 0.6;
 
-/** Tip position in camera space: right, up, forward (negative z) — upper right of the screen center. */
-export const CUE_CARRY_TIP = [0.3, 0.05, -1.4];
-/** Direction from the tip towards the butt: towards the player, down and to the left. */
-export const CUE_CARRY_DIRECTION = [-0.27, -0.2, 0.94];
+/** Tip position in camera space: right, up, forward (negative z) — close to the camera, upper right. */
+export const CUE_CARRY_TIP = [0.28, 0.3, -0.9];
+/** Direction from the tip towards the butt: mostly down, slightly towards the player and to the left. */
+export const CUE_CARRY_DIRECTION = [-0.2, -0.96, 0.2];
 
 /** Gentle idle sway of the held cue (radians, rad/s). */
 export const CUE_SWAY_AMPLITUDE = 0.03;
