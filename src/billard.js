@@ -13,6 +13,7 @@ import {
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
+import { captureRoomReflection, applyBallReflection } from "./ball-reflection.js";
 import { createRoom } from "./room.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
@@ -147,6 +148,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 /** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
+let ballReflection = null; // captured room reflection used by the ball materials
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 
@@ -213,6 +215,9 @@ function init() {
     TABLE_H,
     FELT_BED_DEPTH
   );
+
+  // 2.5c Room reflection for the balls (captured before balls and cue exist)
+  ballReflection = captureRoomReflection(renderer, scene);
 
   // 2.6 Initialize balls
   setupBalls();
@@ -298,6 +303,7 @@ function setupBalls() {
       clearcoatRoughness: 0.03,
       reflectivity: 0.98,
     });
+    applyBallReflection(mat, ballReflection);
     const mesh = new THREE.Mesh(sphereGeo, mat);
     mesh.castShadow = true;
     mesh.receiveShadow = true;

@@ -22,7 +22,11 @@ import {
   LAMP_LIGHT_DISTANCE,
   LAMP_SHADOW_MAP_SIZE,
   LAMP_SHADOW_RADIUS,
+  LAMP_REFLECTION_GLOW,
 } from "./room-constants.js";
+
+/** Layer of objects that only the reflection capture sees (ball-reflection.js). */
+export const REFLECTION_LAYER = 1;
 
 /** Blue outside / golden inside shade materials, shared by the ceiling and the wall lamps. */
 export function createLampShadeMaterials() {
@@ -57,6 +61,15 @@ export function createCeilingLamps(scene, tableTopY) {
   // Shared geometry and materials: all lamps are identical
   const shadeGeo = new THREE.ConeGeometry(LAMP_SHADE_RADIUS, LAMP_SHADE_HEIGHT, 48, 1, true);
   const { outside: outsideMat, inside: insideMat } = createLampShadeMaterials();
+  // Lit opening of the shade: a bright disc that only the reflection capture sees
+  const glowRadius = LAMP_SHADE_RADIUS * (1 - 0.03 / LAMP_SHADE_HEIGHT) * 0.95;
+  const glowGeo = new THREE.CircleGeometry(glowRadius, 48);
+  glowGeo.rotateX(Math.PI / 2); // faces down
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(LAMP_LIGHT_COLOR).multiplyScalar(LAMP_REFLECTION_GLOW),
+    toneMapped: false,
+    fog: false,
+  });
   const cableGeo = new THREE.CylinderGeometry(0.006, 0.006, LAMP_CABLE_LENGTH, 8);
   const cableMat = new THREE.MeshStandardMaterial({ color: LAMP_COLOR_CABLE, roughness: 0.8 });
 
@@ -70,7 +83,10 @@ export function createCeilingLamps(scene, tableTopY) {
     const outside = new THREE.Mesh(shadeGeo, outsideMat);
     const inside = new THREE.Mesh(shadeGeo, insideMat);
     outside.position.y = inside.position.y = LAMP_SHADE_HEIGHT / 2;
-    lamp.add(outside, inside);
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    glow.position.y = 0.03;
+    glow.layers.set(REFLECTION_LAYER);
+    lamp.add(outside, inside, glow);
 
     // Cable from the apex upwards; it moves with the lamp, so it always reaches the ceiling
     const cable = new THREE.Mesh(cableGeo, cableMat);

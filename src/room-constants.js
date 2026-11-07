@@ -53,6 +53,15 @@ export const LAMP_COLOR_OUTSIDE = 0x1d4ed8;
 export const LAMP_COLOR_INSIDE = 0xd4a017;
 export const LAMP_COLOR_CABLE = 0x050505;
 
+/**
+ * Reflections in the balls (ball-reflection.js): the room is captured once as a cube map. The lit
+ * opening of each ceiling lamp is drawn as a bright disc that only the capture sees (glow = HDR
+ * brightness factor), so the lamps show as clear highlights without making the room brighter.
+ */
+export const BALL_REFLECTION_SIZE = 256;
+export const BALL_REFLECTION_INTENSITY = 1;
+export const LAMP_REFLECTION_GLOW = 14;
+
 /** Spot light of each lamp. */
 export const LAMP_LIGHT_COLOR = 0xffd9a0;
 export const LAMP_LIGHT_INTENSITY = 4.6;

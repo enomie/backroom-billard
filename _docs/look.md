@@ -37,6 +37,13 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
 
+## Spiegelungen in den Kugeln (umgesetzt)
+
+- **Prinzip:** Beim Start wird der Raum einmal als Würfel-Karte aufgenommen (Tischmitte, Kugelhöhe, noch ohne Kugeln und Cue, HDR). Nur die Kugel-Materialien benutzen sie (`ball-reflection.js`), und zwar nur als Spiegelung, nicht als Licht: Die Kugeln werden dadurch nicht heller.
+- **Lampenflecken:** Die Öffnung jeder Deckenleuchte ist in der Aufnahme eine helle Scheibe (`LAMP_REFLECTION_GLOW`), die sonst niemand sieht. Auf jeder Kugel erscheinen die drei Lampen deutlich als helle Flecken.
+- **Perspektive:** Die Karte wird wie ein Kasten um den Tisch gelesen (Wände echt, Boden auf Filzhöhe, Decke auf Lampenhöhe), damit die Lampen für jede Kugel an der richtigen Stelle erscheinen.
+- **Nicht dabei:** Kugeln spiegeln sich nicht gegenseitig; Holz und Rahmen spiegeln den Raum nicht.
+
 ## Wandleuchten (umgesetzt)
 
 Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in `src/room-constants.js`):
