@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { buildTableWithPocketsCSG } from "./table-csg.js";
-import { cushionTipOffsets } from "./pocket-spec.js";
+import { cushionTipOffsets, pocketCupDims } from "./pocket-spec.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
   CUSHION_PROFILE_FACE_RECESS,
@@ -168,6 +168,9 @@ export function buildAuthenticTableWithHoles(
   /** @type {THREE.Mesh[]} */
   const cushionMeshes = [];
 
+  /** Welt-Geometrien für die Physik (Rapier-Trimesh) — exakt das, was gerendert wird. */
+  const colliderGeometries = { table: null, rubber: [] };
+
   const bedMesh = new THREE.Mesh(bedGeo, feltMat);
   bedMesh.receiveShadow = true;
   csgBaseMeshes.push(bedMesh);
@@ -286,6 +289,7 @@ export function buildAuthenticTableWithHoles(
       pocketLinerMat
     );
     scene.add(tableMesh);
+    colliderGeometries.table = tableMesh.geometry;
     for (const m of csgBaseMeshes) {
       m.geometry.dispose();
     }
@@ -293,6 +297,7 @@ export function buildAuthenticTableWithHoles(
     // Banden enden an den Spitzen selbst (keine CSG nötig)
     for (const rubber of cushionMeshes) {
       scene.add(rubber);
+      colliderGeometries.rubber.push(rubber.geometry);
     }
 
     // Taschenbecher (rund) beginnt direkt unter der 5-mm-Spielplatte, steht nirgends über
@@ -302,13 +307,12 @@ export function buildAuthenticTableWithHoles(
       side: THREE.BackSide,
     });
     for (const spec of pocketSpecs) {
-      const yTopCup = TABLE_H - feltDepth;
-      const cupH = yTopCup - spec.yBottom;
+      const c = pocketCupDims(spec, TABLE_H, feltDepth);
       const cup = new THREE.Mesh(
-        new THREE.CylinderGeometry(spec.radius, spec.radius * 0.9, cupH, 48, 1, false),
+        new THREE.CylinderGeometry(c.rTop, c.rBottom, c.height, 48, 1, false),
         cupMat
       );
-      cup.position.set(spec.center[0], spec.yBottom + cupH / 2, spec.center[2]);
+      cup.position.set(c.cx, c.yBottom + c.height / 2, c.cz);
       cup.name = `pocket-cup-${spec.id}`;
       scene.add(cup);
     }
@@ -334,6 +338,8 @@ export function buildAuthenticTableWithHoles(
     leg.castShadow = true;
     scene.add(leg);
   });
+
+  return colliderGeometries;
 }
 
 window.BilliardTableBlueprint = {

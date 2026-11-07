@@ -43,6 +43,26 @@ export function cushionTipOffsets(dims = POCKET_DIM_DEFAULTS) {
 }
 
 /**
+ * Maße des Taschenbechers (Auffänger) unter der Spielplatte — gemeinsam für Optik und Physik.
+ *
+ * @param {{ center: number[]; radius: number; yBottom: number }} spec
+ * @param {number} tableH
+ * @param {number} feltDepth — Dicke der Spielplatte
+ */
+export function pocketCupDims(spec, tableH, feltDepth) {
+  const yTop = tableH - feltDepth;
+  return {
+    cx: spec.center[0],
+    cz: spec.center[2],
+    rTop: spec.radius,
+    rBottom: spec.radius * 0.9,
+    yTop,
+    yBottom: spec.yBottom,
+    height: yTop - spec.yBottom,
+  };
+}
+
+/**
  * Erzeugt die verbindlichen PocketSpecs für CSG-Ausschnitte und Versenk-Checks.
  *
  * @param {Object} table

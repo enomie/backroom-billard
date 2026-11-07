@@ -37,7 +37,8 @@ export function createBallPhysics(RAPIER, world, position, ballRadius) {
     .setTranslation(position.x, position.y, position.z)
     .setLinearDamping(LINEAR_DAMPING)
     .setAngularDamping(ANGULAR_DAMPING)
-    .setCcdEnabled(true);
+    .setCcdEnabled(true)
+    .setCanSleep(false); // Ruhezustand steuert das Spiel selbst (siehe stepPhysics)
 
   const body = world.createRigidBody(bodyDesc);
 
@@ -52,4 +53,35 @@ export function createBallPhysics(RAPIER, world, position, ballRadius) {
   const collider = world.createCollider(colliderDesc, body);
 
   return { body, collider };
+}
+
+/**
+ * Dreiecksnetz-Collider direkt aus einer (Welt-)Geometrie des Visuellen.
+ *
+ * @param {import("@dimforge/rapier3d-simd").default} RAPIER
+ * @param {import("three").BufferGeometry} geometry — Welt-Koordinaten, ggf. nicht indiziert
+ */
+export function trimeshDescFromGeometry(RAPIER, geometry) {
+  const pos = geometry.attributes.position;
+  const vertices = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    vertices[i * 3] = pos.getX(i);
+    vertices[i * 3 + 1] = pos.getY(i);
+    vertices[i * 3 + 2] = pos.getZ(i);
+  }
+  let indices;
+  if (geometry.index) {
+    indices = Uint32Array.from(geometry.index.array);
+  } else {
+    indices = new Uint32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) indices[i] = i;
+  }
+  const F = RAPIER.TriMeshFlags;
+  return RAPIER.ColliderDesc.trimesh(
+    vertices,
+    indices,
+    // Innenkanten korrigieren (sonst „Geisterkanten“: rollende Kugel wird seitlich abgelenkt),
+    // beidseitig, weil Kugeln im Taschenbecher die Wand von innen treffen
+    F.FIX_INTERNAL_EDGES_TWO_SIDED
+  );
 }

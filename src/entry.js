@@ -1,5 +1,5 @@
 /**
- * NPM-Einstieg: Three.js zuerst, dann Spielskripte; Rapier lazy (noch ohne Physik).
+ * NPM-Einstieg: Three.js zuerst, dann Spielskripte; Rapier vor den Spielskripten.
  */
 import * as THREE from "three";
 
@@ -7,6 +7,9 @@ window.THREE = THREE;
 
 async function boot() {
   try {
+    // Rapier zuerst (Kollisionskörper werden aus der Tisch-Geometrie gebaut)
+    const mod = await import("@dimforge/rapier3d-simd");
+    window.RAPIER = mod.default;
     await import("./table-blueprint.js");
     await import("./billiard.js");
   } catch (err) {
@@ -16,14 +19,6 @@ async function boot() {
     const dot = document.getElementById("status-dot");
     if (dot) dot.className = "status-dot status-dot--moving";
   }
-
-  import("@dimforge/rapier3d-simd")
-    .then((mod) => {
-      window.RAPIER = mod.default;
-    })
-    .catch((err) => {
-      console.warn("[Billiard] Rapier (SIMD) optional nicht geladen:", err);
-    });
 }
 
 boot();

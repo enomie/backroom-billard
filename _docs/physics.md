@@ -37,17 +37,19 @@ Damit die Bandenkollision mathematisch stimmt, müssen die Kugeln (`RAPIER.Rigid
 
 ---
 
-### 4. Implementierung im Repo
+### 4. Implementierung im Repo (Rapier, Schritt 2)
 
 | Datei | Nutzung |
 |-------|---------|
-| `src/physics-constants.js` | Alle Werte + `CUSHION_COLLISION_RESTITUTION` (Multiply), `BALL_BALL_RESTITUTION`, `CUSHION_IMPACT_FRICTION` (Average) |
-| `src/billiard.js` | Sub-Steps 240 Hz; Kugel–Kugel **6× Relaxation**/Substep + Baumgarte; Dämpfung **nach** Sub-Steps; Sleep nur ohne Nachbar-Überlapp |
-| `src/physics-rapier.js` | Fabriken für spätere Rapier-Migration (`createCushionColliderDesc`, `createBallPhysics`) |
+| `src/physics-constants.js` | Alle Werte (Bande, Kugel, Platte, Becher, Ruhegrenzen, 240-Hz-Schritt) |
+| `src/physics-rapier.js` | `createBallPhysics`, `trimeshDescFromGeometry` (Flag `FIX_INTERNAL_EDGES_TWO_SIDED`, sonst lenken Geisterkanten rollende Kugeln ab) |
+| `src/physics-world.js` | Welt: Collider **direkt aus der gerenderten Geometrie** (Platte mit runden Löchern + Holz, Bandenstücke mit Nase/Facetten, Becherwand + -boden), Schwerkraft |
+| `src/billiard.js` | Fester 240-Hz-Schritt (Akkumulator), Stoß = Impuls durch den Kugelmittelpunkt, Rendern aus dem Rapier-Körper |
 
-`TABLE_RESTITUTION` / `TABLE_FRICTION` gelten für künftigen Filz-Collider (Rapier), nicht für die 2D-Gleitphysik.
+**Versenken:** Eine Kugel zählt erst, wenn sie den **Becherboden** trifft (Kollisionsevent des Bodens). Vorher fällt sie rein physikalisch über die Lochkante.
+Die Kugel bleibt im Becher liegen; die weiße Kugel wird nach 600 ms auf einem freien Platz neu aufgelegt.
 
----
+**Ruhe:** Rapier-Sleeping ist aus; unter `REST_LINEAR_SPEED` / `REST_SURFACE_SPEED` setzt das Spiel die Geschwindigkeiten auf 0.
 
 ### 5. Code-Snippet für Rapier.js
 

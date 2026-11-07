@@ -6,16 +6,17 @@ import {
   TABLE_H,
   BALL_RADIUS_REAL,
   CUSHION_NOSE_TO_BED,
-  CUSHION_BALL_CONTACT_R,
   CUSHION_PROFILE_WIDTH,
   RAIL_WOOD_DEPTH,
   FELT_BED_DEPTH,
 } from "./table-constants.js";
+import { createPocketSpecs, addPocketDebugMeshes } from "./pocket-spec.js";
+import { createPhysicsWorld } from "./physics-world.js";
 import {
-  createPocketSpecs,
-  checkPocketSink,
-  addPocketDebugMeshes,
-} from "./pocket-spec.js";
+  PHYSICS_STEP,
+  REST_LINEAR_SPEED,
+  REST_SURFACE_SPEED,
+} from "./physics-constants.js";
 
 /** @type {typeof import("three")} */
 const THREE = window.THREE;
@@ -27,14 +28,15 @@ if (!THREE) {
    1. GLOBALE VARIABLEN & KONSTANTEN
 ==================================================== */
 let scene, camera, renderer;
-let balls = []; // { mesh, pos, vel, radius, isCue, id, inPocket }
+let balls = []; // { mesh, body, collider, pos, vel, radius, isCue, id, inPocket }
+/** @type {Map<number, object>} Collider-Handle → Kugel */
+const ballByCollider = new Map();
 let cueBall = null;
 let cueStickPivot, cueStickMesh, aimLine;
 
 // Tisch-Parameter (WPA 9-Fuß) → table-constants.js
 const CUSHION_H = CUSHION_NOSE_TO_BED;
 const BALL_R = BALL_RADIUS_REAL;
-const CUSHION_RESTITUTION = 0.82;
 
 const tableDimensions = {
   playW: PLAY_W,
@@ -59,7 +61,8 @@ let isCueMoving = false;
 let cueStrikeAnim = 0; // Für visuelle Vorstoß-Animation
 let cueRespawnTimer = null; // Timer für das Wiederaufstellen der weißen Kugel
 let lastShotTime = 0; // Schutz gegen doppelt ausgelöste Stöße
-const PHYSICS_STEP = 1 / 240; // max. Zeitschritt der Physik (verhindert Durchfliegen)
+let physics = null; // Rapier-Welt (physics-world.js)
+let physicsAcc = 0; // Zeit-Akkumulator für feste Physik-Schritte
 
 // Audio-Context für synthetische Kugel-Kollisionsgeräusche
 let audioCtx = null;
@@ -136,12 +139,25 @@ function init() {
     railThick: RAIL_WOOD_DEPTH,
     feltDepth: FELT_BED_DEPTH,
   };
-  window.BilliardTableBlueprint.buildAuthenticTableWithHoles(
-    scene,
-    tableDims,
-    pockets,
-    cushions,
-    { pocketSpecs }
+  const colliderGeometries =
+    window.BilliardTableBlueprint.buildAuthenticTableWithHoles(
+      scene,
+      tableDims,
+      pockets,
+      cushions,
+      { pocketSpecs }
+    );
+
+  // 2.5b Rapier-Welt aus genau dieser Geometrie
+  if (!window.RAPIER) {
+    throw new Error("Rapier fehlt — src/entry.js muss window.RAPIER vor billiard.js setzen.");
+  }
+  physics = createPhysicsWorld(
+    window.RAPIER,
+    colliderGeometries,
+    pocketSpecs,
+    TABLE_H,
+    FELT_BED_DEPTH
   );
 
   if (DEBUG_POCKET_CYLINDERS) {
@@ -177,8 +193,6 @@ function snapFpsCamera() {
     cueBall.pos.y,
     cueBall.pos.z - Math.cos(aimAngle) * 1.8
   );
-  // Animation Loop starten
-  requestAnimationFrame(gameLoop);
 }
 
 function setupLightingAndRoom() {
@@ -265,8 +279,12 @@ function setupBalls() {
     clearTimeout(cueRespawnTimer);
     cueRespawnTimer = null;
   }
-  balls.forEach((b) => scene.remove(b.mesh));
+  balls.forEach((b) => {
+    scene.remove(b.mesh);
+    if (physics && b.body) physics.removeBall(b.body);
+  });
   balls = [];
+  ballByCollider.clear();
 
   const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
 
@@ -292,17 +310,23 @@ function setupBalls() {
     mesh.position.set(x, TABLE_H + BALL_R, z);
     scene.add(mesh);
 
+    const { body, collider } = physics.addBall(
+      { x, y: TABLE_H + BALL_R + 0.0005, z },
+      BALL_R
+    );
     const bObj = {
       mesh,
+      body,
+      collider,
       pos: new THREE.Vector3(x, TABLE_H + BALL_R, z),
       vel: new THREE.Vector3(0, 0, 0),
       radius: BALL_R,
       isCue,
       id,
-      falling: false,
-      inPocket: false,
+      inPocket: false, // erst true, wenn die Kugel den Becherboden getroffen hat
     };
     balls.push(bObj);
+    ballByCollider.set(collider.handle, bObj);
     return bObj;
   }
 
@@ -395,7 +419,7 @@ function setupCueAndAimLine() {
    6. FEHLERFREIE & AUSBALANCIERTE STOSS-MECHANIK
 ==================================================== */
 function fireCueStrike() {
-  if (!cueBall || cueBall.inPocket) return;
+  if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
   // Doppelt ausgelöste Events (Button+Leertaste, Touch+Maus) ignorieren
   const now = performance.now();
@@ -410,8 +434,12 @@ function fireCueStrike() {
   const dirX = -Math.sin(aimAngle);
   const dirZ = -Math.cos(aimAngle);
 
-  cueBall.vel.x = dirX * impulseStrength;
-  cueBall.vel.z = dirZ * impulseStrength;
+  // Impuls durch den Kugelmittelpunkt (kein Effet); Masse × Geschwindigkeit
+  const m = cueBall.body.mass();
+  cueBall.body.applyImpulse(
+    { x: dirX * impulseStrength * m, y: 0, z: dirZ * impulseStrength * m },
+    true
+  );
 
   // Visuelle Schnapp-Animation des Queues
   cueStrikeAnim = 1.0;
@@ -604,174 +632,88 @@ function toggleCamera() {
 ==================================================== */
 
 /**
- * Banden = grüne Kissen-Innenfläche (`cushions[]` aus Blueprint), nicht Filz-/Holzkante.
- *
- * @param {{ pos: { x: number; z: number }; vel: { x: number; z: number } }} b
+ * Kugel-Zustand aus dem Rapier-Körper in Optik und Spiel-Objekt übernehmen.
+ * @param {typeof balls[number]} b
  */
-function resolveCushionCollisions(b) {
-  // Kontakt an der Nase (liegt über Kugelmitte) → Mittelpunkt-Abstand < BALL_R
-  const r = CUSHION_BALL_CONTACT_R;
-  for (let c = 0; c < cushions.length; c++) {
-    const seg = cushions[c];
-    const sdx = seg.x2 - seg.x1;
-    const sdz = seg.z2 - seg.z1;
-    const lenSq = sdx * sdx + sdz * sdz;
-    if (lenSq < 1e-10) continue;
+function syncBallFromBody(b) {
+  const t = b.body.translation();
+  const v = b.body.linvel();
+  const q = b.body.rotation();
+  b.pos.set(t.x, t.y, t.z);
+  b.vel.set(v.x, v.y, v.z);
+  b.mesh.position.copy(b.pos);
+  b.mesh.quaternion.set(q.x, q.y, q.z, q.w);
+}
 
-    const tRaw = ((b.pos.x - seg.x1) * sdx + (b.pos.z - seg.z1) * sdz) / lenSq;
-    const t = Math.max(0, Math.min(1, tRaw));
-    const cx = seg.x1 + t * sdx;
-    const cz = seg.z1 + t * sdz;
-    const dx = b.pos.x - cx;
-    const dz = b.pos.z - cz;
+/** Kugel hat den Becherboden getroffen → zählt als versenkt. */
+function onBallPocketed(b, pocketId) {
+  if (b.inPocket) return;
+  b.inPocket = true;
+  console.info(
+    `[Billiard] Kugel ${b.id} versenkt in ${pocketId} (Aufprall Becherboden, y=${b.pos.y.toFixed(3)})`
+  );
 
-    let nx = seg.nx;
-    let nz = seg.nz;
-    let depth;
-    if (tRaw >= 0 && tRaw <= 1) {
-      // Bandenfläche: Abstand entlang der Normalen
-      const sd = dx * nx + dz * nz;
-      if (sd >= r) continue;
-      depth = r - sd;
-    } else {
-      // Über das Ende hinaus: Gummi-Spitze am Taschenmaul = Punkt-Hindernis (Kreis um die Spitze)
-      const dist = Math.hypot(dx, dz);
-      if (dist >= r) continue;
-      if (dist > 1e-9) {
-        nx = dx / dist;
-        nz = dz / dist;
-      }
-      depth = r - dist;
-    }
-
-    b.pos.x += nx * depth;
-    b.pos.z += nz * depth;
-
-    const vn = b.vel.x * nx + b.vel.z * nz;
-    if (vn < 0) {
-      b.vel.x -= (1 + CUSHION_RESTITUTION) * vn * nx;
-      b.vel.z -= (1 + CUSHION_RESTITUTION) * vn * nz;
-      playClackSound(Math.min(Math.abs(vn) * 0.4, 0.5), 550);
-    }
+  if (b.isCue) {
+    cueRespawnTimer = setTimeout(() => {
+      cueRespawnTimer = null;
+      const spot = findFreeCueSpot();
+      b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
+      b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      b.inPocket = false;
+    }, 600);
   }
 }
 
-function updatePhysics(dt) {
-  const friction = 0.985; // Realistische Ausrollreibung auf Billardtuch
-  let totalMotion = 0;
+/**
+ * Physik mit festem Zeitschritt (Rapier). Versenkt wird erst beim Aufprall im Becher.
+ * @param {number} frameDt — Frame-Zeit in Sekunden
+ */
+function stepPhysics(frameDt) {
+  physicsAcc += frameDt;
+  let steps = 0;
+  while (physicsAcc >= PHYSICS_STEP && steps < 16) {
+    physics.world.step(physics.eventQueue);
+    physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
+      if (!started) return;
+      const pocketId = physics.cupFloors.get(h1) ?? physics.cupFloors.get(h2);
+      if (!pocketId) return;
+      const ball = ballByCollider.get(h1) ?? ballByCollider.get(h2);
+      if (ball) onBallPocketed(ball, pocketId);
+    });
+    physicsAcc -= PHYSICS_STEP;
+    steps++;
+  }
+  if (steps === 16) physicsAcc = 0; // nach langem Hänger nicht aufholen
 
-  // 8.1 Bewegung & Bandenreflexion
+  let moving = false;
   for (let i = 0; i < balls.length; i++) {
     const b = balls[i];
-    if (b.inPocket) continue;
+    syncBallFromBody(b);
 
-    // Position aktualisieren
-    b.pos.x += b.vel.x * dt;
-    b.pos.z += b.vel.z * dt;
-
-    // Reibung anwenden
-    b.vel.x *= Math.pow(friction, dt * 60);
-    b.vel.z *= Math.pow(friction, dt * 60);
-
-    const speedSq = b.vel.x * b.vel.x + b.vel.z * b.vel.z;
-    if (speedSq < 0.0003) {
-      b.vel.x = 0;
-      b.vel.z = 0;
-    } else {
-      totalMotion += speedSq;
+    // Streuner (aus dem Tisch gesprungen) zurück auf den Tisch
+    if (!b.inPocket && (Math.abs(b.pos.x) > 1.2 || Math.abs(b.pos.z) > 1.8 || b.pos.y < 0.5)) {
+      console.warn("[Billiard] Kugel außerhalb des Tisches, wird zurückgesetzt", b.id);
+      const spot = findFreeCueSpot();
+      b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
+      b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      continue;
     }
 
-    resolveCushionCollisions(b);
-
-    if (b.inPocket) continue;
-
-    const sunkPocketId = checkPocketSink(
-      b.pos,
-      BALL_R,
-      pocketSpecs,
-      TABLE_H
-    );
-    if (sunkPocketId) {
-      b.inPocket = true;
-      b.vel.set(0, 0, 0);
-      b.mesh.position.y = -10;
-
-      if (b.isCue) {
-        cueRespawnTimer = setTimeout(() => {
-          cueRespawnTimer = null;
-          const spot = findFreeCueSpot();
-          b.pos.set(spot.x, TABLE_H + BALL_R, spot.z);
-          b.vel.set(0, 0, 0);
-          b.mesh.position.copy(b.pos);
-          b.inPocket = false;
-        }, 600);
-      }
+    const lin = b.body.linvel();
+    const ang = b.body.angvel();
+    const speed = Math.hypot(lin.x, lin.y, lin.z);
+    const surface = Math.hypot(ang.x, ang.y, ang.z) * BALL_R;
+    const onTable = b.pos.y > TABLE_H - 0.01;
+    if (onTable && speed < REST_LINEAR_SPEED && surface < REST_SURFACE_SPEED) {
+      b.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
+      b.body.setAngvel({ x: 0, y: 0, z: 0 }, false);
+    } else if (!b.inPocket && (speed > 0.02 || !onTable)) {
+      moving = true;
     }
   }
 
-  // 8.2 Elastische Kugel-zu-Kugel-Kollisionen
-  const diam = BALL_R * 2;
-  const diamSq = diam * diam;
-
-  for (let i = 0; i < balls.length; i++) {
-    const b1 = balls[i];
-    if (b1.inPocket) continue;
-
-    for (let j = i + 1; j < balls.length; j++) {
-      const b2 = balls[j];
-      if (b2.inPocket) continue;
-
-      const dx = b2.pos.x - b1.pos.x;
-      const dz = b2.pos.z - b1.pos.z;
-      const distSq = dx * dx + dz * dz;
-
-      if (distSq < diamSq && distSq > 0.000001) {
-        const dist = Math.sqrt(distSq);
-        const nx = dx / dist;
-        const nz = dz / dist;
-
-        // Überlappung korrigieren
-        const overlap = (diam - dist) * 0.5;
-        b1.pos.x -= nx * overlap;
-        b1.pos.z -= nz * overlap;
-        b2.pos.x += nx * overlap;
-        b2.pos.z += nz * overlap;
-
-        // Impulsübertragung entlang Normalen
-        const kx = b1.vel.x - b2.vel.x;
-        const kz = b1.vel.z - b2.vel.z;
-        const p = nx * kx + nz * kz; // > 0: Kugeln nähern sich an
-
-        // Impuls nur, wenn sich die Kugeln annähern (sonst würden sie kleben)
-        if (p > 0) {
-          b1.vel.x -= p * nx * 0.94;
-          b1.vel.z -= p * nz * 0.94;
-          b2.vel.x += p * nx * 0.94;
-          b2.vel.z += p * nz * 0.94;
-
-          if (p > 0.08) {
-            playClackSound(p * 0.4, 750 + Math.random() * 200);
-          }
-        }
-      }
-    }
-  }
-
-  // Meshes auf Physik-Positionen setzen + Kugelrotation
-  for (let i = 0; i < balls.length; i++) {
-    const b = balls[i];
-    if (!b.inPocket) {
-      b.mesh.position.set(b.pos.x, b.pos.y, b.pos.z);
-      const speed = Math.sqrt(b.vel.x * b.vel.x + b.vel.z * b.vel.z);
-      if (speed > 0.001) {
-        const rotAxis = new THREE.Vector3(b.vel.z, 0, -b.vel.x).normalize();
-        b.mesh.rotateOnWorldAxis(rotAxis, (speed * dt) / BALL_R);
-      }
-    }
-  }
-
-  // Statusindikator anpassen
-  const moving = totalMotion > 0.01;
   if (moving !== isCueMoving) {
     updateStatusDisplay(moving);
   }
@@ -789,8 +731,7 @@ function gameLoop(currentTime) {
   lastTime = currentTime;
 
   // Physikschritt
-  const steps = Math.max(1, Math.ceil(dt / PHYSICS_STEP));
-  for (let i = 0; i < steps; i++) updatePhysics(dt / steps);
+  stepPhysics(dt);
 
   // Queue-Positionierung & Abstand angepasst an das Mausrad
   if (cueBall && cueStickPivot) {
