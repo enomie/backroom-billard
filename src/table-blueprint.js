@@ -22,8 +22,8 @@ function buildCushionProfile(feltEdge, inwardSign, rubberThick, railH, tableH) {
   const outwardSign = -inwardSign;
   const nose = feltEdge + inwardSign * rubberThick;
   const edgeBottom = feltEdge + outwardSign * CUSHION_PROFILE_BOTTOM_OUTSET;
-  const edgeTopOuter =
-    feltEdge + inwardSign * Math.max(rubberThick * 0.28, 0.008);
+  // Rückseite senkrecht und bündig an der Holzwand (leicht ins Holz), kein Spalt
+  const edgeTopOuter = edgeBottom;
   const foot =
     feltEdge + inwardSign * (rubberThick - CUSHION_PROFILE_FACE_RECESS);
 

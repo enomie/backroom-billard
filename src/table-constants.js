@@ -22,8 +22,8 @@ export const CUSHION_NOSE_TO_BED = 0.635 * BALL_DIAMETER;
  */
 export const CUSHION_PROFILE_WIDTH = 0.04;
 
-/** Unterkante Gummi etwas über Filzkante nach außen (Trapez, nicht Quader). */
-export const CUSHION_PROFILE_BOTTOM_OUTSET = 0.006;
+/** Rückseite des Gummis sitzt senkrecht und ragt so weit ins Holz (kein Spalt zur Holzwand). */
+export const CUSHION_PROFILE_BOTTOM_OUTSET = 0.002;
 
 /**
  * K-66-Profil: Die Nase liegt OBEN (Höhe `CUSHION_NOSE_TO_BED`), die Gummifläche
