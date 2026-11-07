@@ -11,11 +11,17 @@ import {
   ROOM_COLOR_WALL,
   ROOM_WALL_SMOKE_GRADIENT,
   ROOM_COLOR_CEILING_WOOD,
+  WAINSCOT_HEIGHT,
+  WAINSCOT_THICKNESS,
+  WAINSCOT_PANEL_WIDTH,
+  WAINSCOT_COLOR,
+  WAINSCOT_WOOD_BASE,
   FOG_COLOR,
   FOG_NEAR,
   FOG_FAR,
   FOG_MAX_OPACITY,
 } from "./room-constants.js";
+import { woodTexture, glossyWoodMaterial } from "./wood.js";
 
 /**
  * Three.js fog is fully opaque at `far`. Cap its strength at FOG_MAX_OPACITY so the far room
@@ -27,9 +33,10 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(
 );
 
 /** Small procedural canvas texture helper. */
-function canvasTexture(size, draw, repeatX = 1, repeatY = 1) {
+function canvasTexture(size, draw, repeatX = 1, repeatY = 1, height = size) {
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
+  canvas.width = size;
+  canvas.height = height;
   draw(canvas.getContext("2d"), size);
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -58,7 +65,7 @@ function carpetTexture() {
 }
 
 /** Wooden boards running along the room length, with grain lines. */
-function woodTexture() {
+function ceilingTexture() {
   return canvasTexture(
     512,
     (ctx, size) => {
@@ -98,6 +105,89 @@ function wallTexture() {
   });
 }
 
+/** One framed panel: vertical grain, a groove around a slightly lighter field. Repeats along the wall. */
+function panelTexture() {
+  const w = 256;
+  const h = Math.round((w * WAINSCOT_HEIGHT) / WAINSCOT_PANEL_WIDTH);
+  return canvasTexture(w, (ctx) => {
+    ctx.fillStyle = WAINSCOT_WOOD_BASE;
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 160; i++) {
+      const x = Math.random() * w;
+      ctx.strokeStyle = `rgba(${Math.random() < 0.5 ? "30,12,4" : "150,80,45"}, ${0.06 + Math.random() * 0.14})`;
+      ctx.lineWidth = 0.6 + Math.random() * 2;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.bezierCurveTo(x + (Math.random() - 0.5) * 8, h / 3, x + (Math.random() - 0.5) * 8, (h * 2) / 3, x, h);
+      ctx.stroke();
+    }
+    const edge = 22; // stile/rail width in px
+    const rect = (inset) => [inset, inset, w - 2 * inset, h - 2 * inset];
+    // dark groove between frame and field, light/dark edges for a raised-panel look
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(15,6,2,0.85)";
+    ctx.strokeRect(...rect(edge));
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,200,150,0.25)";
+    ctx.strokeRect(...rect(edge + 3));
+    ctx.fillStyle = "rgba(255,190,130,0.06)";
+    ctx.fillRect(...rect(edge + 4));
+    ctx.strokeStyle = "rgba(15,6,2,0.9)"; // seam between neighbouring panels
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, w, h);
+  }, 1, 1, h);
+}
+
+/** Extruded profile along a wall: shape x = out of the wall, y = up; result centered on the wall length. */
+function railGeometry(points, length) {
+  const shape = new THREE.Shape(points.map(([x, y]) => new THREE.Vector2(x, y)));
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: length, bevelEnabled: false });
+  geo.translate(0, 0, -length / 2);
+  return geo;
+}
+
+/** Quarter circle from (cx + r, cy) over the top to (cx, cy + r) as polyline points. */
+function roundedCorner(cx, cy, r, steps = 6) {
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const a = (i / steps) * (Math.PI / 2);
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  });
+}
+
+/**
+ * Paneling for one wall. `wall` is a group with its origin on the wall surface, +z into the room.
+ * @param {THREE.Group} wall
+ * @param {number} length — wall length
+ */
+function addWainscot(wall, length, mats) {
+  const T = WAINSCOT_THICKNESS;
+  const H = WAINSCOT_HEIGHT;
+  const panel = new THREE.Mesh(new THREE.BoxGeometry(length, H, T), mats.panel(length));
+  panel.position.set(0, H / 2, T / 2);
+  panel.castShadow = panel.receiveShadow = true;
+
+  // Baseboard: stepped, rounded top edge
+  const base = [[0, 0], [0.05, 0], [0.05, 0.11], [0.045, 0.125], [0.03, 0.14], [0, 0.14]];
+  // Cap rail: flat ledge, convex ovolo, narrow neck, small bead, rounded top
+  const cap = [
+    [0, 0],
+    [0.08, 0],
+    [0.08, 0.008],
+    ...roundedCorner(0.055, 0.008, 0.025),
+    [0.055, 0.045],
+    [0.065, 0.045],
+    ...roundedCorner(0.045, 0.045, 0.02),
+    [0, 0.065],
+  ];
+  const baseboard = new THREE.Mesh(railGeometry(base, length), mats.trim);
+  baseboard.rotation.y = -Math.PI / 2;
+  const capRail = new THREE.Mesh(railGeometry(cap, length), mats.trim);
+  capRail.rotation.y = -Math.PI / 2;
+  capRail.position.y = H;
+  for (const m of [baseboard, capRail]) m.castShadow = m.receiveShadow = true;
+  wall.add(panel, baseboard, capRail);
+}
+
 /**
  * Build the room and the fog.
  * @param {THREE.Scene} scene
@@ -117,7 +207,7 @@ export function createRoom(scene) {
   });
   const ceilingMat = new THREE.MeshStandardMaterial({
     color: ROOM_COLOR_CEILING_WOOD,
-    map: woodTexture(),
+    map: ceilingTexture(),
     roughness: 0.7,
   });
   const wallMat = new THREE.MeshStandardMaterial({
@@ -138,11 +228,28 @@ export function createRoom(scene) {
   ceiling.position.y = ROOM_HEIGHT;
   group.add(ceiling);
 
-  // Walls (face inwards): ±z are the short walls, ±x the long walls
+  // Paneling: panels repeat every WAINSCOT_PANEL_WIDTH along the wall
+  const panelMap = panelTexture();
+  const panelMats = {
+    panel: (length) => {
+      const map = panelMap.clone();
+      map.repeat.set(Math.round(length / WAINSCOT_PANEL_WIDTH), 1);
+      map.needsUpdate = true;
+      return glossyWoodMaterial(map, WAINSCOT_COLOR);
+    },
+    trim: glossyWoodMaterial(woodTexture({ base: WAINSCOT_WOOD_BASE, dark: "30,12,4", light: "150,80,45" })),
+  };
+
+  // Walls (face inwards): ±z are the short walls, ±x the long walls. Each wall is a group with its
+  // origin on the wall surface, +z into the room; the paneling sits on its lower part.
   const addWall = (width, x, z, rotationY) => {
-    const wall = new THREE.Mesh(new THREE.PlaneGeometry(width, ROOM_HEIGHT), wallMat);
-    wall.position.set(x, ROOM_HEIGHT / 2, z);
+    const wall = new THREE.Group();
+    wall.position.set(x, 0, z);
     wall.rotation.y = rotationY;
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, ROOM_HEIGHT), wallMat);
+    plane.position.y = ROOM_HEIGHT / 2;
+    wall.add(plane);
+    addWainscot(wall, width, panelMats);
     group.add(wall);
   };
   addWall(ROOM_WIDTH, 0, -ROOM_LENGTH / 2, 0);

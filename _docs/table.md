@@ -15,7 +15,7 @@ Ursprung in der Tischmitte, Filzoberkante bei `y = TABLE_H` (0,85 m). Alle Maße
 | Teil | Maß |
 |------|-----|
 | Bande (Gummi, K-66) | 40 mm breit, Höhe 36,3 mm (63,5 % Kugel-Ø). **Nase oben**, die Fläche weicht nach unten 12 mm zurück. Rückseite senkrecht, bündig am Holz. |
-| Holzrahmen | 110 mm |
+| Holzrahmen | 110 mm, **Kanten abgerundet** (`RAIL_EDGE_RADIUS` 12 mm), dunkles Mahagoni mit Klarlack-Glanz (`wood.js`, gilt auch für Zargen und Beine) |
 | Spielplatte (grün) | 5 mm dick |
 | Taschenbecher | beginnt direkt unter der Platte, Boden bei `TABLE_H − 0,15` |
 | Zargen (Bretter rundherum) | **2 cm dick, 40 cm hoch** (`SKIRT_THICKNESS`, `SKIRT_HEIGHT`), bündig mit der Außenkante des Holzrahmens, Oberkante an der Unterkante des Rahmens (y = 0,85 m). Verdecken die Taschenbecher von außen. |

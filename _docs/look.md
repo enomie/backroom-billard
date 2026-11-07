@@ -15,7 +15,8 @@ Ein geschlossener Raum mit **Boden, 4 Wänden und Decke**, proportional zum Tisc
 | Höhe | **4,50 m** (`ROOM_HEIGHT`) |
 | Boden | **Teppich**, dunkles Weinrot, mit feinem Rauschmuster |
 | Decke | **Holz**, Bretter längs |
-| Wände | **Creme-Gelb** („verrauchtes Weiß“), nach oben hin dunkler (Rauch sammelt sich an der Decke) |
+| Wandvertäfelung | **Glänzendes Holz** (Mahagoni, Klarlack) bis **1,80 m** (`WAINSCOT_HEIGHT`): gerahmte Füllungen (0,8 m breit), unten Fußleiste, oben eine **Abschlussleiste mit Profil** (Platte, Wulst, Rundung). Radio und Sideboard halten den Abstand `WAINSCOT_PROTRUSION`. |
+| Wände (darüber) | **Creme-Gelb** („verrauchtes Weiß“), nach oben hin dunkler (Rauch sammelt sich an der Decke) |
 
 Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera bleibt im Raum.
 
@@ -54,6 +55,6 @@ Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in 
 ## Offene Punkte
 
 - Genaue Armlänge, Höhe und Verteilung der Wandleuchten.
-- Wanddekoration (Poster, Tapete, Leisten, Fenster, Tür).
+- Wanddekoration (Poster, Tapete, Fenster, Tür).
 - Ob zusätzlich Rauchschwaden im Lichtkegel sichtbar sein sollen.
 - Abstand der Leuchten zueinander.

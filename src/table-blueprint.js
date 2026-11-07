@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { woodTexture, glossyWoodMaterial } from "./wood.js";
 import { buildTableWithPocketsCSG } from "./table-csg.js";
 import { cushionTipOffsets, pocketCupDims } from "./pocket-spec.js";
 import {
@@ -11,6 +13,7 @@ import {
   LEG_RADIUS_BOTTOM,
   SKIRT_THICKNESS,
   SKIRT_HEIGHT,
+  RAIL_EDGE_RADIUS,
 } from "./table-constants.js";
 
 /**
@@ -140,11 +143,10 @@ export function buildAuthenticTableWithHoles(
     roughness: 0.9,
     metalness: 0.01,
   });
-  const woodMat = new THREE.MeshStandardMaterial({
-    color: 0x1f0c05,
-    roughness: 0.25,
-    metalness: 0.12,
-  });
+  // Varnished dark mahogany
+  const woodMat = glossyWoodMaterial(
+    woodTexture({ base: "#6a3018", light: "150,80,45", dark: "25,8,2" })
+  );
   const cushionRubberMat = new THREE.MeshStandardMaterial({
     color: 0x08382b,
     roughness: 0.85,
@@ -204,7 +206,7 @@ export function buildAuthenticTableWithHoles(
 
     const woodZ = feltEdgeZ + (outwardZ * railThick) / 2;
     const woodRail = new THREE.Mesh(
-      new THREE.BoxGeometry(2 * (hw + railThick), woodRailH, railThick),
+      new RoundedBoxGeometry(2 * (hw + railThick), woodRailH, railThick, 4, RAIL_EDGE_RADIUS),
       woodMat
     );
     woodRail.position.set(0, railY + 0.005, woodZ);
@@ -244,7 +246,7 @@ export function buildAuthenticTableWithHoles(
 
     const woodX = feltEdgeX + (outwardX * railThick) / 2;
     const woodRail = new THREE.Mesh(
-      new THREE.BoxGeometry(railThick, woodRailH, 2 * hl),
+      new RoundedBoxGeometry(railThick, woodRailH, 2 * hl, 4, RAIL_EDGE_RADIUS),
       woodMat
     );
     woodRail.position.set(woodX, railY + 0.005, 0);

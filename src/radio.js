@@ -5,9 +5,10 @@
  */
 import * as THREE from "three";
 import { t, onLanguageChange } from "./i18n/index.js";
+import { woodTexture } from "./wood.js";
 import { RadioAudio } from "./radio-audio.js";
 import { RadioMetadata } from "./radio-metadata.js";
-import { ROOM_WIDTH } from "./room-constants.js";
+import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
 import {
   RADIO_STREAM_URL,
   RADIO_STATION_NAME,
@@ -44,24 +45,6 @@ function textureFrom(c, repeatX = 1, repeatY = 1) {
   tex.repeat.set(repeatX, repeatY);
   tex.anisotropy = 4;
   return tex;
-}
-
-/** Walnut veneer with grain running along x. */
-function woodTexture(repeatX, repeatY) {
-  const c = canvas(512, 256);
-  const ctx = c.getContext("2d");
-  ctx.fillStyle = "#8a5a36";
-  ctx.fillRect(0, 0, 512, 256);
-  for (let i = 0; i < 140; i++) {
-    const y = Math.random() * 256;
-    ctx.strokeStyle = `rgba(${Math.random() < 0.5 ? "40,20,8" : "170,115,70"}, ${0.06 + Math.random() * 0.14})`;
-    ctx.lineWidth = 0.6 + Math.random() * 2.2;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.bezierCurveTo(170, y + (Math.random() - 0.5) * 8, 340, y + (Math.random() - 0.5) * 8, 512, y);
-    ctx.stroke();
-  }
-  return textureFrom(c, repeatX, repeatY);
 }
 
 /** Golden woven speaker cloth. */
@@ -196,18 +179,18 @@ export function createRadio(scene) {
   // Local frame of the whole group: origin on the floor at the wall, +z into the room, +x right
   const root = new THREE.Group();
   root.name = "radio-corner";
-  root.position.set(RADIO_WALL_SIDE * (ROOM_WIDTH / 2), 0, RADIO_WALL_Z);
+  root.position.set(RADIO_WALL_SIDE * (ROOM_WIDTH / 2 - WAINSCOT_PROTRUSION), 0, RADIO_WALL_Z);
   root.rotation.y = RADIO_WALL_SIDE > 0 ? -Math.PI / 2 : Math.PI / 2;
 
   const woodMat = new THREE.MeshStandardMaterial({
     color: RADIO_COLOR_WOOD,
-    map: woodTexture(2, 1),
+    map: woodTexture({ base: "#8a5a36", repeatX: 2 }),
     roughness: 0.45,
     metalness: 0.05,
   });
   const darkWoodMat = new THREE.MeshStandardMaterial({
     color: 0x4a2e1b,
-    map: woodTexture(1, 1),
+    map: woodTexture({ base: "#8a5a36" }),
     roughness: 0.5,
   });
   const brass = new THREE.MeshStandardMaterial({ color: RADIO_COLOR_BRASS, roughness: 0.35, metalness: 0.85 });

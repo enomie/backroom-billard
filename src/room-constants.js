@@ -66,6 +66,18 @@ export const ROOM_COLOR_WALL = 0xdccb94;
 export const ROOM_WALL_SMOKE_GRADIENT = 0.35;
 export const ROOM_COLOR_CEILING_WOOD = 0x6b4426;
 
+/* ---- Wall paneling: glossy wood up to WAINSCOT_HEIGHT, a profiled cap rail on top, a baseboard
+ * at the bottom; the plain wall starts above. */
+export const WAINSCOT_HEIGHT = 1.8;
+/** Thickness of the panel boards (the wall surface moves inwards by this much). */
+export const WAINSCOT_THICKNESS = 0.03;
+/** Widest part of the paneling (baseboard and cap rail) measured from the wall: furniture keeps this distance. */
+export const WAINSCOT_PROTRUSION = 0.08;
+/** Width of one framed panel along the wall. */
+export const WAINSCOT_PANEL_WIDTH = 0.8;
+export const WAINSCOT_COLOR = 0xffffff;
+export const WAINSCOT_WOOD_BASE = "#5b2c16";
+
 /** Linear fog in gray-white smoke: starts at FOG_NEAR, completely opaque at FOG_FAR. */
 export const FOG_COLOR = 0x2f2e2c;
 /** The fog never gets more opaque than this (1 = fully covers far objects at FOG_FAR). */

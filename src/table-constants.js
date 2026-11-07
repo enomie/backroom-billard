@@ -34,6 +34,9 @@ export const CUSHION_PROFILE_FACE_RECESS = 0.012;
 /** Wooden frame outside the felt edge (tournament standard ~110 mm). */
 export const RAIL_WOOD_DEPTH = 0.11;
 
+/** Rounding of the wooden frame's edges. */
+export const RAIL_EDGE_RADIUS = 0.012;
+
 /** Green playing plate (felt on a carrier): 5 mm thick; the pocket cup starts below it. */
 export const FELT_BED_DEPTH = 0.005;
 
