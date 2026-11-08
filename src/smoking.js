@@ -176,7 +176,6 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
     }
   }
 
-  window.__sp = () => ({ phase, side, packs: packSet.packs.map((p) => p.count), c: cigarette && { burn: +cigarette.burn.toFixed(2), state: cigarette.state, held: cigarette.held } });
   return {
     /** T pressed: fetch the cigarette (a new one if there is no glowing one). */
     press(camera) {
