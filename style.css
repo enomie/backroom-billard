@@ -323,20 +323,6 @@ html {
   box-shadow: 0 0 5px #fde047;
 }
 
-/* Drink and smoke buttons: at the bottom, one on each side of the shoot button */
-.side-dock {
-  position: absolute;
-  bottom: var(--bottom-edge);
-}
-
-.side-dock--left {
-  left: var(--bottom-edge);
-}
-
-.side-dock--right {
-  right: var(--bottom-edge);
-}
-
 /* The camera button: on the left edge of the browser, vertically in the middle, its text reads upwards;
  * rounded only on the right, like the power slider on the other side */
 .edge-dock {
@@ -609,15 +595,75 @@ html {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 8px rgba(251, 191, 36, 0.35);
 }
 
-.fire-dock {
+/* The bar at the bottom: drink | shoot (taller) | smoke, joined, standing on the bottom edge of the browser.
+ * The label gives way ("…"), the badge with the number never does. */
+.action-bar {
   position: absolute;
   left: 50%;
-  bottom: var(--bottom-edge);
+  bottom: 0;
   transform: translateX(-50%);
+  width: min(100%, 40rem);
+  display: flex;
+  align-items: flex-end;
+}
+
+.action-bar__side {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.fire-dock {
+  flex: 1.25 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.625rem;
+}
+
+.action-bar .btn-key,
+.fire-disc {
+  pointer-events: auto; /* the rest of the bar lets the clicks through to the table */
+}
+
+.action-bar .btn-key {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  height: 3.25rem;
+  padding: 0 0.35rem;
+  gap: 0.4rem;
+  justify-content: center;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.action-bar .btn-key__cap {
+  min-width: 0;
+  font-size: 1.6rem;
+}
+
+.action-bar .btn-key__label {
+  font-size: 1.1rem; /* the font is narrow: bigger, so that the letters are tall */
+  letter-spacing: 0.05em;
+}
+
+.action-bar__side--left .btn-key {
+  border-radius: 0.9rem 0 0 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.45);
+}
+
+.action-bar__side--right .btn-key {
+  border-radius: 0 0.9rem 0 0;
+  border-left: 1px solid rgba(0, 0, 0, 0.45);
+}
+
+.fire-dock .btn-key {
+  flex: none; /* the dock is a column: the height is the button's own */
+  height: 4rem;
+  border-radius: 0.9rem 0.9rem 0 0;
 }
 
 /* The face of the cue ball: a transparent disc; the nub on it sets where the cue tip meets the ball */
@@ -637,12 +683,6 @@ html {
   background-size: 1px 100%, 100% 1px, 100% 100%;
   background-position: center, center, center;
   background-repeat: no-repeat;
-}
-
-/* The shoot button below the disc: as wide as the whole cluster needs, so drink and smoke can sit beside it */
-.fire-dock .btn-key {
-  min-width: 8rem;
-  justify-content: center;
 }
 
 .fire-nub {
@@ -812,62 +852,6 @@ html {
 
   .btn-key {
     padding: 0.5rem 0.875rem;
-  }
-
-  /* The bar at the bottom: drink | shoot (taller) | smoke, joined, flush with the edges of the browser.
-   * The label gives way ("…"), the badge with the number never does. */
-  .side-dock,
-  .fire-dock {
-    bottom: 0;
-  }
-
-  .side-dock {
-    display: flex;
-    width: 31%;
-  }
-
-  .side-dock--left {
-    left: 0;
-    right: auto;
-  }
-
-  .side-dock--right {
-    left: auto;
-    right: 0;
-  }
-
-  .fire-dock {
-    width: 38%;
-  }
-
-  .side-dock .btn-key,
-  .fire-dock .btn-key {
-    flex: 1;
-    width: 100%;
-    min-width: 0;
-    height: 3rem;
-    padding: 0 0.5rem;
-    gap: 0.4rem;
-    justify-content: center;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .fire-dock .btn-key {
-    flex: none; /* the dock is a column: the height is the button's own */
-    height: 3.75rem;
-    border-radius: 0.9rem 0.9rem 0 0;
-  }
-
-  .side-dock--left .btn-key {
-    border-radius: 0.9rem 0 0 0;
-    border-right: 1px solid rgba(0, 0, 0, 0.45);
-  }
-
-  .side-dock--right .btn-key {
-    border-radius: 0 0.9rem 0 0;
-    border-left: 1px solid rgba(0, 0, 0, 0.45);
   }
 }
 

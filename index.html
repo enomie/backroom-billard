@@ -161,37 +161,38 @@
         </div>
       </div>
 
-      <!-- Drink and smoke: at the bottom, one on each side of the shoot button -->
-      <div class="side-dock side-dock--left interactive">
-        <button id="btn-drink" type="button" class="btn-key" data-i18n-title="button.drink" title="Drink">
-          <span class="btn-key__cap" aria-hidden="true">R</span>
-          <span class="btn-key__label" data-i18n="button.drink">Drink</span>
-          <span id="sip-count" class="btn-key__badge" data-i18n-aria-label="sips.aria" aria-label="Sips left in the glass">5</span>
-        </button>
-      </div>
-      <div class="side-dock side-dock--right interactive">
-        <button id="btn-smoke" type="button" class="btn-key" data-i18n-title="button.smoke" title="Smoke">
-          <span class="btn-key__cap" aria-hidden="true">T</span>
-          <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
-          <span id="pack-count" class="btn-key__badge" data-i18n-aria-label="pack.aria" aria-label="Cigarettes in the pack">20</span>
-        </button>
-      </div>
-
-      <!-- Shoot: bottom center. Above the button: the face of the cue ball, drag the nub to set where the tip meets it -->
-      <div class="fire-dock interactive">
-        <div class="fire-disc">
-          <span
-            id="fire-nub"
-            class="fire-nub"
-            role="slider"
-            data-i18n-aria-label="button.nub"
-            aria-label="Cue tip position on the ball"
-          ></span>
+      <!-- The bar at the bottom: drink | shoot | smoke, joined, flush with the bottom edge. Above the shoot
+           button: the face of the cue ball, drag the nub to set where the tip meets it -->
+      <div class="action-bar">
+        <div class="action-bar__side action-bar__side--left">
+          <button id="btn-drink" type="button" class="btn-key" data-i18n-title="button.drink" title="Drink">
+            <span class="btn-key__cap" aria-hidden="true">R</span>
+            <span class="btn-key__label" data-i18n="button.drink">Drink</span>
+            <span id="sip-count" class="btn-key__badge" data-i18n-aria-label="sips.aria" aria-label="Sips left in the glass">5</span>
+          </button>
         </div>
-        <button id="btn-fire-shot" type="button" class="btn-key" data-i18n-title="button.shoot" title="SHOOT">
-          <span class="btn-key__cap" aria-hidden="true">E</span>
-          <span class="btn-key__label" data-i18n="button.shoot">SHOOT</span>
-        </button>
+        <div class="fire-dock">
+          <div class="fire-disc">
+            <span
+              id="fire-nub"
+              class="fire-nub"
+              role="slider"
+              data-i18n-aria-label="button.nub"
+              aria-label="Cue tip position on the ball"
+            ></span>
+          </div>
+          <button id="btn-fire-shot" type="button" class="btn-key" data-i18n-title="button.shoot" title="SHOOT">
+            <span class="btn-key__cap" aria-hidden="true">E</span>
+            <span class="btn-key__label" data-i18n="button.shoot">SHOOT</span>
+          </button>
+        </div>
+        <div class="action-bar__side action-bar__side--right">
+          <button id="btn-smoke" type="button" class="btn-key" data-i18n-title="button.smoke" title="Smoke">
+            <span class="btn-key__cap" aria-hidden="true">T</span>
+            <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
+            <span id="pack-count" class="btn-key__badge" data-i18n-aria-label="pack.aria" aria-label="Cigarettes in the pack">20</span>
+          </button>
+        </div>
       </div>
     </div>
 
