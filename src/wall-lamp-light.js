@@ -1,6 +1,6 @@
 /**
- * The light of the ten wall lamps (position, cone, falloff: room-constants.js), added to the
- * materials it can reach instead of ten three.js spot lights. Three computes every light for every
+ * The light of the wall lamps (position, cone, falloff: room-constants.js), added to the
+ * materials it can reach instead of three.js spot lights. Three computes every light for every
  * pixel of every material, even where it cannot arrive; the wall lamps shine straight down and
  * only reach the wall below them, the floor beside the wall and what stands right there. So only
  * those materials (walls, paneling, carpet, the lamps themselves, the radio, the chairs at the wall)

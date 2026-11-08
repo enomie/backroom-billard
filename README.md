@@ -112,7 +112,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbo
 - [`_docs/sound.md`](_docs/sound.md) — Klänge: Stoß, Kugeln, Bande, Rollen, Becher
 - [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen, Vorschnalzen und physischer Cue-Spitze
 - [`_docs/radio.md`](_docs/radio.md) — Radio auf dem Sideboard mit Display, Stream und Stereo-Lautsprechern
-- [`_docs/bar.md`](_docs/bar.md) — Bar gegenüber dem Radio (Hauptmodul mit Silbersockel, Holzblock, Marmorplatte, und drei Hocker)
+- [`_docs/bar.md`](_docs/bar.md) — Bar gegenüber dem Radio (Hauptmodul mit Silbersockel, Holzblock, Marmorplatte, und drei Hocker; Rückbuffet mit Marmorwand, Regalen und Flaschen)
 - [`_docs/glass-objects.md`](_docs/glass-objects.md) — Kerzenhalter, Aschenbecher, Gläser, Flaschen, Trinken und Getränkekarte
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
 - [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen

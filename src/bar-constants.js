@@ -41,3 +41,20 @@ export const STOOL_COLUMN_RADIUS = 0.025;
 export const STOOL_FOOT_RADIUS = 0.2;
 export const STOOL_RING_HEIGHT = 0.3;
 export const STOOL_COLOR_SEAT = 0x5a1620;
+
+/**
+ * Back bar behind the bar: a marble wall against the long wall with three shelves for bottles.
+ * Width, height and thickness of the marble; shelf levels (height above the floor), shelf width
+ * (a little less than the marble), depth and thickness; gap between two bottles on a shelf (m).
+ */
+export const BACKBAR_WIDTH = 3.6;
+export const BACKBAR_HEIGHT = 3;
+export const BACKBAR_THICKNESS = 0.06;
+export const BACKBAR_SHELF_LEVELS = [1.45, 2.0, 2.55];
+export const BACKBAR_SHELF_WIDTH = 3.2;
+export const BACKBAR_SHELF_DEPTH = 0.22;
+export const BACKBAR_SHELF_THICKNESS = 0.025;
+export const BACKBAR_BOTTLE_GAP = 0.05;
+export const BACKBAR_BOTTLE_SEED = 7;
+/** The wall lamp on the bar's wall in front of the back bar is left out; lamps this close (m) to it go. */
+export const BACKBAR_LAMP_CLEARANCE = 0.3;

@@ -8,7 +8,8 @@ Eine Bar an der langen Wand **gegenüber dem Radio** (`x = -ROOM_WIDTH/2`, in H�
 
 | Datei | Inhalt |
 |-------|--------|
-| `src/bar.js` | Meshes: Sockel, Holzblock, Marmorplatte, Marmor-Textur |
+| `src/bar.js` | Meshes: Sockel, Holzblock, Marmorplatte, Hocker, Marmor-Textur |
+| `src/backbar.js` | Rückbuffet: Marmorwand, Regale, Flaschen |
 | `src/bar-constants.js` | Position, Maße, Farben |
 
 ## Hauptmodul (umgesetzt)
@@ -21,7 +22,16 @@ Eine Bar an der langen Wand **gegenüber dem Radio** (`x = -ROOM_WIDTH/2`, in H�
 - **Hocker:** 3 Stück vor der Bar (0,8 m Abstand, 0,4 m von der Vorderkante): gepolsterter Sitz in Weinrot auf einer silbernen Säule mit Fuß und Fußring, Sitzhöhe 0,78 m (`STOOL_*` in `bar-constants.js`).
 - Die Bar wirft keinen Schatten (sie steht außerhalb der Lichtkegel der Tischlampen) und bekommt das Licht der Wandleuchten.
 
+## Rückbuffet (umgesetzt)
+
+Hinter der Bar, an der Wand (`src/backbar.js`):
+
+- **Rückwand:** Marmor wie die Platte, 3,6 m breit, 3 m hoch, 6 cm dick, direkt an der Wand.
+- **Regale:** drei Ebenen (1,45 / 2,0 / 2,55 m), 3,2 m breit (also nicht bis an den Rand des Marmors), 22 cm tief, aus Holz. Der Abstand von 55 cm lässt Flaschen (bis 30 cm) bequem darauf stehen.
+- **Flaschen:** Wein- und Bierflaschen (dieselben wie auf den Tischen, `bottles.js`), mit festem Zufall in einer Reihe aufgestellt, mit Lücken, leicht schief.
+- **Wandleuchte:** Die eine Wandleuchte, die vor dem Rückbuffet säße, ist entfernt (`wall-lamp-places.js`); es bleiben neun.
+
 ## Offene Punkte (Ideen, noch nicht gebaut)
 
-- Weitere Module (Rückbuffet, Regale), Gläser und Flaschen auf der Bar, Barkeeper.
+- Weitere Module (Spirituosenflaschen, Beleuchtung der Regale), Gläser und Flaschen auf der Bar, Barkeeper.
 - Kollision/Sperrbereich für die freie Kamera um die Bar.

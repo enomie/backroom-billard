@@ -130,6 +130,16 @@ export function createBottles(scene, taken) {
     },
   };
 
+  /** One bottle of `kind` ("wine" | "beer") standing on y = 0 (the glass, the label and the cap). */
+  const makeBottle = (kind) => {
+    const k = kinds[kind];
+    const bottle = new THREE.Group();
+    const body = new THREE.Mesh(k.glass, mats[kind]);
+    body.renderOrder = 2;
+    bottle.add(body, new THREE.Mesh(k.label, k.labelMat), new THREE.Mesh(k.top, k.topMat));
+    return bottle;
+  };
+
   const occupied = taken.map((o) => ({ ...o }));
   for (const table of FURNITURE_TABLES) {
     if (rnd() > BOTTLE_TABLE_SHARE) continue;
@@ -143,10 +153,7 @@ export function createBottles(scene, taken) {
       const fits = ring + k.radius < FURNITURE_TABLE_RADIUS - 0.02 &&
         occupied.every((o) => Math.hypot(o.x - x, o.z - z) > o.r + k.radius + 0.01);
       if (!fits) continue;
-      const bottle = new THREE.Group();
-      const body = new THREE.Mesh(k.glass, mats[kind]);
-      body.renderOrder = 2;
-      bottle.add(body, new THREE.Mesh(k.label, k.labelMat), new THREE.Mesh(k.top, k.topMat));
+      const bottle = makeBottle(kind);
       bottle.position.set(x, FURNITURE_TABLE_HEIGHT, z);
       bottle.rotation.y = rnd() * Math.PI * 2; // label turned at random
       group.add(bottle);
@@ -160,6 +167,8 @@ export function createBottles(scene, taken) {
     group,
     /** Everything standing on the round tables so far (for what comes next). */
     taken: occupied,
+    /** A new bottle ("wine" | "beer") with the same materials (for the shelves of the back bar). */
+    makeBottle,
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       for (const m of Object.values(mats)) {

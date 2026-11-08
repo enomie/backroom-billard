@@ -1,7 +1,7 @@
 /**
  * Subtle wall lamps: cone shade (like the ceiling lamps, just smaller) on a brass arm that reaches
  * out of the wall; the light points down. Counts, sizes and light values: room-constants.js.
- * The lamps are no three.js lights (ten more lights would be computed for every pixel of every
+ * The lamps are no three.js lights (more lights would be computed for every pixel of every
  * material); their light is added by wall-lamp-light.js to the few materials it can reach.
  */
 import * as THREE from "three";
@@ -46,7 +46,7 @@ export function createWallLamps(scene) {
   const stemGeo = new THREE.CylinderGeometry(0.008, 0.008, WALL_LAMP_STEM, 12);
   const knobGeo = new THREE.SphereGeometry(0.018, 16, 12);
 
-  // All ten lamps are the same: every part is one instanced mesh (a single draw call each).
+  // All lamps are the same: every part is one instanced mesh (a single draw call each).
   // Part: [geometry, material, local position of the part in the lamp's frame]
   const shadeZ = WALL_LAMP_ARM_LENGTH + 0.01;
   const shadePosition = [0, rimY + shadeHeight / 2, shadeZ]; // shade: apex up, open at the bottom

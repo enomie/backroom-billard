@@ -68,6 +68,11 @@ function marbleTexture() {
   return tex;
 }
 
+/** The marble of the top and of the back bar. */
+export function marbleMaterial() {
+  return new THREE.MeshPhysicalMaterial({ color: BAR_COLOR_MARBLE, map: marbleTexture(), roughness: 0.12, clearcoat: 0.5, clearcoatRoughness: 0.08 });
+}
+
 /** A rounded rectangle in the XY plane (centered). */
 function roundedRect(width, height, radius) {
   const x = -width / 2;
@@ -99,7 +104,7 @@ export function createBar(scene) {
 
   const silver = new THREE.MeshStandardMaterial({ color: BAR_COLOR_SILVER, roughness: 0.28, metalness: 0.85 });
   const wood = new THREE.MeshStandardMaterial({ color: BAR_COLOR_WOOD, map: woodTexture({ base: "#8a5a36", repeatX: 3 }), roughness: 0.45, metalness: 0.05 });
-  const marble = new THREE.MeshPhysicalMaterial({ color: BAR_COLOR_MARBLE, map: marbleTexture(), roughness: 0.12, clearcoat: 0.5, clearcoatRoughness: 0.08 });
+  const marble = marbleMaterial();
 
   const blockHeight = BAR_HEIGHT - BAR_PLINTH_HEIGHT - BAR_TOP_THICKNESS;
   const box = (w, h, d, mat, y) => {

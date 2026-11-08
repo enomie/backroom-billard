@@ -65,10 +65,10 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 
 Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in `src/room-constants.js`):
 
-- **Anzahl:** 2 pro kurzer Wand, 3 pro langer Wand (zusammen 10), gleichmäßig verteilt.
+- **Anzahl:** 2 pro kurzer Wand, 3 pro langer Wand (zusammen 10), gleichmäßig verteilt; die mittlere an der Bar-Wand fehlt, dort steht das Rückbuffet (`_docs/bar.md`), es sind also 9.
 - **Form:** derselbe Kegel-Lampenschirm wie die Deckenleuchten (außen blau, innen golden), nur kleiner (Faktor 0,45), an einer **Messing-Halterung**: Wandplatte, Arm (25 cm aus der Wand, `WALL_LAMP_ARM_LENGTH`), kurzer Stiel, Knauf.
 - **Höhe:** Schirmunterkante 2,0 m über dem Boden (`WALL_LAMP_HEIGHT`).
-- **Licht:** je ein weicher, warmer Kegel nach unten ohne Schatten (Reichweite 7 m, `WALL_LAMP_LIGHT_*`); er wirft einen sanften Lichtkegel auf Wand und Boden. Die Lampen sind **keine Three.js-Lichter**: Zehn Lichter mehr würden für jedes Pixel jedes Materials gerechnet (auf einer Grafikkarte etwa 37 ms pro Bild). Stattdessen berechnet `wall-lamp-light.js` ihr Licht mit denselben Formeln (Kegel, Weichzeichnung, Abfall, Beleuchtungsmodell) in den wenigen Materialien, die sie erreichen kann: Wände, Vertäfelung, Teppich, die Lampen selbst, das Radio und die Sessel an der Wand. Alle anderen Materialien zahlen nichts. Ein Bildvergleich vorher/nachher ergab keinen Unterschied. Neue Dinge, die unter einer Wandlampe stehen, brauchen `receiveWallLamps(material)`.
+- **Licht:** je ein weicher, warmer Kegel nach unten ohne Schatten (Reichweite 7 m, `WALL_LAMP_LIGHT_*`); er wirft einen sanften Lichtkegel auf Wand und Boden. Die Lampen sind **keine Three.js-Lichter**: Neun Lichter mehr würden für jedes Pixel jedes Materials gerechnet (auf einer Grafikkarte etwa 37 ms pro Bild). Stattdessen berechnet `wall-lamp-light.js` ihr Licht mit denselben Formeln (Kegel, Weichzeichnung, Abfall, Beleuchtungsmodell) in den wenigen Materialien, die sie erreichen kann: Wände, Vertäfelung, Teppich, die Lampen selbst, das Radio und die Sessel an der Wand. Alle anderen Materialien zahlen nichts. Ein Bildvergleich vorher/nachher ergab keinen Unterschied. Neue Dinge, die unter einer Wandlampe stehen, brauchen `receiveWallLamps(material)`.
 
 ## Tür (umgesetzt, nur Attrappe)
 
