@@ -2,8 +2,7 @@
 export default {
   "status.ready": "Ready to shoot",
   "status.rolling": "Balls rolling…",
-  "camera.label": "Camera",
-  "camera.fp": "Player",
+  "camera.fp": "Camera",
   "camera.free": "Free",
   "button.smoke": "Smoke",
   "wallet.aria": "Cash",
