@@ -11,6 +11,8 @@ npm run dev        # http://localhost:8181/
 
 Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.config.js`.
 
+**Auf einem Webserver (z. B. PHP):** `npm run build` und den Ordner `dist/` auf den Server kopieren, auch in einen Unterordner. Die Pfade sind relativ (`base: "./"` in `vite.config.js`), eine `.htaccess` für Apache (richtiger Typ für die `.wasm`-Datei der Physik) liegt dabei (`public/.htaccess`). Der Stream des Radios braucht Internet.
+
 ## Steuerung
 
 | Aktion | Eingabe |
@@ -33,7 +35,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 - Ein Stoß ist eine Animation: Der Cue wird zurückgezogen und schnalzt nach vorn; die Kugel bekommt ihre Geschwindigkeit durch die echte Kollision der Cue-Spitze.
 - Nach dem Stoß bleibt die Kamera auf der Schussposition (sie folgt den Kugeln nicht), lässt sich aber weiter um sie drehen. Erst wenn alle Kugeln (nahezu) stillstehen, gleitet sie zur neuen Schussposition; bis dahin ist kein neuer Stoß möglich.
 - Während die Kugeln rollen **und** mit der freien Kamera hält der Spieler den Queue entspannt vor sich: Griff unten im Bild, Spitze oberhalb rechts; nach dem Stillstand schwingt er sanft zurück an die Kugel. Die Pose steht in `src/cue-constants.js`.
-- Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (oder `R`) startet neu.
+- Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (`N` oder der Knopf) startet neu.
 
 ## Leistung (ohne sichtbare Änderung)
 
@@ -67,8 +69,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `lighter.js`, `lighter-constants.js`, `lighter-sounds.js` | Zippo-Feuerzeuge (silbern und golden) |
 | `wallet.js`, `drink-menu.js`, `shop-constants.js` | Geld, Getränkekarte, Preise |
 | `player-state.js`, `player-constants.js`, `drinking.js`, `drink-sounds.js` | Zustand des Spielers (die zwei Balken), Trinken |
-| `cigarette-pack.js` | Klappschachtel mit 20 Zigaretten auf Tischen und Billardtisch |
-| `cigarettes.js`, `cigarette-constants.js`, `smoke.js`, `exhale.js`, `smoking.js`, `smoke-sounds.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |
+| `cigarettes.js`, `cigarette-pack.js`, `cigarette-constants.js`, `smoking.js`, `smoke.js`, `exhale.js`, `smoke-sounds.js` | Zigaretten, Klappschachtel, Rauchen mit `T`, Rauchfaden und Ausatem-Wolke |
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |
 | `smoke-light.js`, `noise-glsl.js` | Gemeinsamer Shader-Code für Rauch und Nebel: Beleuchtung durch Lampen und Kerzen, Rauschen |
 | `atmosphere.js` | Wandernder Boden- und Deckennebel, sichtbare Lichtkegel der Deckenleuchten |
@@ -85,13 +86,13 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Fl
 
 - [`_docs/table.md`](_docs/table.md) — Maße und Geometrie von Tisch, Bande und Taschen
 - [`_docs/physics.md`](_docs/physics.md) — Physik-Modell und Stellschrauben
-- [`_docs/game-concept.md`](_docs/game-concept.md) — Spielideen (nur Ideen, nicht umgesetzt)
+- [`_docs/game-concept.md`](_docs/game-concept.md) — Spielkonzept: Zustand (Balken), Trinken, Rauchen, Geld; Ideen (Mehrspieler, Wette)
 - [`_docs/sound.md`](_docs/sound.md) — Klänge: Stoß, Kugeln, Bande, Rollen, Becher
 - [`_docs/shot-animation.md`](_docs/shot-animation.md) — Stoß-Animation mit Zurückziehen, Vorschnalzen und physischer Cue-Spitze
 - [`_docs/radio.md`](_docs/radio.md) — Radio auf dem Sideboard mit Display, Stream und Stereo-Lautsprechern
-- [`_docs/glass-objects.md`](_docs/glass-objects.md) — Kerzenhalter, Aschenbecher, Gläser und Flaschen (alles umgesetzt)
-- [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Rauchfaden und Schachtel (umgesetzt), Ausatem-Wolke und Bedienung (Konzept)
-- [`_docs/look.md`](_docs/look.md) — Optik-Vorgaben für den 80er-Raum (noch nicht umgesetzt)
+- [`_docs/glass-objects.md`](_docs/glass-objects.md) — Kerzenhalter, Aschenbecher, Gläser, Flaschen, Trinken und Getränkekarte
+- [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
+- [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen
 
 ## Backup
 

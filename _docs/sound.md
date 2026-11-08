@@ -1,10 +1,10 @@
-# Sound — Konzept
+# Sound
 
-> **Status: umgesetzt.** Alle hier beschriebenen Klänge gibt es: Stoß-Animation, Abstoß, Kugel–Kugel, Bande, Rollen und Becher. Unter „Offene Punkte“ stehen nur noch Feinheiten. Unabhängig vom Radio (`radio.md`).
+> **Status: umgesetzt.** Alle Klänge sind generiert (keine Aufnahmen). Weitere Klänge: Radio (`radio.md`), Rauchen und Feuerzeug (`cigarettes.md`), Trinken (`glass-objects.md`).
 
-## Umgesetzt
+## Code
 
-Code: `src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kugel–Kugel, Bande), `src/cup-sounds.js` (Tasche und Becher), `src/rolling-sound.js` (Rollen), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`.
+`src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kugel–Kugel, Bande), `src/cup-sounds.js` (Tasche und Becher), `src/rolling-sound.js` (Rollen), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`; Klänge für Rauchen, Feuerzeug und Trinken in `smoke-sounds.js`, `lighter-sounds.js`, `drink-sounds.js`.
 
 ### Stoß-Animation
 
@@ -32,17 +32,9 @@ Code: `src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kugel–K
 - **Becherwand:** gedämpfter „Tok“ (dumpfer als Kugel–Kugel), bei jedem Anstoß an die Wand nach Aufprallgeschwindigkeit (3 Stufen mal 2 Varianten).
 - Der Fall in die Tasche ergibt bei einem Test in der Seitentasche genau diese Folge: Rand-Tick, Rutschen, Becherwand, Becherboden.
 
-Der Rest dieser Seite ist das Konzept für die übrigen Klänge.
+## Positionen
 
-## Ausgangslage
-
-- Es gibt **einen einzigen Ton**: den Stoß-Klang (`playClackSound` in `src/billard.js`). Er besteht aus einem einzelnen Oszillator mit fallender Tonhöhe und **klingt nach Computer**.
-- Kugel–Kugel- und Kugel–Bande-Klänge gab es nur in der alten Physik. Seit der Umstellung auf Rapier **fehlen sie komplett**.
-- Rollen, Taschen, Becher und der Cue haben keinen Klang.
-
-## Ziel
-
-Ein **natürlicher, dichter Klang** für alle Billard-Geräusche, **kraftabhängig** und mit kleiner Zufallsvariation, damit sich nichts wie dieselbe Aufnahme wiederholt.
+Jeder Klang kommt von dem Ort, an dem er entsteht, und die Kamera ist der Hörer (`playBuffer` mit `position`, Panner mit sanftem Abfall, `SOUND_REF_DISTANCE` und `SOUND_ROLLOFF`): Kugel–Kugel am Berührpunkt, Bande, Tasche und Becher an der Kugel, der Abstoß an der Weißen, Zurückziehen und Vorschnalzen am Cue, das Atmen am Kopf des Spielers. Das Rollen kommt vom geschwindigkeitsgewichteten Mittelpunkt der rollenden Kugeln. Der Hörer wird in `audio.js` gesetzt (`updateAudioListener`, nur wenn sich die Kamera bewegt hat), auch das Radio nutzt ihn.
 
 ## Grundprinzip: gebufferte, generierte Sounds
 
@@ -51,51 +43,8 @@ Ein **natürlicher, dichter Klang** für alle Billard-Geräusche, **kraftabhäng
 - Pro Klangart gibt es **mehrere Kraftstufen** (z. B. leise → hart) und **mehrere Varianten**. Beim Abspielen kommen noch **zufällige Tonhöhe und Lautstärke** dazu.
 - **Lautstärke und Helligkeit** folgen der Aufprallgeschwindigkeit: harter Treffer = lauter, heller, kürzer; sanfter Treffer = leiser, dumpfer.
 
-## Klänge
-
-### Cue und Stoß
-| Ereignis | Beschreibung |
-|----------|--------------|
-| **Abstoß** (Spitze trifft Kugel) | *Umgesetzt (siehe oben).* Kurzer, harter „Tock“: Lederspitze auf Kugel, mit kleiner Holz-Resonanz des Schafts. |
-| **Zurückziehen** | Leises Gleiten der Hand auf dem Schaft (Reibung auf Holz). Dauer und Lautstärke hängen von der Stoßkraft ab. |
-| **Vorschnalzen** | Kurzer Luftzug („Wusch“) beim schnellen Vorschnellen des Cues, direkt gefolgt vom Abstoß. Stärker bei mehr Kraft. |
-| **Atem / Muskel** (optional) | Leises **Einatmen** beim Zurückziehen und kurzes **Ausatmen** beim Stoß; dazu eventuell ein feines Knarzen von Kleidung/Muskel bei viel Kraft. Nur dezent, keine Stimme. Ob wir das wollen, ist offen. |
-
-Die zugehörige Bewegung steht in `shot-animation.md`.
-
-### Kugeln
-| Ereignis | Beschreibung |
-|----------|--------------|
-| **Kugel–Kugel** | *Umgesetzt (siehe oben).* Heller, harter „Klack“ (Phenolharz auf Phenolharz). Stärke nach der Aufprallgeschwindigkeit entlang der Kollisionsrichtung. Beim Anstoß treffen viele Kugeln fast gleichzeitig, deshalb gibt es ein **Limit gleichzeitiger Stimmen**. |
-| **Kugel–Bande** | *Umgesetzt (siehe oben).* Dumpfer, kurzer „Tock/Thump“ (Gummi über Holz), tiefer und weicher als Kugel–Kugel. Stärke nach der Aufprallgeschwindigkeit senkrecht zur Bande. |
-| **Rollen** | **Sehr leises** Rollgeräusch auf Filz: tiefes, weiches Rauschen („Schhh“). Lautstärke und Helligkeit steigen mit der Geschwindigkeit, bei Stillstand wird es ausgeblendet. Es soll nur unterschwellig mitlaufen. |
-
-### Taschen und Becher
-Der Weg einer Kugel hat mehrere Geräusche, damit es sich **echt** anhört:
-
-1. **Lochkante:** kurzes, leises „Tick“, wenn die Kugel über den Rand rollt.
-2. **Fall:** kurzes Rutschen/Fallen ins Dunkle.
-3. **Aufprall auf dem Becherboden:** dumpfer Aufschlag (Leder/Holz), je nach Fallgeschwindigkeit; danach ein oder zwei **kleine Nachhüpfer** und leises Ausrollen.
-4. **Kugel trifft die Becherwand:** gedämpfter „Klack“, dumpfer als Kugel–Kugel, stärker bei höherer Aufprallgeschwindigkeit.
-5. **Kugel trifft eine andere Kugel im Becher:** wie Kugel–Kugel, aber gedämpft.
-
-Die Becher-Klänge sollen **bei jeder Kollision** ausgelöst werden, nicht nur beim ersten Aufprall.
-
-## Technik (Ideen, noch nicht entschieden)
-
-- **Web Audio API**: Buffer per `OfflineAudioContext` oder direkt aus berechneten Samples erzeugen; Abspielen über `AudioBufferSourceNode`.
-- **Auslöser** liefert die Physik: Rapier meldet Kollisionen (Kontakte mit Geschwindigkeit/Kraft). Heute gibt es nur das Event „Kugel trifft Becherboden“; für Kugel–Kugel, Bande und Becherwand braucht es mehr Kollisionsereignisse.
-- **Stimmenlimit** und kurze Sperrzeit pro Kugelpaar, damit Dauerberührung nicht rattert.
-- **Autoplay:** Browser erlauben Ton erst nach der ersten Nutzeraktion; der Audio-Kontext startet beim ersten Klick/Tastendruck.
-- **3D-Ton (umgesetzt):** Jeder Klang kommt von dem Ort, an dem er entsteht, und die Kamera ist der Hörer (`playBuffer` mit `position`, Panner mit sanftem Abfall, `SOUND_REF_DISTANCE`/`SOUND_ROLLOFF`). Kugel–Kugel am Berührpunkt, Bande, Tasche und Becher an der Kugel, der Abstoß an der Weißen, Zurückziehen und Vorschnalzen am Cue, das Atmen am Kopf des Spielers. Das Rollen kommt vom geschwindigkeitsgewichteten Mittelpunkt der rollenden Kugeln. Der Hörer wird einmal pro Bild in `audio.js` gesetzt (`updateAudioListener`), auch das Radio nutzt ihn.
-- **Raum:** Der große, dunkle Raum könnte einen kurzen, leisen **Hall** bekommen.
-- **Bedienung:** Ein Stumm-Schalter und eine Lautstärkeregelung in der Oberfläche (Texte über `src/i18n`).
-
 ## Offene Punkte
 
 - *Kugel trifft Kugel im Becher* gibt es nicht, weil versenkte Kugeln sofort aus dem Becher gelöscht werden.
-- Atem- und Muskelgeräusche: ja oder nein, und wie stark?
-- Wie viele Kraftstufen und Varianten pro Klang (Speicher gegen Qualität)?
-- Soll das Rollen pro Kugel oder als ein Gesamt-Mix klingen?
-- Raumhall: gewollt?
+- Raumhall: gewollt? Stumm-Schalter und Lautstärkeregelung in der Oberfläche?
 - Lautstärke-Mix gegenüber dem Radio (`radio.md`).

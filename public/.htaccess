@@ -1,0 +1,3 @@
+# Apache: the right types for the game's files (the Rapier physics engine is a .wasm file)
+AddType application/wasm .wasm
+AddType text/javascript .js .mjs

@@ -8,6 +8,7 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [wasm()],
   root: ".",
+  base: "./", // relative asset paths: the built game also works from a sub folder of any web server (e.g. PHP)
   resolve: {
     alias: {
       "three-bvh-csg/src/core/Brush.js": path.join(rootDir, "src", "csg-brush.js"),
