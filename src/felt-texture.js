@@ -1,6 +1,6 @@
 /**
  * The skin of the cloth: a color texture and a roughness texture for the whole playing surface (one
- * pixel is about 2.5 mm), made once from felt-constants.js: the worn head spot and the faint water
+ * pixel is about 2.5 mm), made once from felt-constants.js: the worn head spot (hole and washed-out place) and the faint water
  * stains. The textures are laid over the cloth by its position (u = x, v = z in meters, see
  * table-blueprint.js).
  */
@@ -12,6 +12,7 @@ import {
   FELT_NAP_NOISE,
   FELT_ROUGHNESS,
   FELT_WEAR,
+  FELT_WASH,
   FELT_STAINS,
   FELT_STAIN_LIFT_COLOR,
   FELT_STAIN_ROUGHNESS,
@@ -81,13 +82,17 @@ export function feltTextures(bounds) {
       const rgb = [...FELT_COLOR];
       let roughness = FELT_ROUGHNESS;
 
-      // the head spot: worn through, dark, with a faint lighter halo around it
+      // the head spot: a washed-out, flattened place, and in it the small hole where the cloth is worn through
+      const wash = FELT_WASH;
+      const { t: st } = blobEdge(x, z, wash, 2);
+      const flat = wash.strength * (1 - smooth(0.3, 1.2, st)) * (0.75 + 0.5 * noise(x * 38, z * 38, 4));
+      for (let k = 0; k < 3; k++) rgb[k] = mix(rgb[k], wash.color[k], flat);
+      roughness = mix(roughness, wash.roughness, Math.min(1, flat / wash.strength));
       const wear = FELT_WEAR;
       const { t: wt } = blobEdge(x, z, wear, 1);
       const hole = wear.strength * (1 - smooth(0.82, 1, wt)); // a short, slightly frayed edge
-      const halo = wt > 0.9 ? wear.halo * (1 - smooth(1, 2, wt)) * (0.6 + 0.8 * noise(x * 35, z * 35, 5)) : 0;
-      for (let k = 0; k < 3; k++) rgb[k] = mix(mix(rgb[k], wear.haloColor[k], halo), wear.color[k], hole);
-      roughness = mix(mix(roughness, 0.7, halo), wear.roughness, hole);
+      for (let k = 0; k < 3; k++) rgb[k] = mix(rgb[k], wear.color[k], hole);
+      roughness = mix(roughness, wear.roughness, hole);
 
       // the water stains
       for (const [i, stain] of FELT_STAINS.entries()) {

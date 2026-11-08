@@ -85,7 +85,10 @@ Die Kugeln tragen kleine **Einschlüsse** wie Elfenbeinkugeln (`src/ball-texture
 ## Filz: abgenutzt und mit Flecken (umgesetzt)
 
 Der Filz ist nicht mehr einfarbig (`src/felt-texture.js`, Werte in `felt-constants.js`). Eine Farb- und eine Rauigkeits-Textur (je 1024 × 512, ca. 2,5 mm pro Pixel, einmal erzeugt) legen sich nach der Position (u = x, v = z in Metern) über das ganze Spielfeld. **Immer gleiches Aussehen**, nichts ist zufällig. Die Grundfarbe ist die alte (`0x0a4032`), dazu ein feines Faserrauschen (±2).
-- **Abgenutzter Kopfpunkt** (dort, wo die weiße Kugel aufgelegt wird, `HEAD_SPOT_Z` in `table-constants.js`): eine **kleine, dunkle, wulstige Stelle** (ca. 8 cm breit, etwas größer als die Kugel), an der der Filz durchgescheuert ist und der dunkle Untergrund zeigt; der Umriss ist unregelmäßig gelappt, der Rand leicht ausgefranst. Rundherum ein ganz schwacher, hellerer Hof (flachgedrückte Fasern). Er liegt minimal neben dem Mittelpunkt der Kugel und ist mit Absicht deutlicher als die Flecken.
+- **Abgenutzter Kopfpunkt** (dort, wo die weiße Kugel aufgelegt wird, `HEAD_SPOT_Z` in `table-constants.js`), zweiteilig:
+  - **Loch:** eine **kleine, dunkle, wulstige Stelle** (ca. 3 cm breit, ein Drittel der früheren), an der der Filz durchgescheuert ist und der dunkle Untergrund zeigt; unregelmäßig gelappt, Rand leicht ausgefranst, minimal neben dem Mittelpunkt der Kugel (`FELT_WEAR`).
+  - **Ausgewaschener Fleck** darum: heller und grauer (die Fasern sind flachgedrückt), unregelmäßig gelappt, etwas glatter und mit schwachem Schimmer unter den Lampen, Radius ca. 7,5 cm und nur halb so stark wie in der ersten Fassung (`FELT_WASH`).
+  Beide sind mit Absicht deutlicher als die Flecken.
 - **Drei Wasserflecken** (Rotwein, vergeblich ausgewaschen): jeder hat einen **unregelmäßigen, langgezogenen, gelappten Umriss** wie eine verlaufene Pfütze (Form, Länge und Drehung je Fleck verschieden), innen minimal heller und grauer, am Rand ein feiner Ring, der **an manchen Stellen kräftig ist und an anderen fehlt**, mit einem schwächeren zweiten Ring innen (einer mit einem Hauch Rot), matt (Rauigkeit 1,0). Sehr dezent, man sieht sie erst beim Hinsehen.
 - Rein optisch, die Reibung ändert sich nicht.
 

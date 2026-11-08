@@ -15,22 +15,32 @@ export const FELT_NAP_NOISE = 2;
 export const FELT_ROUGHNESS = 0.9;
 
 /**
- * The head spot where the white ball is put: the cloth is worn through in a small, lumpy place and
- * the dark backing shows. Around it the nap is a little flatter (a faint, lighter halo). x, z and
- * radius in m (the radius of the lump, a ball is 0.0286); lobes 0..1 = how lumpy the outline is.
+ * The head spot where the white ball is put. Two things: a small, lumpy hole where the cloth is
+ * worn through and the dark backing shows (WEAR), and around it a larger, washed-out place where the
+ * nap is flattened: lighter, greyer and a little smoother, so it shimmers faintly under the lamps
+ * (WASH). x, z and radius in m (a ball has a radius of 0.0286); lobes 0..1 = how lumpy the outline is.
  */
 export const FELT_WEAR = {
   x: 0.01,
   z: HEAD_SPOT_Z - 0.008,
-  radius: 0.042,
+  radius: 0.014,
   aspect: 1.2,
   rotation: 0.5,
   lobes: 0.34,
   color: [3, 27, 22],
   strength: 0.9,
   roughness: 0.95,
-  halo: 0.14,
-  haloColor: [38, 88, 70],
+};
+export const FELT_WASH = {
+  x: 0,
+  z: HEAD_SPOT_Z,
+  radius: 0.075,
+  aspect: 1.3,
+  rotation: 0.2,
+  lobes: 0.35,
+  strength: 0.28,
+  color: [44, 96, 78],
+  roughness: 0.62,
 };
 
 /**
