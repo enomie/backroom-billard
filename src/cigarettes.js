@@ -35,6 +35,7 @@ import {
   SMOKE_HEIGHT,
   SMOKE_OPACITY,
   SMOKE_COLOR,
+  SMOKING_BURN_FACTOR,
 } from "./cigarette-constants.js";
 import { glowTexture } from "./glow.js";
 import { createSmokeColumn, faceCamera } from "./smoke.js";
@@ -88,7 +89,8 @@ function restingPose(slot, k, tipSupport) {
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, y: number, z: number, yaw: number, scale: number, onFrame: boolean }[]} ashtraySlots
- * @returns {{ group: THREE.Group, update: (dt: number, camera: THREE.Camera) => void }}
+ * @returns {{ group: THREE.Group, update: (dt: number, camera: THREE.Camera) => void,
+ *            playerCigarette: (camera: THREE.Camera) => object | null }}
  */
 export function createCigarettes(scene, ashtraySlots) {
   const group = new THREE.Group();
@@ -103,7 +105,7 @@ export function createCigarettes(scene, ashtraySlots) {
   const ashMat = new THREE.MeshStandardMaterial({ color: CIGARETTE_COLOR_ASH, roughness: 1 });
   const glowMap = glowTexture();
 
-  /** @type {{ root: THREE.Group, smoke: THREE.Mesh | null, tipX: number, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
+  /** @type {{ root: THREE.Group, onFrame: boolean, rest: { position: THREE.Vector3, quaternion: THREE.Quaternion }, drawGlow: number, smoke: THREE.Mesh | null, tipX: number, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
   const cigarettes = [];
 
   function add(slot, notch, state) {
@@ -133,7 +135,12 @@ export function createCigarettes(scene, ashtraySlots) {
       smoke.visible = false; // shown (and placed) by the first update
       group.add(smoke);
     }
-    const c = { root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow, smoke, tipX: 0 };
+    const c = {
+      root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow, smoke, tipX: 0,
+      onFrame: slot.onFrame,
+      rest: { position: root.position.clone(), quaternion: root.quaternion.clone() }, // where it lies in the ashtray
+      drawGlow: 0, // 0…1: the ember glows brighter while the player draws on it
+    };
     cigarettes.push(c);
     shape(c, 0);
   }
@@ -154,9 +161,10 @@ export function createCigarettes(scene, ashtraySlots) {
     if (lit) {
       const pulse = 0.85 + 0.15 * Math.sin(time * 1.7 + c.phase) + 0.08 * Math.sin(time * 4.3 + c.phase * 2.1);
       c.ember.position.x = tipX + 0.0003;
-      c.emberMat.color.set(CIGARETTE_COLOR_EMBER).multiplyScalar(CIGARETTE_EMBER_GLOW * pulse);
+      c.emberMat.color.set(CIGARETTE_COLOR_EMBER).multiplyScalar(CIGARETTE_EMBER_GLOW * pulse * (1 + 1.2 * c.drawGlow));
       c.glow.position.x = tipX + 0.004;
-      c.glow.material.opacity = 0.6 * pulse;
+      c.glow.material.opacity = Math.min(1, 0.6 * pulse * (1 + 0.8 * c.drawGlow));
+      c.glow.scale.setScalar(CIGARETTE_GLOW_SIZE * (1 + 0.6 * c.drawGlow));
     }
   }
 
@@ -176,11 +184,22 @@ export function createCigarettes(scene, ashtraySlots) {
   let time = 0;
   return {
     group,
+    /** The glowing cigarette in the nearest player's ashtray (on the frame of the billard table), or null. */
+    playerCigarette(camera) {
+      let best = null;
+      let bestDistance = Infinity;
+      for (const c of cigarettes) {
+        if (!c.onFrame || c.state !== "glowing" || c.burn >= 1) continue;
+        const d = c.root.position.distanceToSquared(camera.position);
+        if (d < bestDistance) [best, bestDistance] = [c, d];
+      }
+      return best;
+    },
     update(dt, camera) {
       time += dt;
       for (const c of cigarettes) {
         if (c.state !== "glowing") continue;
-        if (c.burn < 1) c.burn = Math.min(1, c.burn + dt / CIGARETTE_BURN_SECONDS);
+        if (c.burn < 1) c.burn = Math.min(1, c.burn + (dt * (1 + (SMOKING_BURN_FACTOR - 1) * c.drawGlow)) / CIGARETTE_BURN_SECONDS);
         shape(c, time);
         // the smoke thread rises from the ember while the cigarette glows
         c.smoke.visible = c.burn < 1;
@@ -189,6 +208,7 @@ export function createCigarettes(scene, ashtraySlots) {
           c.smoke.position.copy(c.root.localToWorld(new THREE.Vector3(c.tipX + 0.004, 0, 0)));
           faceCamera(c.smoke, camera);
           c.smoke.material.uniforms.uTime.value = time;
+          c.smoke.material.uniforms.uOpacity.value = SMOKE_OPACITY * (1 - 0.6 * c.drawGlow); // the smoke is drawn in, not rising
         }
       }
     },

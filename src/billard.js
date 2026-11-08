@@ -24,6 +24,7 @@ import { createCigarettes } from "./cigarettes.js";
 import { createCigarettePacks } from "./cigarette-pack.js";
 import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
+import { createSmoking } from "./smoking.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -160,6 +161,7 @@ const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
 let exhale = null; // exhaled smoke cloud (exhale.js)
+let smoking = null; // drawing on the player's cigarette with the T key (smoking.js)
 let atmosphere = null; // drifting fog and light shafts (atmosphere.js)
 let cigarettes = null; // single cigarettes in the ashtrays (cigarettes.js)
 let bottles = null; // wine and beer bottles (bottles.js)
@@ -239,6 +241,7 @@ function init() {
   candles.applyReflection(ballReflection);
   ashtrays.applyReflection(ballReflection);
   exhale = createExhale(scene);
+  smoking = createSmoking(cigarettes, exhale);
   atmosphere = createAtmosphere(scene); // after the capture, so the balls do not reflect the haze
   glasses.applyReflection(ballReflection);
   bottles.applyReflection(ballReflection);
@@ -793,7 +796,7 @@ function setupControls() {
       return;
     }
     if (e.code === "KeyT" && !e.repeat) {
-      exhale.trigger(camera); // exhale a cloud of smoke (test key)
+      smoking.press(camera); // hold T: draw on the cigarette, release: exhale
       return;
     }
     if (e.code === "KeyR" && !e.repeat) {
@@ -815,8 +818,14 @@ function setupControls() {
       if (!e.repeat) fireCueStrike();
     }
   });
-  window.addEventListener("keyup", (e) => heldKeys.delete(e.code));
-  window.addEventListener("blur", () => heldKeys.clear());
+  window.addEventListener("keyup", (e) => {
+    heldKeys.delete(e.code);
+    if (e.code === "KeyT") smoking.release(camera);
+  });
+  window.addEventListener("blur", () => {
+    heldKeys.clear();
+    smoking.release(camera);
+  });
 
   // Touch control for mobile
   let touchX = 0;
@@ -1306,6 +1315,7 @@ function gameLoop(currentTime) {
   if (atmosphere) atmosphere.update(frameSeconds);
   if (exhale) exhale.update(frameSeconds, camera);
   if (candles) candles.update(frameSeconds, camera);
+  if (smoking) smoking.update(frameSeconds, camera); // before the cigarettes: the smoke follows the ember
   if (cigarettes) cigarettes.update(dt, camera);
   if (radio) radio.update(frameSeconds, camera);
 

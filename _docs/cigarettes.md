@@ -1,6 +1,6 @@
 # Zigaretten und Rauch
 
-> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). die **Schachtel** (Optik, noch nicht bedienbar) ebenfalls. die **Ausatem-Wolke** (per Taste `T`, zum Testen) ebenfalls. **Ziehen, Entnehmen, Anzünden und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
+> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). die **Schachtel** (Optik, noch nicht bedienbar) ebenfalls. das **Ziehen und Ausatmen** (Taste `T`) ebenfalls. **Entnehmen aus der Schachtel und Anzünden sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
 
 Zur 80er-Kneipe gehört Rauch. Es gibt eine **Zigarettenschachtel zum Aufklappen**, **einzelne Zigaretten** (unangezündet, glimmend, Stummel) und **Rauch** per Shader. Wer an einer Zigarette zieht, **atmet danach eine Rauchwolke aus**.
 
@@ -52,6 +52,15 @@ Die ursprünglichen Vorgaben:
 - **Ablage:** auf der Kerbe, die Glut zeigt nach innen.
 
 ## Spieler und Zigarette
+
+**Umgesetzt: Ziehen mit `T`** (`src/smoking.js`, Werte `SMOKING_*`, Ton in `smoke-sounds.js`):
+
+- **Halten von `T`:** Die glimmende Zigarette aus dem Aschenbecher des Spielers (auf dem Rahmen des Billardtisches, die nächste zur Kamera) **fliegt in einem kleinen Bogen zum Mund** (0,45 s): vor und etwas unterhalb der Kamera, leicht nach rechts, Spitze nach vorn. Dort bleibt sie und folgt der Kamera. Die Glut leuchtet immer heller (voll nach 1,5 s), der Rauchfaden wird schwächer, und die Zigarette brennt schneller herunter.
+- **Ton beim Ziehen:** ein weiches Einatmen, das lauter und heller wird, solange man hält (3 s bis zum Maximum), dazu das Knistern der Glut.
+- **Loslassen:** Die Zigarette fliegt in ihre Kerbe zurück (0,5 s), und der Spieler **atmet aus**. Je länger gehalten (bis 3 s), desto mehr Rauch: 5 bis 36 Rauchballen, schneller und dichter, über 0,5 bis 1,6 s; der Ausatem-Ton wird länger (0,7 bis 2,6 s) und lauter. Ein kurzes Antippen gibt ein kleines Wölkchen.
+- Ohne glimmende Zigarette im Spieler-Aschenbecher (heruntergebrannt) passiert nichts. Es gibt noch kein Nachlegen.
+
+Die ursprünglichen Vorgaben:
 
 - **Entnehmen:** Klick auf die Schachtel nimmt eine Zigarette (Schachtel öffnet sich).
 - **Anzünden:** automatisch beim Nehmen oder mit einer eigenen Aktion (offen).

@@ -9,6 +9,8 @@ import { NOISE } from "./noise-glsl.js";
 import { SMOKE_LIGHT_GLSL, smokeLightUniforms } from "./smoke-light.js";
 import {
   EXHALE_PUFFS,
+  EXHALE_PUFFS_MIN,
+  EXHALE_SECONDS_MIN,
   EXHALE_POOL,
   EXHALE_SECONDS,
   EXHALE_SPEED,
@@ -58,7 +60,7 @@ const FRAGMENT = /* glsl */ `
 
 /**
  * @param {THREE.Scene} scene
- * @returns {{ group: THREE.Group, trigger: (camera: THREE.Camera) => void,
+ * @returns {{ group: THREE.Group, trigger: (camera: THREE.Camera, strength?: number) => void,
  *            update: (dt: number, camera: THREE.Camera) => void }}
  */
 export function createExhale(scene) {
@@ -79,7 +81,7 @@ export function createExhale(scene) {
     mesh.frustumCulled = false;
     mesh.renderOrder = 5;
     group.add(mesh);
-    return { mesh, active: false, age: 0, life: 1, velocity: new THREE.Vector3() };
+    return { mesh, active: false, age: 0, life: 1, density: 1, velocity: new THREE.Vector3() };
   });
   scene.add(group);
 
@@ -89,13 +91,14 @@ export function createExhale(scene) {
   const forward = new THREE.Vector3();
   const up = new THREE.Vector3(0, 1, 0);
 
-  function spawn(origin, dir) {
+  function spawn(origin, dir, strength) {
     const puff = puffs.find((p) => !p.active);
     if (!puff) return;
     const jitter = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(2 * EXHALE_SPREAD);
-    puff.velocity.copy(dir).add(jitter).normalize().multiplyScalar(EXHALE_SPEED * (0.7 + 0.6 * Math.random()));
+    puff.velocity.copy(dir).add(jitter).normalize().multiplyScalar(EXHALE_SPEED * (0.5 + 0.5 * strength) * (0.7 + 0.6 * Math.random()));
     puff.mesh.position.copy(origin).addScaledVector(dir, Math.random() * 0.05);
     puff.age = 0;
+    puff.density = 0.55 + 0.45 * strength;
     puff.life = EXHALE_LIFE_MIN + Math.random() * (EXHALE_LIFE_MAX - EXHALE_LIFE_MIN);
     puff.mesh.material.uniforms.uSeed.value = Math.random() * 40;
     puff.active = true;
@@ -104,23 +107,28 @@ export function createExhale(scene) {
 
   return {
     group,
-    /** Exhale from the player's mouth: just in front of and below the camera, along its view. */
-    trigger(camera) {
+    /**
+     * Exhale from the player's mouth: just in front of and below the camera, along its view.
+     * @param {number} strength — 0 (a puff) … 1 (a full breath after a long drag): more, faster, denser puffs
+     */
+    trigger(camera, strength = 1) {
       camera.getWorldDirection(forward);
       const origin = camera.position.clone().addScaledVector(forward, EXHALE_MOUTH_FORWARD).addScaledVector(up, -EXHALE_MOUTH_DOWN);
-      breaths.push({ origin, dir: forward.clone(), age: 0, spawned: 0 });
+      const count = Math.round(THREE.MathUtils.lerp(EXHALE_PUFFS_MIN, EXHALE_PUFFS, strength));
+      const seconds = THREE.MathUtils.lerp(EXHALE_SECONDS_MIN, EXHALE_SECONDS, strength);
+      breaths.push({ origin, dir: forward.clone(), age: 0, spawned: 0, count, seconds, strength });
     },
     update(dt, camera) {
       time += dt;
       for (let i = breaths.length - 1; i >= 0; i--) {
         const b = breaths[i];
         b.age += dt;
-        const due = Math.min(EXHALE_PUFFS, Math.floor((b.age / EXHALE_SECONDS) * EXHALE_PUFFS) + 1);
+        const due = Math.min(b.count, Math.floor((b.age / b.seconds) * b.count) + 1);
         while (b.spawned < due) {
-          spawn(b.origin, b.dir);
+          spawn(b.origin, b.dir, b.strength);
           b.spawned++;
         }
-        if (b.spawned >= EXHALE_PUFFS) breaths.splice(i, 1);
+        if (b.spawned >= b.count) breaths.splice(i, 1);
       }
       for (const p of puffs) {
         if (!p.active) continue;
@@ -138,7 +146,7 @@ export function createExhale(scene) {
         p.mesh.scale.setScalar(THREE.MathUtils.lerp(EXHALE_SIZE_START, EXHALE_SIZE_END, Math.sqrt(k)));
         const u = p.mesh.material.uniforms;
         u.uTime.value = time;
-        u.uOpacity.value = EXHALE_OPACITY * THREE.MathUtils.smoothstep(k, 0, 0.08) * (1 - THREE.MathUtils.smoothstep(k, 0.45, 1));
+        u.uOpacity.value = EXHALE_OPACITY * p.density * THREE.MathUtils.smoothstep(k, 0, 0.08) * (1 - THREE.MathUtils.smoothstep(k, 0.45, 1));
       }
     },
   };

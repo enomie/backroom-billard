@@ -65,10 +65,12 @@ export const PACK_FRAME_Z = 0.5;
 export const PACK_SEED = 53;
 
 /* ---- Exhaled cloud (exhale.js) ---- */
-/** A breath = this many puffs, released over this many seconds; at most EXHALE_POOL puffs at a time. */
-export const EXHALE_PUFFS = 16;
-export const EXHALE_POOL = 64;
-export const EXHALE_SECONDS = 1.2;
+/** A full breath = this many puffs, released over this many seconds; at most EXHALE_POOL puffs at a time. */
+export const EXHALE_PUFFS = 36; // a full breath
+export const EXHALE_PUFFS_MIN = 5; // the shortest drag
+export const EXHALE_POOL = 120;
+export const EXHALE_SECONDS = 1.6; // duration of a full breath (shorter for a short drag)
+export const EXHALE_SECONDS_MIN = 0.5;
 /** Start speed (m/s) and its spread, how fast the puffs slow down (1/s) and how fast they rise (m/s²). */
 export const EXHALE_SPEED = 1.5;
 export const EXHALE_SPREAD = 0.14;
@@ -84,3 +86,21 @@ export const EXHALE_COLOR = AIR_SMOKE_COLOR;
 /** The mouth: this far in front of and below the camera (m). */
 export const EXHALE_MOUTH_FORWARD = 0.35;
 export const EXHALE_MOUTH_DOWN = 0.12;
+
+/* ---- Smoking: the T key draws on the player's cigarette (smoking.js) ---- */
+/** The cigarette flies from the ashtray to the mouth and back (s). */
+export const SMOKING_FLY_IN = 0.45;
+export const SMOKING_FLY_OUT = 0.5;
+/** Height of the arc of its flight (m). */
+export const SMOKING_ARC = 0.07;
+/** Holding T longer draws harder: the drag is full after this many seconds; a short tap still gives a small puff. */
+export const SMOKING_MAX_DRAW = 3;
+export const SMOKING_MIN_STRENGTH = 0.12;
+/** The cigarette at the mouth: in front of and below the camera (m), pointing forward and a little up (rad). */
+export const SMOKING_MOUTH_FORWARD = 0.3;
+export const SMOKING_MOUTH_DOWN = 0.1;
+export const SMOKING_MOUTH_RIGHT = 0.05; // a little to the right, so it does not hide behind the cue
+export const SMOKING_MOUTH_TILT = 0.18;
+/** Drawing: the ember glows brighter (reaches its maximum after this many seconds) and the cigarette burns this much faster. */
+export const SMOKING_GLOW_RISE = 1.5;
+export const SMOKING_BURN_FACTOR = 6;

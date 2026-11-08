@@ -94,3 +94,15 @@ export const CUP_WALL_STAGES = 3;
 export const CUP_WALL_VARIANTS = 2;
 export const CUP_WALL_GAIN_MIN = 0.05;
 export const CUP_WALL_GAIN_MAX = 0.45;
+
+/* ---- Smoking (smoke-sounds.js): the drag (a long, rising intake with crackling) and the exhale ---- */
+export const DRAG_GAIN_START = 0.03;
+export const DRAG_GAIN_END = 0.11;
+export const DRAG_RISE_SECONDS = 3; // the intake gets louder and brighter for this long
+export const DRAG_FROM_HZ = 700;
+export const DRAG_TO_HZ = 1900;
+export const DRAG_CRACKLE_GAIN = 0.05;
+export const SMOKE_EXHALE_SECONDS_MIN = 0.7;
+export const SMOKE_EXHALE_SECONDS_MAX = 2.6;
+export const SMOKE_EXHALE_GAIN_MIN = 0.05;
+export const SMOKE_EXHALE_GAIN_MAX = 0.13;
