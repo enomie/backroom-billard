@@ -113,7 +113,7 @@ export function createBar(scene, glasses, bottles) {
   root.position.set(centerX, 0, BAR_WALL_Z);
   root.rotation.y = BAR_WALL_SIDE < 0 ? Math.PI / 2 : -Math.PI / 2;
 
-  const silver = new THREE.MeshStandardMaterial({ color: BAR_COLOR_SILVER, roughness: 0.28, metalness: 0.85 });
+  const silver = new THREE.MeshStandardMaterial({ color: BAR_COLOR_SILVER, roughness: 0.3, metalness: 0.5, emissive: BAR_COLOR_SILVER, emissiveIntensity: 0.12 });
   const wood = new THREE.MeshStandardMaterial({ color: BAR_COLOR_WOOD, map: woodTexture({ base: "#8a5a36", repeatX: 3 }), roughness: 0.45, metalness: 0.05 });
   const marble = marbleMaterial();
 
@@ -131,7 +131,7 @@ export function createBar(scene, glasses, bottles) {
   const rodsTo = BAR_HEIGHT - BAR_TOP_THICKNESS - BAR_RODS_END_MARGIN;
   const span = BAR_WIDTH - 2 * BAR_RODS_SIDE_MARGIN;
   const rodCount = Math.floor(span / BAR_RODS_SPACING) + 1;
-  const gold = new THREE.MeshStandardMaterial({ color: BAR_COLOR_GOLD, roughness: 0.3, metalness: 1 });
+  const gold = new THREE.MeshStandardMaterial({ color: BAR_COLOR_GOLD, roughness: 0.3, metalness: 0.45, emissive: BAR_COLOR_GOLD, emissiveIntensity: 0.22 }); // fully metallic would be black: the room has little to mirror
   const rods = new THREE.InstancedMesh(new THREE.CylinderGeometry(BAR_RODS_RADIUS, BAR_RODS_RADIUS, rodsTo - rodsFrom, 12), gold, rodCount);
   const rodMatrix = new THREE.Matrix4();
   const used = (rodCount - 1) * BAR_RODS_SPACING;
@@ -139,6 +139,7 @@ export function createBar(scene, glasses, bottles) {
     rodMatrix.setPosition(-used / 2 + i * BAR_RODS_SPACING, (rodsFrom + rodsTo) / 2, BAR_DEPTH / 2 + BAR_RODS_RADIUS * 0.6);
     rods.setMatrixAt(i, rodMatrix);
   }
+  rods.frustumCulled = false; // the box around the instances is not known up front
   root.add(rods);
 
   // the top: a rounded plate with rounded edges, lying flat
