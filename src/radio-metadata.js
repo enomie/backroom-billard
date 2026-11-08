@@ -3,8 +3,19 @@
  * requested a second time with `Icy-MetaData: 1`; the server then inserts the title (`StreamTitle`)
  * every `icy-metaint` bytes. Only the first block is read, then the request is aborted. This needs
  * CORS to allow and expose the `icy-metaint` header; without it no title is shown (silent fallback).
+ *
+ * The title is a side issue and must never disturb the sound: it does not run on the sound's ups and
+ * downs, asks only while the radio plays and the tab is visible, never two requests at once, each with
+ * a timeout, slower after every failure, and gives up after a few failures in a row (until the radio
+ * is switched on again).
  */
-import { RADIO_METADATA_INTERVAL } from "./radio-constants.js";
+import {
+  RADIO_METADATA_INTERVAL,
+  RADIO_METADATA_FIRST_DELAY,
+  RADIO_METADATA_TIMEOUT,
+  RADIO_METADATA_MAX_FAILURES,
+  RADIO_METADATA_MAX_INTERVAL,
+} from "./radio-constants.js";
 
 /** Read the first ICY metadata block of a stream. Resolves to the title or "" if there is none. */
 async function fetchTitle(url, signal) {
@@ -44,35 +55,63 @@ export class RadioMetadata {
   /**
    * @param {string} url
    * @param {(title: string) => void} onTitle
+   * @param {() => boolean} isPlaying — true while the sound runs: only then it is asked
    */
-  constructor(url, onTitle) {
+  constructor(url, onTitle, isPlaying) {
     this.url = url;
     this.onTitle = onTitle;
+    this.isPlaying = isPlaying;
+    this.running = false;
     this.abort = null;
     this.timer = 0;
+    this.failures = 0;
   }
 
   start() {
     this.stop();
-    const abort = new AbortController();
-    this.abort = abort;
-    const poll = async () => {
-      let title = "";
-      try {
-        title = await fetchTitle(this.url, abort.signal);
-      } catch {
-        /* no CORS, offline or aborted: no title */
-      }
-      if (abort.signal.aborted) return;
-      this.onTitle(title);
-      this.timer = window.setTimeout(poll, RADIO_METADATA_INTERVAL * 1000);
-    };
-    poll();
+    this.running = true;
+    this.failures = 0;
+    this.schedule(RADIO_METADATA_FIRST_DELAY);
   }
 
   stop() {
+    this.running = false;
     this.abort?.abort();
     this.abort = null;
     window.clearTimeout(this.timer);
+  }
+
+  /** Ask again after `seconds`. */
+  schedule(seconds) {
+    window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => this.poll(), seconds * 1000);
+  }
+
+  async poll() {
+    if (!this.running) return;
+    // not while the sound is down or the tab is in the background: look again soon
+    if (!this.isPlaying() || document.hidden) return this.schedule(RADIO_METADATA_INTERVAL / 3);
+    const abort = new AbortController();
+    this.abort = abort;
+    const timeout = window.setTimeout(() => abort.abort(), RADIO_METADATA_TIMEOUT * 1000);
+    let title = null; // null = the request failed
+    try {
+      title = await fetchTitle(this.url, abort.signal);
+    } catch {
+      /* no CORS, offline, too slow or aborted */
+    } finally {
+      window.clearTimeout(timeout);
+    }
+    if (!this.running || this.abort !== abort) return;
+    this.abort = null;
+    if (title === null) {
+      this.failures++;
+      this.onTitle("");
+      if (this.failures >= RADIO_METADATA_MAX_FAILURES) return; // gives up quietly: sender and "live" stay
+      return this.schedule(Math.min(RADIO_METADATA_MAX_INTERVAL, RADIO_METADATA_INTERVAL * 2 ** this.failures));
+    }
+    this.failures = 0;
+    this.onTitle(title);
+    this.schedule(RADIO_METADATA_INTERVAL);
   }
 }

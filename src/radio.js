@@ -333,17 +333,28 @@ export function createRadio(scene) {
   };
   const audio = new RadioAudio(RADIO_STREAM_URL, speakers, (s) => {
     state = s;
-    if (s === "live") metadata.start();
+    redraw();
+  });
+  // The title has nothing to do with the sound: it comes and goes on its own, the sound does not wait for it
+  const metadata = new RadioMetadata(
+    RADIO_STREAM_URL,
+    (text) => {
+      title = text;
+      redraw();
+    },
+    () => state === "live"
+  );
+  /** The knob: the radio and its title are switched together. */
+  const switchOn = (value) => {
+    on = value;
+    audio.setOn(value);
+    if (value) metadata.start();
     else {
       metadata.stop();
       title = "";
+      redraw();
     }
-    redraw();
-  });
-  const metadata = new RadioMetadata(RADIO_STREAM_URL, (text) => {
-    title = text;
-    redraw();
-  });
+  };
   redraw();
   onLanguageChange(redraw);
 
@@ -351,7 +362,7 @@ export function createRadio(scene) {
   const unlock = () => audio.unlock();
   window.addEventListener("pointerdown", unlock, { once: true });
   window.addEventListener("keydown", unlock, { once: true });
-  audio.setOn(true);
+  switchOn(true);
 
   const raycaster = new THREE.Raycaster();
   return {
@@ -376,9 +387,8 @@ export function createRadio(scene) {
       raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
       raycaster.far = RADIO_CLICK_DISTANCE;
       if (raycaster.intersectObject(hit, false).length === 0) return false;
-      on = !on;
       audio.unlock(); // a click is a user gesture
-      audio.setOn(on);
+      switchOn(!on);
       return true;
     },
     /** Per frame: audio listener = camera, and the knob turns smoothly. */

@@ -3,8 +3,28 @@
 /** Direct AAC 256k stream of the station. */
 export const RADIO_STREAM_URL = "https://knkx-live-a.edge.audiocdn.com/6285_256k";
 export const RADIO_STATION_NAME = "KNKX";
-/** Seconds between title requests while the radio plays. */
-export const RADIO_METADATA_INTERVAL = 20;
+/**
+ * The track title is a side issue and never allowed to disturb the sound: it asks only after the
+ * stream has played for a while, rarely, with a timeout, slower after each failure, and gives up
+ * after RADIO_METADATA_MAX_FAILURES failures in a row (seconds).
+ */
+export const RADIO_METADATA_INTERVAL = 30;
+export const RADIO_METADATA_FIRST_DELAY = 8;
+export const RADIO_METADATA_TIMEOUT = 8;
+export const RADIO_METADATA_MAX_FAILURES = 4;
+export const RADIO_METADATA_MAX_INTERVAL = 300;
+
+/**
+ * A dropped stream is reconnected by itself: pauses between the attempts (s, the last one repeats),
+ * the failures in a row after which the display says "no signal" (it keeps trying), a stall without
+ * progress that counts as a drop, the time a connection may take, and how long the sound must run
+ * before the next drop counts as the first again.
+ */
+export const RADIO_RETRY_DELAYS = [1, 2, 4, 8, 15, 30];
+export const RADIO_FAILURES_BEFORE_NO_SIGNAL = 3;
+export const RADIO_STALL_SECONDS = 8;
+export const RADIO_CONNECT_SECONDS = 20;
+export const RADIO_STABLE_SECONDS = 10;
 
 /** Placement: the sideboard stands against a long wall (x = ±ROOM_WIDTH/2); +1 = +x wall, −1 = −x wall. */
 export const RADIO_WALL_SIDE = 1;

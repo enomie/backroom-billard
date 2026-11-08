@@ -992,7 +992,7 @@ function setupControls() {
   );
 
   container.addEventListener("touchend", (e) => {
-    e.preventDefault(); // prevents the additionally synthesized mouse events
+    if (e.cancelable) e.preventDefault(); // prevents the additionally synthesized mouse events (not possible while the page scrolls)
     if (cameraMode === "fps" && !touchMoved) {
       fireCueStrike();
     } else if (cameraMode === "free" && !touchMoved && e.changedTouches.length) {
