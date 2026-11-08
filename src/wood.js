@@ -3,7 +3,7 @@
  * the wall paneling and the radio.
  */
 import * as THREE from "three";
-import { WAINSCOT_WOOD_BASE } from "./room-constants.js";
+import { WAINSCOT_WOOD_BASE, WAINSCOT_COLOR } from "./room-constants.js";
 
 /**
  * Wood veneer with the grain running along u.
@@ -54,7 +54,29 @@ export function glossyWoodMaterial(map, color = 0xffffff) {
   });
 }
 
-/** The dark varnished wood of the wall paneling's trim; the door is made of the same. */
+/** The vertical grain of the wall paneling (dark brown with lighter and darker streaks) on a canvas. */
+export function drawWainscotGrain(ctx, w, h) {
+  ctx.fillStyle = WAINSCOT_WOOD_BASE;
+  ctx.fillRect(0, 0, w, h);
+  for (let i = 0; i < 160; i++) {
+    const x = Math.random() * w;
+    ctx.strokeStyle = `rgba(${Math.random() < 0.5 ? "30,12,4" : "150,80,45"}, ${0.06 + Math.random() * 0.14})`;
+    ctx.lineWidth = 0.6 + Math.random() * 2;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.bezierCurveTo(x + (Math.random() - 0.5) * 8, h / 3, x + (Math.random() - 0.5) * 8, (h * 2) / 3, x, h);
+    ctx.stroke();
+  }
+}
+
+/** Varnished wood with the grain of the paneling: the door is made of it. */
 export function wainscotWoodMaterial() {
-  return glossyWoodMaterial(woodTexture({ base: WAINSCOT_WOOD_BASE, dark: "30,12,4", light: "150,80,45" }));
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 512;
+  drawWainscotGrain(canvas.getContext("2d"), 256, 512);
+  const map = new THREE.CanvasTexture(canvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.anisotropy = 4;
+  return glossyWoodMaterial(map, WAINSCOT_COLOR);
 }

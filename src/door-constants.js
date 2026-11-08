@@ -47,9 +47,6 @@ export const DOOR_BACKDROP_COLOR = 0xffe7bd;
 export const DOOR_COLOR_IRON = 0x1c1a18;
 export const DOOR_COLOR_BRONZE = 0x8a6030;
 
-/** How much the wood glows on its own (the room is dark). */
-export const DOOR_WOOD_GLOW = 0.3;
-
 /** Amber, see-through, wavy glass: tint, opacity, how strongly the waves bend the highlights, glow (the glass shines a little by itself). */
 export const DOOR_GLASS_COLOR_BASE = "#c97a10";
 export const DOOR_GLASS_COLOR_LIGHT = "#f5c060";

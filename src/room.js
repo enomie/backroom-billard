@@ -21,7 +21,7 @@ import {
   FOG_FAR,
   FOG_MAX_OPACITY,
 } from "./room-constants.js";
-import { glossyWoodMaterial, wainscotWoodMaterial } from "./wood.js";
+import { woodTexture, glossyWoodMaterial, drawWainscotGrain } from "./wood.js";
 import { wallWithDoorGeometry } from "./door.js";
 import { DOOR_OPENING_WIDTH, DOOR_CASING_WIDTH } from "./door-constants.js";
 
@@ -112,17 +112,7 @@ function panelTexture() {
   const w = 256;
   const h = Math.round((w * WAINSCOT_HEIGHT) / WAINSCOT_PANEL_WIDTH);
   return canvasTexture(w, (ctx) => {
-    ctx.fillStyle = WAINSCOT_WOOD_BASE;
-    ctx.fillRect(0, 0, w, h);
-    for (let i = 0; i < 160; i++) {
-      const x = Math.random() * w;
-      ctx.strokeStyle = `rgba(${Math.random() < 0.5 ? "30,12,4" : "150,80,45"}, ${0.06 + Math.random() * 0.14})`;
-      ctx.lineWidth = 0.6 + Math.random() * 2;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.bezierCurveTo(x + (Math.random() - 0.5) * 8, h / 3, x + (Math.random() - 0.5) * 8, (h * 2) / 3, x, h);
-      ctx.stroke();
-    }
+    drawWainscotGrain(ctx, w, h);
     const edge = 22; // stile/rail width in px
     const rect = (inset) => [inset, inset, w - 2 * inset, h - 2 * inset];
     // dark groove between frame and field, light/dark edges for a raised-panel look
@@ -241,7 +231,7 @@ export function createRoom(scene) {
       map.needsUpdate = true;
       return glossyWoodMaterial(map, WAINSCOT_COLOR);
     },
-    trim: wainscotWoodMaterial(),
+    trim: glossyWoodMaterial(woodTexture({ base: WAINSCOT_WOOD_BASE, dark: "30,12,4", light: "150,80,45" })),
   };
 
   // Walls (face inwards): ±z are the short walls, ±x the long walls. Each wall is a group with its

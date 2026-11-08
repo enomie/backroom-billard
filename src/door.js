@@ -137,9 +137,6 @@ export function createDoor(scene) {
   group.rotation.y = Math.PI;
 
   const wood = wainscotWoodMaterial(); // the same wood as the wall paneling
-  wood.emissive.set(0xffffff);
-  wood.emissiveMap = wood.map;
-  wood.emissiveIntensity = C.DOOR_WOOD_GLOW;
   const iron = new THREE.MeshStandardMaterial({ color: C.DOOR_COLOR_IRON, roughness: 0.5, metalness: 0.7 });
   const bronze = new THREE.MeshStandardMaterial({ color: C.DOOR_COLOR_BRONZE, roughness: 0.45, metalness: 0.5, emissive: C.DOOR_COLOR_BRONZE, emissiveIntensity: 0.15 });
   const glassMaterial = new THREE.MeshStandardMaterial({
