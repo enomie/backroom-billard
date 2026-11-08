@@ -1221,7 +1221,7 @@ function enterPiano() {
   pianoReturn.yaw = freeYaw;
   pianoReturn.pitch = freePitch;
   const seat = piano.seat();
-  const look = new THREE.Object3D();
+  const look = new THREE.PerspectiveCamera(); // a camera looks along −z (a plain object would look along +z)
   look.position.copy(seat.position);
   look.lookAt(seat.target);
   startPianoMove(seat.position, look.quaternion, "entering");
