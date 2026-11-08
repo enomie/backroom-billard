@@ -131,6 +131,7 @@ const strikeNub = { x: 0, y: 0 };
 let aimSwayPitch = 0; // the vertical part of the swing: with aimSway the cue tip circles around the target
 let aimSway = 0; // the swing of the cue and aim line from the player's condition (rad, player-state.js)
 let aimElevation = FP_CAM_DEFAULT_ELEVATION; // camera elevation above the table (rad)
+let elevationGlide = false; // a new turn: the elevation eases back to the flat default until the player tilts the camera himself
 const camFocus = new THREE.Vector3(); // orbit center of the cue camera (the shot position)
 let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
 let isCueMoving = false;
@@ -387,6 +388,7 @@ function setupBalls() {
   clearPocketedHud();
   hideGameOver();
   shotInProgress = false;
+  elevationGlide = true; // a new rack starts like every turn: flat
   cueRelax = 0;
 
   const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
@@ -891,6 +893,7 @@ function setupControls() {
     aimAngle -= dx * 0.0055;
     // Vertical tilt of the camera
     aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
+    if (dy !== 0) elevationGlide = false; // the player tilts the camera: his choice wins
   });
 
   // Keyboard: C switches the camera, R resets; in cue view arrow keys / A & D aim and space
@@ -967,6 +970,7 @@ function setupControls() {
         touchY = e.touches[0].clientY;
         aimAngle -= dx * 0.006;
         aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
+        if (dy !== 0) elevationGlide = false;
       }
     },
     { passive: true }
@@ -1074,6 +1078,7 @@ function toggleCamera() {
     freePoseSaved = true;
     freeLookDragging = false;
     if (document.pointerLockElement) document.exitPointerLock();
+    aimElevation = FP_CAM_DEFAULT_ELEVATION; // back at the table: flat, as at every turn
   }
 
   renderCameraLabel();
@@ -1432,6 +1437,7 @@ function gameLoop(currentTime) {
       shotRestTimer += dt;
       if (shotRestTimer >= SHOT_REST_DELAY) {
         shotInProgress = false;
+        elevationGlide = true; // the next turn starts flat again
         stroke = null;
       }
     } else {
@@ -1485,7 +1491,17 @@ function gameLoop(currentTime) {
   // Camera positioning: the orbit center is the shot position; it stays there while the balls roll
   // and eases to the new cue ball position once the table is still. Turning works at any time.
   if (cameraMode === "fps" && cueBall) {
-    if (!shotInProgress) camFocus.lerp(cueBall.pos, 1 - Math.exp(-FP_CAM_FOCUS_RATE * frameSeconds));
+    if (!shotInProgress) {
+      const ease = 1 - Math.exp(-FP_CAM_FOCUS_RATE * frameSeconds);
+      camFocus.lerp(cueBall.pos, ease);
+      if (elevationGlide) {
+        aimElevation += (FP_CAM_DEFAULT_ELEVATION - aimElevation) * ease;
+        if (Math.abs(aimElevation - FP_CAM_DEFAULT_ELEVATION) < 0.002) {
+          aimElevation = FP_CAM_DEFAULT_ELEVATION;
+          elevationGlide = false;
+        }
+      }
+    }
     placeAimCamera();
   } else if (cameraMode === "free") {
     updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap

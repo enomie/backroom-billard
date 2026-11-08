@@ -19,7 +19,7 @@ Während der Animation sind Zielen, Kraft und ein zweiter Stoß ohne Wirkung.
 
 ## Kamera und Cue-Ausrichtung
 
-- **Kamera:** Sie kreist ohne Glättung direkt um die Schussposition (`placeAimCamera`, Winkel und Höhe 10°–80°, `FP_CAM_*`), damit Kamera, Zielhilfe und Cue nie gegeneinander ruckeln. Sie bleibt dort, bis alle Kugeln stillstehen, und ist die ganze Zeit drehbar.
+- **Kamera:** Sie kreist ohne Glättung direkt um die Schussposition (`placeAimCamera`, Winkel und Höhe 10°–80°, `FP_CAM_*`), damit Kamera, Zielhilfe und Cue nie gegeneinander ruckeln. Sie bleibt dort, bis alle Kugeln stillstehen, und ist die ganze Zeit drehbar. **Jeder neue Zug beginnt flach** (`FP_CAM_DEFAULT_ELEVATION`, 16°): Sobald die Kugeln ruhen, gleitet die Höhe weich auf diesen Wert zurück (mit derselben Geschwindigkeit wie der Weg zur weißen Kugel, `FP_CAM_FOCUS_RATE`); wer die Kamera dabei selbst kippt, hat Vorrang. Dasselbe gilt beim Neuaufbau und beim Zurückwechseln von der freien Kamera (dort sofort). Die Blickrichtung bleibt, wie sie war.
 - **Cue:** Er zeigt in Blickrichtung der Kamera, seine Neigung folgt der Kamerahöhe und liegt etwas darunter (`CUE_PITCH_*`, höchstens ca. 29°). Die Stoßgeschwindigkeit wird für die Neigung ausgeglichen.
 
 ## Die Spitze ist physisch

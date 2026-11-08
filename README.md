@@ -17,7 +17,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 | Aktion | Eingabe |
 |--------|---------|
-| Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (10°–80° über dem Tisch); `A` / `D` oder Pfeile links/rechts |
+| Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (10°–80° über dem Tisch; jeder neue Zug beginnt wieder flach mit 16°); `A` / `D` oder Pfeile links/rechts |
 | Kraft (1-%-Schritte) | Mausrad, `W` / `S` oder Pfeil hoch/runter, vertikaler farbiger Slider rechts (auch per Touch) |
 | Stoß | Klick, Leertaste oder der SHOOT-Button unten in der Mitte |
 | Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |
