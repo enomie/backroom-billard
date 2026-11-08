@@ -44,13 +44,9 @@
         </div>
       </header>
 
-      <!-- Condition: two bars, calm in the middle; each with the key button that moves its marker -->
+      <!-- Condition: two bars, calm in the middle (the keys R and T that move the markers: buttons at the bottom) -->
       <div class="meters interactive">
         <div class="meter">
-          <button id="btn-drink" type="button" class="btn-key btn-key--compact">
-            <span class="btn-key__cap" aria-hidden="true">R</span>
-            <span class="btn-key__label" data-i18n="button.drink">Drink</span>
-          </button>
           <div class="meter__body">
             <div class="meter__ends">
               <span data-i18n="meter.thirsty">Thirsty</span>
@@ -60,11 +56,6 @@
           </div>
         </div>
         <div class="meter">
-          <button id="btn-smoke" type="button" class="btn-key btn-key--compact">
-            <span class="btn-key__cap" aria-hidden="true">T</span>
-            <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
-            <span id="pack-count" class="btn-key__badge" data-i18n-aria-label="pack.aria" aria-label="Cigarettes in the pack">20</span>
-          </button>
           <div class="meter__body">
             <div class="meter__ends">
               <span data-i18n="meter.nerves">Nerves</span>
@@ -124,6 +115,21 @@
           <h2 id="menu-title" class="menu__title" data-i18n="menu.title">What would you like?</h2>
           <div id="menu-list" class="menu__list"></div>
         </div>
+      </div>
+
+      <!-- Drink and smoke: at the bottom, one on each side of the shoot button -->
+      <div class="side-dock side-dock--left interactive">
+        <button id="btn-drink" type="button" class="btn-key">
+          <span class="btn-key__cap" aria-hidden="true">R</span>
+          <span class="btn-key__label" data-i18n="button.drink">Drink</span>
+        </button>
+      </div>
+      <div class="side-dock side-dock--right interactive">
+        <button id="btn-smoke" type="button" class="btn-key">
+          <span class="btn-key__cap" aria-hidden="true">T</span>
+          <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
+          <span id="pack-count" class="btn-key__badge" data-i18n-aria-label="pack.aria" aria-label="Cigarettes in the pack">20</span>
+        </button>
       </div>
 
       <!-- Shoot: bottom center. Above the button: the face of the cue ball, drag the nub to set where the tip meets it -->

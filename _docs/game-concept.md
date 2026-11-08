@@ -37,7 +37,7 @@ Das Geld steht oben links (`wallet.js`, Start **15.000 $**). Gekauft wird **Trin
 ### Tasten und Bedienknöpfe (HUD)
 
 - **Tasten:** `T` rauchen (halten = stärker ziehen), `R` trinken, `C` Kamera wechseln, `N` neu aufbauen.
-- **Knöpfe:** Bei den Balken stehen **R Drink** und **T Smoke**, unten links der große Kamera-Knopf (`C`, zweizeilig „Player / Camera“ oder „Free / Camera“). Alle sehen aus wie der Shoot-Button, mit dem Buchstaben etwas größer, und lassen sich mit Maus oder Berührung bedienen. R und T bleiben gedrückt wie die Taste.
+- **Knöpfe:** Unten stehen von links nach rechts der große Kamera-Knopf (`C`, zweizeilig „Player / Camera“ oder „Free / Camera“), dann in der Mitte **R Drink**, der **Shoot-Button** (mit der Fläche für den Nubbel darüber) und **T Smoke**, ganz rechts der Power-Regler. Auf schmalen Bildschirmen (unter 768 px) stehen Smoke und Drink übereinander in der linken Spalte über dem Kamera-Knopf. Die Balken oben zeigen nur noch die Marker. Alle sehen aus wie der Shoot-Button, mit dem Buchstaben etwas größer, und lassen sich mit Maus oder Berührung bedienen. R und T bleiben gedrückt wie die Taste.
 
 ## Ideen (nicht umgesetzt)
 
