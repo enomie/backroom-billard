@@ -82,6 +82,13 @@ Code: `src/door.js`, Werte in `door-constants.js`. Aus Rücksicht auf die Bildra
 
 Die Kugeln tragen kleine **Einschlüsse** wie Elfenbeinkugeln (`src/ball-texture.js`, Werte in `ball-constants.js`), damit man sieht, wie sie sich drehen: etwa 90 winzige Flecken (Radius 0,4–1,2 mm) gleichmäßig über die ganze Kugel verteilt, **für jede Kugel ein anderes Muster** (fest, bei jedem Start gleich). Auf hellen und bunten Kugeln sind sie dunkelbraun, auf der schwarzen 8 hell-grau. Rein optisch: eine kleine Canvas-Textur je Kugel (512 × 256, einmal erzeugt und behalten), die Farbe der Kugel steckt in der Textur. Größe, Anzahl und Stärke der Flecken stehen in `ball-constants.js`.
 
+## Filz: abgenutzt und mit Flecken (umgesetzt)
+
+Der Filz ist nicht mehr einfarbig (`src/felt-texture.js`, Werte in `felt-constants.js`). Eine Farb- und eine Rauigkeits-Textur (je 1024 × 512, ca. 2,5 mm pro Pixel, einmal erzeugt) legen sich nach der Position (u = x, v = z in Metern) über das ganze Spielfeld. **Immer gleiches Aussehen**, nichts ist zufällig. Die Grundfarbe ist die alte (`0x0a4032`), dazu ein feines Faserrauschen (±2).
+- **Abgenutzter Kopfpunkt** (dort, wo die weiße Kugel aufgelegt wird, `HEAD_SPOT_Z` in `table-constants.js`): heller und grauer (die Fasern sind flachgedrückt), unregelmäßiger, gesprenkelter Rand, Radius ca. 13 cm, und etwas glatter (Rauigkeit 0,58 statt 0,9), also mit schwachem Schimmer unter den Lampen. Er ist mit Absicht deutlicher als die Flecken.
+- **Drei Wasserflecken** (Rotwein, vergeblich ausgewaschen): innen minimal heller und grauer, am Rand ein feiner, unregelmäßiger, etwas dunklerer Ring (einer mit einem Hauch Rot), matt (Rauigkeit 1,0). Sehr dezent, man sieht sie erst beim Hinsehen.
+- Rein optisch, die Reibung ändert sich nicht.
+
 ## Fester Raumnebel
 
 - **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist der Dunst am dichtesten (aber nie komplett deckend).

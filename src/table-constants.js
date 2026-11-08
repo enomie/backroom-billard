@@ -7,6 +7,9 @@
 export const PLAY_L = 2.54;
 export const PLAY_W = 1.27;
 
+/** Where the white ball is placed (head spot): along the table, towards the player at the start. */
+export const HEAD_SPOT_Z = PLAY_L * 0.28;
+
 /** Felt playing surface height (common furniture height; the WPA specifies floor-to-rail separately) */
 export const TABLE_H = 0.85;
 

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { woodTexture, glossyWoodMaterial } from "./wood.js";
 import { buildTableWithPocketsCSG } from "./table-csg.js";
+import { feltTextures } from "./felt-texture.js";
 import { cushionTipOffsets, pocketCupDims } from "./pocket-spec.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
@@ -167,9 +168,19 @@ export function buildAuthenticTableWithHoles(
   bedGeo.rotateX(Math.PI / 2);
   bedGeo.translate(0, TABLE_H, 0);
 
+  // The cloth: its color and roughness come from textures (worn head spot, faint stains), laid on by position
+  bedGeo.computeBoundingBox();
+  const felt = feltTextures({
+    minX: bedGeo.boundingBox.min.x,
+    maxX: bedGeo.boundingBox.max.x,
+    minZ: bedGeo.boundingBox.min.z,
+    maxZ: bedGeo.boundingBox.max.z,
+  });
   const feltMat = new THREE.MeshStandardMaterial({
-    color: 0x0a4032,
-    roughness: 0.9,
+    color: 0xffffff,
+    map: felt.map,
+    roughness: 1, // the roughness map holds the values
+    roughnessMap: felt.roughnessMap,
     metalness: 0.01,
   });
   // Varnished dark mahogany

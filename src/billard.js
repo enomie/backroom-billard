@@ -2,6 +2,7 @@
 
 import {
   PLAY_L,
+  HEAD_SPOT_Z,
   PLAY_W,
   TABLE_H,
   BALL_RADIUS_REAL,
@@ -449,7 +450,7 @@ function setupBalls() {
   }
 
   // Cue ball
-  cueBall = createBall(0, PLAY_L * 0.28, 0xf8fafc, true, 0);
+  cueBall = createBall(0, HEAD_SPOT_Z, 0xf8fafc, true, 0);
 
   // Triangle rack
   const startZ = -PLAY_L * 0.22;
@@ -478,7 +479,7 @@ function findFreeCueSpot() {
       (o) =>
         o.isCue || o.inPocket || (o.pos.x - x) ** 2 + (o.pos.z - z) ** 2 > minDistSq
     );
-  const baseZ = PLAY_L * 0.28;
+  const baseZ = HEAD_SPOT_Z;
   const maxZ = PLAY_L * 0.45;
   for (let z = baseZ; z <= maxZ; z += BALL_R * 0.5) {
     for (const x of [0, BALL_R * 2.5, -BALL_R * 2.5, BALL_R * 5, -BALL_R * 5]) {
