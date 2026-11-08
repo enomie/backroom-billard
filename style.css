@@ -512,12 +512,19 @@ html {
   -webkit-backdrop-filter: blur(12px);
 }
 
-.power-dock__value,
-.power-dock__label {
+.power-dock__value {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  color: var(--amber-300);
+}
+
+/* the bolt under the slider (instead of the word "Power") */
+.power-dock__icon {
+  display: block;
+  width: 1.1rem;
+  height: 1.1rem;
   color: var(--amber-300);
 }
 
