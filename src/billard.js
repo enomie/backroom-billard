@@ -49,6 +49,7 @@ import {
   CUE_SWAY_AMPLITUDE,
   CUE_SWAY_SPEED,
   CUE_AIM_GAP,
+  CUE_STRIKE_OFFSET_MAX,
   CUE_BACK_GAP_MIN,
   CUE_BACK_GAP_MAX,
   CUE_BACK_TIME_MIN,
@@ -122,6 +123,8 @@ const pocketSpecs = createPocketSpecs(tableDimensions);
 // State
 let cameraMode = "fps"; // 'fps' (cue view) or 'free' (free fly camera)
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
+// Where the cue tip meets the ball, set with the nub on the shoot button: -1..1 across / up (unit circle)
+const strikeNub = { x: 0, y: 0 };
 let aimSwayPitch = 0; // the vertical part of the swing: with aimSway the cue tip circles around the target
 let aimSway = 0; // the swing of the cue and aim line from the player's condition (rad, player-state.js)
 let aimElevation = FP_CAM_DEFAULT_ELEVATION; // camera elevation above the table (rad)
@@ -533,7 +536,14 @@ function poseCue(gap) {
   _cueEuler.set(-pitch, 0, 0);
   _cueQuatAim.setFromEuler(_cueEuler);
   const reach = BALL_R + gap;
-  cueStickMesh.position.set(0, Math.sin(pitch) * reach, Math.cos(pitch) * reach);
+  const off = stroke ? stroke : strikeNub;
+  const side = off.x * CUE_STRIKE_OFFSET_MAX * BALL_R;
+  const up = off.y * CUE_STRIKE_OFFSET_MAX * BALL_R; // along the cue's "up", perpendicular to its axis
+  cueStickMesh.position.set(
+    side,
+    Math.sin(pitch) * reach + Math.cos(pitch) * up,
+    Math.cos(pitch) * reach - Math.sin(pitch) * up
+  );
   cueStickMesh.quaternion.copy(_cueQuatAim);
   if (eased <= 0) return;
 
@@ -591,6 +601,8 @@ function startCueStroke() {
     t: 0,
     aimAngle: aimAngle + aimSway + playerState.shotError(), // what the player aims at plus a drunk shot's error
     pitch,
+    x: strikeNub.x,
+    y: strikeNub.y,
     ballPos: { x: t.x, y: t.y, z: t.z },
     backGap,
     tBack: THREE.MathUtils.lerp(CUE_BACK_TIME_MIN, CUE_BACK_TIME_MAX, f),
@@ -661,10 +673,15 @@ function advanceCueStroke(dt) {
   const fy = -Math.sin(s.pitch);
   const fz = -Math.cos(s.aimAngle) * cp;
   const d = BALL_R + s.gap;
+  const side = s.x * CUE_STRIKE_OFFSET_MAX * BALL_R;
+  const up = s.y * CUE_STRIKE_OFFSET_MAX * BALL_R;
+  const sa = Math.sin(s.aimAngle);
+  const ca = Math.cos(s.aimAngle);
+  const sp = Math.sin(s.pitch);
   physics.cue.body.setNextKinematicTranslation({
-    x: s.ballPos.x - fx * d,
-    y: s.ballPos.y - fy * d,
-    z: s.ballPos.z - fz * d,
+    x: s.ballPos.x - fx * d + side * ca - up * sp * sa,
+    y: s.ballPos.y - fy * d + up * cp,
+    z: s.ballPos.z - fz * d - side * sa - up * sp * ca,
   });
   _strokeEuler.set(-s.pitch, s.aimAngle, 0);
   _strokeQuat.setFromEuler(_strokeEuler);
@@ -772,6 +789,34 @@ function setupControls() {
     e.stopPropagation();
     fireCueStrike();
     fireBtn.blur(); // give up focus so the space bar does not trigger the button again
+  });
+
+  // The nub on the shoot button: drag it to meet the ball off-center (double-click = center)
+  const nub = document.getElementById("fire-nub");
+  const disc = nub.parentElement;
+  const showNub = () => {
+    const reach = disc.clientWidth / 2 - nub.clientWidth / 2 - 4;
+    nub.style.transform = `translate(${strikeNub.x * reach}px, ${-strikeNub.y * reach}px)`;
+  };
+  const moveNub = (e) => {
+    const r = disc.getBoundingClientRect();
+    const reach = r.width / 2 - nub.clientWidth / 2 - 4;
+    let x = (e.clientX - r.left - r.width / 2) / reach;
+    let y = -(e.clientY - r.top - r.height / 2) / reach;
+    const len = Math.hypot(x, y);
+    if (len > 1) [x, y] = [x / len, y / len];
+    [strikeNub.x, strikeNub.y] = [x, y];
+    showNub();
+  };
+  nub.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+    nub.setPointerCapture(e.pointerId);
+    nub.addEventListener("pointermove", moveNub);
+  });
+  nub.addEventListener("pointerup", () => nub.removeEventListener("pointermove", moveNub));
+  nub.addEventListener("dblclick", () => {
+    [strikeNub.x, strikeNub.y] = [0, 0];
+    showNub();
   });
 
   // Mouse control (click & drag to aim, click without drag = shot)

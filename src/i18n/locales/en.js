@@ -23,6 +23,7 @@ export default {
   "meter.desire": "Desire",
   "button.rerack": "Re-rack",
   "button.shoot": "SHOOT",
+  "button.nub": "Cue tip position on the ball",
   "power.label": "Power",
   "pocketed.aria": "Pocketed balls",
   "pocketed.ball": "Ball {n}",

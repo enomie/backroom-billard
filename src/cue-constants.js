@@ -51,3 +51,6 @@ export const CUE_STROKE_SUBSTEPS = 8;
 export const CUE_PITCH_BELOW_CAMERA = 0.16;
 export const CUE_PITCH_MIN = 0.04;
 export const CUE_PITCH_MAX = 0.5;
+
+/** Furthest the cue tip can meet the ball from its center, as a share of the ball radius (set with the nub on the shoot button). */
+export const CUE_STRIKE_OFFSET_MAX = 0.5;

@@ -23,6 +23,7 @@ export default {
   "meter.desire": "Verlangen",
   "button.rerack": "Neu aufbauen",
   "button.shoot": "STOSSEN",
+  "button.nub": "Position der Cue-Spitze an der Kugel",
   "power.label": "Kraft",
   "pocketed.aria": "Versenkte Kugeln",
   "pocketed.ball": "Kugel {n}",
