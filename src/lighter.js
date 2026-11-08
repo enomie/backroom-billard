@@ -13,6 +13,7 @@ import {
   LIGHTER_LID_ANGLE,
   LIGHTER_COLORS,
   LIGHTER_FRAME_Z,
+  LIGHTER_FRAME_TURN,
   LIGHTER_FLAME_HEIGHT,
 } from "./lighter-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
@@ -121,6 +122,7 @@ export function createLighters(scene) {
 
     // lying on its broad side across the frame, the lid end pointing along the frame
     root.rotation.set(-Math.PI / 2, Math.PI / 2, 0, "YXZ");
+    root.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 2 * LIGHTER_FRAME_TURN)); // a little askew
     const center = new THREE.Vector3(frameX, frameTop + D / 2, sz * LIGHTER_FRAME_Z);
     const half = new THREE.Vector3(0, (CASE + LID) / 2, 0).applyQuaternion(root.quaternion);
     root.position.copy(center).sub(half);

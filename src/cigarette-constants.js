@@ -62,6 +62,8 @@ export const PACK_RING_MIN = 0.12;
 export const PACK_RING_MAX = 0.28;
 /** On the frame of the billard table: one pack per player at ±this z (between two diamonds), lying across the frame. */
 export const PACK_FRAME_Z = 0.5;
+/** How far (rad, to either side) the pack lies turned on the frame; new on every load. */
+export const PACK_FRAME_TURN = 0.4;
 export const PACK_SEED = 53;
 
 /* ---- Exhaled cloud (exhale.js) ---- */

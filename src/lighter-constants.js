@@ -13,5 +13,7 @@ export const LIGHTER_LID_ANGLE = 1.85;
 export const LIGHTER_COLORS = [0xc9c9ce, 0xd4a93c];
 /** Where they lie on the frame: along z (between the side pocket and the first diamond), per player side −1 / +1. */
 export const LIGHTER_FRAME_Z = 0.2;
+/** How far (rad, to either side) the lighter lies turned on the frame; new on every load. */
+export const LIGHTER_FRAME_TURN = 0.4;
 /** Height of the flame above the chimney. */
 export const LIGHTER_FLAME_HEIGHT = 0.024;

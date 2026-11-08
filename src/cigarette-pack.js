@@ -25,6 +25,7 @@ import {
   PACK_RING_MIN,
   PACK_RING_MAX,
   PACK_FRAME_Z,
+  PACK_FRAME_TURN,
   PACK_SEED,
 } from "./cigarette-constants.js";
 
@@ -255,7 +256,7 @@ export function createCigarettePacks(scene, taken) {
   const order = Math.random() < 0.5 ? [0, 1] : [1, 0]; // the two players smoke different brands
   const packs = [-1, 1].map((sz, side) => {
     const pack = buildPack(Math.random() < PACK_OPEN_SHARE, order[side], true);
-    const holder = lay(pack, frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2);
+    const holder = lay(pack, frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2 + (Math.random() - 0.5) * 2 * PACK_FRAME_TURN); // across the frame, a little askew
     const state = {
       side,
       group: holder,
