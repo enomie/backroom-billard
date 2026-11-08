@@ -27,9 +27,13 @@ Das Sideboard steht an der **+x-Wand** (lange Seite), in Höhe der Tischmitte (`
 - **Ein/Aus:** den rechten Knopf anklicken, aus höchstens 6 m Abstand (mit der freien Kamera `C`). Ein Klick auf den Knopf löst keinen Stoß aus.
 - **Start:** Browser erlauben Ton erst nach einer Nutzeraktion. Das ist der Klick auf **Confirm Age 18+** im Startscreen: Er schaltet den Ton frei (`unlockAudio` in `audio.js`) und startet das Radio. Ein anderer Tastendruck oder Klick startet es nicht. Das Radio ist von Anfang an „an“, die Skala zeigt bis zur Bestätigung **KLICK ZUM STARTEN**.
 
+## Sender: Jazz24
+
+Der Sender heißt **Jazz24** ([jazz24.org](https://www.jazz24.org/)); spenden kann man dort: [jazz24.org/donate](https://www.jazz24.org/donate), mehr über sie: [jazz24.org/about](https://www.jazz24.org/about). **Dieses Spiel ist nicht von Jazz24**, es spielt nur ihren öffentlichen Stream. Im **Einstellungs-Panel** steht dazu ein kleiner Abschnitt „Radio“ („Du hörst gerade Jazz24. Dieses Spiel ist nicht von ihnen …“) mit den Links **Spenden** und **Über Jazz24** (öffnen in einem neuen Tab); Der Name steht in `radio-constants.js`, die Adressen und Texte in `index.html` und `src/i18n`.
+
 ## Display
 
-Die Skala zeigt den **Sender (KNKX)** und den **Zustand**: *Klick zum Starten*, *Verbinde…*, *Live*, *Kein Signal*. Die Wörter laufen durch `src/i18n`, der Sendername nicht.
+Die Skala zeigt den **Sender (Jazz24)** und den **Zustand**: *Klick zum Starten*, *Verbinde…*, *Live*, *Kein Signal*. Die Wörter laufen durch `src/i18n`, der Sendername nicht.
 
 **Titel:** Darunter steht der aktuelle Titel (zu lang → „…“). Das Audio-Element liefert keine Titelinfos, deshalb fragt `radio-metadata.js` den Stream zusätzlich mit `Icy-MetaData: 1` an, liest nur den ersten Metadatenblock (`StreamTitle`) und bricht ab. Das braucht CORS-Freigabe von `icy-metaint`; sonst bleibt es bei Sender und „LIVE“.
 

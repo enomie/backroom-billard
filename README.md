@@ -13,7 +13,7 @@ npm run dev        # http://localhost:8181/
 
 Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.config.js`.
 
-**Auf einem Webserver (z. B. PHP):** `npm run build` und den Ordner `dist/` auf den Server kopieren, auch in einen Unterordner. Die Pfade sind relativ (`base: "./"` in `vite.config.js`), eine `.htaccess` für Apache (richtiger Typ für die `.wasm`-Datei der Physik) liegt dabei (`public/.htaccess`). Der Stream des Radios braucht Internet.
+**Auf einem Webserver (z. B. PHP):** `npm run build` und den Ordner `dist/` auf den Server kopieren, auch in einen Unterordner. Die Pfade sind relativ (`base: "./"` in `vite.config.js`), eine `.htaccess` für Apache (richtiger Typ für die `.wasm`-Datei der Physik) liegt dabei (`public/.htaccess`). Der Stream des Radios braucht Internet. **Das Radio ist [Jazz24](https://www.jazz24.org/)** (spenden: [jazz24.org/donate](https://www.jazz24.org/donate), über sie: [jazz24.org/about](https://www.jazz24.org/about)); das Spiel ist nicht von ihnen und spielt nur ihren Stream, im Einstellungs-Panel steht ein Hinweis mit den Links.
 
 ## Startscreen
 

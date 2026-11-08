@@ -939,6 +939,23 @@ html {
   height: 1.2rem;
 }
 
+.settings__radio {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #d4d4d8;
+}
+
+.settings__radio a {
+  color: var(--amber-100);
+  text-decoration-color: rgba(253, 230, 138, 0.5);
+  text-underline-offset: 0.15em;
+}
+
+.settings__radio a:hover {
+  color: #fff;
+}
+
 .settings__help {
   margin: 0;
   padding-left: 1.1rem;

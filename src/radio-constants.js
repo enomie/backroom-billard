@@ -2,7 +2,7 @@
 
 /** Direct AAC 256k stream of the station. */
 export const RADIO_STREAM_URL = "https://knkx-live-a.edge.audiocdn.com/6285_256k";
-export const RADIO_STATION_NAME = "KNKX";
+export const RADIO_STATION_NAME = "Jazz24";
 /**
  * The track title is a side issue and never allowed to disturb the sound: it asks only after the
  * stream has played for a while, rarely, with a timeout, slower after each failure, and gives up
