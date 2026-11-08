@@ -11,6 +11,7 @@ import {
   DRAG_EFFECT,
   CALM_ZONE,
   SWAY_MAX,
+  SWAY_SPEED,
   DRUNK_SHOT_ERROR,
 } from "./player-constants.js";
 
@@ -49,10 +50,10 @@ export function createPlayerState() {
       const desire = outside(Math.max(state.nicotine, 0));
       const t = time * Math.PI * 2;
       const swing =
-        nerves * 0.45 * (Math.sin(t * 7.3) + 0.5 * Math.sin(t * 11.9 + 1)) +
-        desire * 0.9 * (Math.sin(t * 0.55) + 0.4 * Math.sin(t * 1.3 + 2)) +
-        thirsty * 0.6 * (Math.sin(t * 1.4 + 0.5) + 0.7 * Math.sin(t * 2.9)) +
-        drunk * 1.1 * (Math.sin(t * 0.33) + 0.6 * Math.sin(t * 0.81 + 1.7));
+        nerves * 0.45 * (Math.sin(t * 7.3 * SWAY_SPEED.nerves) + 0.5 * Math.sin(t * 11.9 * SWAY_SPEED.nerves + 1)) +
+        desire * 0.9 * (Math.sin(t * 0.55 * SWAY_SPEED.desire) + 0.4 * Math.sin(t * 1.3 * SWAY_SPEED.desire + 2)) +
+        thirsty * 0.6 * (Math.sin(t * 1.4 * SWAY_SPEED.thirsty + 0.5) + 0.7 * Math.sin(t * 2.9 * SWAY_SPEED.thirsty)) +
+        drunk * 1.1 * (Math.sin(t * 0.33 * SWAY_SPEED.drunk) + 0.6 * Math.sin(t * 0.81 * SWAY_SPEED.drunk + 1.7));
       return SWAY_MAX * swing;
     },
     /** Extra aim error of a shot taken now: only the drunk make it (rad, random). */

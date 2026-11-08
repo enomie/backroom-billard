@@ -16,6 +16,11 @@ export const DRAG_EFFECT = 0.1;
 export const CALM_ZONE = 0.12;
 /** Unsteadiness of the aim: the largest swing of the cue and aim line (rad) and the extra aim error of a drunk shot. */
 export const SWAY_MAX = 0.05;
+/**
+ * How fast each kind of unsteadiness swings: a factor on its frequencies (1 = the first version,
+ * which was far too restless). Nerves, the tremor, was 7 and 12 swings per second, now about 2 and 3.5.
+ */
+export const SWAY_SPEED = { nerves: 0.3, desire: 0.65, thirsty: 0.55, drunk: 0.65 };
 /** Time shift (s) of the vertical swing against the sideways one, so the cue tip circles around the target. */
 export const SWAY_PITCH_OFFSET = 1.7;
 export const DRUNK_SHOT_ERROR = 0.04;
