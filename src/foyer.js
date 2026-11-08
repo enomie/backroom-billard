@@ -1,6 +1,6 @@
 /**
  * The foyer behind the door: a square, brightly lit room with a marble floor, a globe lamp and a
- * real point light. Its shadow keeps the light in the foyer; a spot behind the door throws an amber
+ * real point light in a globe lamp half sunk into the ceiling. Its shadow keeps the light in the foyer; a spot behind the door throws an amber
  * beam through the glass and the slits into the backroom. The foyer is not touched by the room's fog. See foyer-constants.js.
  */
 import * as THREE from "three";
@@ -119,24 +119,16 @@ export function createFoyer(scene) {
   }
   group.add(new THREE.Mesh(mergeGeometries(strips), brass));
 
-  // the globe lamp on a brass rod, and the light inside
-  const lampY = C.FOYER_LAMP_CENTER_Y;
+  // the globe lamp: the lower half of a sphere of opal glass, half sunk into the ceiling
   const globe = new THREE.Mesh(
-    new THREE.SphereGeometry(C.FOYER_LAMP_RADIUS, 32, 24),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2.2, roughness: 0.4, fog: false })
+    new THREE.SphereGeometry(C.FOYER_LAMP_RADIUS, 48, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: C.FOYER_LAMP_GLOW, roughness: 0.4, fog: false })
   );
-  globe.position.y = lampY;
-  const rodLength = C.FOYER_HEIGHT - lampY - C.FOYER_LAMP_RADIUS;
-  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, rodLength, 8), brass);
-  rod.position.y = C.FOYER_HEIGHT - rodLength / 2;
-  const canopy = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.05, 20), brass);
-  canopy.position.y = C.FOYER_HEIGHT - 0.025;
-  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.05, 0.06, 20), brass);
-  collar.position.y = lampY + C.FOYER_LAMP_RADIUS + 0.02;
-  group.add(globe, rod, canopy, collar);
+  globe.position.y = C.FOYER_HEIGHT;
+  group.add(globe);
 
   const light = new THREE.PointLight(C.FOYER_LIGHT_COLOR, C.FOYER_LIGHT_INTENSITY, C.FOYER_LIGHT_DISTANCE, C.FOYER_LIGHT_DECAY);
-  light.position.y = lampY;
+  light.position.y = C.FOYER_HEIGHT - C.FOYER_LIGHT_DROP;
   light.castShadow = true;
   light.shadow.mapSize.set(C.FOYER_SHADOW_MAP_SIZE, C.FOYER_SHADOW_MAP_SIZE);
   light.shadow.radius = C.FOYER_SHADOW_RADIUS;

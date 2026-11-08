@@ -19,9 +19,10 @@ export const FOYER_BASEBOARD_HEIGHT = 0.14;
 /** The foyer is lit on its own: its surfaces glow a little so that the corners do not go black. */
 export const FOYER_GLOW = 0.12;
 
-/** The globe of opal glass in the middle of the ceiling and the point light inside it. */
-export const FOYER_LAMP_CENTER_Y = 3.7;
-export const FOYER_LAMP_RADIUS = 0.35;
+/** The globe of opal glass sits half sunk into the middle of the ceiling (no cable); the point light is a little below the ceiling. */
+export const FOYER_LAMP_RADIUS = 0.45;
+export const FOYER_LAMP_GLOW = 3;
+export const FOYER_LIGHT_DROP = 0.15;
 export const FOYER_LIGHT_COLOR = 0xf4f7ff;
 export const FOYER_LIGHT_INTENSITY = 35;
 export const FOYER_LIGHT_DECAY = 1.2;
