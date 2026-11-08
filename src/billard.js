@@ -22,6 +22,7 @@ import { createGlasses } from "./glasses.js";
 import { createBottles } from "./bottles.js";
 import { createCigarettes } from "./cigarettes.js";
 import { createCigarettePacks } from "./cigarette-pack.js";
+import { createAtmosphere } from "./atmosphere.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -157,6 +158,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
+let atmosphere = null; // drifting fog and light shafts (atmosphere.js)
 let cigarettes = null; // single cigarettes in the ashtrays (cigarettes.js)
 let bottles = null; // wine and beer bottles (bottles.js)
 let glasses = null; // wine and beer glasses (glasses.js)
@@ -234,6 +236,7 @@ function init() {
   ballReflection = captureRoomReflection(renderer, scene);
   candles.applyReflection(ballReflection);
   ashtrays.applyReflection(ballReflection);
+  atmosphere = createAtmosphere(scene); // after the capture, so the balls do not reflect the haze
   glasses.applyReflection(ballReflection);
   bottles.applyReflection(ballReflection);
 
@@ -1293,6 +1296,7 @@ function gameLoop(currentTime) {
   }
 
   updateAudioListener(camera); // the ears follow the camera
+  if (atmosphere) atmosphere.update(frameSeconds);
   if (candles) candles.update(frameSeconds, camera);
   if (cigarettes) cigarettes.update(dt, camera);
   if (radio) radio.update(frameSeconds, camera);

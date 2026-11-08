@@ -55,6 +55,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `cigarette-pack.js` | Klappschachtel mit 20 Zigaretten auf Tischen und Billardtisch |
 | `cigarettes.js`, `cigarette-constants.js`, `smoke.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |
+| `atmosphere.js` | Wandernder Boden- und Deckennebel, sichtbare Lichtkegel der Deckenleuchten |
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 

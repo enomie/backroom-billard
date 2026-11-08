@@ -106,6 +106,23 @@ export const FOG_MAX_OPACITY = 0.6;
 export const FOG_NEAR = 1;
 export const FOG_FAR = 12;
 
+/* ---- Atmosphere (atmosphere.js): drifting ground and ceiling fog, visible light shafts ----------
+ * Fog = a few stacked, see-through layers with a slowly moving noise shader. */
+export const GROUND_FOG_LAYERS = 5;
+export const GROUND_FOG_TOP = 0.55; // the layers stand between 0.05 m and this height
+export const GROUND_FOG_OPACITY = 0.12;
+export const GROUND_FOG_COLOR = 0x77736d;
+export const CEILING_FOG_LAYERS = 3;
+export const CEILING_FOG_BOTTOM = 3.6; // the layers stand between this height and just below the ceiling
+export const CEILING_FOG_OPACITY = 0.09;
+export const CEILING_FOG_COLOR = 0x6f6c68;
+/** Size of the fog wisps (noise cells per meter) and how fast they drift (m/s). */
+export const FOG_WISP_SCALE = 0.28;
+export const FOG_DRIFT_SPEED = 0.05;
+/** Light shafts of the ceiling lamps: opening half angle (rad) and strength (0 = invisible). */
+export const SHAFT_ANGLE = 0.5;
+export const SHAFT_INTENSITY = 0.045;
+
 /** Weak warm ambient light so the cream walls stay readable in the dim room. */
 export const ROOM_AMBIENT_COLOR = 0x3d342a;
 export const ROOM_AMBIENT_INTENSITY = 0.9;

@@ -37,6 +37,13 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
 
+## Nebel und Lichtkegel (umgesetzt)
+
+- **Code:** `src/atmosphere.js`, Werte in `room-constants.js` (`GROUND_FOG_*`, `CEILING_FOG_*`, `FOG_*`, `SHAFT_*`). Der feste Raumnebel (`FOG_*`, linear, siehe oben) bleibt wie er ist.
+- **Bodennebel:** 5 durchsichtige Schichten zwischen 5 und 55 cm Höhe, **Deckennebel:** 3 Schichten zwischen 3,6 m und der Decke. Jede Schicht ist ein Rauschen-Shader, das langsam und in eigener Richtung durch den Raum wandert (Schwaden mit Wirbeln). Nahe an der Kamera und in großer Ferne blenden sie aus, damit keine harten Kanten entstehen. Die freie Kamera (mindestens Tischhöhe, höchstens 1 m unter der Decke) kommt nie in eine Schicht hinein.
+- **Lichtkegel:** Unter jeder Deckenleuchte ein weicher Kegel vom Schirm bis zum Boden (additiv, `SHAFT_ANGLE`). Er ist dort heller, wo der „Dunst“ dicht ist, und wandert mit. Die Stärke ist bewusst niedrig (`SHAFT_INTENSITY`), damit der Raum nicht heller wirkt als bisher.
+- **Spiegelung:** Der Nebel entsteht erst nach der Raum-Aufnahme für die Kugeln, ist also in den Kugeln nicht zu sehen.
+
 ## Tische und Sessel (umgesetzt)
 
 - **8 runde Tische** (80 cm, Mahagoni mit Klarlack, Messing-Säule) in zwei Reihen links und rechts vom Billardtisch, jeweils mit 2–3 **Clubsesseln** in weinrotem Leder; die Sessel sind leicht verdreht und teils zurückgeschoben. Lage und Zahl stehen in `furniture-constants.js`, der Bau in `furniture.js` (Sessel als Instanzen).
