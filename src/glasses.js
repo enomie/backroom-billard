@@ -13,33 +13,21 @@ import {
   WINE_GLASS_STEM_HEIGHT,
   WINE_GLASS_FOOT_RADIUS,
   WINE_FILL,
-  WINE_COLOR_RED,
-  WINE_COLOR_WHITE,
   BEER_GLASS_HEIGHT,
   BEER_GLASS_RADIUS_BOTTOM,
   BEER_GLASS_RADIUS_TOP,
   BEER_GLASS_BASE,
   BEER_LEVEL,
   BEER_FOAM_HEIGHT,
-  BEER_COLOR,
   BEER_FOAM_COLOR,
   WHISKEY_GLASS_HEIGHT,
   WHISKEY_GLASS_RADIUS_BOTTOM,
   WHISKEY_GLASS_RADIUS_TOP,
   WHISKEY_GLASS_BASE,
   WHISKEY_LEVEL,
-  WHISKEY_COLOR_CENTER,
-  WHISKEY_COLOR_EDGE,
-  WHISKEY_OPACITY_CENTER,
-  WHISKEY_OPACITY_EDGE,
-  WHISKEY_DEPTH_POWER,
-  WHISKEY_GLOW_COLOR,
-  WHISKEY_MENISCUS_HEIGHT,
-  WHISKEY_MENISCUS_WIDTH,
   WHITE_RUSSIAN_LEVEL,
   WHITE_RUSSIAN_COFFEE_SHARE,
-  WHITE_RUSSIAN_COLOR_COFFEE,
-  WHITE_RUSSIAN_COLOR_CREAM,
+  LIQUID_LOOKS,
   GLASS_WALL,
   GLASS_COLOR,
   GLASS_OPACITY,
@@ -92,18 +80,35 @@ function wineGlassGeometry() {
   return lathe([...outer, ...inner], 64);
 }
 
-/** Wine in the bowl; `share` (0…1) of the full amount. */
-function wineLiquidGeometry(share = 1) {
+/** Wine in the bowl; `share` (0…1) of the full amount, with a meniscus [height, width] if given. */
+function wineLiquidGeometry(share = 1, meniscus = null) {
   const y0 = WINE_GLASS_STEM_HEIGHT;
   const fill = WINE_FILL * Math.max(share, 0.01);
+  const wall = (t) => Math.max(0.0005, bowlRadius(t) - GLASS_WALL - 0.0003);
+  const height = (t) => y0 + t * WINE_BOWL_HEIGHT + 0.004 * (1 - t);
   const pts = [[0, y0 + 0.004]];
+  const brightness = [0.8];
   const n = 10;
   for (let i = 0; i <= n; i++) {
     const t = (i / n) * fill;
-    pts.push([Math.max(0.0005, bowlRadius(t) - GLASS_WALL - 0.0003), y0 + t * WINE_BOWL_HEIGHT + 0.004 * (1 - t)]);
+    pts.push([wall(t), height(t)]);
+    brightness.push(1);
   }
-  pts.push([0, y0 + fill * WINE_BOWL_HEIGHT + 0.004 * (1 - fill)]);
-  return lathe(pts, 48);
+  const top = height(fill);
+  if (meniscus) {
+    // the surface climbs the wall a little and falls in a curve to the level in the middle
+    const h = meniscus[0];
+    const w = Math.min(meniscus[1], wall(fill) * 0.8);
+    pts[pts.length - 1] = [wall(fill), top + h];
+    brightness[brightness.length - 1] = 1.7;
+    for (const t of [0.25, 0.5, 0.75, 1]) {
+      pts.push([wall(fill) - w * t, top + h * (1 - t) ** 2]);
+      brightness.push(1.5 - 0.6 * t);
+    }
+  }
+  pts.push([0, top]);
+  brightness.push(0.8);
+  return latheShaded(pts, brightness, 48);
 }
 
 /**
@@ -116,27 +121,34 @@ function taperedGlass({ height, rBottom, rTop, base }) {
     [[0, 0], [rBottom - 0.003, 0], [rBottom, 0.003], [rTop, height], [inner(height), height], [inner(base), base], [0, base - 0.001]],
     64
   );
-  const liquid = (level, meniscus = false) => (meniscus ? meniscusLiquid(level) : lathe([[0, base], [inner(base) - 0.0004, base], [inner(level) - 0.0004, level], [0, level]], 48));
   /**
-   * A drink with a meniscus: at the wall the liquid climbs up a little and falls in a smooth curve to
-   * the level in the middle; the climbing edge is bright (it catches the light), the middle of the
-   * surface a bit dark.
+   * A drink or a layer of it between the heights `from` and `to`. With a `meniscus` [height, width]
+   * the liquid climbs up the glass wall a little and falls in a smooth curve to the level in the
+   * middle; the climbing edge is bright (it catches the light), the middle of the surface a bit
+   * dark. `shade` [bottom, top] brightens or darkens the layer from below to above (a soft
+   * transition between layers).
    */
-  const meniscusLiquid = (level) => {
-    const [h, w] = [WHISKEY_MENISCUS_HEIGHT, WHISKEY_MENISCUS_WIDTH];
+  const layer = (from, to, meniscus = null, shade = [1, 1]) => {
     const wall = (y) => inner(y) - 0.0004;
-    const pts = [[0, base], [wall(base), base], [wall(level + h), level + h]];
-    const brightness = [0.8, 1, 1.7];
-    for (const t of [0.25, 0.5, 0.75, 1]) {
-      pts.push([wall(level + h) - w * t, level + h * (1 - t) ** 2]);
-      brightness.push(1.5 - 0.6 * t);
+    const pts = [[0, from], [wall(from), from]];
+    const brightness = [0.8 * shade[0], shade[0]];
+    if (meniscus) {
+      const [h, w] = meniscus;
+      pts.push([wall(to + h), to + h]);
+      brightness.push(1.7 * shade[1]);
+      for (const t of [0.25, 0.5, 0.75, 1]) {
+        pts.push([wall(to + h) - w * t, to + h * (1 - t) ** 2]);
+        brightness.push((1.5 - 0.6 * t) * shade[1]);
+      }
+    } else {
+      pts.push([wall(to), to]);
+      brightness.push(shade[1]);
     }
-    pts.push([0, level]);
-    brightness.push(0.8);
+    pts.push([0, to]);
+    brightness.push(0.8 * shade[1]);
     return latheShaded(pts, brightness, 48);
   };
-  /** A layer of a layered drink between the heights `from` and `to`. */
-  const layer = (from, to) => lathe([[0, from], [inner(from) - 0.0004, from], [inner(to) - 0.0004, to], [0, to]], 48);
+  const liquid = (level, meniscus = null) => layer(base, level, meniscus);
   return { glass, liquid, layer, inner };
 }
 
@@ -147,6 +159,13 @@ const beerInnerRadius = beerShape.inner;
 /** Height of the beer / whiskey surface for a share (0…1) of the full amount. */
 const beerLevel = (share) => BEER_GLASS_BASE + (BEER_LEVEL - BEER_GLASS_BASE) * share;
 const whiskeyLevel = (share) => WHISKEY_GLASS_BASE + (WHISKEY_LEVEL - WHISKEY_GLASS_BASE) * share;
+/** The drinks as shapes (the same when the glass is built and while it is drunk). */
+const beerLiquid = (level) => beerShape.liquid(level, LIQUID_LOOKS.beer.meniscus);
+const whiskeyLiquid = (level) => whiskeyShape.liquid(level, LIQUID_LOOKS.whiskey.meniscus);
+const coffeeLayer = (split) => whiskeyShape.layer(WHISKEY_GLASS_BASE, split, null, [1, 1.7]); // lighter towards the cream
+const creamLayer = (split, top) => whiskeyShape.layer(split, top, LIQUID_LOOKS.cream.meniscus, [0.78, 1]); // a little browner below
+const wineLiquid = (share, look) => wineLiquidGeometry(share, look.meniscus);
+
 /** White russian: the top of the drink and the height where the coffee layer ends and the cream starts. */
 const russianLevel = (share) => WHISKEY_GLASS_BASE + (WHITE_RUSSIAN_LEVEL - WHISKEY_GLASS_BASE) * share;
 const russianSplit = (share) => WHISKEY_GLASS_BASE + (russianLevel(share) - WHISKEY_GLASS_BASE) * WHITE_RUSSIAN_COFFEE_SHARE;
@@ -203,50 +222,72 @@ export function createGlasses(scene, taken) {
     clearcoatRoughness: 0.02,
     depthWrite: false,
   });
-  const liquid = (color, opacity, roughness = 0.1) =>
-    new THREE.MeshPhysicalMaterial({ color, transparent: opacity < 1, opacity, roughness, clearcoat: 0.6, clearcoatRoughness: 0.1 });
+  const colorVec = (hex) => {
+    const k = new THREE.Color(hex);
+    return `vec3(${k.r.toFixed(4)}, ${k.g.toFixed(4)}, ${k.b.toFixed(4)})`;
+  };
+  /** A clear drink: dark in the middle of the glass, light and thin at the edges (see LIQUID_LOOKS). */
+  const clearLiquid = (look, key) => {
+    const material = new THREE.MeshPhysicalMaterial({
+      color: look.center,
+      transparent: true,
+      opacity: look.opacityCenter,
+      roughness: look.roughness ?? 0.1,
+      clearcoat: 0.6,
+      clearcoatRoughness: 0.1,
+      vertexColors: true, // the bright meniscus, the dark middle of the surface
+    });
+    material.onBeforeCompile = (shader) => {
+      if (look.sparkle) {
+        // fine bubbles: tiny bright points at fixed places in the liquid
+        shader.vertexShader = shader.vertexShader
+          .replace("#include <common>", "#include <common>\nvarying vec3 vLiquid;")
+          .replace("#include <begin_vertex>", "#include <begin_vertex>\nvLiquid = position;");
+        shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vLiquid;");
+      }
+      const sparkle = look.sparkle
+        ? `vec3 cell = floor( vLiquid * vec3( 1400.0, 700.0, 1400.0 ) );
+          float bubble = fract( sin( dot( cell, vec3( 12.9898, 78.233, 37.719 ) ) ) * 43758.5453 );
+          totalEmissiveRadiance += step( ${(1 - look.sparkle).toFixed(3)}, bubble ) * vec3( 0.35, 0.28, 0.12 );`
+        : "";
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <normal_fragment_maps>",
+        `#include <normal_fragment_maps>
+        {
+          float depth = pow( clamp( abs( dot( normal, normalize( vViewPosition ) ) ), 0.0, 1.0 ), ${look.power.toFixed(2)} );
+          totalEmissiveRadiance += ( 1.0 - depth ) * ${colorVec(look.glow)}; // light shines through the thin edges
+          diffuseColor.rgb = mix( ${colorVec(look.edge)}, ${colorVec(look.center)}, depth );
+          #ifdef USE_COLOR
+            diffuseColor.rgb *= vColor.rgb;
+          #endif
+          diffuseColor.a = mix( ${look.opacityEdge.toFixed(3)}, ${look.opacityCenter.toFixed(3)}, depth );
+          ${sparkle}
+        }`
+      );
+    };
+    material.customProgramCacheKey = () => `liquid-${key}`;
+    return material;
+  };
   const mats = {
-    red: liquid(WINE_COLOR_RED, 0.8),
-    white: liquid(WINE_COLOR_WHITE, 0.5),
-    beer: liquid(BEER_COLOR, 0.5),
-    whiskey: liquid(WHISKEY_COLOR_CENTER, 0.6),
-    foam: liquid(BEER_FOAM_COLOR, 1, 0.9),
-    coffee: liquid(WHITE_RUSSIAN_COLOR_COFFEE, 0.85),
-    cream: liquid(WHITE_RUSSIAN_COLOR_CREAM, 0.92, 0.35),
+    red: clearLiquid(LIQUID_LOOKS.redWine, "red"),
+    white: clearLiquid(LIQUID_LOOKS.whiteWine, "white"),
+    beer: clearLiquid(LIQUID_LOOKS.beer, "beer"),
+    whiskey: clearLiquid(LIQUID_LOOKS.whiskey, "whiskey"),
+    foam: new THREE.MeshPhysicalMaterial({ color: BEER_FOAM_COLOR, roughness: 0.9, clearcoat: 0.6, clearcoatRoughness: 0.1 }),
+    coffee: clearLiquid(LIQUID_LOOKS.coffee, "coffee"),
+    cream: clearLiquid(LIQUID_LOOKS.cream, "cream"),
   };
-
-  mats.beer.emissive.set(0x3a2204); // a little light shines through the drinks
-  mats.whiskey.emissive.set(0x1e0e03);
-  // the whiskey is clear: dark and dense in the middle of the glass, light and thin at the edges
-  mats.whiskey.vertexColors = true; // the bright meniscus, the dark middle of the surface
-  mats.whiskey.transparent = true;
-  mats.whiskey.onBeforeCompile = (shader) => {
-    const c = (hex) => { const k = new THREE.Color(hex); return `vec3(${k.r.toFixed(4)}, ${k.g.toFixed(4)}, ${k.b.toFixed(4)})`; };
-    shader.fragmentShader = shader.fragmentShader.replace(
-      "#include <normal_fragment_maps>",
-      `#include <normal_fragment_maps>
-      {
-        float depth = pow( clamp( abs( dot( normal, normalize( vViewPosition ) ) ), 0.0, 1.0 ), ${WHISKEY_DEPTH_POWER.toFixed(2)} );
-        totalEmissiveRadiance += ( 1.0 - depth ) * ${c(WHISKEY_GLOW_COLOR)}; // light shines through the thin edges
-        diffuseColor.rgb = mix( ${c(WHISKEY_COLOR_EDGE)}, ${c(WHISKEY_COLOR_CENTER)}, depth );
-        #ifdef USE_COLOR
-          diffuseColor.rgb *= vColor.rgb;
-        #endif
-        diffuseColor.a = mix( ${WHISKEY_OPACITY_EDGE.toFixed(3)}, ${WHISKEY_OPACITY_CENTER.toFixed(3)}, depth );
-      }`
-    );
-  };
-  mats.whiskey.customProgramCacheKey = () => "whiskey-depth";
 
   const geo = {
     wine: wineGlassGeometry(),
-    wineLiquid: wineLiquidGeometry(),
+    wineLiquidRed: wineLiquid(1, LIQUID_LOOKS.redWine),
+    wineLiquidWhite: wineLiquid(1, LIQUID_LOOKS.whiteWine),
     beer: beerShape.glass,
-    beerLiquid: beerShape.liquid(BEER_LEVEL),
+    beerLiquid: beerLiquid(BEER_LEVEL),
     whiskey: whiskeyShape.glass,
-    whiskeyLiquid: whiskeyShape.liquid(WHISKEY_LEVEL, true),
-    russianCoffee: whiskeyShape.liquid(russianSplit(1)),
-    russianCream: whiskeyShape.layer(russianSplit(1), russianLevel(1)),
+    whiskeyLiquid: whiskeyLiquid(WHISKEY_LEVEL),
+    russianCoffee: coffeeLayer(russianSplit(1)),
+    russianCream: creamLayer(russianSplit(1), russianLevel(1)),
     foam: beerFoamGeometry(),
   };
 
@@ -257,8 +298,8 @@ export function createGlasses(scene, taken) {
       beer: [[geo.beer, glassMat, 2], [geo.beerLiquid, mats.beer, 0], [geo.foam, mats.foam, 0]],
       whiskey: [[geo.whiskey, glassMat, 2], [geo.whiskeyLiquid, mats.whiskey, 0]],
       "white-russian": [[geo.whiskey, glassMat, 2], [geo.russianCoffee, mats.coffee, 0], [geo.russianCream, mats.cream, 0]],
-      "wine-red": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.red, 0]],
-      "wine-white": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.white, 0]],
+      "wine-red": [[geo.wine, glassMat, 2], [geo.wineLiquidRed, mats.red, 0]],
+      "wine-white": [[geo.wine, glassMat, 2], [geo.wineLiquidWhite, mats.white, 0]],
     }[kind];
     const meshes = parts.map(([geometry, material, order]) => {
       const m = new THREE.Mesh(geometry, material);
@@ -313,17 +354,17 @@ export function createGlasses(scene, taken) {
       if (empty) return;
       glass.drink.geometry.dispose();
       if (glass.kind === "beer") {
-        glass.drink.geometry = beerShape.liquid(beerLevel(state.share));
+        glass.drink.geometry = beerLiquid(beerLevel(state.share));
         glass.foam.geometry.dispose();
         glass.foam.geometry = beerFoamGeometry(beerLevel(state.share), state.decay);
       } else if (glass.kind === "whiskey") {
-        glass.drink.geometry = whiskeyShape.liquid(whiskeyLevel(state.share), true);
+        glass.drink.geometry = whiskeyLiquid(whiskeyLevel(state.share));
       } else if (glass.kind === "white-russian") {
-        glass.drink.geometry = whiskeyShape.liquid(russianSplit(state.share));
+        glass.drink.geometry = coffeeLayer(russianSplit(state.share));
         glass.foam.geometry.dispose();
-        glass.foam.geometry = whiskeyShape.layer(russianSplit(state.share), russianLevel(state.share));
+        glass.foam.geometry = creamLayer(russianSplit(state.share), russianLevel(state.share));
       } else {
-        glass.drink.geometry = wineLiquidGeometry(state.share);
+        glass.drink.geometry = wineLiquid(state.share, glass.kind === "wine-red" ? LIQUID_LOOKS.redWine : LIQUID_LOOKS.whiteWine);
       }
     };
     return state;

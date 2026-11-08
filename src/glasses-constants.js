@@ -11,8 +11,6 @@ export const WINE_GLASS_STEM_HEIGHT = 0.085; // the bowl starts above this
 export const WINE_GLASS_FOOT_RADIUS = 0.033;
 /** Fill level as a share of the bowl height. */
 export const WINE_FILL = 0.4;
-export const WINE_COLOR_RED = 0x4d0a18;
-export const WINE_COLOR_WHITE = 0xe8dc9c;
 
 /** Beer glass: slightly conical, heavy base; beer topped by a foam head. */
 export const BEER_GLASS_HEIGHT = 0.15;
@@ -21,7 +19,6 @@ export const BEER_GLASS_RADIUS_TOP = 0.0345;
 export const BEER_GLASS_BASE = 0.012; // thickness of the glass floor
 export const BEER_LEVEL = 0.115; // top of the beer (above the table)
 export const BEER_FOAM_HEIGHT = 0.037; // foam head, domed above the rim
-export const BEER_COLOR = 0xe0a21b;
 export const BEER_FOAM_COLOR = 0xf4efe0;
 
 /** Whiskey tumbler: short, wide, heavy base; two fingers of whiskey. */
@@ -30,26 +27,10 @@ export const WHISKEY_GLASS_RADIUS_BOTTOM = 0.033;
 export const WHISKEY_GLASS_RADIUS_TOP = 0.0375;
 export const WHISKEY_GLASS_BASE = 0.018;
 export const WHISKEY_LEVEL = 0.058;
-/**
- * The whiskey: clear, deep amber. Seen through the middle of the glass it is dark and nearly opaque
- * (much liquid behind), at the edges lighter, more saturated and more transparent. The surface rises
- * a little at the glass wall (the meniscus, the wetting): height and width in m.
- */
-export const WHISKEY_COLOR_CENTER = 0x6e2a08;
-export const WHISKEY_COLOR_EDGE = 0xc5701a;
-export const WHISKEY_OPACITY_CENTER = 0.86;
-/** How quickly the depth falls off towards the edges (higher = the dark middle is narrower) and the amber glow at the edges. */
-export const WHISKEY_DEPTH_POWER = 2.4;
-export const WHISKEY_GLOW_COLOR = 0x7a3306;
-export const WHISKEY_OPACITY_EDGE = 0.42;
-export const WHISKEY_MENISCUS_HEIGHT = 0.0013;
-export const WHISKEY_MENISCUS_WIDTH = 0.0032;
 
 /** White Russian: in the same tumbler, coffee liqueur below and cream on top (a layered drink). */
 export const WHITE_RUSSIAN_LEVEL = 0.068;
 export const WHITE_RUSSIAN_COFFEE_SHARE = 0.45; // share of the drink that is the dark layer
-export const WHITE_RUSSIAN_COLOR_COFFEE = 0x3b1f10;
-export const WHITE_RUSSIAN_COLOR_CREAM = 0xe9dcc2;
 
 /** Glass wall thickness and glass look (clear with a slight blue-green tint, mostly see-through). */
 export const GLASS_WALL = 0.0012;
@@ -94,3 +75,20 @@ export const DRINK_MOUTH_FORWARD = 0.3;
 export const DRINK_MOUTH_DOWN = 0.2;
 export const DRINK_MOUTH_RIGHT = 0.05;
 export const DRINK_ARC = 0.06;
+
+/**
+ * The look of the drinks: they are clear. Seen through the middle of the glass a drink is dark and
+ * dense (much liquid behind), at the edges lighter, more saturated and more transparent, and a
+ * warm glow shines through the thin edges. center / edge: the colors; opacityCenter / opacityEdge;
+ * power: how quickly the dark middle gives way (higher = narrower); glow: the light shining through;
+ * meniscus [height, width] (m): the surface climbs the glass wall a little (the wetting) and the
+ * climbing edge is bright; sparkle: share of tiny bright points (bubbles); roughness.
+ */
+export const LIQUID_LOOKS = {
+  whiskey: { center: 0x6e2a08, edge: 0xc5701a, opacityCenter: 0.86, opacityEdge: 0.42, power: 2.4, glow: 0x7a3306, meniscus: [0.0013, 0.0032] },
+  beer: { center: 0xb4680a, edge: 0xf4bc2c, opacityCenter: 0.8, opacityEdge: 0.46, power: 2.0, glow: 0x7a4a08, meniscus: [0.001, 0.0025], sparkle: 0.03 },
+  redWine: { center: 0x2c0612, edge: 0x9e1730, opacityCenter: 0.94, opacityEdge: 0.58, power: 2.2, glow: 0x420714, meniscus: [0.0016, 0.0035] },
+  whiteWine: { center: 0xb2a046, edge: 0xf0e68c, opacityCenter: 0.62, opacityEdge: 0.3, power: 1.8, glow: 0x4c4410, meniscus: [0.0016, 0.0035] },
+  coffee: { center: 0x1c0b05, edge: 0x7c4220, opacityCenter: 0.96, opacityEdge: 0.78, power: 2.0, glow: 0x2c1307 },
+  cream: { center: 0xd8c8a6, edge: 0xf4ebd4, opacityCenter: 0.96, opacityEdge: 0.8, power: 1.6, glow: 0x3a3020, meniscus: [0.0012, 0.003], roughness: 0.35 },
+};

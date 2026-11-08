@@ -33,12 +33,14 @@ Die Flamme streckt sich und wiegt sich, ihr Schein und das Licht schwanken unreg
 - **Am Billardtisch** (Holzrahmen, links, nur 11 cm breit): je Spieler ein **Aschenbecher** (auf 65 % verkleinert, Ø 9 cm, zwischen der letzten Raute und der Ecktasche) und ein **Getränk** daneben. Die Getränke werden **bei jedem Laden neu gewürfelt**, und die beiden Spieler bekommen **nie dasselbe** (Rotwein, Weißwein, Bier, Whiskey, White Russian). Dazu liegen Packung und Feuerzeug (`cigarettes.md`). Flaschen stehen dort nicht.
 - Wer „Spieler 1 und 2“ ist und an welcher Seite sie stehen, kommt mit den Rollen aus [`game-concept.md`](game-concept.md). Bis dahin: feste Plätze auf der linken Längsseite.
 
-## Getränke: Aussehen (Whiskey fertig, die anderen folgen)
+## Getränke: Aussehen
 
-Der **Whiskey** ist ein klares, tiefes Bernstein (`glasses.js`, Werte `WHISKEY_*` in `glasses-constants.js`):
-- **Meniskus (Benetzung):** Die Flüssigkeit steigt an der Glaswand 1,3 mm nach oben und fällt auf 3,2 mm Breite in einer glatten Kurve zum Stand in der Mitte; die Kante ist hell (Vertex-Farbe), die Mitte der Oberfläche etwas dunkler.
-- **Tiefe:** Ein kleiner Shader macht ihn in der Mitte dunkel und dicht (`WHISKEY_COLOR_CENTER`, Deckkraft 0,86) und an den Rändern heller, gesättigter, durchsichtiger (`WHISKEY_COLOR_EDGE`, 0,42) mit einem warmen Leuchten (`WHISKEY_GLOW_COLOR`), als scheine Licht durch. `WHISKEY_DEPTH_POWER` bestimmt, wie schmal die dunkle Mitte ist.
-- Bier, Wein und White Russian sind noch die alten glatten Körper (gerade Wand, ebene Oberfläche) und folgen.
+Alle fünf Getränke sind **klare** Flüssigkeiten mit demselben Look (`glasses.js`, Werte je Getränk in `LIQUID_LOOKS` in `glasses-constants.js`):
+- **Meniskus (Benetzung):** Die Flüssigkeit steigt an der Glaswand 1 bis 1,6 mm nach oben und fällt auf 2,5 bis 3,5 mm Breite in einer glatten Kurve zum Stand in der Mitte; die Kante ist hell (Vertex-Farbe), die Mitte der Oberfläche etwas dunkler. Gilt für Whiskey, Bier, beide Weine und die Sahne (nicht für den Kaffee darunter).
+- **Tiefe:** Ein kleiner Shader macht jedes Getränk in der Mitte dunkel und dicht (`center`, `opacityCenter`) und an den Rändern heller, gesättigter, durchsichtiger (`edge`, `opacityEdge`) mit einem warmen Leuchten (`glow`), als scheine Licht durch. `power` bestimmt, wie schmal die dunkle Mitte ist.
+- **Bier:** zusätzlich feine, feste Bläschen (`sparkle`, kleine helle Punkte in der Flüssigkeit).
+- **White Russian:** Der Kaffee ist nach oben hin heller, die Sahne unten etwas bräunlicher, so entsteht ein weicher Übergang zwischen den Schichten.
+- Die Formen beim Trinken werden mit denselben Funktionen neu gebaut wie am Anfang, der Look bleibt also gleich.
 
 ## Trinken: Füllstand, Schaum, Nachschub (nur am Billardtisch)
 
