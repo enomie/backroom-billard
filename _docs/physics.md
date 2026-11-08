@@ -18,7 +18,7 @@ Trimeshes bekommen `FIX_INTERNAL_EDGES_TWO_SIDED`. Ohne dieses Flag lenken Dreie
 - **Stoß:** Die Cue-Spitze ist ein kinematischer Körper mit der echten Form der Spitze und trifft die Kugel (Geschwindigkeit 1,1 – 4,2 m/s), siehe `shot-animation.md`.
 - **Versenken:** Die Kugel fällt selbst über die Lochkante. Gezählt wird sie erst beim **Aufprall auf dem Becherboden** (Kollisionsevent). Danach wird sie aus dem Becher gelöscht (Körper und Mesh) und erscheint als farbiger Kreis im HUD.
 - **Weiße Kugel:** wird nach 600 ms auf einem freien Platz neu aufgelegt (nicht gelöscht, nicht im HUD).
-- **Ruhe:** unter 1 cm/s (und kaum Drall) setzt das Spiel die Geschwindigkeit auf 0.
+- **Ruhe:** unter 1 cm/s (und kaum Drall) setzt das Spiel die Geschwindigkeit auf 0. Sobald **alle** Kugeln unter 2 cm/s sind (der Tisch gilt als still), werden die Reste (Geschwindigkeit und Drall) auf 0 gesetzt, sonst würde eine kriechende Kugel ihre Restgeschwindigkeit behalten, während die Physik schläft, und beim nächsten Stoß „von allein“ weiterrollen (auch die weiße).
 - **Sicherheitsnetz:** Eine Kugel außerhalb des Tisches wird zurückgesetzt (Konsolen-Warnung).
 
 ## Stellschrauben (`src/physics-constants.js`)

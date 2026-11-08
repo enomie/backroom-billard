@@ -1430,6 +1430,17 @@ function stepPhysics(frameDt) {
 
   updateRollingSound(rolling);
 
+  // The table counts as still (no ball faster than 2 cm/s): stop what is left. Otherwise a ball that
+  // creeps along at 1-2 cm/s keeps this speed while the physics sleeps and goes on rolling "by itself"
+  // as soon as the next shot wakes it up, the white one included.
+  if (!moving) {
+    for (const b of balls) {
+      if (b.inPocket) continue;
+      b.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
+      b.body.setAngvel({ x: 0, y: 0, z: 0 }, false);
+    }
+  }
+
   if (moving !== isCueMoving) {
     updateStatusDisplay(moving);
   }
