@@ -12,6 +12,7 @@ export default {
   "menu.redWine": "Rotwein",
   "menu.whiteWine": "Weißwein",
   "menu.whiskey": "Whiskey",
+  "menu.whiteRussian": "White Russian",
   "pack.aria": "Zigaretten in der Packung",
   "toast.pack": "Neue Zigarettenpackung: −{price}",
   "toast.noMoney": "Nicht genug Geld",

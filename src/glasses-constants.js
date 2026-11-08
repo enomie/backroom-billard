@@ -32,6 +32,12 @@ export const WHISKEY_GLASS_BASE = 0.018;
 export const WHISKEY_LEVEL = 0.058;
 export const WHISKEY_COLOR = 0xb8681a;
 
+/** White Russian: in the same tumbler, coffee liqueur below and cream on top (a layered drink). */
+export const WHITE_RUSSIAN_LEVEL = 0.068;
+export const WHITE_RUSSIAN_COFFEE_SHARE = 0.45; // share of the drink that is the dark layer
+export const WHITE_RUSSIAN_COLOR_COFFEE = 0x3b1f10;
+export const WHITE_RUSSIAN_COLOR_CREAM = 0xe9dcc2;
+
 /** Glass wall thickness and glass look (clear with a slight blue-green tint, mostly see-through). */
 export const GLASS_WALL = 0.0012;
 export const GLASS_COLOR = 0xe4f0f0;
@@ -42,9 +48,10 @@ export const GLASSES_PER_TABLE = [0, 1, 1, 2, 2];
 export const GLASSES_RING_MIN = 0.12;
 export const GLASSES_RING_MAX = 0.28;
 export const GLASSES_SEED = 23;
-/** Share of wine glasses and of whiskey tumblers (the rest is beer), and of red among the wine. */
-export const GLASSES_WINE_SHARE = 0.35;
-export const GLASSES_WHISKEY_SHARE = 0.25;
+/** Share of wine glasses, whiskey tumblers and white russians (the rest is beer), and of red among the wine. */
+export const GLASSES_WINE_SHARE = 0.3;
+export const GLASSES_WHISKEY_SHARE = 0.2;
+export const GLASSES_WHITE_RUSSIAN_SHARE = 0.15;
 export const GLASSES_RED_SHARE = 0.7;
 
 /** On the billard table frame: along z, between the last diamond and the ashtray (see ashtray-constants.js). */

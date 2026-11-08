@@ -11,6 +11,7 @@ Auf den Tischen im Raum und am Billardtisch stehen Kerzenhalter, Aschenbecher, G
 | **Weinglas** | 20 cm hoch, Kelch Ø 8 cm, zu 40 % gefüllt (rot oder weiß) | `glasses.js` |
 | **Bierglas** | 15 cm hoch, oben Ø 7 cm, goldenes Bier mit Schaumkrone | `glasses.js` |
 | **Whiskeyglas** | 9 cm hoch, oben Ø 7,5 cm, zwei Finger Whiskey | `glasses.js` |
+| **White Russian** | im Whiskeyglas, zwei Schichten: unten dunkler Kaffeelikör, oben Sahne | `glasses.js` |
 | **Weinflasche** | 30 cm hoch, Ø 7,5 cm, dunkelgrün, Etikett, Folienkapsel | `bottles.js` |
 | **Bierflasche** | 23 cm hoch, Ø 6 cm, braun, Etikett, Kronkorken | `bottles.js` |
 
@@ -28,8 +29,8 @@ Die Flamme streckt sich und wiegt sich, ihr Schein und das Licht schwanken unreg
 
 ## Verteilung
 
-- **Auf den Tischen:** Der Kerzenhalter steht auf jedem Tisch, ungefähr in der Mitte (zufällig bis 12 cm daneben). Dazu je Tisch zufällig: ca. zwei Drittel haben einen Aschenbecher (25 cm von der Mitte), 0–2 Gläser (je 35 % Wein, davon 70 % rot, 25 % Whiskey, sonst Bier), ca. 40 % eine Flasche (je zur Hälfte Wein oder Bier). Alles mit festem Startwert, also bei jedem Start gleich, mit Abstand zueinander und leicht gedreht.
-- **Am Billardtisch** (Holzrahmen, links, nur 11 cm breit): je Spieler ein **Aschenbecher** (auf 65 % verkleinert, Ø 9 cm, zwischen der letzten Raute und der Ecktasche) und ein **Getränk** daneben. Die Getränke werden **bei jedem Laden neu gewürfelt**, und die beiden Spieler bekommen **nie dasselbe** (Rotwein, Weißwein, Bier, Whiskey). Dazu liegen Packung und Feuerzeug (`cigarettes.md`). Flaschen stehen dort nicht.
+- **Auf den Tischen:** Der Kerzenhalter steht auf jedem Tisch, ungefähr in der Mitte (zufällig bis 12 cm daneben). Dazu je Tisch zufällig: ca. zwei Drittel haben einen Aschenbecher (25 cm von der Mitte), 0–2 Gläser (je 30 % Wein, davon 70 % rot, 20 % Whiskey, 15 % White Russian, sonst Bier), ca. 40 % eine Flasche (je zur Hälfte Wein oder Bier). Alles mit festem Startwert, also bei jedem Start gleich, mit Abstand zueinander und leicht gedreht.
+- **Am Billardtisch** (Holzrahmen, links, nur 11 cm breit): je Spieler ein **Aschenbecher** (auf 65 % verkleinert, Ø 9 cm, zwischen der letzten Raute und der Ecktasche) und ein **Getränk** daneben. Die Getränke werden **bei jedem Laden neu gewürfelt**, und die beiden Spieler bekommen **nie dasselbe** (Rotwein, Weißwein, Bier, Whiskey, White Russian). Dazu liegen Packung und Feuerzeug (`cigarettes.md`). Flaschen stehen dort nicht.
 - Wer „Spieler 1 und 2“ ist und an welcher Seite sie stehen, kommt mit den Rollen aus [`game-concept.md`](game-concept.md). Bis dahin: feste Plätze auf der linken Längsseite.
 
 ## Trinken: Füllstand, Schaum, Nachschub (nur am Billardtisch)
@@ -37,8 +38,9 @@ Die Flamme streckt sich und wiegt sich, ihr Schein und das Licht schwanken unreg
 Gilt nur für die **Getränke der Spieler**; alles auf den Tischen im Raum bleibt unverändert (`glasses.js` mit `player`, `drinking.js`).
 
 - **Füllstand:** 5 Schlucke pro Getränk. Mit jedem sinkt der Stand um ein Fünftel (sanft über etwa eine halbe Sekunde), danach ist das Glas leer. Das Getränk wird dafür für dieses eine Glas neu berechnet.
+- **White Russian:** Beim Trinken sinken beide Schichten gemeinsam (unten 45 % Kaffeelikör, oben Sahne); der Rest wie beim Whiskey.
 - **Schaum (Bier):** sinkt mit dem Bier und **zerfällt mit der Zeit** (`BEER_FOAM_DECAY_SECONDS`, 4 Minuten): erst wird die Krone flacher, dann öffnet sich in der Mitte ein Loch mit ausgefranstem Rand, das sich aufweitet, bis nur noch ein schmaler Ring an der Glaswand bleibt.
-- **Nachschub:** Ist ein Glas leer (nach dem letzten Schluck, oder `R` bei leeren Gläsern), erscheint die **Getränkekarte** als Popover „Was darf es sein?“ (`drink-menu.js`, Preise in `shop-constants.js`): **Bier 8 $, Rotwein 14 $, Weißwein 14 $, Whiskey 18 $**. Ein Klick **kauft das Getränk sofort** und ersetzt das leere Glas durch ein volles der Sorte. Nicht bezahlbare Getränke sind grau, `Esc` oder ein Klick daneben schließt die Karte.
+- **Nachschub:** Ist ein Glas leer (nach dem letzten Schluck, oder `R` bei leeren Gläsern), erscheint die **Getränkekarte** als Popover „Was darf es sein?“ (`drink-menu.js`, Preise in `shop-constants.js`): **Bier 8 $, Rotwein 14 $, Weißwein 14 $, White Russian 16 $, Whiskey 18 $**. Ein Klick **kauft das Getränk sofort** und ersetzt das leere Glas durch ein volles der Sorte. Nicht bezahlbare Getränke sind grau, `Esc` oder ein Klick daneben schließt die Karte.
 
 ## Offene Punkte
 

@@ -29,6 +29,10 @@ import {
   WHISKEY_GLASS_BASE,
   WHISKEY_LEVEL,
   WHISKEY_COLOR,
+  WHITE_RUSSIAN_LEVEL,
+  WHITE_RUSSIAN_COFFEE_SHARE,
+  WHITE_RUSSIAN_COLOR_COFFEE,
+  WHITE_RUSSIAN_COLOR_CREAM,
   GLASS_WALL,
   GLASS_COLOR,
   GLASS_OPACITY,
@@ -38,6 +42,7 @@ import {
   GLASSES_SEED,
   GLASSES_WINE_SHARE,
   GLASSES_WHISKEY_SHARE,
+  GLASSES_WHITE_RUSSIAN_SHARE,
   GLASSES_RED_SHARE,
   GLASSES_FRAME_Z,
   DRINK_SIPS,
@@ -96,7 +101,9 @@ function taperedGlass({ height, rBottom, rTop, base }) {
     64
   );
   const liquid = (level) => lathe([[0, base], [inner(base) - 0.0004, base], [inner(level) - 0.0004, level], [0, level]], 48);
-  return { glass, liquid, inner };
+  /** A layer of a layered drink between the heights `from` and `to`. */
+  const layer = (from, to) => lathe([[0, from], [inner(from) - 0.0004, from], [inner(to) - 0.0004, to], [0, to]], 48);
+  return { glass, liquid, layer, inner };
 }
 
 const beerShape = taperedGlass({ height: BEER_GLASS_HEIGHT, rBottom: BEER_GLASS_RADIUS_BOTTOM, rTop: BEER_GLASS_RADIUS_TOP, base: BEER_GLASS_BASE });
@@ -106,6 +113,9 @@ const beerInnerRadius = beerShape.inner;
 /** Height of the beer / whiskey surface for a share (0…1) of the full amount. */
 const beerLevel = (share) => BEER_GLASS_BASE + (BEER_LEVEL - BEER_GLASS_BASE) * share;
 const whiskeyLevel = (share) => WHISKEY_GLASS_BASE + (WHISKEY_LEVEL - WHISKEY_GLASS_BASE) * share;
+/** White russian: the top of the drink and the height where the coffee layer ends and the cream starts. */
+const russianLevel = (share) => WHISKEY_GLASS_BASE + (WHITE_RUSSIAN_LEVEL - WHISKEY_GLASS_BASE) * share;
+const russianSplit = (share) => WHISKEY_GLASS_BASE + (russianLevel(share) - WHISKEY_GLASS_BASE) * WHITE_RUSSIAN_COFFEE_SHARE;
 
 /**
  * Foam head: sits on the beer at `level`, domes up (slightly above the rim when full). With
@@ -167,6 +177,8 @@ export function createGlasses(scene, taken) {
     beer: liquid(BEER_COLOR, 0.5),
     whiskey: liquid(WHISKEY_COLOR, 0.6),
     foam: liquid(BEER_FOAM_COLOR, 1, 0.9),
+    coffee: liquid(WHITE_RUSSIAN_COLOR_COFFEE, 0.85),
+    cream: liquid(WHITE_RUSSIAN_COLOR_CREAM, 0.92, 0.35),
   };
 
   mats.beer.emissive.set(0x3a2204); // a little light shines through the drinks
@@ -179,15 +191,18 @@ export function createGlasses(scene, taken) {
     beerLiquid: beerShape.liquid(BEER_LEVEL),
     whiskey: whiskeyShape.glass,
     whiskeyLiquid: whiskeyShape.liquid(WHISKEY_LEVEL),
+    russianCoffee: whiskeyShape.liquid(russianSplit(1)),
+    russianCream: whiskeyShape.layer(russianSplit(1), russianLevel(1)),
     foam: beerFoamGeometry(),
   };
 
-  /** Build one glass with its drink. `kind`: "wine-red" | "wine-white" | "beer" | "whiskey". */
+  /** Build one glass with its drink. `kind`: "wine-red" | "wine-white" | "beer" | "whiskey" | "white-russian". */
   const build = (kind) => {
     const g = new THREE.Group();
     const parts = {
       beer: [[geo.beer, glassMat, 2], [geo.beerLiquid, mats.beer, 0], [geo.foam, mats.foam, 0]],
       whiskey: [[geo.whiskey, glassMat, 2], [geo.whiskeyLiquid, mats.whiskey, 0]],
+      "white-russian": [[geo.whiskey, glassMat, 2], [geo.russianCoffee, mats.coffee, 0], [geo.russianCream, mats.cream, 0]],
       "wine-red": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.red, 0]],
       "wine-white": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.white, 0]],
     }[kind];
@@ -197,7 +212,7 @@ export function createGlasses(scene, taken) {
       g.add(m);
       return m;
     });
-    const radius = { beer: BEER_GLASS_RADIUS_TOP, whiskey: WHISKEY_GLASS_RADIUS_TOP }[kind] ?? WINE_GLASS_BOWL_RADIUS;
+    const radius = { beer: BEER_GLASS_RADIUS_TOP, whiskey: WHISKEY_GLASS_RADIUS_TOP, "white-russian": WHISKEY_GLASS_RADIUS_TOP }[kind] ?? WINE_GLASS_BOWL_RADIUS;
     return { group: g, radius, kind, drink: meshes[1], foam: meshes[2] ?? null };
   };
 
@@ -229,7 +244,7 @@ export function createGlasses(scene, taken) {
       },
       /** Per frame: the foam decays (rebuilt a few times per second only). */
       update(dt) {
-        if (!glass.foam || state.share <= 0 || state.decay >= 1) return;
+        if (glass.kind !== "beer" || state.share <= 0 || state.decay >= 1) return;
         state.decay = Math.min(1, state.decay + dt / BEER_FOAM_DECAY_SECONDS);
         sinceRebuild += dt;
         if (sinceRebuild > 0.5) refresh();
@@ -249,6 +264,10 @@ export function createGlasses(scene, taken) {
         glass.foam.geometry = beerFoamGeometry(beerLevel(state.share), state.decay);
       } else if (glass.kind === "whiskey") {
         glass.drink.geometry = whiskeyShape.liquid(whiskeyLevel(state.share));
+      } else if (glass.kind === "white-russian") {
+        glass.drink.geometry = whiskeyShape.liquid(russianSplit(state.share));
+        glass.foam.geometry.dispose();
+        glass.foam.geometry = whiskeyShape.layer(russianSplit(state.share), russianLevel(state.share));
       } else {
         glass.drink.geometry = wineLiquidGeometry(state.share);
       }
@@ -259,7 +278,8 @@ export function createGlasses(scene, taken) {
   const randomKind = () => {
     const r = rnd();
     if (r < GLASSES_WINE_SHARE) return rnd() < GLASSES_RED_SHARE ? "wine-red" : "wine-white";
-    return r < GLASSES_WINE_SHARE + GLASSES_WHISKEY_SHARE ? "whiskey" : "beer";
+    if (r < GLASSES_WINE_SHARE + GLASSES_WHISKEY_SHARE) return "whiskey";
+    return r < GLASSES_WINE_SHARE + GLASSES_WHISKEY_SHARE + GLASSES_WHITE_RUSSIAN_SHARE ? "white-russian" : "beer";
   };
 
   // Round tables: random drinks at free spots on the plate
@@ -289,7 +309,7 @@ export function createGlasses(scene, taken) {
   // Chosen anew on every load (not from the seed), and the two players never get the same drink.
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
-  const drinks = ["wine-red", "wine-white", "beer", "whiskey"].sort(() => Math.random() - 0.5).slice(0, 2);
+  const drinks = ["wine-red", "wine-white", "beer", "whiskey", "white-russian"].sort(() => Math.random() - 0.5).slice(0, 2);
   /** The players' glasses: they can be drunk from (the level falls) and their foam falls apart. */
   const player = [-1, 1].map((sz, i) => {
     const glass = build(drinks[i]);
@@ -310,7 +330,7 @@ export function createGlasses(scene, taken) {
     },
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
-      for (const m of [glassMat, mats.red, mats.white, mats.beer, mats.whiskey]) {
+      for (const m of [glassMat, mats.red, mats.white, mats.beer, mats.whiskey, mats.coffee, mats.cream]) {
         applyBallReflection(m, reflection, { clearGlass: true }); // the drinks are glossy and see-through too
         m.envMapIntensity = 1.6;
       }

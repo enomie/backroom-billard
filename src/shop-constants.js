@@ -10,6 +10,7 @@ export const DRINK_MENU = [
   { kind: "wine-red", key: "menu.redWine", price: 14 },
   { kind: "wine-white", key: "menu.whiteWine", price: 14 },
   { kind: "whiskey", key: "menu.whiskey", price: 18 },
+  { kind: "white-russian", key: "menu.whiteRussian", price: 16 },
 ];
 /** How long a message ("new pack, −75 $") stays on the screen (s). */
 export const TOAST_SECONDS = 2.5;
