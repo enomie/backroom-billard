@@ -212,6 +212,7 @@ let glasses = null; // wine and beer glasses (glasses.js)
 let ashtrays = null; // glass ashtrays (ashtray.js)
 let candles = null; // candle holders on the tables (candle.js)
 let furnitureKeepOut = []; // circles the free camera stays out of (furniture.js)
+let piano = null; // grand piano, can be played with the mouse (piano.js)
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 /** Physics steps still to run after something was put on the table (new rack, re-spotted ball); everything at rest needs no steps. */
@@ -381,7 +382,7 @@ function setupLightingAndRoom() {
   createWallLamps(scene);
   createDoor(scene); // the (dummy) door in the wall behind the player at the start
   createNeonSign(scene); // the neon sign on the wall opposite
-  createPiano(scene); // the grand piano beside it
+  piano = createPiano(scene); // the grand piano beside it
   furnitureKeepOut = createFurniture(scene).keepOut;
   candles = createCandles(scene);
   ashtrays = createAshtrays(scene);
@@ -905,6 +906,7 @@ function setupControls() {
 
   // Mouse control (click & drag to aim, click without drag = shot)
   container.addEventListener("mousedown", (e) => {
+    if (e.button === 0 && tryPianoPress(e)) return; // a key of the piano: play it, no aiming, no shot
     if (cameraMode === "free") {
       // Free camera: drag to look; a click also tries to capture the pointer
       if (e.button === 0) {
@@ -936,7 +938,18 @@ function setupControls() {
     return radio.handleClick(camera, ndc);
   }
 
+  /** The pointer in normalized device coordinates (with the mouse captured in the free camera, the crosshair in the middle). */
+  function pointerNdc(e) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    return document.pointerLockElement ? { x: 0, y: 0 } : { x: ((e.clientX - rect.left) / rect.width) * 2 - 1, y: -(((e.clientY - rect.top) / rect.height) * 2 - 1) };
+  }
+  /** A press on a piano key plays the note (true if a key was hit). */
+  function tryPianoPress(e) {
+    return !!piano && piano.pressAt(camera, pointerNdc(e));
+  }
+
   window.addEventListener("mouseup", (e) => {
+    piano?.release();
     if (freeLookDragging && freeClickDistance < 5 && cameraMode === "free") tryRadioClick(e);
     freeLookDragging = false;
     if (isMouseDown && cameraMode === "fps") {

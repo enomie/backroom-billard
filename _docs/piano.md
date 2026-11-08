@@ -1,6 +1,6 @@
 # Flügel
 
-> **Status: umgesetzt** (Flügel mit geschlossenem Deckel, volle Klaviatur, Hocker). Nur zur Ansicht, man kann nicht darauf spielen.
+> **Status: umgesetzt** (Flügel mit geschlossenem Deckel, volle Klaviatur, Hocker). Man kann mit der Maus darauf spielen.
 
 Ein Konzertflügel in schwarzem Lack an der kurzen Wand **gegenüber der Tür**, neben dem Neonschild (`src/piano.js`, Maße in `src/piano-constants.js`).
 
@@ -12,6 +12,13 @@ Ein Konzertflügel in schwarzem Lack an der kurzen Wand **gegenüber der Tür**,
 - **Hocker:** gepolsterter Sitz (0,55 × 0,32 m, Höhe 0,52 m) auf vier Beinen, 40 cm vor der Klaviatur.
 - Die Teile bekommen das Licht der Wandleuchten (`receiveWallLampsDeep`); die Tasten sind je eine Instanz-Gruppe (ein Aufruf zum Zeichnen).
 
+## Spielen
+
+- **Bedienung:** Maustaste auf eine Taste **drücken und halten**: Die Taste senkt sich und der Ton klingt; beim Loslassen dämpft der Ton ab. In der freien Kamera (C) zielt das Fadenkreuz in der Mitte des Bildes, sonst die Mausposition; bis 5 m Entfernung. Die schwarzen Tasten liegen über den weißen. Ein Klick auf eine Taste schießt nicht und zielt nicht.
+- **Töne:** Alle 88 Tasten (A0 bis C8) mit den richtigen Tonhöhen (A4 = 440 Hz).
+- **Klang** (`src/piano-sound.js`, Werte `PIANO_*` in `piano-constants.js`): ohne Samples, **generativ**. Jede Note besteht aus einigen Sinusteiltönen (tiefe Noten bis 9, hohe 3), leicht gedehnt wie bei echten Saiten (Inharmonizität), die zwei tiefsten doppelt und minimal verstimmt (zwei Saiten pro Ton, das gibt das lebendige Schweben), dazu ein weicher Hammerklang (kurzes gefiltertes Rauschen). Tiefe Töne klingen bis 7 s nach, hohe etwa 1,2 s; höhere Teiltöne sterben früher; ein Tiefpass macht leise Anschläge dunkler. Der Klang kommt aus dem Raum vom Flügel (Richtung und Entfernung folgen der Kamera), bis 32 Töne gleichzeitig, ein Kompressor hält es sauber.
+
 ## Offene Punkte (Ideen)
 
-- Pedale und Tasten bewegen, Klavierklang, Notenständer, Deckel öffnen.
+- Mehrere Tasten gleichzeitig (Akkord, Mehrfingerbedienung), Gleiten mit gedrückter Maus, Pedal, Anschlagstärke je nach Stelle auf der Taste, Tastatur des Computers, Handy (Touch).
+- Notenständer, Deckel öffnen, ein Halleffekt.

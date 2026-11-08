@@ -58,3 +58,20 @@ export function pianoCandleSpot() {
     z: -ROOM_LENGTH / 2 + PIANO_WALL_DISTANCE - lx * sin + lz * cos,
   };
 }
+
+/** Playing: the keys can be pressed with the mouse (crosshair in the free camera) up to this far (m); the angle a pressed key tips by (rad). */
+export const PIANO_CLICK_DISTANCE = 5;
+export const PIANO_KEY_PRESS_ANGLE = 0.05;
+/**
+ * The sound (additive: a few sine partials, slightly stretched, two strings a little out of tune,
+ * a soft hammer knock). Level of one note, the lowest and highest decay time of the ring (s), the
+ * stretching of the partials (inharmonicity) at the bottom, the time a released note dies in (s),
+ * most notes at once, and the highest note that gets as many partials as the lowest.
+ */
+export const PIANO_NOTE_GAIN = 0.16;
+export const PIANO_DECAY_LOW = 7;
+export const PIANO_DECAY_HIGH = 1.2;
+export const PIANO_INHARMONICITY = 0.0002;
+export const PIANO_RELEASE_SECONDS = 0.18;
+export const PIANO_MAX_VOICES = 32;
+export const PIANO_DETUNE_CENTS = 1.6;

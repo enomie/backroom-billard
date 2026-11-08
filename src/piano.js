@@ -35,7 +35,10 @@ import {
   PIANO_COLOR_BLACK_KEY,
   PIANO_COLOR_STOOL_SEAT,
   PIANO_COLOR_BRASS,
+  PIANO_CLICK_DISTANCE,
+  PIANO_KEY_PRESS_ANGLE,
 } from "./piano-constants.js";
+import { createPianoSound } from "./piano-sound.js";
 
 /**
  * The outline of a grand piano seen from above, as a shape in the XY plane whose y is the distance
@@ -106,8 +109,28 @@ export function createPiano(scene) {
   const blacks = new THREE.InstancedMesh(blackGeo, blackMat, blackIndices.length);
   const matrix = new THREE.Matrix4();
   const keyX = (i) => -keysWidth / 2 + (i + 0.5) * PIANO_WHITE_KEY_WIDTH;
-  for (let i = 0; i < PIANO_WHITE_KEYS; i++) whites.setMatrixAt(i, matrix.makeTranslation(keyX(i), PIANO_KEYS_TOP - 0.01, front + PIANO_WHITE_KEY_LENGTH / 2));
-  blackIndices.forEach((index, n) => blacks.setMatrixAt(n, matrix.makeTranslation(keyX(index) + PIANO_WHITE_KEY_WIDTH / 2, PIANO_KEYS_TOP + 0.007, front + PIANO_BLACK_KEY_LENGTH / 2)));
+  // every key: its note (midi), where it is, the instanced mesh and the index in it. A key tips about its back end when pressed.
+  const keys = [];
+  const semitones = [0, 2, 4, 5, 7, 9, 11]; // C D E F G A B
+  for (let i = 0; i < PIANO_WHITE_KEYS; i++) {
+    const p = i + 5; // counted from C0; the first key is A0
+    keys.push({ black: false, mesh: whites, index: i, midi: 12 * (Math.floor(p / 7) + 1) + semitones[p % 7], x: keyX(i), y: PIANO_KEYS_TOP - 0.01, length: PIANO_WHITE_KEY_LENGTH, width: PIANO_WHITE_KEY_WIDTH });
+  }
+  blackIndices.forEach((index, n) => {
+    const white = keys[index];
+    keys.push({ black: true, mesh: blacks, index: n, midi: white.midi + 1, x: white.x + PIANO_WHITE_KEY_WIDTH / 2, y: PIANO_KEYS_TOP + 0.007, length: PIANO_BLACK_KEY_LENGTH, width: PIANO_BLACK_KEY_WIDTH });
+  });
+  const tip = new THREE.Matrix4();
+  const tipTurn = new THREE.Matrix4();
+  const setKey = (key, pressed) => {
+    // about the back end of the key (where it meets the case)
+    tip.makeTranslation(key.x, key.y, front);
+    tipTurn.makeRotationX(pressed ? PIANO_KEY_PRESS_ANGLE * (key.black ? 1.4 : 1) : 0);
+    tip.multiply(tipTurn).multiply(matrix.makeTranslation(0, 0, key.length / 2));
+    key.mesh.setMatrixAt(key.index, tip);
+    key.mesh.instanceMatrix.needsUpdate = true;
+  };
+  keys.forEach((key) => setKey(key, false));
   whites.frustumCulled = blacks.frustumCulled = false;
   root.add(whites, blacks);
 
@@ -148,5 +171,53 @@ export function createPiano(scene) {
 
   receiveWallLampsDeep(root);
   scene.add(root);
-  return { group: root };
+
+  /* ---- Playing: a press on a key plays its note until the button is let go --------------------- */
+  const sound = createPianoSound([root.position.x, PIANO_KEYS_TOP, root.position.z]);
+  const raycaster = new THREE.Raycaster();
+  const inverse = new THREE.Matrix4();
+  const local = new THREE.Ray();
+  let held = null; // { key, id }
+
+  /** The key under the pointer (the black ones lie over the white ones), or null. */
+  function keyAt(camera, ndc) {
+    raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+    root.updateMatrixWorld();
+    local.copy(raycaster.ray).applyMatrix4(inverse.copy(root.matrixWorld).invert());
+    if (local.direction.y > -1e-4) return null;
+    const distance = (PIANO_KEYS_TOP - local.origin.y) / local.direction.y;
+    if (distance < 0 || distance > PIANO_CLICK_DISTANCE) return null;
+    const x = local.origin.x + local.direction.x * distance;
+    const z = local.origin.z + local.direction.z * distance - front;
+    if (z < 0 || z > PIANO_WHITE_KEY_LENGTH) return null;
+    const blackHit = keys.find((k) => k.black && z < k.length && Math.abs(x - k.x) < k.width / 2 + 0.001);
+    if (blackHit) return blackHit;
+    const i = Math.floor((x + keysWidth / 2) / PIANO_WHITE_KEY_WIDTH);
+    return i >= 0 && i < PIANO_WHITE_KEYS ? keys[i] : null;
+  }
+
+  return {
+    group: root,
+    /**
+     * A press of the mouse button: plays the key under the pointer.
+     * @param {THREE.Camera} camera
+     * @param {{ x: number, y: number }} ndc — pointer in normalized device coordinates
+     * @returns {boolean} true if a key was hit
+     */
+    pressAt(camera, ndc) {
+      const key = keyAt(camera, ndc);
+      if (!key) return false;
+      this.release();
+      held = { key, id: sound.noteOn(key.midi, key.black ? 0.7 : 0.8) };
+      setKey(key, true);
+      return true;
+    },
+    /** The button is let go: the held note ends. */
+    release() {
+      if (!held) return;
+      sound.noteOff(held.id);
+      setKey(held.key, false);
+      held = null;
+    },
+  };
 }
