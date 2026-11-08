@@ -22,10 +22,10 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Stoß | Klick, Leertaste oder der SHOOT-Button unten in der Mitte |
 | Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
-| Trinken: antippen = ein Schluck, halten = Schluck für Schluck (5 pro Getränk) | `R` oder der Knopf „Drink“ unten links neben dem Shoot-Button |
+| Trinken: antippen = ein Schluck, halten = Schluck für Schluck (5 pro Getränk) | `R` oder der Knopf „Drink“ unten links neben dem Shoot-Button (Mitte) |
 | Leeres Glas: Getränkekarte, Klick auf ein Getränk kauft es | Maus oder Touch |
 | Neu aufbauen | `N` oder der Knopf „Re-rack“ oben rechts |
-| Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` halten oder den Knopf „Smoke“ unten links gedrückt halten (Maus oder Touch) |
+| Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` halten oder den Knopf „Smoke“ unten rechts neben dem Shoot-Button gedrückt halten (Maus oder Touch) |
 
 ## Regeln
 
