@@ -35,12 +35,31 @@ Die Stoßkraft stellt man per Slider oder Mausrad ein. Wie in Shootern **schwank
 
 ## Zigaretten
 
-- Man kann an einer **Zigarette ziehen**, um **ruhiger** zu werden (das Fadenkreuz schwankt weniger).
+- Man kann an einer **Zigarette ziehen**, um **ruhiger** zu werden (das Fadenkreuz schwankt weniger). Dagegen wirkt der **Nikotinentzug** (siehe „Durst, Betrunkenheit und Entzug“).
 - Zigaretten werden **extra mit Spielgeld gekauft**.
 - Offen: Animation (Aschenbecher, Rauch, Ziehen), wie lange die Ruhe anhält.
 - Grund: Das Spiel spielt in den **80ern**, jedes Billardcafé war rauchig und schummrig. Die **Optik** bekommt später ein eigenes Dokument.
 
+## Durst, Betrunkenheit und Entzug
+
+Der Spieler hat drei Zustände, die sich mit der Zeit und durch sein Handeln ändern:
+
+| Anzeige | Verlauf | Wirkung |
+|---------|---------|---------|
+| **Durst** | steigt mit der Zeit; **Trinken** senkt ihn | Man muss ab und zu trinken. |
+| **Betrunken** | steigt beim **Trinken**, sinkt langsam von selbst | Man wird **ungenauer** (der Zielfehler und das Schwanken nehmen zu). |
+| **Entzug** (Name offen) | steigt mit der Zeit; **Rauchen** senkt ihn | Je größer der Entzug, desto unruhiger (das Fadenkreuz schwankt mehr); Rauchen macht wieder ruhiger. |
+
+- **Der Zielkonflikt:** Wer nicht trinkt, wird durstig (Folge noch offen); wer trinkt, wird betrunken und ungenau. Man muss das richtige Maß finden.
+- **Anzeige:** **oben in der Mitte zwei Balken** (Durst und Betrunken), so dass man sieht, ob man durstig, betrunken oder dazwischen ist; **darunter ein dritter Balken** für den Entzug.
+- Umgesetzt sind dafür bisher nur die Gegenstände: Gläser und Flaschen (`glass-objects.md`) und Zigaretten mit Ziehen (`cigarettes.md`). Das Trinken selbst (Glas nehmen, Schluck, Bewegung) und alle Werte sind offen.
+
 ## Offene Punkte (noch nicht entschieden)
+
+- Wie heißt der dritte Balken (Entzug)? Vorschläge: **Verlangen / Craving**, **Nerven / Nerves**, **Entzug / Withdrawal**, **Jieper**.
+- Was bewirkt Durst, wenn man gar nicht trinkt (Zittern, weniger Konzentration, Abzüge)?
+- Wie schnell steigen und sinken die Werte, und wie stark wirken sie auf das Zielen?
+- Wie trinkt man: Glas oder Flasche vom Tisch nehmen wie bei der Zigarette (Taste halten)?
 
 - Was passiert mit den Einsätzen der Verlierer der Wette?
 - Was passiert, wenn niemand bietet oder zwei Gebote gleich hoch sind?
