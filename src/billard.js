@@ -798,7 +798,7 @@ function setupControls() {
     fireBtn.blur(); // give up focus so the space bar does not trigger the button again
   });
 
-  // The nub on the shoot button: drag it to meet the ball off-center (double-click = center)
+  // The nub on the disc above the shoot button: drag it to meet the ball off-center (double-click = center)
   const nub = document.getElementById("fire-nub");
   const disc = nub.parentElement;
   const showNub = () => {

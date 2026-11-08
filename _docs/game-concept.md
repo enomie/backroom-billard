@@ -20,7 +20,7 @@ Zwei Balken oben in der Mitte, jeder mit einem **Marker, der sich zwischen zwei 
 - **Balken 1:** Der Marker wandert mit der Zeit nach links (0,003/s). **Trinken schiebt ihn nach rechts** (ein Schluck um 0,22): ein Schluck bringt ihn zur Mitte, zu viel führt zu „Drunk“. Also: oft, aber wenig trinken.
 - **Balken 2:** Der Marker wandert mit der Zeit nach rechts (0,004/s). **Rauchen schiebt ihn nach links** (0,1 je Sekunde Ziehen): ein Zug bringt ihn zur Mitte, Kettenrauchen macht „Nerves“.
 - **Calm-Zone** ±0,12: dort keine Wirkung.
-- **Wirkung auf das Zielen:** Die Cue-Spitze kreist (seitlich und auf-ab) um das Ziel, Kamera und Mittelpunkt der Kugel bleiben ruhig, höchstens 0,05 rad ≈ 3°. *Nerves* = schnelles kleines Zittern, *Desire* = langsames großes Schwanken, *Thirsty* = mittleres, unregelmäßiges Schwanken, *Drunk* = sehr langsames, großes Schwanken, dazu beim Stoß ein zufälliger Fehler bis 0,04 rad. Auf dem runden Shoot-Button sitzt ein verschiebbarer Nubbel (Doppelklick = Mitte): Er setzt, wo die Cue-Spitze die Kugel trifft (bis 0,5 Kugelradius seitlich/oben/unten). Die Physik erzeugt Effet und leichte Ablenkung von selbst. Die Stoßrichtung ist die, in die Cue und Zielhilfe im Moment des Stoßes zeigen.
+- **Wirkung auf das Zielen:** Die Cue-Spitze kreist (seitlich und auf-ab) um das Ziel, Kamera und Mittelpunkt der Kugel bleiben ruhig, höchstens 0,05 rad ≈ 3°. *Nerves* = schnelles kleines Zittern, *Desire* = langsames großes Schwanken, *Thirsty* = mittleres, unregelmäßiges Schwanken, *Drunk* = sehr langsames, großes Schwanken, dazu beim Stoß ein zufälliger Fehler bis 0,04 rad. Unten in der Mitte steht über dem eckigen **Shoot-Button** eine **transparente, runde Fläche** (die Kugel von vorn, mit feinem Kreuz) mit einem verschiebbaren Nubbel (Doppelklick = Mitte): Er setzt, wo die Cue-Spitze die Kugel trifft (bis 0,5 Kugelradius seitlich/oben/unten). Die Physik erzeugt Effet und leichte Ablenkung von selbst. Die Stoßrichtung ist die, in die Cue und Zielhilfe im Moment des Stoßes zeigen.
 
 ### Trinken (`R`)
 
@@ -37,7 +37,7 @@ Das Geld steht oben links (`wallet.js`, Start **15.000 $**). Gekauft wird **Trin
 ### Tasten und Bedienknöpfe (HUD)
 
 - **Tasten:** `T` rauchen (halten = stärker ziehen), `R` trinken, `C` Kamera wechseln, `N` neu aufbauen.
-- **Knöpfe:** Bei den Balken stehen **R Drink** und **T Smoke**, unten links der große Kamera-Knopf (`C`, zweizeilig „Player / Camera“ oder „Free / Camera“). Alle sehen aus wie der Shoot-Knopf, mit dem Buchstaben etwas größer, und lassen sich mit Maus oder Berührung bedienen. R und T bleiben gedrückt wie die Taste.
+- **Knöpfe:** Bei den Balken stehen **R Drink** und **T Smoke**, unten links der große Kamera-Knopf (`C`, zweizeilig „Player / Camera“ oder „Free / Camera“). Alle sehen aus wie der Shoot-Button, mit dem Buchstaben etwas größer, und lassen sich mit Maus oder Berührung bedienen. R und T bleiben gedrückt wie die Taste.
 
 ## Ideen (nicht umgesetzt)
 

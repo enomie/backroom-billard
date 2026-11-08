@@ -570,28 +570,43 @@ html {
   left: 50%;
   bottom: 1rem;
   transform: translateX(-50%);
-}
-
-/* Round shoot button; the nub on it sets where the cue tip meets the ball */
-.fire-disc {
-  position: relative;
-  width: 6.5rem;
-  height: 6.5rem;
-}
-
-.btn-fire {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.125rem;
-  padding: 0 0 0.75rem;
-  border: 1px solid #fcd34d;
+  gap: 0.625rem;
+}
+
+/* The face of the cue ball: a transparent disc; the nub on it sets where the cue tip meets the ball */
+.fire-disc {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
   border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  /* a faint cross marks the center */
+  --cross: rgba(255, 255, 255, 0.2);
+  background-image:
+    linear-gradient(var(--cross), var(--cross)),
+    linear-gradient(var(--cross), var(--cross)),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04));
+  background-size: 1px 100%, 100% 1px, 100% 100%;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+}
+
+/* The shoot button: an ordinary rectangular button below the disc */
+.btn-fire {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #fcd34d;
+  border-radius: 0.75rem;
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -609,12 +624,6 @@ html {
   transition:
     transform 0.15s ease,
     box-shadow 0.2s ease;
-}
-
-@media (min-width: 768px) {
-  .btn-fire {
-    font-size: 0.875rem;
-  }
 }
 
 .fire-nub {
@@ -644,7 +653,7 @@ html {
 }
 
 .btn-fire:active {
-  transform: scale(0.95) translateY(0);
+  transform: translateY(1px) scale(0.98);
 }
 
 /* Pocketed balls: round circles in the ball color */
