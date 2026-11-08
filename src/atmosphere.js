@@ -5,6 +5,7 @@
  */
 import * as THREE from "three";
 import { NOISE } from "./noise-glsl.js";
+import { SMOKE_LIGHT_GLSL, smokeLightUniforms } from "./smoke-light.js";
 import {
   ROOM_LENGTH,
   ROOM_WIDTH,
@@ -45,13 +46,14 @@ const LAYER_FRAGMENT = /* glsl */ `
   uniform vec3 uColor;
   varying vec3 vWorld;
   ${NOISE}
+  ${SMOKE_LIGHT_GLSL}
   void main() {
     vec2 p = vWorld.xz * uScale + uDrift * uTime + uSeed;
     p += 1.4 * vec2( vnoise( p * 0.7 + uTime * 0.02 ), vnoise( p * 0.7 + 5.0 ) ); // swirl the wisps
     float wisps = smoothstep( 0.36, 0.78, fbm( p ) );
     float d = distance( cameraPosition, vWorld );
     float fade = smoothstep( 0.5, 2.5, d ) * ( 1.0 - smoothstep( 12.0, 24.0, d ) ); // no hard edge close by or far away
-    gl_FragColor = vec4( uColor, wisps * fade * uOpacity );
+    gl_FragColor = vec4( uColor * smokeLight( vWorld ), wisps * fade * uOpacity );
   }
 `;
 
@@ -96,6 +98,7 @@ function fogLayer(y, color, opacity, seed, drift) {
       uDrift: { value: new THREE.Vector2(drift[0], drift[1]) },
       uSeed: { value: seed },
       uColor: { value: new THREE.Color(color) },
+      uCandles: smokeLightUniforms.uCandles,
     },
     vertexShader: LAYER_VERTEX,
     fragmentShader: LAYER_FRAGMENT,

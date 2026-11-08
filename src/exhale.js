@@ -6,6 +6,7 @@
  */
 import * as THREE from "three";
 import { NOISE } from "./noise-glsl.js";
+import { SMOKE_LIGHT_GLSL, smokeLightUniforms } from "./smoke-light.js";
 import {
   EXHALE_PUFFS,
   EXHALE_POOL,
@@ -42,6 +43,7 @@ const FRAGMENT = /* glsl */ `
   varying vec2 vUv;
   varying vec3 vWorld;
   ${NOISE}
+  ${SMOKE_LIGHT_GLSL}
   void main() {
     vec2 p = ( vUv - 0.5 ) * 2.0;
     float n = fbm( p * 1.6 + uSeed + vec2( uTime * 0.08, -uTime * 0.05 ) );
@@ -49,7 +51,7 @@ const FRAGMENT = /* glsl */ `
     float edge = 1.0 - smoothstep( 0.2, 0.95, length( p ) + ( n - 0.5 ) * 1.1 ); // ragged outline
     float body = mix( 0.55, 1.0, smoothstep( 0.2, 0.8, n2 ) );
     float near = smoothstep( 0.08, 0.4, distance( cameraPosition, vWorld ) ); // not a wall right in front of the eyes
-    vec3 color = uColor * mix( 0.75, 1.0, vUv.y ); // a little darker at the bottom
+    vec3 color = uColor * smokeLight( vWorld ) * mix( 0.75, 1.0, vUv.y ); // lit by the lamps, a little darker at the bottom
     gl_FragColor = vec4( color, edge * body * near * uOpacity );
   }
 `;
@@ -66,7 +68,7 @@ export function createExhale(scene) {
 
   const puffs = Array.from({ length: EXHALE_POOL }, () => {
     const material = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uSeed: { value: 0 }, uOpacity: { value: 0 }, uColor: { value: new THREE.Color(EXHALE_COLOR) } },
+      uniforms: { uTime: { value: 0 }, uSeed: { value: 0 }, uOpacity: { value: 0 }, uColor: { value: new THREE.Color(EXHALE_COLOR) }, uCandles: smokeLightUniforms.uCandles },
       vertexShader: VERTEX,
       fragmentShader: FRAGMENT,
       transparent: true,

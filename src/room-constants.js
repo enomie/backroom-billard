@@ -109,6 +109,17 @@ export const FOG_FAR = 12;
 /** One color for all smoke and haze (cigarette smoke, exhaled cloud, ground and ceiling fog): warm, nicotine-tinged gray, not pure white-gray. */
 export const AIR_SMOKE_COLOR = 0x867a6e;
 
+/**
+ * Smoke, cloud and fog are lit by the lamps: they look light where a ceiling lamp or a candle
+ * shines on them and dark elsewhere (smoke-light.js). Ambient = how much of the smoke color
+ * stays in the dark; the strengths scale the light of the lamps and the candles.
+ */
+export const SMOKE_LIGHT_AMBIENT = 0.3;
+export const SMOKE_LAMP_STRENGTH = 2.2;
+export const SMOKE_CANDLE_STRENGTH = 1.2;
+/** Candle light falls off with 1 / (1 + (distance / this)²) (m). */
+export const SMOKE_CANDLE_RADIUS = 0.24;
+
 /* ---- Atmosphere (atmosphere.js): drifting ground and ceiling fog, visible light shafts ----------
  * Fog = a few stacked, see-through layers with a slowly moving noise shader. */
 export const GROUND_FOG_LAYERS = 5;

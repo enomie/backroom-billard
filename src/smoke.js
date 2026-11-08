@@ -6,11 +6,13 @@
  */
 import * as THREE from "three";
 import { NOISE } from "./noise-glsl.js";
+import { SMOKE_LIGHT_GLSL, smokeLightUniforms } from "./smoke-light.js";
 
 const VERTEX = /* glsl */ `
   uniform float uTime;
   uniform float uSeed;
   varying vec2 vUv;
+  varying vec3 vWorld;
   #include <fog_pars_vertex>
   ${NOISE}
   void main() {
@@ -21,6 +23,7 @@ const VERTEX = /* glsl */ `
     float sway = ( vnoise( vec2( h * 2.5 - uTime * 0.35, uSeed ) ) - 0.5 ) * 2.0;
     p.x += sway * 1.1 * h * h;
     p.x *= mix( 0.5, 3.0, h );
+    vWorld = ( modelMatrix * vec4( p, 1.0 ) ).xyz;
     vec4 mvPosition = modelViewMatrix * vec4( p, 1.0 );
     gl_Position = projectionMatrix * mvPosition;
     #include <fog_vertex>
@@ -33,8 +36,10 @@ const FRAGMENT = /* glsl */ `
   uniform float uOpacity;
   uniform vec3 uColor;
   varying vec2 vUv;
+  varying vec3 vWorld;
   #include <fog_pars_fragment>
   ${NOISE}
+  ${SMOKE_LIGHT_GLSL}
   void main() {
     float h = vUv.y;
     vec2 q = vec2( vUv.x * 1.5 + uSeed, h * 3.0 - uTime * 0.5 );
@@ -45,7 +50,7 @@ const FRAGMENT = /* glsl */ `
     float wisp = smoothstep( 0.32, 0.72, n );
     float fadeIn = smoothstep( 0.0, 0.08, h );
     float fadeOut = 1.0 - smoothstep( 0.4, 1.0, h );
-    gl_FragColor = vec4( uColor, across * wisp * fadeIn * fadeOut * uOpacity );
+    gl_FragColor = vec4( uColor * smokeLight( vWorld ), across * wisp * fadeIn * fadeOut * uOpacity );
     #include <fog_fragment>
   }
 `;
@@ -56,11 +61,13 @@ const FRAGMENT = /* glsl */ `
  */
 export function createSmokeColumn({ width, height, opacity, color, seed }) {
   const geo = new THREE.PlaneGeometry(1, 1, 1, 1).translate(0, 0.5, 0);
-  const material = new THREE.ShaderMaterial({
-    uniforms: THREE.UniformsUtils.merge([
+  const uniforms = THREE.UniformsUtils.merge([
       THREE.UniformsLib.fog,
       { uTime: { value: 0 }, uSeed: { value: seed }, uOpacity: { value: opacity }, uColor: { value: new THREE.Color(color) } },
-    ]),
+  ]);
+  uniforms.uCandles = smokeLightUniforms.uCandles; // shared, not cloned
+  const material = new THREE.ShaderMaterial({
+    uniforms,
     vertexShader: VERTEX,
     fragmentShader: FRAGMENT,
     transparent: true,

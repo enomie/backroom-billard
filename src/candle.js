@@ -30,6 +30,7 @@ import {
 } from "./candle-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
 import { glowTexture } from "./glow.js";
+import { smokeLightUniforms } from "./smoke-light.js";
 
 /** Small deterministic random generator (same layout on every start). */
 function random(seed) {
@@ -140,6 +141,9 @@ export function createCandles(scene) {
   });
 
   // Pool of real lights, moved to the candles nearest to the camera
+  // the smoke shaders light the smoke around the flames
+  candles.forEach((c, i) => smokeLightUniforms.uCandles.value[i].set(c.root.position.x, c.root.position.y + c.topY + FLAME_HEIGHT * 0.5, c.root.position.z));
+
   const lights = Array.from({ length: Math.min(CANDLE_REAL_LIGHTS, candles.length) }, () => {
     const light = new THREE.PointLight(CANDLE_LIGHT_COLOR, 0, CANDLE_LIGHT_DISTANCE, CANDLE_LIGHT_DECAY);
     group.add(light);

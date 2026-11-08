@@ -76,7 +76,7 @@ Die ursprünglichen Vorgaben:
 **Technik:**
 - `ShaderMaterial` mit Transparenz, **ohne Tiefenschreiben**, weiche Kanten (Alpha-Verlauf); optional „Soft Particles“ (Alpha an der Tiefe zur Tischplatte ausblenden).
 - Zeit als Uniform; ein Rauschmuster per Textur (billig) oder berechnet.
-- **Licht:** Der Rauch bekommt etwas Farbe vom Lampenlicht (je näher an einem Lichtkegel, desto heller), sonst ist er grau-weiß und geht im Dunkel unter.
+- **Licht (umgesetzt):** Der Rauch wird von den Deckenlampen und den Kerzen beleuchtet (`smoke-light.js`, Beschreibung in `look.md`) und geht im Dunkel unter.
 - **Kosten:** wenige Rauchquellen zugleich (Spieler, ein paar Aschenbecher in der Nähe der Kamera), weiter entfernte schalten ab; auf Handys weniger Schichten.
 - **Nicht** als Volumen-Raymarching, das ist zu teuer für viele Quellen.
 
