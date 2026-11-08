@@ -85,6 +85,13 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
 
+## Schriften
+
+Alle Schriften liegen **im Repo** (`public/fonts/`, mit den Lizenzen), es wird nichts von Google geladen (Datenschutz, geht offline):
+- **Limelight 400** nur für den Titel „BACKROOM BILLARD“ (auf die Buchstaben A–Z gekürzt, 5 KB) und für das goldene B auf der Tür.
+- **Roboto** (variable Schrift) für alles andere, immer in **Breite 75 %** (`font-stretch: 75%` am `html`, auch für die Knöpfe); Latin und Latin-Erweiterung, die zweite wird nur geladen, wenn ein Zeichen daraus vorkommt.
+- Die Dateien werden im `<head>` vorab geladen; der Start (`src/entry.js`) wartet höchstens 1,5 s auf sie, weil Text, der beim Start in Texturen gezeichnet wird (das B), sonst für immer in einer Ersatzschrift bliebe. Die Schrift in den Texturen der Flaschen, Packungen und der Radioskala ist bewusst eine Serifenschrift wie auf echten Etiketten.
+
 ## Sprachen
 
 Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbol oben rechts) wechseln die Flaggen die Sprache (wird gespeichert). Neue Sprache: Datei in `src/i18n/locales/` anlegen, Flagge in `flags.js` ergänzen, in `LANGUAGES` eintragen. Projektregeln (Sprache, Arbeitsweise): [`CLAUDE.md`](CLAUDE.md).

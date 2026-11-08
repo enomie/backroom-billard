@@ -97,7 +97,7 @@ function logoTexture(mirrored) {
   return canvasTexture(256, 320, (ctx, w, h) => {
     ctx.translate(mirrored ? w : 0, 0);
     ctx.scale(mirrored ? -1 : 1, 1);
-    ctx.font = "bold 280px Georgia, 'Times New Roman', serif";
+    ctx.font = "400 280px Limelight, serif"; // the font of the title; entry.js waits for it
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const gradient = ctx.createLinearGradient(0, 20, 0, h - 20);
