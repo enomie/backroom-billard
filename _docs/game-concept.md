@@ -24,7 +24,7 @@ Zwei Balken oben in der Mitte, jeder mit einem **Marker, der sich zwischen zwei 
 
 ### Trinken (`R`)
 
-Jedes Getränk hat **5 Schlucke**, dann ist das Glas leer. Man kann nicht zu viel trinken: keine Sperre, kein Game Over, man wird nur ungenauer. Je Druck ein Schluck des nächsten Spielerglases (`drinking.js`); ist es leer, kommt die Getränkekarte (siehe `glass-objects.md`). Wichtig sind nur die Dinge **am Billardtisch**; die Gegenstände auf den Tischen im Raum bleiben unverändert.
+Jedes Getränk hat **5 Schlucke**, dann ist das Glas leer. Man kann nicht zu viel trinken: keine Sperre, kein Game Over, man wird nur ungenauer. `R` halten trinkt Schluck für Schluck das nächste Spielerglas, ein Antippen ist ein Schluck (`drinking.js`); ist es leer, kommt die Getränkekarte (siehe `glass-objects.md`). Wichtig sind nur die Dinge **am Billardtisch**; die Gegenstände auf den Tischen im Raum bleiben unverändert.
 
 ### Rauchen (`T`)
 
@@ -37,7 +37,7 @@ Das Geld steht oben links (`wallet.js`, Start **15.000 $**). Gekauft wird **Trin
 ### Tasten und Bedienknöpfe (HUD)
 
 - **Tasten:** `T` rauchen (halten = stärker ziehen), `R` trinken, `C` Kamera wechseln, `N` neu aufbauen.
-- **Knöpfe:** Bei den Balken stehen **R Drink** und **T Smoke**, unten links der große Kamera-Knopf (`C`, zweizeilig „Player / Camera“ oder „Free / Camera“). Alle sehen aus wie der Shoot-Knopf, mit dem Buchstaben etwas größer, und lassen sich mit Maus oder Berührung bedienen. R ist ein Druck pro Schluck, T bleibt gedrückt wie die Taste.
+- **Knöpfe:** Bei den Balken stehen **R Drink** und **T Smoke**, unten links der große Kamera-Knopf (`C`, zweizeilig „Player / Camera“ oder „Free / Camera“). Alle sehen aus wie der Shoot-Knopf, mit dem Buchstaben etwas größer, und lassen sich mit Maus oder Berührung bedienen. R und T bleiben gedrückt wie die Taste.
 
 ## Ideen (nicht umgesetzt)
 

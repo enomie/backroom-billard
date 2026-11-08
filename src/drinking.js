@@ -1,15 +1,20 @@
 /**
- * Drinking with the R key (or its button): a sip of the nearest player glass. The glass flies to
- * the mouth, tilts, the level falls by one fifth and the body marker moves; then it flies back.
- * See _docs/game-concept.md.
+ * Drinking with the R key (or its button): hold R and the nearest player glass flies to the mouth,
+ * tilts further the emptier it gets and is drunk one gulp after the other (the level falls by one
+ * fifth and the body marker moves with each gulp). On release, or when the glass is empty, it
+ * flies back and the player sighs after a long drink. A tap is one gulp. See _docs/game-concept.md.
  */
 import * as THREE from "three";
-import { playSipSound } from "./drink-sounds.js";
+import { playGulpSound, startFlowSound, playAhhSound } from "./drink-sounds.js";
 import {
   DRINK_FLY_IN,
   DRINK_SIP_SECONDS,
+  DRINK_SIP_JITTER,
   DRINK_FLY_OUT,
-  DRINK_TILT,
+  DRINK_TILT_START,
+  DRINK_TILT_END,
+  DRINK_TILT_SECONDS,
+  DRINK_AHH_MIN_GULPS,
   DRINK_MOUTH_FORWARD,
   DRINK_MOUTH_DOWN,
   DRINK_MOUTH_RIGHT,
@@ -30,6 +35,11 @@ export function createDrinking(glasses, onSip, onEmpty) {
   let time = 0;
   let glass = null;
   let shareFrom = 1;
+  let held = false; // R is down
+  let sipSeconds = DRINK_SIP_SECONDS; // the current gulp (a little different each time)
+  let gulpsDone = 0;
+  let sipTime = 0; // since the glass reached the mouth
+  let flowSound = null;
   const mouth = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
   const start = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
   const forward = new THREE.Vector3();
@@ -56,9 +66,32 @@ export function createDrinking(glasses, onSip, onEmpty) {
     glass.group.quaternion.slerpQuaternions(from.quaternion, to.quaternion, e);
   }
 
+  /** The next gulp begins: the body marker moves. */
+  function beginGulp() {
+    shareFrom = glass.share;
+    sipSeconds = DRINK_SIP_SECONDS * (1 + (Math.random() * 2 - 1) * DRINK_SIP_JITTER);
+    time = 0;
+    onSip();
+  }
+
+  /** Drinking is over (R let go or the glass is empty): the glass flies back. */
+  function beginOut() {
+    flowSound?.stop();
+    flowSound = null;
+    if (gulpsDone >= DRINK_AHH_MIN_GULPS) playAhhSound();
+    start.position.copy(glass.group.position);
+    start.quaternion.copy(glass.group.quaternion);
+    [phase, time] = ["out", 0];
+  }
+
   return {
-    /** R pressed: take a sip of the nearest glass that is not empty. */
+    /** R let go: the current gulp is finished, then the glass flies back. */
+    release() {
+      held = false;
+    },
+    /** R pressed: drink from the nearest glass that is not empty. */
     press(camera) {
+      held = true;
       if (phase !== "idle") return;
       const nearest = (list) => list.reduce((a, b) => (!a || b.group.position.distanceToSquared(camera.position) < a.group.position.distanceToSquared(camera.position) ? b : a), null);
       const best = nearest(glasses.player.filter((g) => g.sipsLeft > 0));
@@ -69,7 +102,8 @@ export function createDrinking(glasses, onSip, onEmpty) {
       glass = best;
       start.position.copy(glass.group.position);
       start.quaternion.copy(glass.group.quaternion);
-      shareFrom = glass.share;
+      gulpsDone = 0;
+      sipTime = 0;
       phase = "in";
       time = 0;
     },
@@ -80,23 +114,26 @@ export function createDrinking(glasses, onSip, onEmpty) {
         updateMouth(camera, 0);
         fly(start, mouth, time / DRINK_FLY_IN);
         if (time >= DRINK_FLY_IN) {
-          [phase, time] = ["sip", 0];
-          playSipSound();
-          onSip();
+          phase = "sip";
+          flowSound = startFlowSound(glass.kind);
+          beginGulp();
         }
       } else if (phase === "sip") {
-        const k = Math.min(1, time / DRINK_SIP_SECONDS);
-        // tilt back and forth: up to DRINK_TILT in the middle of the sip
-        updateMouth(camera, DRINK_TILT * Math.sin(Math.PI * k));
+        sipTime += dt;
+        const k = Math.min(1, time / sipSeconds);
+        // the glass tilts further the emptier it is (and swings into the tilt at the start)
+        const tilt = THREE.MathUtils.lerp(DRINK_TILT_START, DRINK_TILT_END, 1 - glass.share);
+        updateMouth(camera, tilt * ease(Math.min(1, sipTime / DRINK_TILT_SECONDS)));
         glass.group.position.copy(mouth.position);
         glass.group.quaternion.copy(mouth.quaternion);
-        glass.setShare(shareFrom - ease(k) / DRINK_SIPS);
+        glass.setShare(shareFrom - k / DRINK_SIPS); // steadily, the gulp is heard when it is down
         if (k >= 1) {
           glass.sipsLeft--;
+          gulpsDone++;
           glass.setShare(Math.max(0, shareFrom - 1 / DRINK_SIPS));
-          start.position.copy(glass.group.position);
-          start.quaternion.copy(glass.group.quaternion);
-          [phase, time] = ["out", 0];
+          playGulpSound();
+          if (held && glass.sipsLeft > 0) beginGulp();
+          else beginOut();
         }
       } else if (phase === "out") {
         fly(start, glass.rest, time / DRINK_FLY_OUT);

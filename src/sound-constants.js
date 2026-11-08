@@ -125,6 +125,17 @@ export const SMOKE_EXHALE_SECONDS_MAX = 2.6;
 export const SMOKE_EXHALE_GAIN_MIN = 0.05;
 export const SMOKE_EXHALE_GAIN_MAX = 0.13;
 
-/* ---- Drinking (drink-sounds.js): a few gulps and the swallow ---- */
-export const SIP_GAIN = 0.12;
-export const SIP_SECONDS = 0.8;
+/* ---- Drinking (drink-sounds.js): the gulp, the liquid while the glass is tilted, the sigh ---- */
+export const GULP_GAIN = 0.14;
+export const GULP_SECONDS = 0.22;
+export const GULP_VARIANTS = 4;
+/** Liquid sound while tilted: band center (Hz), Q and gain per drink; beer fizzes, whiskey is nearly silent. */
+export const DRINK_FLOW = {
+  beer: { hz: 1500, q: 0.8, gain: 0.05 },
+  "wine-red": { hz: 900, q: 1.0, gain: 0.035 },
+  "wine-white": { hz: 1000, q: 1.0, gain: 0.035 },
+  whiskey: { hz: 600, q: 1.2, gain: 0.02 },
+  "white-russian": { hz: 700, q: 1.2, gain: 0.03 },
+};
+export const AHH_GAIN = 0.1;
+export const AHH_SECONDS = 0.8;

@@ -902,7 +902,7 @@ function setupControls() {
       return;
     }
     if (e.code === "KeyR" && !e.repeat) {
-      drinking.press(camera); // R = take a sip
+      drinking.press(camera); // hold R: drink gulp after gulp, release: put the glass back
       return;
     }
     if (e.code === "KeyN" && !e.repeat) {
@@ -927,10 +927,12 @@ function setupControls() {
   window.addEventListener("keyup", (e) => {
     heldKeys.delete(e.code);
     if (e.code === "KeyT") smoking.release(camera);
+    if (e.code === "KeyR") drinking.release();
   });
   window.addEventListener("blur", () => {
     heldKeys.clear();
     smoking.release(camera);
+    drinking.release();
   });
 
   // Touch control for mobile
@@ -975,11 +977,20 @@ function setupControls() {
   // Header Buttons
   document.getElementById("btn-camera").addEventListener("click", toggleCamera);
 
-  // Drink button: pressing it is the same as pressing R
-  document.getElementById("btn-drink").addEventListener("pointerdown", (e) => {
+  // Drink button: pressing and holding it is the same as holding R
+  const drinkButton = document.getElementById("btn-drink");
+  drinkButton.addEventListener("pointerdown", (e) => {
     e.preventDefault();
+    drinkButton.setPointerCapture(e.pointerId);
+    drinkButton.classList.add("is-held");
     drinking.press(camera);
   });
+  const releaseDrink = () => {
+    drinkButton.classList.remove("is-held");
+    drinking.release();
+  };
+  drinkButton.addEventListener("pointerup", releaseDrink);
+  drinkButton.addEventListener("pointercancel", releaseDrink);
 
   // Smoke button: pressing and holding it is the same as holding T
   const smokeButton = document.getElementById("btn-smoke");
