@@ -89,3 +89,16 @@ export const BAR_RODS_SPACING = 0.075;
 export const BAR_RODS_SIDE_MARGIN = 0.2;
 export const BAR_RODS_END_MARGIN = 0.07;
 export const BAR_COLOR_GOLD = 0xd9a93a;
+
+/**
+ * Lamps hanging over the front of the bar (the light is added in the shader of the materials like
+ * the wall lamps', no real lights): count, spacing along the bar, distance in front of the bar's
+ * front edge, height of the shade's middle, shade radius and height, color of the shade (m).
+ */
+export const BAR_LAMPS_COUNT = 3;
+export const BAR_LAMPS_SPACING = 0.9;
+export const BAR_LAMPS_FRONT = 0.2;
+export const BAR_LAMPS_HEIGHT = 2.4;
+export const BAR_LAMPS_RADIUS = 0.1;
+export const BAR_LAMPS_SHADE_HEIGHT = 0.12;
+export const BAR_LAMPS_COLOR = 0x1f4a8a;

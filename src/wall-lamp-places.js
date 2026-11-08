@@ -5,6 +5,7 @@
 import {
   ROOM_LENGTH,
   ROOM_WIDTH,
+  WAINSCOT_PROTRUSION,
   LAMP_SHADE_HEIGHT,
   WALL_LAMPS_PER_SHORT_WALL,
   WALL_LAMPS_PER_LONG_WALL,
@@ -12,7 +13,18 @@ import {
   WALL_LAMP_HEIGHT,
   WALL_LAMP_SCALE,
 } from "./room-constants.js";
-import { BAR_WALL_SIDE, BAR_WALL_Z, BACKBAR_WIDTH, BACKBAR_LAMP_CLEARANCE } from "./bar-constants.js";
+import {
+  BAR_WALL_SIDE,
+  BAR_WALL_Z,
+  BAR_WALL_DISTANCE,
+  BAR_DEPTH,
+  BAR_LAMPS_COUNT,
+  BAR_LAMPS_SPACING,
+  BAR_LAMPS_FRONT,
+  BAR_LAMPS_HEIGHT,
+  BACKBAR_WIDTH,
+  BACKBAR_LAMP_CLEARANCE,
+} from "./bar-constants.js";
 
 /** Evenly spread `count` positions along a wall of the given length, centered on 0. */
 function spread(count, length) {
@@ -41,7 +53,17 @@ export function lampPlacements() {
 const LIGHT_HEIGHT = WALL_LAMP_HEIGHT + (LAMP_SHADE_HEIGHT * WALL_LAMP_SCALE) / 2;
 const LIGHT_OUT = WALL_LAMP_ARM_LENGTH + 0.01;
 
-/** World positions [x, y, z] of the lamp lights. */
+/** World positions [x, y, z] of the lamps over the front of the bar. */
+export function barLampPositions() {
+  const frontX = BAR_WALL_SIDE * (ROOM_WIDTH / 2 - WAINSCOT_PROTRUSION - BAR_WALL_DISTANCE - BAR_DEPTH) - BAR_WALL_SIDE * BAR_LAMPS_FRONT;
+  return Array.from({ length: BAR_LAMPS_COUNT }, (_, i) => [frontX, BAR_LAMPS_HEIGHT, BAR_WALL_Z + (i - (BAR_LAMPS_COUNT - 1) / 2) * BAR_LAMPS_SPACING]);
+}
+
+/** World positions [x, y, z] of all lamp lights (wall lamps, then the lamps over the bar). */
 export function wallLampLightPositions() {
+  return [...wallLampPositions(), ...barLampPositions()];
+}
+
+function wallLampPositions() {
   return lampPlacements().map(([x, z, rotationY]) => [x + Math.sin(rotationY) * LIGHT_OUT, LIGHT_HEIGHT, z + Math.cos(rotationY) * LIGHT_OUT]);
 }
