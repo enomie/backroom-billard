@@ -4,13 +4,19 @@
  * card close it.
  */
 
-/** @param {() => void} onRerack — the player asked for a new rack */
-export function createSettings(onRerack) {
+/**
+ * @param {() => void} onRerack — the player asked for a new rack
+ * @param {() => { name: string, money: string }} getInfo — what the top of the panel shows
+ */
+export function createSettings(onRerack, getInfo) {
   const root = document.getElementById("settings");
   const opener = document.getElementById("btn-settings");
   let open = false;
 
   const show = () => {
+    const info = getInfo();
+    document.getElementById("settings-name").textContent = info.name;
+    document.getElementById("settings-money").textContent = info.money;
     open = true;
     root.hidden = false;
     if (document.pointerLockElement) document.exitPointerLock(); // the free camera holds the mouse

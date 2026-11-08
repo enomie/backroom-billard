@@ -325,6 +325,11 @@ export function createGlasses(scene, taken) {
     taken: occupied,
     /** The two players' glasses on the frame of the billard table. */
     player,
+    /** The first drink of the player (the glass on his side, z > 0): a full glass of `kind`; the other glass never holds the same. */
+    setPlayerDrink(kind) {
+      player[1].replace(kind);
+      if (player[0].kind === kind) player[0].replace(["wine-red", "wine-white", "beer", "whiskey", "white-russian"].find((k) => k !== kind));
+    },
     update(dt) {
       for (const g of player) g.update(dt);
     },

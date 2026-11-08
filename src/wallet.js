@@ -3,11 +3,12 @@
  */
 import { START_MONEY, TOAST_SECONDS } from "./shop-constants.js";
 import { t } from "./i18n/index.js";
+import { loadProfile, saveMoney } from "./profile-store.js";
 
 const format = (amount) => "$ " + amount.toLocaleString("en-US");
 
 export function createWallet() {
-  let balance = START_MONEY;
+  let balance = loadProfile()?.money ?? START_MONEY; // the money is kept between the visits
   const display = document.getElementById("wallet-amount");
   const toast = document.getElementById("toast");
   let toastTimer = 0;
@@ -26,7 +27,14 @@ export function createWallet() {
       if (balance < price) return false;
       balance -= price;
       render();
+      saveMoney(balance);
       return true;
+    },
+    /** Set the balance (the welcome screen has paid for the first drink and the first pack). */
+    setBalance(amount) {
+      balance = amount;
+      render();
+      saveMoney(balance);
     },
     /** A short message at the top of the screen; `key` is an i18n key. */
     say(key, params) {

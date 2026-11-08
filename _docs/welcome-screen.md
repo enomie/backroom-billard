@@ -1,6 +1,6 @@
 # Welcome-Screen (Namen und erster Einkauf)
 
-> **Status: Konzept, noch nicht umgesetzt.** Dieser Screen kommt **nach dem Startscreen** (Alterbestätigung, siehe README) und **vor dem Spiel**. Er erscheint **bei jedem Besuch**.
+> **Status: umgesetzt.** Dieser Screen kommt **nach dem Startscreen** (Alterbestätigung, siehe README) und **vor dem Spiel**. Er erscheint **bei jedem Besuch**.
 
 Hier gibt der Spieler seinen Namen ein und kauft gleich die ersten Dinge. Alles bleibt **nur im Browser** (keine Datenbank, nichts wird gesendet).
 
@@ -96,17 +96,22 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 - Es wird **nichts gesendet**. Der Name verlässt den Browser nicht.
 - `version` erlaubt, das Format später zu ändern.
 
-## Umsetzung (geplant)
+## Umsetzung
 
 | Datei | Inhalt |
 |-------|--------|
-| `src/name-rules.js` | Reine Funktionen: Filtern beim Tippen, Prüfen, Großschreibung, `middleInitial` ableiten, Anzeige-Formen (voll, mit Initiale, nur Initialen) |
-| `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Schutz gegen Fehler), auch das Geld |
-| `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Continue |
-| `index.html`, `style.css` | Markup und Stil (wie der Startscreen) |
-| `src/entry.js` | Ablauf: Startscreen → dieser Screen → Spiel |
+| `src/name-rules.js` | Reine Funktionen: Filtern beim Tippen (`filterName`), Fertigstellen (`normalizeName`), Prüfen (`isValidName`), `middleInitial`, `displayName` (voll, mit Initiale, nur Initialen); Beispiele in `_Scripts/test-name-rules.mjs` (`npm test`) |
+| `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Speicher im Arbeitsspeicher als Ersatz), `saveMoney`, `clearProfile` |
+| `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Neu anfangen, Continue |
+| `src/wallet.js` | Liest das Geld beim Start aus dem Profil und speichert jede Änderung; `setBalance` |
+| `src/entry.js` | Ablauf: Startscreen, Welcome, Spiel (das Spiel lädt im Hintergrund, danach `applyProfile` in `billard.js`) |
+| `src/glasses.js`, `src/cigarette-pack.js` | `setPlayerDrink` (das volle erste Glas auf der Seite des Spielers) und `setPlayerDesign` (die Packung; der andere Platz bekommt die andere Marke) |
+| `src/settings.js` | Zeigt im Einstellungs-Panel den Namen (voll) und das Guthaben |
 
-Dazu Texte in `en.js` und `de.js`, Kauf über dieselbe Preisliste wie im Spiel (`shop-constants.js`), das Geld über `wallet.js`, das den Stand beim Start aus dem Profil liest und bei jeder Änderung speichert. Die Namensregeln werden als reine Funktionen mit einer Reihe von Beispielen getestet.
+- **Ablauf im Code:** Der Klick auf **Confirm Age 18+** nimmt den Startscreen weg und zeigt Welcome; **Continue** speichert das Profil und wartet, bis das Spiel geladen ist; dann blendet der Screen aus und die Spieltasten gelten.
+- **Neu anfangen:** Ein Link unten links fragt nach (Ja, neu anfangen / Abbrechen), löscht das Profil, setzt das Geld auf 15.000 $ und leert die Felder.
+- **Pleite:** Reicht das Geld nicht für ein Getränk und eine Packung (unter 83 $), steht ein roter Hinweis da, **Continue** bleibt aus, und nur „Neu anfangen“ hilft. Auswahlen, die man nicht mehr bezahlen kann, werden nicht übernommen.
+- **Einstellungs-Panel:** Es zeigt oben Name und Guthaben, scrollt innen, wenn es länger ist als der Bildschirm (der Kopf mit Titel und Kreuz bleibt stehen).
 
 ## Entschieden
 
@@ -114,9 +119,10 @@ Dazu Texte in `en.js` und `de.js`, Kauf über dieselbe Preisliste wie im Spiel (
 - Der Screen kommt **bei jedem Besuch**.
 - Zigaretten: **entweder oder** zwischen den zwei Packungen, Pflicht. Getränk: **eines von allen fünf**, Pflicht.
 - Das Geld bleibt gespeichert, inklusive aller Ausgaben; die 15.000 $ gibt es nur beim ersten Mal.
+- **Jeder Besuch kauft neu:** Erstes Getränk und erste Packung werden bei jedem Besuch wieder gekauft (das Geld sinkt).
+- **Pleite:** Unter 83 $ hilft nur „Neu anfangen“ (löscht das Profil, 15.000 $).
+- **Name und Guthaben** stehen im Einstellungs-Panel; dieses scrollt innen.
 
 ## Offene Fragen
 
-- **Pleite:** Reicht das Geld nicht mehr für ein Getränk (ab 8 $) **und** eine Packung (75 $), also unter 83 $, kann man nicht weiter. Was dann? Vorschlag: ein Knopf „Neu anfangen“ (löscht das Profil, neue 15.000 $), mit Bestätigung.
-- **Wiederkehrer:** Soll bei jedem Besuch wirklich wieder gekauft werden (Geld sinkt), oder nur beim ersten Besuch und danach bleibt das Inventar (Glas und Packung) erhalten? Oben steht der erste Fall; der zweite bräuchte das Speichern von Füllstand und Packung.
-- **Wo erscheint der Name im Spiel?** HUD, später Mehrspieler, Wette, Rangliste: wird mit dem Spielkonzept (`game-concept.md`, Ideen) entschieden.
+- **Wo erscheint der Name sonst im Spiel?** Heute nur im Einstellungs-Panel (voll, mit Guthaben). HUD, später Mehrspieler, Wette, Rangliste: wird mit dem Spielkonzept (`game-concept.md`, Ideen) entschieden; die kurzen Formen (`displayName`) liegen bereit.

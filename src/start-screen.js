@@ -7,8 +7,13 @@ import { unlockAudio } from "./audio.js";
 
 let open = true;
 
-/** True while the start screen is up: the game keys do nothing. */
+/** True while the intro (this screen and the welcome screen after it) is up: the game keys do nothing. */
 export const isStartScreenOpen = () => open;
+
+/** The intro is over: the game keys work. */
+export function introDone() {
+  open = false;
+}
 
 /** Resolves when the player has confirmed his age. */
 export function waitForConfirmation() {
@@ -26,12 +31,7 @@ export function waitForConfirmation() {
   });
 }
 
-/** Fade the start screen out and remove it. */
-export function hideStartScreen() {
-  const root = document.getElementById("start");
-  open = false;
-  root.classList.add("start--leaving");
-  const remove = () => root.remove();
-  root.addEventListener("transitionend", remove, { once: true });
-  window.setTimeout(remove, 1000); // if the transition does not run (e.g. a hidden tab)
+/** Take the start screen away at once; the welcome screen is already over it. */
+export function removeStartScreen() {
+  document.getElementById("start")?.remove();
 }

@@ -259,6 +259,7 @@ export function createCigarettePacks(scene, taken) {
     const state = {
       side,
       group: holder,
+      design: order[side],
       count: PACK_SIZE,
       /** The pack holds `n` cigarettes: the others are gone from it. */
       setCount(n) {
@@ -269,6 +270,24 @@ export function createCigarettePacks(scene, taken) {
     return state;
   });
 
+  /** Put the pack in the other design: its three card materials are swapped. */
+  const redress = (state, design) => {
+    const [from, to] = [designs[state.design], designs[design]];
+    state.group.traverse((o) => {
+      if (!o.isMesh) return;
+      for (const part of ["card", "bodyFront", "lidFront"]) if (o.material === from[part]) o.material = to[part];
+    });
+    state.design = design;
+  };
+
   scene.add(group);
-  return { group, packs };
+  return {
+    group,
+    packs,
+    /** The first pack of the player (the one on his side, z > 0) in the design he chose; the other player smokes the other brand. */
+    setPlayerDesign(design) {
+      redress(packs[1], design);
+      redress(packs[0], (design + 1) % PACK_DESIGNS.length);
+    },
+  };
 }

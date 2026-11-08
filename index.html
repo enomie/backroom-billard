@@ -22,6 +22,52 @@
       <button id="start-confirm" type="button" class="start__confirm" data-i18n="start.confirm" autofocus>Confirm Age 18+</button>
     </div>
 
+    <!-- Welcome screen after the start screen: name, first drink, first pack (src/welcome-screen.js) -->
+    <div id="welcome" class="welcome" hidden>
+      <div class="welcome__inner">
+        <div class="welcome__top">
+          <h2 class="welcome__title" data-i18n="welcome.title">Welcome</h2>
+          <p class="welcome__money"><span data-i18n="welcome.money">Money</span> <b id="welcome-money">$ 15,000</b></p>
+        </div>
+
+        <div class="welcome__names">
+          <label class="welcome__field">
+            <span data-i18n="welcome.firstName">First name</span>
+            <input id="welcome-first" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="24" />
+          </label>
+          <label class="welcome__field">
+            <span data-i18n="welcome.middleName">Middle name (optional)</span>
+            <input id="welcome-middle" type="text" autocomplete="additional-name" autocapitalize="words" spellcheck="false" maxlength="24" />
+          </label>
+          <label class="welcome__field">
+            <span data-i18n="welcome.lastName">Last name</span>
+            <input id="welcome-last" type="text" autocomplete="family-name" autocapitalize="words" spellcheck="false" maxlength="24" />
+          </label>
+        </div>
+        <p class="welcome__hint" data-i18n="welcome.hint">Letters, . and - only. The middle name is optional, "T." is enough.</p>
+
+        <h3 class="welcome__heading" data-i18n="welcome.drink">Your first drink</h3>
+        <div id="welcome-drinks" class="welcome__options" role="radiogroup"></div>
+
+        <h3 class="welcome__heading" data-i18n="welcome.cigarettes">Your cigarettes</h3>
+        <div id="welcome-packs" class="welcome__options" role="radiogroup"></div>
+
+        <p id="welcome-broke" class="welcome__broke" data-i18n="welcome.broke" hidden>Not enough money for a drink and cigarettes. Start over to get $ 15,000 again.</p>
+
+        <div class="welcome__actions">
+          <div class="welcome__restart">
+            <button id="welcome-restart" type="button" class="welcome__link" data-i18n="welcome.restart">Start over</button>
+            <span id="welcome-restart-ask" hidden>
+              <span data-i18n="welcome.restartAsk">Delete your name and money and start with $ 15,000?</span>
+              <button id="welcome-restart-yes" type="button" class="welcome__link welcome__link--danger" data-i18n="welcome.restartYes">Yes, start over</button>
+              <button id="welcome-restart-no" type="button" class="welcome__link" data-i18n="welcome.restartNo">Cancel</button>
+            </span>
+          </div>
+          <button id="welcome-continue" type="button" class="start__confirm" data-i18n="welcome.continue" disabled>Continue</button>
+        </div>
+      </div>
+    </div>
+
     <div id="canvas-container"></div>
 
     <!-- Game over: game lost / you win -->
@@ -126,6 +172,12 @@
             <h2 id="settings-title" class="menu__title" data-i18n="settings.title">Settings</h2>
             <button id="settings-close" type="button" class="settings__close" data-i18n-aria-label="settings.close" aria-label="Close">×</button>
           </div>
+          <dl class="settings__profile">
+            <dt data-i18n="settings.name">Name</dt>
+            <dd id="settings-name"></dd>
+            <dt data-i18n="settings.money">Money</dt>
+            <dd id="settings-money"></dd>
+          </dl>
           <button id="btn-reset" type="button" class="btn-key settings__rerack">
             <svg class="btn__icon btn__icon--big" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 12a9 9 0 1 0 3-6.7" />

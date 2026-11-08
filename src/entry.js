@@ -3,7 +3,8 @@
  */
 import * as THREE from "three";
 import { initI18n, t } from "./i18n/index.js";
-import { waitForConfirmation, hideStartScreen } from "./start-screen.js";
+import { waitForConfirmation, removeStartScreen, introDone } from "./start-screen.js";
+import { showWelcome, hideWelcome } from "./welcome-screen.js";
 
 window.THREE = THREE;
 
@@ -35,15 +36,31 @@ async function boot() {
     window.RAPIER = mod.default;
     await import("./table-blueprint.js");
     await fonts;
-    await import("./billard.js");
+    return await import("./billard.js");
   } catch (err) {
     console.error("[Backroom Billard] Boot fehlgeschlagen:", err);
     const txt = document.getElementById("status-text");
     if (txt) txt.textContent = t("boot.failed");
     const dot = document.getElementById("status-dot");
     if (dot) dot.className = "status-dot status-dot--moving";
+    return null;
   }
 }
 
-// The game loads behind the start screen; it opens when the game is ready and the age confirmed
-Promise.all([boot(), waitForConfirmation()]).then(hideStartScreen);
+/**
+ * The way in: the start screen (age) → the welcome screen (name, first drink and first pack) → the
+ * game. The game loads in the background from the first moment; the choices of the welcome screen are
+ * handed to it when it is ready.
+ */
+async function enter() {
+  const game = boot();
+  await waitForConfirmation();
+  const welcome = showWelcome(); // appears over the start screen
+  removeStartScreen();
+  const profile = await welcome;
+  (await game)?.applyProfile(profile);
+  introDone();
+  hideWelcome();
+}
+
+enter();

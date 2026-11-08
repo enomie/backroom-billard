@@ -30,6 +30,8 @@ import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
 import { ballTexture } from "./ball-texture.js";
+import { displayName } from "./name-rules.js";
+import { loadProfile } from "./profile-store.js";
 import { isStartScreenOpen } from "./start-screen.js";
 import { createDoor } from "./door.js";
 import { createPlayerState } from "./player-state.js";
@@ -1095,10 +1097,13 @@ function setupControls() {
     setupBalls();
     updateStatusDisplay(false);
   });
-  settings = createSettings(() => {
-    setupBalls();
-    updateStatusDisplay(false);
-  });
+  settings = createSettings(
+    () => {
+      setupBalls();
+      updateStatusDisplay(false);
+    },
+    () => ({ name: displayName(loadProfile(), "full"), money: wallet.format(wallet.balance) })
+  );
 
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -1663,6 +1668,13 @@ function updateShadows(dt) {
     swayAge = 0;
     renderer.shadowMap.needsUpdate = true;
   }
+}
+
+/** The choices of the welcome screen: the money after the purchases, the first drink and the first pack. */
+export function applyProfile(profile) {
+  wallet.setBalance(profile.money);
+  glasses.setPlayerDrink(profile.firstDrink);
+  packs.setPlayerDesign(profile.firstPack);
 }
 
 function scheduleInit() {

@@ -885,10 +885,8 @@ html {
   width: min(26rem, 92vw);
   max-height: 88vh;
   overflow-y: auto;
-}
-
-.settings__head {
-  position: relative;
+  overscroll-behavior: contain; /* scrolling the panel does not scroll what is behind it */
+  -webkit-overflow-scrolling: touch;
 }
 
 .settings__close {
@@ -1015,4 +1013,247 @@ html {
 .start__confirm:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* Welcome screen: bare like the start screen; the name in a line, the choices as thin outlines */
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  display: flex;
+  background: var(--start-bg);
+  transition: opacity 0.7s ease;
+}
+
+.welcome[hidden] {
+  display: none;
+}
+
+.welcome--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.welcome__inner {
+  width: min(46rem, 100%);
+  margin: auto; /* centered, and it scrolls from the top when it does not fit */
+  padding: 2rem 1.25rem;
+}
+
+.welcome__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.welcome__title {
+  margin: 0;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--amber-200);
+}
+
+.welcome__money {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.welcome__money b {
+  margin-left: 0.4rem;
+  font-size: 1.15rem;
+  color: var(--amber-300);
+}
+
+.welcome__names {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.welcome__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.welcome__field input {
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid rgba(252, 211, 77, 0.4);
+  border-radius: 0;
+  background: none;
+  font: inherit;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--amber-100);
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.welcome__field input:focus {
+  border-bottom-color: var(--amber-300);
+}
+
+.welcome__hint {
+  margin: 0.6rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.welcome__heading {
+  margin: 2rem 0 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.8);
+}
+
+.welcome__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.welcome__option {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(252, 211, 77, 0.3);
+  border-radius: 0.25rem;
+  background: none;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--amber-100);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.welcome__option:hover:not(:disabled) {
+  border-color: rgba(252, 211, 77, 0.7);
+}
+
+.welcome__option[aria-checked="true"] {
+  border-color: var(--amber-300);
+  background: rgba(252, 211, 77, 0.16);
+  color: var(--amber-200);
+}
+
+.welcome__option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.welcome__price {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.welcome__broke {
+  margin: 1.5rem 0 0;
+  font-size: 0.85rem;
+  color: #f87171;
+}
+
+.welcome__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.4rem;
+}
+
+.welcome__restart {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.welcome__link {
+  padding: 0.2rem 0.1rem;
+  border: 0;
+  background: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.welcome__link:hover {
+  color: var(--amber-200);
+}
+
+.welcome__link--danger {
+  color: #f87171;
+}
+
+#welcome-continue:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .welcome__names {
+    grid-template-columns: 1fr; /* one below the other on the phone */
+    gap: 1.1rem;
+  }
+
+  .welcome__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .welcome__restart {
+    text-align: center;
+  }
+}
+
+/* The settings: the panel scrolls inside when it is longer than the screen, its head stays */
+.settings__head {
+  position: sticky;
+  top: -1.1rem;
+  z-index: 1;
+  margin: -1.1rem -1.25rem 0;
+  padding: 1.1rem 1.25rem 0.4rem;
+  background: rgba(20, 14, 10, 0.97);
+}
+
+.settings__profile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.4rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.settings__profile dt {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.8);
+  align-self: center;
+}
+
+.settings__profile dd {
+  margin: 0;
+  color: var(--amber-100);
 }
