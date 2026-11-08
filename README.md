@@ -21,6 +21,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Kamera wechseln (Queue-Ansicht ↔ freie Kamera) | `C` oder der Button unten links |
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
 | Neu aufbauen | `R` |
+| Rauch ausatmen (Test) | `T` |
 
 ## Regeln
 
@@ -53,7 +54,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `glasses.js`, `glasses-constants.js` | Wein-, Bier- und Whiskeyglas mit Getränk auf Tischen und am Billardtisch |
 | `bottles.js`, `bottles-constants.js` | Wein- und Bierflaschen auf den Tischen |
 | `cigarette-pack.js` | Klappschachtel mit 20 Zigaretten auf Tischen und Billardtisch |
-| `cigarettes.js`, `cigarette-constants.js`, `smoke.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |
+| `cigarettes.js`, `cigarette-constants.js`, `smoke.js`, `exhale.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |
 | `atmosphere.js` | Wandernder Boden- und Deckennebel, sichtbare Lichtkegel der Deckenleuchten |
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |

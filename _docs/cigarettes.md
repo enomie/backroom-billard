@@ -1,6 +1,6 @@
 # Zigaretten und Rauch
 
-> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). die **Schachtel** (Optik, noch nicht bedienbar) ebenfalls. **Ausatem-Wolke, Ziehen, Entnehmen, Anzünden und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
+> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). die **Schachtel** (Optik, noch nicht bedienbar) ebenfalls. die **Ausatem-Wolke** (per Taste `T`, zum Testen) ebenfalls. **Ziehen, Entnehmen, Anzünden und die Bedienung durch den Spieler sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
 
 Zur 80er-Kneipe gehört Rauch. Es gibt eine **Zigarettenschachtel zum Aufklappen**, **einzelne Zigaretten** (unangezündet, glimmend, Stummel) und **Rauch** per Shader. Wer an einer Zigarette zieht, **atmet danach eine Rauchwolke aus**.
 
@@ -62,7 +62,7 @@ Die ursprünglichen Vorgaben:
 
 ## Rauch (Shader)
 
-**Umgesetzt ist der Rauchfaden** (`src/smoke.js`, Werte `SMOKE_*` in `cigarette-constants.js`): eine hohe, schmale Fläche (5 × 40 cm), die sich um die senkrechte Achse zur Kamera dreht. Der Fragment-Shader zeichnet aus vier Schichten Rauschen (fBm) mit Verwirbelung (Domain Warping) einen langsam nach oben wandernden Streifen, unten dünn und deutlich, oben breit und blass. Im Vertex-Shader schwankt der Faden umso mehr, je höher er steigt. Grau, durchscheinend, ohne Tiefenschreiben, mit dem Raumnebel. Eine Fläche pro glimmender Zigarette; **die Ausatem-Wolke fehlt noch.** Die Quellen unten habe ich nicht ausgewertet, der Shader ist eigenständig nach dem üblichen Verfahren gebaut.
+**Umgesetzt ist der Rauchfaden** (`src/smoke.js`, Werte `SMOKE_*` in `cigarette-constants.js`): eine hohe, schmale Fläche (5 × 40 cm), die sich um die senkrechte Achse zur Kamera dreht. Der Fragment-Shader zeichnet aus vier Schichten Rauschen (fBm) mit Verwirbelung (Domain Warping) einen langsam nach oben wandernden Streifen, unten dünn und deutlich, oben breit und blass. Im Vertex-Shader schwankt der Faden umso mehr, je höher er steigt. Grau, durchscheinend, ohne Tiefenschreiben, mit dem Raumnebel. Eine Fläche pro glimmender Zigarette; **Die Ausatem-Wolke** (`src/exhale.js`, Werte `EXHALE_*`): `T` atmet aus, vor und etwas unterhalb der Kamera, in Blickrichtung. 16 weiche Rauchballen (Rauschen-Shader mit ausgefranstem Rand) fliegen über 1,2 s heraus, werden langsamer, wachsen von 12 auf 75 cm, steigen leicht und lösen sich nach 5–8 s auf. Noch ohne Ton und ohne Bindung an das Ziehen an einer Zigarette; die Dichte ist ungetestet und muss nach Gefühl nachgestellt werden. Die Quellen unten habe ich nicht ausgewertet, der Shader ist eigenständig nach dem üblichen Verfahren gebaut.
 
 Die ursprünglichen Vorgaben:
 

@@ -23,6 +23,7 @@ import { createBottles } from "./bottles.js";
 import { createCigarettes } from "./cigarettes.js";
 import { createCigarettePacks } from "./cigarette-pack.js";
 import { createAtmosphere } from "./atmosphere.js";
+import { createExhale } from "./exhale.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -158,6 +159,7 @@ const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
+let exhale = null; // exhaled smoke cloud (exhale.js)
 let atmosphere = null; // drifting fog and light shafts (atmosphere.js)
 let cigarettes = null; // single cigarettes in the ashtrays (cigarettes.js)
 let bottles = null; // wine and beer bottles (bottles.js)
@@ -236,6 +238,7 @@ function init() {
   ballReflection = captureRoomReflection(renderer, scene);
   candles.applyReflection(ballReflection);
   ashtrays.applyReflection(ballReflection);
+  exhale = createExhale(scene);
   atmosphere = createAtmosphere(scene); // after the capture, so the balls do not reflect the haze
   glasses.applyReflection(ballReflection);
   bottles.applyReflection(ballReflection);
@@ -789,6 +792,10 @@ function setupControls() {
       toggleCamera();
       return;
     }
+    if (e.code === "KeyT" && !e.repeat) {
+      exhale.trigger(camera); // exhale a cloud of smoke (test key)
+      return;
+    }
     if (e.code === "KeyR" && !e.repeat) {
       setupBalls();
       return;
@@ -1297,6 +1304,7 @@ function gameLoop(currentTime) {
 
   updateAudioListener(camera); // the ears follow the camera
   if (atmosphere) atmosphere.update(frameSeconds);
+  if (exhale) exhale.update(frameSeconds, camera);
   if (candles) candles.update(frameSeconds, camera);
   if (cigarettes) cigarettes.update(dt, camera);
   if (radio) radio.update(frameSeconds, camera);
