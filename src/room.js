@@ -23,6 +23,7 @@ import {
 } from "./room-constants.js";
 import { woodTexture, glossyWoodMaterial, drawWainscotGrain } from "./wood.js";
 import { wallWithDoorGeometry } from "./door.js";
+import { receiveWallLamps } from "./wall-lamp-light.js";
 import { DOOR_OPENING_WIDTH, DOOR_CASING_WIDTH } from "./door-constants.js";
 
 /**
@@ -210,6 +211,10 @@ export function createRoom(scene) {
     roughness: 0.95,
   });
 
+  // The wall lamps light the carpet and the walls (see wall-lamp-light.js)
+  receiveWallLamps(floorMat);
+  receiveWallLamps(wallMat);
+
   // Floor (faces up)
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_LENGTH), floorMat);
   floor.rotation.x = -Math.PI / 2;
@@ -229,10 +234,13 @@ export function createRoom(scene) {
       const map = panelMap.clone();
       map.repeat.set(Math.round(length / WAINSCOT_PANEL_WIDTH), 1);
       map.needsUpdate = true;
-      return glossyWoodMaterial(map, WAINSCOT_COLOR);
+      const material = glossyWoodMaterial(map, WAINSCOT_COLOR);
+      receiveWallLamps(material);
+      return material;
     },
     trim: glossyWoodMaterial(woodTexture({ base: WAINSCOT_WOOD_BASE, dark: "30,12,4", light: "150,80,45" })),
   };
+  receiveWallLamps(panelMats.trim);
 
   // Walls (face inwards): ±z are the short walls, ±x the long walls. Each wall is a group with its
   // origin on the wall surface, +z into the room; the paneling sits on its lower part.

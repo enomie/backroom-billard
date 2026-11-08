@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { woodTexture, glossyWoodMaterial } from "./wood.js";
+import { receiveWallLamps } from "./wall-lamp-light.js";
 import { WALL_LAMP_COLOR_BRASS } from "./room-constants.js";
 import {
   FURNITURE_TABLE_RADIUS,
@@ -110,6 +111,10 @@ export function createFurniture(scene) {
     bumpMap: leatherBump(),
     bumpScale: 0.6,
   });
+
+  // only the chairs next to a wall get light from the wall lamps (see wall-lamp-light.js)
+  receiveWallLamps(woodMat);
+  receiveWallLamps(leatherMat);
 
   // Table parts (shared by all tables)
   const plateGeo = plateGeometry();

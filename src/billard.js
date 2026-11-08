@@ -1415,6 +1415,7 @@ let lastTime = performance.now();
 let perfHud = null; // developer overlay, only with ?perf in the URL (perf-hud.js)
 
 function gameLoop(currentTime) {
+  window.__dbg ??= { renderer, scene, camera };
   requestAnimationFrame(gameLoop);
   perfHud?.loopStart(currentTime);
 

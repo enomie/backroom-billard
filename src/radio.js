@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import { t, onLanguageChange } from "./i18n/index.js";
 import { woodTexture } from "./wood.js";
+import { receiveWallLampsDeep } from "./wall-lamp-light.js";
 import { RadioAudio } from "./radio-audio.js";
 import { RadioMetadata } from "./radio-metadata.js";
 import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
@@ -309,6 +310,7 @@ export function createRadio(scene) {
   );
   powerKnob.add(hit);
 
+  receiveWallLampsDeep(root); // it stands at the wall, under a wall lamp (see wall-lamp-light.js)
   scene.add(root);
   root.updateMatrixWorld(true);
 

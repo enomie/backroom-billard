@@ -41,10 +41,11 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 - **Physik:** im Ruhezustand wird nichts berechnet (siehe `_docs/physics.md`).
 - **Schatten:** Die Schattenkarten der Lampen werden nur neu gezeichnet, wenn sich im Lampenkegel etwas bewegt (Kugeln, Cue, Zigaretten, Feuerzeuge), sonst nie; `updateShadows` in `billard.js`. Möbel, Kerzen und Radio werfen keine Schatten (außerhalb der Kegel).
+- **Wandlampen:** kein Three.js-Licht, sondern ein eigener Shader-Baustein nur in den Materialien, die sie erreicht (`wall-lamp-light.js`, `_docs/look.md`). Das sparte auf einer echten Grafikkarte etwa 37 ms pro Bild.
 - **Draw-Calls:** gleiche Teile sind instanziert oder zusammengefasst (Wandlampen, Kerzenhalter, Schachtel-Karton auf den Tischen).
 - **Nebel und Rauch:** Fragmente ohne Wirkung werden vor der Lichtberechnung verworfen. HUD und Audio-Hörer schreiben nur bei Änderung.
 - Statische Gruppen (`STATIC_GROUPS`) berechnen ihre Matrizen nicht jedes Bild neu.
-- **Messen:** Mit `?perf` hinter der Adresse (z. B. `http://localhost:5173/?perf`) erscheint unten rechts ein Entwickler-Overlay (`src/perf-hud.js`): fps, CPU-Zeit der Schleife und von `render`, **GPU-Zeit** (Timer-Query), Draw-Calls, Dreiecke, Programme, dazu Schalter für Nebelschichten, Schatten, Wandlampen und Pixelverhältnis, um an der eigenen Grafikkarte zu sehen, was die Bildrate begrenzt.
+- **Messen:** Mit `?perf` hinter der Adresse (z. B. `http://localhost:5173/?perf`) erscheint unten rechts ein Entwickler-Overlay (`src/perf-hud.js`): fps, CPU-Zeit der Schleife und von `render`, **GPU-Zeit** (Timer-Query), Draw-Calls, Dreiecke, Programme, dazu Schalter für Nebelschichten, Schatten und Pixelverhältnis, um an der eigenen Grafikkarte zu sehen, was die Bildrate begrenzt.
 
 ## Aufbau
 
@@ -75,7 +76,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `smoke-light.js`, `noise-glsl.js` | Gemeinsamer Shader-Code für Rauch und Nebel: Beleuchtung durch Lampen und Kerzen, Rauschen |
 | `atmosphere.js` | Wandernder Boden- und Deckennebel, sichtbare Lichtkegel der Deckenleuchten |
 | `door.js`, `door-constants.js` | Doppelte Pendeltür aus Holz und Bernsteinglas in der Wand hinter dem Spieler (Attrappe) |
-| `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
+| `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `wall-lamp-places.js`, `wall-lamp-light.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.

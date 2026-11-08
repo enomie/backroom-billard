@@ -39,7 +39,6 @@ export function createPerfHud(renderer, scene) {
   const features = [
     ["fog layers", (on) => setAll(on, (o) => o.name === "atmosphere")],
     ["shadows", (on) => { renderer.shadowMap.enabled = on; recompile(); }],
-    ["lamp spots", (on) => setAll(on, (o) => o.isSpotLight && !o.castShadow)],
     ["pixel ratio", (on) => { renderer.setPixelRatio(on ? dpr : 1); renderer.setSize(window.innerWidth, window.innerHeight); }],
   ];
   for (const [name, apply] of features) {
