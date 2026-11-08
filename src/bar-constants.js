@@ -93,12 +93,10 @@ export const BAR_COLOR_GOLD = 0xd9a93a;
 /**
  * Lamps hanging over the front of the bar (the light is added in the shader of the materials like
  * the wall lamps', no real lights): count, spacing along the bar, distance in front of the bar's
- * front edge, height of the shade's middle, shade radius and height, color of the shade (m).
+ * front edge, height of the shade's middle (m), size of the shade relative to the ceiling lamps.
  */
 export const BAR_LAMPS_COUNT = 3;
 export const BAR_LAMPS_SPACING = 0.9;
 export const BAR_LAMPS_FRONT = -0.3; // negative: over the counter (-0.3 = the middle of the top)
 export const BAR_LAMPS_HEIGHT = 2.4;
-export const BAR_LAMPS_RADIUS = 0.1;
-export const BAR_LAMPS_SHADE_HEIGHT = 0.12;
-export const BAR_LAMPS_COLOR = 0x1f4a8a;
+export const BAR_LAMPS_SCALE = 0.6; // of the shade of the ceiling lamps (the same blue / golden shade)
