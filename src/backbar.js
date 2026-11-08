@@ -11,6 +11,7 @@ import {
   BAR_WALL_SIDE,
   BAR_WALL_Z,
   BAR_COLOR_WOOD,
+  BAR_HEIGHT,
   BACKBAR_WIDTH,
   BACKBAR_HEIGHT,
   BACKBAR_THICKNESS,
@@ -36,9 +37,13 @@ export function createBackbar(scene, bottles) {
   root.position.set(BAR_WALL_SIDE * (ROOM_WIDTH / 2 - WAINSCOT_PROTRUSION), 0, BAR_WALL_Z);
   root.rotation.y = BAR_WALL_SIDE < 0 ? Math.PI / 2 : -Math.PI / 2;
 
-  const marble = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_WIDTH, BACKBAR_HEIGHT, BACKBAR_THICKNESS), marbleMaterial());
-  marble.position.set(0, BACKBAR_HEIGHT / 2, BACKBAR_THICKNESS / 2);
-  root.add(marble);
+  // up to the height of the bar counter the wall is wood (paneling wood), above it marble
+  const lower = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_WIDTH, BAR_HEIGHT, BACKBAR_THICKNESS), wainscotWoodMaterial());
+  lower.position.set(0, BAR_HEIGHT / 2, BACKBAR_THICKNESS / 2);
+  const marbleHeight = BACKBAR_HEIGHT - BAR_HEIGHT;
+  const marble = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_WIDTH, marbleHeight, BACKBAR_THICKNESS), marbleMaterial());
+  marble.position.set(0, BAR_HEIGHT + marbleHeight / 2, BACKBAR_THICKNESS / 2);
+  root.add(lower, marble);
 
   // the frame around the marble (left, right, top) in the wood of the paneling; the top bar's grain runs along it
   const frameUp = wainscotWoodMaterial();

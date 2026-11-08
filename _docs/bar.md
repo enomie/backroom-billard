@@ -27,7 +27,7 @@ Eine Bar an der langen Wand **gegenüber dem Radio** (`x = -ROOM_WIDTH/2`, in H�
 
 Hinter der Bar, an der Wand (`src/backbar.js`):
 
-- **Rückwand:** Marmor wie die Platte, 3,6 m breit, 3 m hoch, 6 cm dick, direkt an der Wand.
+- **Rückwand:** 3,6 m breit, 3 m hoch, 6 cm dick, direkt an der Wand. **Bis zur Höhe des Bar-Pults (1,2 m) Holz** (wie die Wandvertäfelung), darüber **Marmor** wie die Platte.
 - **Rahmen:** links, rechts und oben ein Holzrahmen im Holz der Wandvertäfelung, 7 cm breit und 8 cm tief (steht 2 cm vor dem Marmor), außen um den Marmor herum (`BACKBAR_FRAME_*`). Die Maserung läuft oben waagerecht.
 - **Regale:** drei Ebenen (1,45 / 2,0 / 2,55 m), 3,2 m breit (also nicht bis an den Rand des Marmors), 22 cm tief, aus Holz. Der Abstand von 55 cm lässt Flaschen (bis 30 cm) bequem darauf stehen.
 - **Flaschen:** Wein- und Bierflaschen (dieselben wie auf den Tischen, `bottles.js`), mit festem Zufall in einer Reihe aufgestellt, mit Lücken, leicht schief.
