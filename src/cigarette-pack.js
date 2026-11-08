@@ -142,6 +142,26 @@ export function createCigarettePacks(scene, taken) {
   const filterMat = new THREE.MeshStandardMaterial({ color: CIGARETTE_COLOR_FILTER, roughness: 0.8 });
   const cigs = cigaretteGeometries();
 
+  /** Merge all cardboard plates of a (still, unplaced) pack into one mesh per material. */
+  const mergePlates = (pack) => {
+    pack.updateMatrixWorld(true);
+    const byMaterial = new Map();
+    pack.traverse((object) => {
+      if (!object.isMesh || object.geometry.type !== "BoxGeometry") return;
+      const list = byMaterial.get(object.material) ?? [];
+      list.push(object.geometry.clone().applyMatrix4(object.matrixWorld));
+      byMaterial.set(object.material, list);
+    });
+    for (const child of [...pack.children]) {
+      if (child.isGroup || (child.isMesh && child.geometry.type === "BoxGeometry")) pack.remove(child); // plates and the lid
+    }
+    for (const [material, geometries] of byMaterial) {
+      const merged = new THREE.Mesh(mergeGeometries(geometries), material);
+      merged.castShadow = merged.receiveShadow = true;
+      pack.add(merged);
+    }
+  };
+
   const plate = (sx, sy, sz, x, y, z, mat) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
     m.position.set(x, y, z);
@@ -191,6 +211,7 @@ export function createCigarettePacks(scene, taken) {
     );
     lid.rotation.x = open ? -PACK_LID_OPEN_ANGLE : 0;
     pack.add(lid);
+    if (!countable) mergePlates(pack); // a pack that is never taken apart is drawn as a few meshes
     return pack;
   };
 

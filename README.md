@@ -35,6 +35,14 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 - Während die Kugeln rollen **und** mit der freien Kamera hält der Spieler den Queue entspannt vor sich: Griff unten im Bild, Spitze oberhalb rechts; nach dem Stillstand schwingt er sanft zurück an die Kugel. Die Pose steht in `src/cue-constants.js`.
 - Nach dem Spielende sind Stöße gesperrt, „Neu aufbauen“ (oder `R`) startet neu.
 
+## Leistung (ohne sichtbare Änderung)
+
+- **Physik:** im Ruhezustand wird nichts berechnet (siehe `_docs/physics.md`).
+- **Schatten:** Die Schattenkarten der Lampen werden nur neu gezeichnet, wenn sich Kugeln, Cue, Zigaretten, Feuerzeuge oder das Radio bewegen (sonst höchstens zweimal pro Sekunde zur Sicherheit); `updateShadows` in `billard.js`.
+- **Draw-Calls:** gleiche Teile sind instanziert oder zusammengefasst (Wandlampen, Kerzenhalter, Schachtel-Karton auf den Tischen).
+- **Nebel und Rauch:** Fragmente ohne Wirkung werden vor der Lichtberechnung verworfen. HUD und Audio-Hörer schreiben nur bei Änderung.
+- Statische Gruppen (`STATIC_GROUPS`) berechnen ihre Matrizen nicht jedes Bild neu.
+
 ## Aufbau
 
 | Datei (`src/`) | Rolle |

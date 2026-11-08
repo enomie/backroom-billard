@@ -33,3 +33,7 @@ Trimeshes bekommen `FIX_INTERNAL_EDGES_TWO_SIDED`. Ohne dieses Flag lenken Dreie
 | `CUP_RESTITUTION` | 0,20 | Wie stark Kugeln im Becher springen |
 
 Reibung und Restitution werden kombiniert (Reibung: Mittelwert, Restitution: Produkt).
+
+## Leistung: Physik im Ruhezustand
+
+Liegen alle Kugeln still (kein Stoß läuft, nichts ist neu aufgebaut oder neu aufgelegt), wird die Physik-Welt **gar nicht geschritten** (`stepPhysics` in `billard.js`): Es kann sich nichts ändern. Nach einem neuen Aufbau oder dem Neuauflegen der weißen Kugel laufen noch 120 Schritte (0,5 s), damit die Kugeln sich setzen. Das Ergebnis ist identisch, spart aber im Stillstand fast die ganze Physikzeit. Ebenso liest die Stoßerkennung (`detectBallImpacts`) die Kugelpositionen einmal pro Schritt statt pro Kugelpaar.

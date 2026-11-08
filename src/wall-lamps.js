@@ -56,6 +56,21 @@ export function createWallLamps(scene) {
   const stemGeo = new THREE.CylinderGeometry(0.008, 0.008, WALL_LAMP_STEM, 12);
   const knobGeo = new THREE.SphereGeometry(0.018, 16, 12);
 
+  // All ten lamps are the same: every part is one instanced mesh (a single draw call each).
+  // Part: [geometry, material, local position of the part in the lamp's frame]
+  const shadeZ = WALL_LAMP_ARM_LENGTH + 0.01;
+  const shadePosition = [0, rimY + shadeHeight / 2, shadeZ]; // shade: apex up, open at the bottom
+  const parts = [
+    [plateGeo, brass, [0, armY, 0.01]], // wall plate
+    [armGeo, brass, [0, armY, WALL_LAMP_ARM_LENGTH / 2 + 0.01]], // arm reaching out of the wall
+    [knobGeo, brass, [0, armY, WALL_LAMP_ARM_LENGTH + 0.01]], // knob at the arm end
+    [stemGeo, brass, [0, armY - WALL_LAMP_STEM / 2, WALL_LAMP_ARM_LENGTH + 0.01]], // stem down to the shade
+    [shadeGeo, outsideMat, shadePosition],
+    [shadeGeo, insideMat, shadePosition],
+  ];
+  const lampTransforms = []; // world matrix of each lamp's frame
+  const lampLights = new THREE.Group();
+
   /**
    * One lamp. Local frame: origin on the wall surface, +z points into the room, +y up.
    * @param {number} x
@@ -63,31 +78,12 @@ export function createWallLamps(scene) {
    * @param {number} rotationY — makes local +z point into the room
    */
   const addLamp = (x, z, rotationY) => {
+    lampTransforms.push(new THREE.Matrix4().makeRotationY(rotationY).setPosition(x, 0, z));
+
+    // Subtle light inside the shade, pointing down
     const lamp = new THREE.Group();
     lamp.position.set(x, 0, z);
     lamp.rotation.y = rotationY;
-
-    // Wall plate and the arm reaching out of the wall
-    const plate = new THREE.Mesh(plateGeo, brass);
-    plate.position.set(0, armY, 0.01);
-    const arm = new THREE.Mesh(armGeo, brass);
-    arm.position.set(0, armY, WALL_LAMP_ARM_LENGTH / 2 + 0.01);
-    // Knob at the arm end and the stem down to the shade
-    const knob = new THREE.Mesh(knobGeo, brass);
-    knob.position.set(0, armY, WALL_LAMP_ARM_LENGTH + 0.01);
-    const stem = new THREE.Mesh(stemGeo, brass);
-    stem.position.set(0, armY - WALL_LAMP_STEM / 2, WALL_LAMP_ARM_LENGTH + 0.01);
-
-    // Shade: apex up, open at the bottom
-    const shadeZ = WALL_LAMP_ARM_LENGTH + 0.01;
-    const outside = new THREE.Mesh(shadeGeo, outsideMat);
-    const inside = new THREE.Mesh(shadeGeo, insideMat);
-    outside.position.set(0, rimY + shadeHeight / 2, shadeZ);
-    inside.position.copy(outside.position);
-
-    lamp.add(plate, arm, knob, stem, outside, inside);
-
-    // Subtle light inside the shade, pointing down
     const light = new THREE.SpotLight(
       WALL_LAMP_LIGHT_COLOR,
       WALL_LAMP_LIGHT_INTENSITY,
@@ -99,8 +95,7 @@ export function createWallLamps(scene) {
     light.position.set(0, rimY + shadeHeight * 0.5, shadeZ);
     light.target.position.set(0, 0, shadeZ);
     lamp.add(light, light.target);
-
-    group.add(lamp);
+    lampLights.add(lamp);
   };
 
   // Short walls (z = ±length/2): lamps spread along x; long walls (x = ±width/2): along z
@@ -112,6 +107,14 @@ export function createWallLamps(scene) {
     addLamp(-ROOM_WIDTH / 2, z, Math.PI / 2); // inward = +x
     addLamp(ROOM_WIDTH / 2, z, -Math.PI / 2); // inward = −x
   }
+
+  for (const [geometry, material, position] of parts) {
+    const mesh = new THREE.InstancedMesh(geometry, material, lampTransforms.length);
+    const local = new THREE.Matrix4().makeTranslation(...position);
+    lampTransforms.forEach((transform, i) => mesh.setMatrixAt(i, transform.clone().multiply(local)));
+    group.add(mesh);
+  }
+  group.add(lampLights);
 
   scene.add(group);
   return { group };

@@ -108,6 +108,14 @@ export function createCandles(scene) {
   const innerGeo = flameGeometry(0.55);
 
   const candleBaseY = 0.012; // bottom of the tube
+  // Standing parts: [geometry, material, position in the candle's frame, casts a shadow]
+  const statics = [
+    [holderGeo, holderMat, [0, 0, 0], true],
+    [knobGeo, holderMat, [HOLDER_TUBE_RADIUS + HOLDER_KNOB_RADIUS * 0.55, HOLDER_TUBE_HEIGHT * 0.72, 0], true],
+    [candleGeo, waxMat, [0, candleBaseY + CANDLE_HEIGHT / 2, 0], true],
+    [wickGeo, wickMat, [0, candleBaseY + CANDLE_HEIGHT + 0.005, 0], false],
+  ];
+  const staticMatrices = statics.map(() => []);
   const candles = FURNITURE_TABLES.map((table, i) => {
     const angle = rnd() * Math.PI * 2;
     const offset = Math.sqrt(rnd()) * CANDLE_OFFSET_MAX;
@@ -115,15 +123,11 @@ export function createCandles(scene) {
     root.position.set(table.x + Math.cos(angle) * offset, FURNITURE_TABLE_HEIGHT, table.z + Math.sin(angle) * offset);
     root.rotation.y = rnd() * Math.PI * 2;
 
-    const holder = new THREE.Mesh(holderGeo, holderMat);
-    const knob = new THREE.Mesh(knobGeo, holderMat);
-    knob.position.set(HOLDER_TUBE_RADIUS + HOLDER_KNOB_RADIUS * 0.55, HOLDER_TUBE_HEIGHT * 0.72, 0);
-    const wax = new THREE.Mesh(candleGeo, waxMat);
-    wax.position.y = candleBaseY + CANDLE_HEIGHT / 2;
+    // The standing parts (holder, knob, wax, wick) are the same on every table: they are drawn as
+    // one instanced mesh each (see below); only the flame and its glow are per candle
     const topY = candleBaseY + CANDLE_HEIGHT;
-    const wick = new THREE.Mesh(wickGeo, wickMat);
-    wick.position.y = topY + 0.005;
-    for (const m of [holder, knob, wax]) m.castShadow = m.receiveShadow = true;
+    root.updateMatrix();
+    statics.forEach(([, , position], k) => staticMatrices[k].push(root.matrix.clone().multiply(new THREE.Matrix4().makeTranslation(...position))));
 
     // Flame (pivot at its base, so it can sway and stretch) and its soft glow
     const flame = new THREE.Group();
@@ -135,9 +139,16 @@ export function createCandles(scene) {
     glow.scale.setScalar(FLAME_GLOW_SIZE);
     glow.position.y = topY + 0.006 + FLAME_HEIGHT * 0.4;
 
-    root.add(holder, knob, wax, wick, flame, glow);
+    root.add(flame, glow);
     group.add(root);
     return { root, flame, glow, phase: rnd() * 100, topY, strength: 1 };
+  });
+
+  statics.forEach(([geometry, material, , castShadow], k) => {
+    const mesh = new THREE.InstancedMesh(geometry, material, staticMatrices[k].length);
+    staticMatrices[k].forEach((matrix, i) => mesh.setMatrixAt(i, matrix));
+    mesh.castShadow = mesh.receiveShadow = castShadow;
+    group.add(mesh);
   });
 
   // Pool of real lights, moved to the candles nearest to the camera

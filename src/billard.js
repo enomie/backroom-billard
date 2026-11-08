@@ -299,9 +299,18 @@ function init() {
   renderCameraLabel();
   snapFpsCamera();
 
+  // What never moves keeps its matrices: they are not recomputed every frame
+  scene.updateMatrixWorld(true);
+  for (const child of scene.children) {
+    if (STATIC_GROUPS.has(child.name)) child.traverse((object) => (object.matrixAutoUpdate = false));
+  }
+
   // Start the animation loop
   requestAnimationFrame(gameLoop);
 }
+
+/** Groups of the scene whose objects stand still for the whole game. */
+const STATIC_GROUPS = new Set(["room", "furniture", "bottles", "ashtrays", "wall-lamps", "ceiling-lamps", "atmosphere", "cigarette-packs"]);
 
 /**
  * Cue camera: orbits `camFocus` directly from the aim angle and elevation (no smoothing, so the
