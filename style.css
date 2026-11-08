@@ -248,11 +248,13 @@ html {
 }
 
 .btn-key__label {
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
   font-size: 0.75rem;
   line-height: 1.15;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* a very long word in another language is cut with "…" */
 }
 
 /* Crosshair */
@@ -396,6 +398,7 @@ html {
 
 /* The number of cigarettes left in the pack, on the smoke button */
 .btn-key__badge {
+  flex-shrink: 0;
   position: relative;
   min-width: 1.4rem;
   padding: 0.1rem 0.35rem;
@@ -776,9 +779,60 @@ html {
     padding: 0.5rem 0.875rem;
   }
 
-  /* a little narrower, so that drink, shoot and smoke fit next to each other */
+  /* The bar at the bottom: drink | shoot (taller) | smoke, joined, flush with the edges of the browser.
+   * The label gives way ("…"), the badge with the number never does. */
+  .side-dock,
+  .fire-dock {
+    bottom: 0;
+  }
+
+  .side-dock {
+    display: flex;
+    width: 31%;
+  }
+
+  .side-dock--left {
+    left: 0;
+    right: auto;
+  }
+
+  .side-dock--right {
+    left: auto;
+    right: 0;
+  }
+
+  .fire-dock {
+    width: 38%;
+  }
+
+  .side-dock .btn-key,
   .fire-dock .btn-key {
-    min-width: 6.5rem;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 3rem;
+    padding: 0 0.5rem;
+    gap: 0.4rem;
+    justify-content: center;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .fire-dock .btn-key {
+    flex: none; /* the dock is a column: the height is the button's own */
+    height: 3.75rem;
+    border-radius: 0.9rem 0.9rem 0 0;
+  }
+
+  .side-dock--left .btn-key {
+    border-radius: 0.9rem 0 0 0;
+    border-right: 1px solid rgba(0, 0, 0, 0.45);
+  }
+
+  .side-dock--right .btn-key {
+    border-radius: 0 0.9rem 0 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.45);
   }
 }
 
