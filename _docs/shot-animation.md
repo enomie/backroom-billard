@@ -11,7 +11,7 @@ Ein Klick, die Taste `E` oder der SHOOT-Button löst **nicht sofort** den Stoß 
 | **Zielen** | Die Spitze ruht **dicht an der Kugel** (1,2 cm Abstand, `CUE_AIM_GAP`). | – |
 | **1. Zurückziehen** | Der Cue gleitet nach hinten (weich anfahren und abbremsen). | Mehr Kraft = weiter (8–34 cm) und länger (0,25–0,55 s). |
 | **2. Spannung** | Kurzer Halt am hinteren Punkt. | 0,05–0,2 s, bei mehr Kraft länger. |
-| **3. Vorschnalzen** | Der Cue beschleunigt nach vorn. | Die Endgeschwindigkeit entspricht der gewünschten Kugelgeschwindigkeit (1,1–4,2 m/s), also deutlich schneller bei mehr Kraft. |
+| **3. Vorschnalzen** | Der Cue beschleunigt nach vorn. | Die Endgeschwindigkeit entspricht der gewünschten Kugelgeschwindigkeit (0,8–4,2 m/s: bei 1 % ca. 0,83, bei 100 % 4,2), also deutlich schneller bei mehr Kraft. |
 | **4. Treffer** | Die Spitze berührt die Kugel: Kollision in Rapier, Abstoß-Klang. | – |
 | **5. Nachschwung** | Der Cue läuft noch 2 cm weiter, bleibt kurz stehen und schwingt dann in die Haltepose (siehe unten). | – |
 

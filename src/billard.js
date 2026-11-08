@@ -136,7 +136,9 @@ let aimSway = 0; // the swing of the cue and aim line from the player's conditio
 let aimElevation = FP_CAM_DEFAULT_ELEVATION; // camera elevation above the table (rad)
 let elevationGlide = false; // a new turn: the elevation eases back to the flat default until the player tilts the camera himself
 const camFocus = new THREE.Vector3(); // orbit center of the cue camera (the shot position)
-let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
+let selectedPower = 0.4; // 0.01 to 1.0 (default: gentle 40%)
+const POWER_MIN = 1; // percent: the weakest shot (never 0)
+const POWER_MAX = 100;
 let isCueMoving = false;
 /** True from the shot until the table has come to rest; the cue and the camera stay behind. */
 let shotInProgress = false;
@@ -602,7 +604,7 @@ const _strokeEuler = new THREE.Euler(0, 0, 0, "YXZ");
 
 function startCueStroke() {
   const power = selectedPower;
-  const f = (power - 0.1) / 0.9; // 0 = weakest, 1 = strongest
+  const f = (power * 100 - POWER_MIN) / (POWER_MAX - POWER_MIN); // 0 = weakest, 1 = strongest
   const ballSpeed = 0.8 + power * 3.4; // gently balanced shot strength (m/s)
   const pitch = aimCuePitch();
   // the horizontal part of the cue speed must give the ball the intended speed
@@ -755,9 +757,6 @@ function setupControls() {
   const powerThumb = document.getElementById("power-thumb");
   const powerDim = document.getElementById("power-dim");
   const powerPct = document.getElementById("power-percent");
-  const POWER_MIN = 10;
-  const POWER_MAX = 100;
-
   /** Set the shot power; always a whole percent (1 % steps). */
   function setPower(val) {
     const pct = Math.max(POWER_MIN, Math.min(POWER_MAX, Math.round(val * 100)));
@@ -765,7 +764,7 @@ function setupControls() {
     const fraction = (pct - POWER_MIN) / (POWER_MAX - POWER_MIN); // 0 = bottom, 1 = top
     powerThumb.style.bottom = fraction * 100 + "%";
     powerDim.style.height = (1 - fraction) * 100 + "%";
-    powerPct.textContent = pct + "%";
+    powerPct.textContent = pct;
     slider.setAttribute("aria-valuenow", String(pct));
   }
 
