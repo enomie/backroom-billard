@@ -23,23 +23,29 @@
 
     <div class="hud-layer">
       <header class="hud-header">
-        <div>
+        <div class="hud-left">
           <h1 class="hud-title">BACKROOM BILLARD</h1>
-          <div class="hud-status-row">
-            <span id="status-dot" class="status-dot status-dot--idle"></span>
-            <span id="status-text" class="status-text status-text--idle"
-              data-i18n="status.ready"
-              >Ready to shoot</span
-            >
+          <div class="hud-info">
+            <div class="hud-status-row">
+              <span id="status-dot" class="status-dot status-dot--idle"></span>
+              <span id="status-text" class="status-text status-text--idle"
+                data-i18n="status.ready"
+                >Ready to shoot</span
+              >
+            </div>
+            <div class="wallet" data-i18n-aria-label="wallet.aria" aria-label="Cash"><span id="wallet-amount">$ 0</span></div>
+            <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
+            </div>
           </div>
-          <div class="wallet" data-i18n-aria-label="wallet.aria" aria-label="Cash"><span id="wallet-amount">$ 0</span></div>
-          <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
-        </div>
 
         <div class="hud-actions interactive">
           <div id="lang-switch" class="lang-switch" role="group" data-i18n-aria-label="lang.label" aria-label="Language"></div>
-          <button id="btn-reset" type="button" class="btn btn--reset" data-i18n="button.rerack">
-            Re-rack
+          <button id="btn-reset" type="button" class="btn btn--reset" data-i18n-aria-label="button.rerack" data-i18n-title="button.rerack" aria-label="Re-rack" title="Re-rack">
+            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7" />
+              <path d="M3 4v5h5" />
+            </svg>
+            <span class="btn__text" data-i18n="button.rerack">Re-rack</span>
           </button>
         </div>
       </header>
