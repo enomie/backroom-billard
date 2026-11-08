@@ -18,7 +18,7 @@ Ein geschlossener Raum mit **Boden, 4 Wänden und Decke**, proportional zum Tisc
 | Wandvertäfelung | **Glänzendes Holz** (Mahagoni, Klarlack) bis **1,80 m** (`WAINSCOT_HEIGHT`): gerahmte Füllungen (0,8 m breit), unten Fußleiste, oben eine **Abschlussleiste mit Profil** (Platte, Wulst, Rundung). Radio und Sideboard halten den Abstand `WAINSCOT_PROTRUSION`. |
 | Wände (darüber) | **Creme-Gelb** („verrauchtes Weiß“), nach oben hin dunkler (Rauch sammelt sich an der Decke) |
 
-Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera geht nicht unter die Tischplatte (`FREE_CAM_MIN_Y`) und hält 1 m Abstand zu Wänden und Decke (`FREE_CAM_ROOM_MARGIN`).
+Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera bleibt zwischen 1,5 m und 2,3 m Höhe (`FREE_CAM_MIN_Y`, `FREE_CAM_MAX_Y`) und hält 1 m Abstand zu Wänden und Decke (`FREE_CAM_ROOM_MARGIN`).
 
 ## Deckenleuchten
 
@@ -44,7 +44,7 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - **Code:** `src/atmosphere.js`, Werte in `room-constants.js` (`GROUND_FOG_*`, `CEILING_FOG_*`, `FOG_*`, `SHAFT_*`). Der feste Raumnebel (`FOG_*`, linear, siehe oben) bleibt wie er ist.
 - **Licht:** Rauchfaden, Ausatem-Wolke und beide Nebel werden **von den Lampen beleuchtet** (`smoke-light.js`): unter den drei Deckenleuchten (Kegel mit sanftem Abfall) und nahe an den Kerzen sind sie hell und leicht gelblich bzw. warm, sonst bleibt nur der dunkle Grundanteil (`SMOKE_LIGHT_AMBIENT`). Die Wandleuchten zählen dabei nicht mit. Stärken: `SMOKE_LAMP_STRENGTH`, `SMOKE_CANDLE_STRENGTH`, `SMOKE_CANDLE_RADIUS`.
 - **Farbe:** Rauch, Ausatem-Wolke, Bodennebel und Deckennebel haben **dieselbe Farbe** (`AIR_SMOKE_COLOR`, ein warmes, leicht „verqualmtes“ Grau, kein reines Weißgrau). Der feste Raumnebel (`FOG_COLOR`) bleibt dunkel.
-- **Bodennebel:** 5 durchsichtige Schichten zwischen 5 und 55 cm Höhe, **Deckennebel:** 3 Schichten zwischen 3,6 m und der Decke. Jede Schicht ist ein Rauschen-Shader, das langsam und in eigener Richtung durch den Raum wandert (Schwaden mit Wirbeln). Nahe an der Kamera und in großer Ferne blenden sie aus, damit keine harten Kanten entstehen. Die freie Kamera (mindestens Tischhöhe, höchstens 1 m unter der Decke) kommt nie in eine Schicht hinein.
+- **Bodennebel:** 5 durchsichtige Schichten zwischen 5 und 55 cm Höhe, **Deckennebel:** 3 Schichten zwischen 3,6 m und der Decke. Jede Schicht ist ein Rauschen-Shader, das langsam und in eigener Richtung durch den Raum wandert (Schwaden mit Wirbeln). Nahe an der Kamera und in großer Ferne blenden sie aus, damit keine harten Kanten entstehen. Die freie Kamera (zwischen 1,5 m und 2,3 m Höhe) kommt nie in eine Schicht hinein.
 - **Lichtkegel:** Unter jeder Deckenleuchte ein weicher Kegel, der **an der Öffnung des Schirms beginnt** (Schirmradius) und sich bis zum Boden verbreitert (additiv, `SHAFT_ANGLE` 0,6 rad). Er ist dort heller, wo der „Dunst“ dicht ist, und wandert mit. Die Stärke ist bewusst niedrig (`SHAFT_INTENSITY`), damit der Raum nicht heller wirkt als bisher.
 - **Spiegelung:** Der Nebel entsteht erst nach der Raum-Aufnahme für die Kugeln, ist also in den Kugeln nicht zu sehen.
 

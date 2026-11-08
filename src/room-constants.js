@@ -33,8 +33,9 @@ export const FP_CAM_FOCUS_RATE = 8;
 /** The cue camera returns to the shot position once the table has been still for this long (s). */
 export const SHOT_REST_DELAY = 0.4;
 
-/** The free camera cannot go below the table top. */
-export const FREE_CAM_MIN_Y = TABLE_H;
+/** The free camera stays between these heights (m). */
+export const FREE_CAM_MIN_Y = 1.5;
+export const FREE_CAM_MAX_Y = 2.3;
 
 /** Number of identical ceiling lamps above the table (arranged along the table length). */
 export const LAMP_COUNT = 3;

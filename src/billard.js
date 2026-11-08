@@ -78,6 +78,7 @@ import {
   FREE_CAM_TOUCH_TURN,
   FREE_CAM_TOUCH_MOVE,
   FREE_CAM_MIN_Y,
+  FREE_CAM_MAX_Y,
   FREE_CAM_START_POSITION,
   FREE_CAM_START_TARGET,
   FREE_CAM_ROOM_MARGIN,
@@ -1199,7 +1200,7 @@ function confineFreeCamera() {
   const m = FREE_CAM_ROOM_MARGIN;
   camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
   camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
-  camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, ROOM_HEIGHT - m);
+  camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
   // Tables with their chairs are closed off: push the camera out of the circle
   for (const c of furnitureKeepOut) {
     const dx = camera.position.x - c.x;
