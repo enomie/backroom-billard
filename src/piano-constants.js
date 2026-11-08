@@ -6,7 +6,7 @@ import { ROOM_LENGTH } from "./room-constants.js";
  */
 /** Position of the middle of the case: x along the short wall (0 = the middle, below the neon sign), distance from the wall surface. */
 export const PIANO_X = 0;
-export const PIANO_WALL_DISTANCE = 2.1;
+export const PIANO_WALL_DISTANCE = 4.1;
 /** Turn about the vertical axis (rad, 0 = the keyboard faces the room straight); 45° looks into the room's diagonal. */
 export const PIANO_TURN = Math.PI / 4;
 
