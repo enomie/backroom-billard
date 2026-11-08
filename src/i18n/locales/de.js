@@ -13,6 +13,7 @@ export default {
   "menu.whiskey": "Whiskey",
   "menu.whiteRussian": "White Russian",
   "pack.aria": "Zigaretten in der Packung",
+  "sips.aria": "Schlucke im Glas",
   "toast.pack": "Neue Zigarettenpackung: −{price}",
   "toast.noMoney": "Nicht genug Geld",
   "button.drink": "Trinken",

@@ -207,6 +207,8 @@ const hud = {
   markerNicotine: { element: null, value: NaN },
   packCountElement: null,
   packCount: -1,
+  sipCountElement: null,
+  sipCount: -1,
 };
 function setMarker(marker, percent) {
   marker.element ??= document.getElementById(marker === hud.markerBody ? "marker-body" : "marker-nicotine");
@@ -1482,6 +1484,12 @@ function gameLoop(currentTime) {
   if (packCount !== hud.packCount) {
     hud.packCount = packCount;
     (hud.packCountElement ??= document.getElementById("pack-count")).textContent = packCount;
+  }
+
+  const sipCount = drinking.sipsLeft(camera);
+  if (sipCount !== hud.sipCount) {
+    hud.sipCount = sipCount;
+    (hud.sipCountElement ??= document.getElementById("sip-count")).textContent = sipCount;
   }
 
   // Cue positioning & distance adjusted to the selected power

@@ -84,19 +84,33 @@ export function createDrinking(glasses, onSip, onEmpty) {
     [phase, time] = ["out", 0];
   }
 
+  /** The player glass nearest to the camera: the player's own. */
+  function nearestGlass(camera) {
+    let best = null;
+    let bestDistance = Infinity;
+    for (const g of glasses.player) {
+      const distance = g.group.position.distanceToSquared(camera.position);
+      if (distance < bestDistance) [best, bestDistance] = [g, distance];
+    }
+    return best;
+  }
+
   return {
     /** R let go: the current gulp is finished, then the glass flies back. */
     release() {
       held = false;
     },
-    /** R pressed: drink from the nearest glass that is not empty. */
+    /** Sips left in the glass R drinks from now: the one in hand, else the nearest glass (the player's own). */
+    sipsLeft(camera) {
+      return (glass ?? nearestGlass(camera))?.sipsLeft ?? 0;
+    },
+    /** R pressed: drink from the nearest glass; if it is empty, order the next one. */
     press(camera) {
       held = true;
       if (phase !== "idle") return;
-      const nearest = (list) => list.reduce((a, b) => (!a || b.group.position.distanceToSquared(camera.position) < a.group.position.distanceToSquared(camera.position) ? b : a), null);
-      const best = nearest(glasses.player.filter((g) => g.sipsLeft > 0));
-      if (!best) {
-        onEmpty(nearest(glasses.player)); // everything is drunk: order the next one
+      const best = nearestGlass(camera);
+      if (!best || best.sipsLeft <= 0) {
+        onEmpty(best);
         return;
       }
       glass = best;
