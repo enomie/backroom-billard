@@ -45,7 +45,7 @@ export default {
   "help.drink": "R halten: Schluck für Schluck trinken.",
   "help.smoke": "T halten: an der Zigarette ziehen, loslassen: ausatmen.",
   "help.camera": "C: zwischen Spielerkamera und freier Kamera wechseln.",
-  "help.free": "Freie Kamera: W A S D bewegen, Leertaste hoch, Shift runter, Maus schaut um (Esc gibt die Maus frei).",
+  "help.free": "Freie Kamera: W A S D bewegen, Leertaste hoch, Shift runter, Maus schaut um (Esc gibt die Maus frei). Am Handy: seitlich wischen dreht, nach oben wischen geht näher ran, nach unten weiter weg.",
   "help.rerack": "N: neu aufbauen.",
   "boot.failed": "Start fehlgeschlagen – Konsole prüfen",
 };

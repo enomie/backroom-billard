@@ -45,7 +45,7 @@ export default {
   "help.drink": "R, hold: drink gulp after gulp.",
   "help.smoke": "T, hold: draw on the cigarette, release: exhale.",
   "help.camera": "C: switch between the player camera and the free camera.",
-  "help.free": "Free camera: W A S D move, Space up, Shift down, mouse looks around (Esc frees the mouse).",
+  "help.free": "Free camera: W A S D move, Space up, Shift down, mouse looks around (Esc frees the mouse). On a phone: swipe sideways to turn, up to move closer, down to move away.",
   "help.rerack": "N: new rack.",
   "boot.failed": "Start failed – check the console",
 };

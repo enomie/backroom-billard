@@ -7,6 +7,9 @@ import { TABLE_H } from "./table-constants.js";
 /** Free camera (key C): movement speed in m/s and mouse-look sensitivity in rad per pixel. */
 export const FREE_CAM_SPEED = 2;
 export const FREE_CAM_LOOK_SENSITIVITY = 0.0025;
+/** Free camera on a touch screen: one finger; swiping sideways turns (rad per pixel), swiping up/down moves closer/further (m per pixel). */
+export const FREE_CAM_TOUCH_TURN = 0.006;
+export const FREE_CAM_TOUCH_MOVE = 0.012;
 /**
  * Default pose of the free (observer) camera when it is first activated with C:
  * a side view on the table and the lamps — deliberately NOT the active player's view.

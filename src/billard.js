@@ -68,6 +68,8 @@ import {
 import {
   FREE_CAM_SPEED,
   FREE_CAM_LOOK_SENSITIVITY,
+  FREE_CAM_TOUCH_TURN,
+  FREE_CAM_TOUCH_MOVE,
   FREE_CAM_MIN_Y,
   FREE_CAM_START_POSITION,
   FREE_CAM_START_TARGET,
@@ -952,7 +954,7 @@ function setupControls() {
   container.addEventListener(
     "touchstart",
     (e) => {
-      if (cameraMode === "fps" && e.touches.length === 1) {
+      if (e.touches.length === 1) {
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
         touchMoved = false;
@@ -973,6 +975,16 @@ function setupControls() {
         aimAngle -= dx * 0.006;
         aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
         if (dy !== 0) elevationGlide = false;
+      } else if (cameraMode === "free" && e.touches.length === 1) {
+        // Free camera: swipe sideways = turn, swipe up = closer, down = further away
+        const dx = e.touches[0].clientX - touchX;
+        const dy = e.touches[0].clientY - touchY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) touchMoved = true;
+        touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
+        freeYaw -= dx * FREE_CAM_TOUCH_TURN;
+        camera.position.addScaledVector(_freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw)), -dy * FREE_CAM_TOUCH_MOVE);
+        confineFreeCamera();
       }
     },
     { passive: true }
@@ -982,6 +994,8 @@ function setupControls() {
     e.preventDefault(); // prevents the additionally synthesized mouse events
     if (cameraMode === "fps" && !touchMoved) {
       fireCueStrike();
+    } else if (cameraMode === "free" && !touchMoved && e.changedTouches.length) {
+      tryRadioClick(e.changedTouches[0]); // a tap on the radio
     }
   });
 
@@ -1107,21 +1121,25 @@ function updateFreeCamera(dt) {
   if (move.lengthSq() > 0) {
     move.normalize().multiplyScalar(FREE_CAM_SPEED * dt);
     camera.position.add(move);
-    // Stay inside the room
-    const m = FREE_CAM_ROOM_MARGIN;
-    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
-    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
-    camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, ROOM_HEIGHT - m);
-    // Tables with their chairs are closed off: push the camera out of the circle
-    for (const c of furnitureKeepOut) {
-      const dx = camera.position.x - c.x;
-      const dz = camera.position.z - c.z;
-      const dist = Math.hypot(dx, dz);
-      if (dist < c.r) {
-        const k = dist > 1e-6 ? c.r / dist : 0;
-        camera.position.x = c.x + (k ? dx * k : c.r);
-        camera.position.z = c.z + (k ? dz * k : 0);
-      }
+    confineFreeCamera();
+  }
+}
+
+/** The free camera stays inside the room and out of the tables with their chairs. */
+function confineFreeCamera() {
+  const m = FREE_CAM_ROOM_MARGIN;
+  camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
+  camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
+  camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, ROOM_HEIGHT - m);
+  // Tables with their chairs are closed off: push the camera out of the circle
+  for (const c of furnitureKeepOut) {
+    const dx = camera.position.x - c.x;
+    const dz = camera.position.z - c.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < c.r) {
+      const k = dist > 1e-6 ? c.r / dist : 0;
+      camera.position.x = c.x + (k ? dx * k : c.r);
+      camera.position.z = c.z + (k ? dz * k : 0);
     }
   }
 }
