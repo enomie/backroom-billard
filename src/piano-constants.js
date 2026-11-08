@@ -95,5 +95,7 @@ export const PIANO_COMPUTER_KEYS = {
   Comma: 12, KeyL: 13, Period: 14, Semicolon: 15, Slash: 16,
   KeyQ: 12, Digit2: 13, KeyW: 14, Digit3: 15, KeyE: 16, KeyR: 17, Digit5: 18, KeyT: 19, Digit6: 20, KeyY: 21, Digit7: 22, KeyU: 23,
   KeyI: 24, Digit9: 25, KeyO: 26, Digit0: 27, KeyP: 28, BracketLeft: 29, Equal: 30, BracketRight: 31,
+  // the keys in the gaps (no black key between E and F, and B and C) play the white key next to them, so no key is dead:
+  KeyF: 4, KeyA: -1, KeyK: 11, Digit1: 11, Digit4: 16, Digit8: 23,
 };
 export const PIANO_MIDDLE_C = 60;
