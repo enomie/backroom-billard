@@ -16,4 +16,6 @@ export const DRAG_EFFECT = 0.1;
 export const CALM_ZONE = 0.12;
 /** Unsteadiness of the aim: the largest swing of the cue and aim line (rad) and the extra aim error of a drunk shot. */
 export const SWAY_MAX = 0.05;
+/** Time shift (s) of the vertical swing against the sideways one, so the cue tip circles around the target. */
+export const SWAY_PITCH_OFFSET = 1.7;
 export const DRUNK_SHOT_ERROR = 0.04;

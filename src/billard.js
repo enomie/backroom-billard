@@ -28,6 +28,7 @@ import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createPlayerState } from "./player-state.js";
+import { SWAY_PITCH_OFFSET } from "./player-constants.js";
 import { createWallet } from "./wallet.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
@@ -121,6 +122,7 @@ const pocketSpecs = createPocketSpecs(tableDimensions);
 // State
 let cameraMode = "fps"; // 'fps' (cue view) or 'free' (free fly camera)
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
+let aimSwayPitch = 0; // the vertical part of the swing: with aimSway the cue tip circles around the target
 let aimSway = 0; // the swing of the cue and aim line from the player's condition (rad, player-state.js)
 let aimElevation = FP_CAM_DEFAULT_ELEVATION; // camera elevation above the table (rad)
 const camFocus = new THREE.Vector3(); // orbit center of the cue camera (the shot position)
@@ -605,7 +607,7 @@ function startCueStroke() {
 
 /** Cue elevation for the current camera elevation: slightly below the line of sight. */
 function aimCuePitch() {
-  return THREE.MathUtils.clamp(aimElevation - CUE_PITCH_BELOW_CAMERA, CUE_PITCH_MIN, CUE_PITCH_MAX);
+  return THREE.MathUtils.clamp(aimElevation - CUE_PITCH_BELOW_CAMERA + aimSwayPitch, CUE_PITCH_MIN, CUE_PITCH_MAX);
 }
 
 /** Where the shot sounds come from: the cue behind the ball and the player's head further back. */
@@ -1383,6 +1385,7 @@ function gameLoop(currentTime) {
   // The player's condition: time passes, the cue and aim line sway, the bars move
   playerState.update(dt);
   aimSway = playerState.sway(performance.now() / 1000);
+  aimSwayPitch = playerState.sway(performance.now() / 1000 + SWAY_PITCH_OFFSET);
   setMarker(hud.markerBody, 50 + playerState.body * 50);
   setMarker(hud.markerNicotine, 50 + playerState.nicotine * 50);
 

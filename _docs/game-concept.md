@@ -20,7 +20,7 @@ Zwei Balken oben in der Mitte, jeder mit einem **Marker, der sich zwischen zwei 
 - **Balken 1:** Der Marker wandert mit der Zeit nach links (0,003/s). **Trinken schiebt ihn nach rechts** (ein Schluck um 0,22): ein Schluck bringt ihn zur Mitte, zu viel führt zu „Drunk“. Also: oft, aber wenig trinken.
 - **Balken 2:** Der Marker wandert mit der Zeit nach rechts (0,004/s). **Rauchen schiebt ihn nach links** (0,1 je Sekunde Ziehen): ein Zug bringt ihn zur Mitte, Kettenrauchen macht „Nerves“.
 - **Calm-Zone** ±0,12: dort keine Wirkung.
-- **Wirkung auf das Zielen:** Cue und Zielhilfe schwanken (die Kamera bleibt ruhig), höchstens 0,05 rad ≈ 3°. *Nerves* = schnelles kleines Zittern, *Desire* = langsames großes Schwanken, *Thirsty* = mittleres, unregelmäßiges Schwanken, *Drunk* = sehr langsames, großes Schwanken, dazu beim Stoß ein zufälliger Fehler bis 0,04 rad. Die Stoßrichtung ist die, in die Cue und Zielhilfe im Moment des Stoßes zeigen.
+- **Wirkung auf das Zielen:** Die Cue-Spitze kreist (seitlich und auf-ab) um das Ziel, Kamera und Mittelpunkt der Kugel bleiben ruhig, höchstens 0,05 rad ≈ 3°. *Nerves* = schnelles kleines Zittern, *Desire* = langsames großes Schwanken, *Thirsty* = mittleres, unregelmäßiges Schwanken, *Drunk* = sehr langsames, großes Schwanken, dazu beim Stoß ein zufälliger Fehler bis 0,04 rad. Die Stoßrichtung ist die, in die Cue und Zielhilfe im Moment des Stoßes zeigen.
 
 ### Trinken (`R`)
 
