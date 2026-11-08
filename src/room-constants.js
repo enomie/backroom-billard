@@ -153,6 +153,8 @@ export const ROOM_AMBIENT_INTENSITY = 0.9;
 
 /** The free camera keeps this distance (m) from the walls and the ceiling. */
 export const FREE_CAM_ROOM_MARGIN = 1;
+/** Switching the camera (C) flies to the other view; the flight takes this long (s). */
+export const CAMERA_FLIGHT_SECONDS = 1.1;
 
 /* ---- Wall lamps: subtle cone lights on a bracket, pointing down ------------------------------
  * Same shade as the ceiling lamps (blue outside, golden inside), just smaller. */

@@ -20,6 +20,8 @@ Ein geschlossener Raum mit **Boden, 4 Wänden und Decke**, proportional zum Tisc
 
 Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamera bleibt zwischen 1,5 m und 2,3 m Höhe (`FREE_CAM_MIN_Y`, `FREE_CAM_MAX_Y`) und hält 1 m Abstand zu Wänden und Decke (`FREE_CAM_ROOM_MARGIN`).
 
+Mit `C` **fliegt** die Kamera zur anderen Ansicht (weich, `CAMERA_FLIGHT_SECONDS`, 1,1 s): zur freien Kamera an die Stelle, wo sie zuletzt war, zurück zur Spielerkamera hinter der Weißen; währenddessen ist das Umschauen mit der Maus gesperrt.
+
 ## Deckenleuchten
 
 **Drei gleiche Leuchten** über dem Tisch, nach der Skizze:

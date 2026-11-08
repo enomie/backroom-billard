@@ -85,6 +85,7 @@ import {
   FREE_CAM_START_POSITION,
   FREE_CAM_START_TARGET,
   FREE_CAM_ROOM_MARGIN,
+  CAMERA_FLIGHT_SECONDS,
   FP_CAM_DISTANCE,
   FP_CAM_MIN_ELEVATION,
   FP_CAM_MAX_ELEVATION,
@@ -217,6 +218,8 @@ let piano = null; // grand piano, can be played with the mouse and the keys (pia
 /** "off", "entering" (the camera moves to the stool), "on" (seated, playing), "leaving" (back to where it was). */
 let pianoMode = "off";
 const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), toQuat: new THREE.Quaternion(), t: 0 };
+/** The flight of the camera to the other view after C: from where it was, to the new view (fixed for the free camera, followed each frame for the cue camera). */
+const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
 const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
@@ -968,7 +971,7 @@ function setupControls() {
   });
 
   window.addEventListener("mousemove", (e) => {
-    if (pianoMode !== "off") return;
+    if (pianoMode !== "off" || cameraFlight.active) return;
     if (cameraMode === "free") {
       // Mouse look: pointer locked (relative movement) or while dragging
       if (freeLookDragging) freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
@@ -1270,6 +1273,8 @@ function toggleCamera() {
   if (pianoMode !== "off") return; // sitting at the piano: first get up
   cameraMode = cameraMode === "fps" ? "free" : "fps";
   const free = cameraMode === "free";
+  cameraFlight.from.copy(camera.position);
+  cameraFlight.fromQuat.copy(camera.quaternion);
 
   if (free) {
     // First time: the default observer pose; afterwards: where the free camera was left
@@ -1281,7 +1286,12 @@ function toggleCamera() {
       freePitch = euler.x;
     } else {
       camera.position.copy(freeSavedPosition);
+      camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
     }
+    cameraFlight.to.copy(camera.position); // the free view is fixed: fly there
+    cameraFlight.toQuat.copy(camera.quaternion);
+    camera.position.copy(cameraFlight.from);
+    camera.quaternion.copy(cameraFlight.fromQuat);
     requestPointerLockSafe();
   } else {
     freeSavedPosition.copy(camera.position);
@@ -1291,8 +1301,24 @@ function toggleCamera() {
     aimElevation = FP_CAM_DEFAULT_ELEVATION; // back at the table: flat, as at every turn
   }
 
+  cameraFlight.active = true;
+  cameraFlight.t = 0;
   renderCameraLabel();
   document.getElementById("aim-crosshair").style.display = free ? "none" : "flex";
+}
+
+/** After the view was placed for this frame: show the camera on its way from the old view to it. */
+function applyCameraFlight(dt) {
+  cameraFlight.t = Math.min(1, cameraFlight.t + dt / CAMERA_FLIGHT_SECONDS);
+  const k = cameraFlight.t * cameraFlight.t * (3 - 2 * cameraFlight.t);
+  if (cameraMode === "fps") {
+    // the cue view moves (the focus eases to the ball): fly to where it is now
+    cameraFlight.to.copy(camera.position);
+    cameraFlight.toQuat.copy(camera.quaternion);
+  }
+  camera.position.lerpVectors(cameraFlight.from, cameraFlight.to, k);
+  camera.quaternion.slerpQuaternions(cameraFlight.fromQuat, cameraFlight.toQuat, k);
+  if (cameraFlight.t >= 1) cameraFlight.active = false;
 }
 
 /** Move and rotate the free camera: WASD, space = up, shift = down, mouse look. */
@@ -1738,10 +1764,11 @@ function gameLoop(currentTime) {
     }
     placeAimCamera();
   } else if (cameraMode === "free") {
-    if (pianoMode === "off") updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
+    if (pianoMode === "off" && !cameraFlight.active) updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
     else updatePianoMove(frameSeconds);
     renderPianoButton();
   }
+  if (cameraFlight.active) applyCameraFlight(frameSeconds);
 
   updateAudioListener(camera); // the ears follow the camera
   if (atmosphere) atmosphere.update(frameSeconds);
