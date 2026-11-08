@@ -28,7 +28,14 @@ import {
   WHISKEY_GLASS_RADIUS_TOP,
   WHISKEY_GLASS_BASE,
   WHISKEY_LEVEL,
-  WHISKEY_COLOR,
+  WHISKEY_COLOR_CENTER,
+  WHISKEY_COLOR_EDGE,
+  WHISKEY_OPACITY_CENTER,
+  WHISKEY_OPACITY_EDGE,
+  WHISKEY_DEPTH_POWER,
+  WHISKEY_GLOW_COLOR,
+  WHISKEY_MENISCUS_HEIGHT,
+  WHISKEY_MENISCUS_WIDTH,
   WHITE_RUSSIAN_LEVEL,
   WHITE_RUSSIAN_COFFEE_SHARE,
   WHITE_RUSSIAN_COLOR_COFFEE,
@@ -51,6 +58,15 @@ import {
 import { applyBallReflection } from "./ball-reflection.js";
 
 const lathe = (pts, segments = 48) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), segments);
+
+/** A lathe whose profile points have a brightness each (vertex colors; above 1 = brighter than the material). */
+function latheShaded(pts, brightness, segments = 48) {
+  const geometry = lathe(pts, segments);
+  const colors = new Float32Array(geometry.attributes.position.count * 3);
+  for (let v = 0; v < geometry.attributes.position.count; v++) colors.fill(brightness[v % pts.length], v * 3, v * 3 + 3);
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  return geometry;
+}
 
 /** Bowl radius of the wine glass at height share t (0 = bottom of the bowl, 1 = rim): a tulip. */
 const bowlRadius = (t) =>
@@ -100,7 +116,25 @@ function taperedGlass({ height, rBottom, rTop, base }) {
     [[0, 0], [rBottom - 0.003, 0], [rBottom, 0.003], [rTop, height], [inner(height), height], [inner(base), base], [0, base - 0.001]],
     64
   );
-  const liquid = (level) => lathe([[0, base], [inner(base) - 0.0004, base], [inner(level) - 0.0004, level], [0, level]], 48);
+  const liquid = (level, meniscus = false) => (meniscus ? meniscusLiquid(level) : lathe([[0, base], [inner(base) - 0.0004, base], [inner(level) - 0.0004, level], [0, level]], 48));
+  /**
+   * A drink with a meniscus: at the wall the liquid climbs up a little and falls in a smooth curve to
+   * the level in the middle; the climbing edge is bright (it catches the light), the middle of the
+   * surface a bit dark.
+   */
+  const meniscusLiquid = (level) => {
+    const [h, w] = [WHISKEY_MENISCUS_HEIGHT, WHISKEY_MENISCUS_WIDTH];
+    const wall = (y) => inner(y) - 0.0004;
+    const pts = [[0, base], [wall(base), base], [wall(level + h), level + h]];
+    const brightness = [0.8, 1, 1.7];
+    for (const t of [0.25, 0.5, 0.75, 1]) {
+      pts.push([wall(level + h) - w * t, level + h * (1 - t) ** 2]);
+      brightness.push(1.5 - 0.6 * t);
+    }
+    pts.push([0, level]);
+    brightness.push(0.8);
+    return latheShaded(pts, brightness, 48);
+  };
   /** A layer of a layered drink between the heights `from` and `to`. */
   const layer = (from, to) => lathe([[0, from], [inner(from) - 0.0004, from], [inner(to) - 0.0004, to], [0, to]], 48);
   return { glass, liquid, layer, inner };
@@ -175,14 +209,34 @@ export function createGlasses(scene, taken) {
     red: liquid(WINE_COLOR_RED, 0.8),
     white: liquid(WINE_COLOR_WHITE, 0.5),
     beer: liquid(BEER_COLOR, 0.5),
-    whiskey: liquid(WHISKEY_COLOR, 0.6),
+    whiskey: liquid(WHISKEY_COLOR_CENTER, 0.6),
     foam: liquid(BEER_FOAM_COLOR, 1, 0.9),
     coffee: liquid(WHITE_RUSSIAN_COLOR_COFFEE, 0.85),
     cream: liquid(WHITE_RUSSIAN_COLOR_CREAM, 0.92, 0.35),
   };
 
   mats.beer.emissive.set(0x3a2204); // a little light shines through the drinks
-  mats.whiskey.emissive.set(0x2a1604);
+  mats.whiskey.emissive.set(0x1e0e03);
+  // the whiskey is clear: dark and dense in the middle of the glass, light and thin at the edges
+  mats.whiskey.vertexColors = true; // the bright meniscus, the dark middle of the surface
+  mats.whiskey.transparent = true;
+  mats.whiskey.onBeforeCompile = (shader) => {
+    const c = (hex) => { const k = new THREE.Color(hex); return `vec3(${k.r.toFixed(4)}, ${k.g.toFixed(4)}, ${k.b.toFixed(4)})`; };
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <normal_fragment_maps>",
+      `#include <normal_fragment_maps>
+      {
+        float depth = pow( clamp( abs( dot( normal, normalize( vViewPosition ) ) ), 0.0, 1.0 ), ${WHISKEY_DEPTH_POWER.toFixed(2)} );
+        totalEmissiveRadiance += ( 1.0 - depth ) * ${c(WHISKEY_GLOW_COLOR)}; // light shines through the thin edges
+        diffuseColor.rgb = mix( ${c(WHISKEY_COLOR_EDGE)}, ${c(WHISKEY_COLOR_CENTER)}, depth );
+        #ifdef USE_COLOR
+          diffuseColor.rgb *= vColor.rgb;
+        #endif
+        diffuseColor.a = mix( ${WHISKEY_OPACITY_EDGE.toFixed(3)}, ${WHISKEY_OPACITY_CENTER.toFixed(3)}, depth );
+      }`
+    );
+  };
+  mats.whiskey.customProgramCacheKey = () => "whiskey-depth";
 
   const geo = {
     wine: wineGlassGeometry(),
@@ -190,7 +244,7 @@ export function createGlasses(scene, taken) {
     beer: beerShape.glass,
     beerLiquid: beerShape.liquid(BEER_LEVEL),
     whiskey: whiskeyShape.glass,
-    whiskeyLiquid: whiskeyShape.liquid(WHISKEY_LEVEL),
+    whiskeyLiquid: whiskeyShape.liquid(WHISKEY_LEVEL, true),
     russianCoffee: whiskeyShape.liquid(russianSplit(1)),
     russianCream: whiskeyShape.layer(russianSplit(1), russianLevel(1)),
     foam: beerFoamGeometry(),
@@ -263,7 +317,7 @@ export function createGlasses(scene, taken) {
         glass.foam.geometry.dispose();
         glass.foam.geometry = beerFoamGeometry(beerLevel(state.share), state.decay);
       } else if (glass.kind === "whiskey") {
-        glass.drink.geometry = whiskeyShape.liquid(whiskeyLevel(state.share));
+        glass.drink.geometry = whiskeyShape.liquid(whiskeyLevel(state.share), true);
       } else if (glass.kind === "white-russian") {
         glass.drink.geometry = whiskeyShape.liquid(russianSplit(state.share));
         glass.foam.geometry.dispose();
@@ -336,7 +390,15 @@ export function createGlasses(scene, taken) {
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       for (const m of [glassMat, mats.red, mats.white, mats.beer, mats.whiskey, mats.coffee, mats.cream]) {
+        // the reflection patches the shader too: the material's own patch (the whiskey's depth) stays
+        const [own, ownKey] = [m.onBeforeCompile, m.customProgramCacheKey.bind(m)];
         applyBallReflection(m, reflection, { clearGlass: true }); // the drinks are glossy and see-through too
+        const [patch, patchKey] = [m.onBeforeCompile, m.customProgramCacheKey.bind(m)];
+        m.onBeforeCompile = (shader, renderer) => {
+          patch.call(m, shader, renderer);
+          own.call(m, shader, renderer);
+        };
+        m.customProgramCacheKey = () => `${patchKey()}|${ownKey()}`;
         m.envMapIntensity = 1.6;
       }
     },

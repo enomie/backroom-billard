@@ -30,7 +30,20 @@ export const WHISKEY_GLASS_RADIUS_BOTTOM = 0.033;
 export const WHISKEY_GLASS_RADIUS_TOP = 0.0375;
 export const WHISKEY_GLASS_BASE = 0.018;
 export const WHISKEY_LEVEL = 0.058;
-export const WHISKEY_COLOR = 0xb8681a;
+/**
+ * The whiskey: clear, deep amber. Seen through the middle of the glass it is dark and nearly opaque
+ * (much liquid behind), at the edges lighter, more saturated and more transparent. The surface rises
+ * a little at the glass wall (the meniscus, the wetting): height and width in m.
+ */
+export const WHISKEY_COLOR_CENTER = 0x6e2a08;
+export const WHISKEY_COLOR_EDGE = 0xc5701a;
+export const WHISKEY_OPACITY_CENTER = 0.86;
+/** How quickly the depth falls off towards the edges (higher = the dark middle is narrower) and the amber glow at the edges. */
+export const WHISKEY_DEPTH_POWER = 2.4;
+export const WHISKEY_GLOW_COLOR = 0x7a3306;
+export const WHISKEY_OPACITY_EDGE = 0.42;
+export const WHISKEY_MENISCUS_HEIGHT = 0.0013;
+export const WHISKEY_MENISCUS_WIDTH = 0.0032;
 
 /** White Russian: in the same tumbler, coffee liqueur below and cream on top (a layered drink). */
 export const WHITE_RUSSIAN_LEVEL = 0.068;

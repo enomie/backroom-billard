@@ -33,6 +33,13 @@ Die Flamme streckt sich und wiegt sich, ihr Schein und das Licht schwanken unreg
 - **Am Billardtisch** (Holzrahmen, links, nur 11 cm breit): je Spieler ein **Aschenbecher** (auf 65 % verkleinert, Ø 9 cm, zwischen der letzten Raute und der Ecktasche) und ein **Getränk** daneben. Die Getränke werden **bei jedem Laden neu gewürfelt**, und die beiden Spieler bekommen **nie dasselbe** (Rotwein, Weißwein, Bier, Whiskey, White Russian). Dazu liegen Packung und Feuerzeug (`cigarettes.md`). Flaschen stehen dort nicht.
 - Wer „Spieler 1 und 2“ ist und an welcher Seite sie stehen, kommt mit den Rollen aus [`game-concept.md`](game-concept.md). Bis dahin: feste Plätze auf der linken Längsseite.
 
+## Getränke: Aussehen (Whiskey fertig, die anderen folgen)
+
+Der **Whiskey** ist ein klares, tiefes Bernstein (`glasses.js`, Werte `WHISKEY_*` in `glasses-constants.js`):
+- **Meniskus (Benetzung):** Die Flüssigkeit steigt an der Glaswand 1,3 mm nach oben und fällt auf 3,2 mm Breite in einer glatten Kurve zum Stand in der Mitte; die Kante ist hell (Vertex-Farbe), die Mitte der Oberfläche etwas dunkler.
+- **Tiefe:** Ein kleiner Shader macht ihn in der Mitte dunkel und dicht (`WHISKEY_COLOR_CENTER`, Deckkraft 0,86) und an den Rändern heller, gesättigter, durchsichtiger (`WHISKEY_COLOR_EDGE`, 0,42) mit einem warmen Leuchten (`WHISKEY_GLOW_COLOR`), als scheine Licht durch. `WHISKEY_DEPTH_POWER` bestimmt, wie schmal die dunkle Mitte ist.
+- Bier, Wein und White Russian sind noch die alten glatten Körper (gerade Wand, ebene Oberfläche) und folgen.
+
 ## Trinken: Füllstand, Schaum, Nachschub (nur am Billardtisch)
 
 Gilt nur für die **Getränke der Spieler**; alles auf den Tischen im Raum bleibt unverändert (`glasses.js` mit `player`, `drinking.js`).
