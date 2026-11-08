@@ -502,14 +502,10 @@ html {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 0.6rem;
-  background: rgba(10, 10, 10, 0.85);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-right: 0;
-  border-radius: 1rem 0 0 1rem; /* rounded only on the left */
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-sizing: border-box;
+  width: 44px; /* as narrow as a finger needs */
+  padding: 0.75rem 0;
+  /* no panel: the slider, the number and the bolt stand free on the edge */
 }
 
 .power-dock__value {
@@ -518,6 +514,7 @@ html {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--amber-300);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); /* readable on the bright cloth, too */
 }
 
 /* the bolt under the slider (instead of the word "Power") */
@@ -526,12 +523,13 @@ html {
   width: 1.1rem;
   height: 1.1rem;
   color: var(--amber-300);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
 }
 
 /* Vertical slider: wide hit area for fingers, colored like a power meter */
 .power-slider {
   position: relative;
-  width: 44px;
+  width: 100%;
   height: clamp(140px, 30vh, 240px);
   cursor: pointer;
   touch-action: none;
