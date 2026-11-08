@@ -69,7 +69,7 @@ export default {
   "help.smoke": "T halten: an der Zigarette ziehen, loslassen: ausatmen.",
   "help.camera": "C: zwischen Spielerkamera und freier Kamera wechseln.",
   "help.free": "Freie Kamera: W A S D (oder die Pfeiltasten) bewegen, Leertaste hoch, Shift runter, Maus schaut um (Esc gibt die Maus frei). Am Handy: seitlich wischen dreht, nach oben wischen geht näher ran, nach unten weiter weg.",
-  "help.piano": "Klavier (freie Kamera, nahe dran: F oder der Knopf setzt dich hin, Esc oder F steht wieder auf): Die Tasten spielen es, Z S X D V … ab dem C4 und Q 2 W 3 E R … ab dem C5 (das C5 auch auf , L . ; /). Oder die Tasten anklicken.",
+  "help.piano": "Klavier (freie Kamera, nahe dran: F oder der Knopf setzt dich hin, Esc oder der Knopf steht wieder auf): Die Tasten spielen es, Z S X D V … ab dem C4 und Q 2 W 3 E R … ab dem C5 (das C5 auch auf , L . ; /). Oder die Tasten anklicken.",
   "piano.play": "Klavier spielen",
   "piano.leave": "Klavier verlassen",
   "help.rerack": "N: neu aufbauen.",

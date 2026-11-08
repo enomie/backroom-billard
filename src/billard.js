@@ -996,15 +996,15 @@ function setupControls() {
     if (dy !== 0) elevationGlide = false; // the player tilts the camera: his choice wins
   });
 
-  // The piano: F (or the button) sits down at it when the free camera is close, Esc or F gets up; seated, the keys play it.
+  // The piano: F (or the button) sits down at it when the free camera is close, Esc (or the button) gets up; seated, the keys play it.
   // This runs before the game keys and takes all keys while seated.
   document.addEventListener(
     "keydown",
     (e) => {
       if (!piano || settings.isOpen() || isStartScreenOpen() || drinkMenu.isOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
       const seated = pianoMode === "on" || pianoMode === "entering";
-      if (e.code === "KeyF" && (seated || (cameraMode === "free" && pianoMode === "off" && piano.isNear(camera)))) {
-        if (!e.repeat) togglePiano();
+      if (!seated && e.code === "KeyF" && cameraMode === "free" && pianoMode === "off" && piano.isNear(camera)) {
+        if (!e.repeat) enterPiano(); // F sits down; once seated it is only a key (Esc or the button gets up)
       } else if (!seated) {
         return;
       } else if (e.code === "Escape") {
@@ -1264,6 +1264,9 @@ function renderPianoButton() {
   const dock = document.getElementById("piano-dock");
   const show = seated || (cameraMode === "free" && pianoMode === "off" && !!piano && piano.isNear(camera));
   if (dock.hidden === show) dock.hidden = !show;
+  const cap = seated ? "Esc" : "F"; // F sits down, Esc (or the button) gets up
+  const capElement = document.getElementById("piano-cap");
+  if (capElement.textContent !== cap) capElement.textContent = cap;
   const label = t(seated ? "piano.leave" : "piano.play");
   const labelElement = document.getElementById("piano-label");
   if (labelElement.textContent !== label) labelElement.textContent = label; // (called every frame: only touch the page on a change)
