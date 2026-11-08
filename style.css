@@ -332,6 +332,14 @@ html {
   transform: translateY(-50%);
 }
 
+.edge-dock--piano {
+  top: 22%;
+}
+
+.edge-dock[hidden] {
+  display: none;
+}
+
 .edge-dock .btn-key {
   writing-mode: vertical-rl;
   transform: rotate(180deg);

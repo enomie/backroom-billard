@@ -101,6 +101,7 @@ import {
   LAMP_SHADOW_SWAY_INTERVAL,
   LAMP_SHADOW_BURN_STEP,
 } from "./room-constants.js";
+import { PIANO_SEAT_SECONDS } from "./piano-constants.js";
 import { t, onLanguageChange } from "./i18n/index.js";
 import {
   PHYSICS_STEP,
@@ -212,7 +213,11 @@ let glasses = null; // wine and beer glasses (glasses.js)
 let ashtrays = null; // glass ashtrays (ashtray.js)
 let candles = null; // candle holders on the tables (candle.js)
 let furnitureKeepOut = []; // circles the free camera stays out of (furniture.js)
-let piano = null; // grand piano, can be played with the mouse (piano.js)
+let piano = null; // grand piano, can be played with the mouse and the keys (piano.js)
+/** "off", "entering" (the camera moves to the stool), "on" (seated, playing), "leaving" (back to where it was). */
+let pianoMode = "off";
+const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), toQuat: new THREE.Quaternion(), t: 0 };
+const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 /** Physics steps still to run after something was put on the table (new rack, re-spotted ball); everything at rest needs no steps. */
@@ -907,6 +912,7 @@ function setupControls() {
   // Mouse control (click & drag to aim, click without drag = shot)
   container.addEventListener("mousedown", (e) => {
     if (e.button === 0 && tryPianoPress(e)) return; // a key of the piano: play it, no aiming, no shot
+    if (pianoMode !== "off") return; // seated at the piano: the mouse only plays
     if (cameraMode === "free") {
       // Free camera: drag to look; a click also tries to capture the pointer
       if (e.button === 0) {
@@ -962,6 +968,7 @@ function setupControls() {
   });
 
   window.addEventListener("mousemove", (e) => {
+    if (pianoMode !== "off") return;
     if (cameraMode === "free") {
       // Mouse look: pointer locked (relative movement) or while dragging
       if (freeLookDragging) freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
@@ -986,12 +993,22 @@ function setupControls() {
     if (dy !== 0) elevationGlide = false; // the player tilts the camera: his choice wins
   });
 
-  // Near the piano (free camera) the letter keys play it: this runs before the game keys and takes the keys that are notes
+  // The piano: F (or the button) sits down at it when the free camera is close, Esc or F gets up; seated, the keys play it.
+  // This runs before the game keys and takes all keys while seated.
   document.addEventListener(
     "keydown",
     (e) => {
-      if (!piano || cameraMode !== "free" || settings.isOpen() || isStartScreenOpen() || drinkMenu.isOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (!piano.isNear(camera) || !piano.keyDown(e.code, e.repeat)) return;
+      if (!piano || settings.isOpen() || isStartScreenOpen() || drinkMenu.isOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+      const seated = pianoMode === "on" || pianoMode === "entering";
+      if (e.code === "KeyF" && (seated || (cameraMode === "free" && pianoMode === "off" && piano.isNear(camera)))) {
+        if (!e.repeat) togglePiano();
+      } else if (!seated) {
+        return;
+      } else if (e.code === "Escape") {
+        leavePiano();
+      } else if (pianoMode === "on") {
+        piano.keyDown(e.code, e.repeat);
+      }
       e.preventDefault();
       e.stopPropagation();
     },
@@ -1000,10 +1017,12 @@ function setupControls() {
   document.addEventListener(
     "keyup",
     (e) => {
-      if (piano?.keyUp(e.code)) e.stopPropagation(); // the note ends; the key did nothing else
+      if (!piano) return;
+      if (piano.keyUp(e.code) || pianoMode === "on" || pianoMode === "entering") e.stopPropagation(); // seated, the keys are not for the game
     },
     true
   );
+  document.getElementById("btn-piano").addEventListener("click", togglePiano);
 
   // Keyboard: C switches the camera, N resets; E shoots; in cue view arrow keys / A & D aim; in free camera mode WASD move, space goes up and shift goes down.
   window.addEventListener("keydown", (e) => {
@@ -1060,6 +1079,11 @@ function setupControls() {
   container.addEventListener(
     "touchstart",
     (e) => {
+      if (pianoMode === "on" && e.touches.length === 1) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const touch = e.touches[0];
+        if (piano.pressAt(camera, { x: ((touch.clientX - rect.left) / rect.width) * 2 - 1, y: -(((touch.clientY - rect.top) / rect.height) * 2 - 1) })) return;
+      }
       if (e.touches.length === 1) {
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
@@ -1081,7 +1105,7 @@ function setupControls() {
         aimAngle -= dx * 0.006;
         aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
         if (dy !== 0) elevationGlide = false;
-      } else if (cameraMode === "free" && e.touches.length === 1) {
+      } else if (cameraMode === "free" && pianoMode === "off" && e.touches.length === 1) {
         // Free camera: swipe sideways = turn, swipe up = closer, down = further away
         const dx = e.touches[0].clientX - touchX;
         const dy = e.touches[0].clientY - touchY;
@@ -1098,9 +1122,10 @@ function setupControls() {
 
   container.addEventListener("touchend", (e) => {
     if (e.cancelable) e.preventDefault(); // prevents the additionally synthesized mouse events (not possible while the page scrolls)
+    piano?.release();
     if (cameraMode === "fps" && !touchMoved) {
       fireCueStrike();
-    } else if (cameraMode === "free" && !touchMoved && e.changedTouches.length) {
+    } else if (cameraMode === "free" && pianoMode === "off" && !touchMoved && e.changedTouches.length) {
       tryRadioClick(e.changedTouches[0]); // a tap on the radio
     }
   });
@@ -1182,7 +1207,67 @@ function requestPointerLockSafe() {
   }
 }
 
+/** Sit down at the piano (the camera flies to the stool and looks at the keys) or get up. */
+function togglePiano() {
+  if (pianoMode === "on" || pianoMode === "entering") leavePiano();
+  else enterPiano();
+}
+
+function enterPiano() {
+  if (!piano || cameraMode !== "free" || pianoMode !== "off" || !piano.isNear(camera)) return;
+  if (document.pointerLockElement) document.exitPointerLock(); // the mouse points at the keys now
+  heldKeys.clear();
+  pianoReturn.position.copy(camera.position);
+  pianoReturn.yaw = freeYaw;
+  pianoReturn.pitch = freePitch;
+  const seat = piano.seat();
+  const look = new THREE.Object3D();
+  look.position.copy(seat.position);
+  look.lookAt(seat.target);
+  startPianoMove(seat.position, look.quaternion, "entering");
+}
+
+function leavePiano() {
+  if (pianoMode !== "on" && pianoMode !== "entering") return;
+  piano.releaseAll();
+  startPianoMove(pianoReturn.position, new THREE.Quaternion().setFromEuler(new THREE.Euler(pianoReturn.pitch, pianoReturn.yaw, 0, "YXZ")), "leaving");
+}
+
+function startPianoMove(position, quaternion, mode) {
+  pianoTransition.from.copy(camera.position);
+  pianoTransition.fromQuat.copy(camera.quaternion);
+  pianoTransition.to.copy(position);
+  pianoTransition.toQuat.copy(quaternion);
+  pianoTransition.t = 0;
+  pianoMode = mode;
+  renderPianoButton();
+}
+
+/** The camera on its way to the stool or back (smooth). */
+function updatePianoMove(dt) {
+  if (pianoMode !== "entering" && pianoMode !== "leaving") return;
+  pianoTransition.t = Math.min(1, pianoTransition.t + dt / PIANO_SEAT_SECONDS);
+  const k = pianoTransition.t * pianoTransition.t * (3 - 2 * pianoTransition.t);
+  camera.position.lerpVectors(pianoTransition.from, pianoTransition.to, k);
+  camera.quaternion.slerpQuaternions(pianoTransition.fromQuat, pianoTransition.toQuat, k);
+  if (pianoTransition.t < 1) return;
+  pianoMode = pianoMode === "entering" ? "on" : "off";
+  renderPianoButton();
+}
+
+/** The piano button: shown close to the piano (free camera) and while seated; "play" or "leave". */
+function renderPianoButton() {
+  const seated = pianoMode === "on" || pianoMode === "entering";
+  const dock = document.getElementById("piano-dock");
+  const show = seated || (cameraMode === "free" && pianoMode === "off" && !!piano && piano.isNear(camera));
+  if (dock.hidden === show) dock.hidden = !show;
+  const label = t(seated ? "piano.leave" : "piano.play");
+  const labelElement = document.getElementById("piano-label");
+  if (labelElement.textContent !== label) labelElement.textContent = label; // (called every frame: only touch the page on a change)
+}
+
 function toggleCamera() {
+  if (pianoMode !== "off") return; // sitting at the piano: first get up
   cameraMode = cameraMode === "fps" ? "free" : "fps";
   const free = cameraMode === "free";
 
@@ -1311,6 +1396,7 @@ function renderGameOver() {
 function renderDynamicTexts() {
   updateStatusDisplay(isCueMoving);
   renderCameraLabel();
+  renderPianoButton();
   renderGameOver();
   document.querySelectorAll(".pocketed-ball").forEach((dot) => {
     dot.title = t("pocketed.ball", { n: dot.dataset.ballId });
@@ -1652,7 +1738,9 @@ function gameLoop(currentTime) {
     }
     placeAimCamera();
   } else if (cameraMode === "free") {
-    updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
+    if (pianoMode === "off") updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
+    else updatePianoMove(frameSeconds);
+    renderPianoButton();
   }
 
   updateAudioListener(camera); // the ears follow the camera

@@ -140,6 +140,14 @@
         </button>
       </div>
 
+      <!-- Piano: appears close to the piano (free camera): sit down / get up -->
+      <div id="piano-dock" class="edge-dock edge-dock--piano interactive" hidden>
+        <button id="btn-piano" type="button" class="btn-key">
+          <span class="btn-key__cap" aria-hidden="true">F</span>
+          <span id="piano-label" class="btn-key__label" data-i18n="piano.play">Play piano</span>
+        </button>
+      </div>
+
       <!-- Power: vertical, colored slider (touch friendly), 1 % steps -->
       <div class="power-dock interactive">
         <span id="power-percent" class="power-dock__value">40</span>
@@ -196,7 +204,7 @@
             <li data-i18n="help.smoke">T, hold: draw on the cigarette, release: exhale.</li>
             <li data-i18n="help.camera">C: switch between the player camera and the free camera.</li>
             <li data-i18n="help.free">Free camera: W A S D (or the arrow keys) move, Space up, Shift down, mouse looks around (Esc frees the mouse).</li>
-            <li data-i18n="help.piano">Piano (free camera, close to the keyboard): the letter keys play it; the arrow keys move.</li>
+            <li data-i18n="help.piano">Piano (free camera, close to it: F sits you down, Esc gets you up): the keys play it.</li>
             <li data-i18n="help.rerack">N: new rack.</li>
           </ul>
         </div>

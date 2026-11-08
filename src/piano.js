@@ -37,7 +37,9 @@ import {
   PIANO_COLOR_BRASS,
   PIANO_CLICK_DISTANCE,
   PIANO_KEY_PRESS_ANGLE,
-  PIANO_KEYS_NEAR,
+  PIANO_ENTER_DISTANCE,
+  PIANO_SEAT_EYE_HEIGHT,
+  PIANO_SEAT_BACK,
   PIANO_COMPUTER_KEYS,
   PIANO_MIDDLE_C,
 } from "./piano-constants.js";
@@ -204,10 +206,18 @@ export function createPiano(scene) {
 
   return {
     group: root,
-    /** True when the (free) camera is close enough to the keyboard for the computer keyboard to play. */
+    /** True when the (free) camera is close enough to the keyboard to sit down. */
     isNear(camera) {
       root.localToWorld(keyPosition.set(0, 0, front + 0.2));
-      return Math.hypot(camera.position.x - keyPosition.x, camera.position.z - keyPosition.z) < PIANO_KEYS_NEAR;
+      return Math.hypot(camera.position.x - keyPosition.x, camera.position.z - keyPosition.z) < PIANO_ENTER_DISTANCE;
+    },
+    /** Where the eyes are when sitting at the piano and what they look at (world positions). */
+    seat() {
+      root.updateMatrixWorld();
+      return {
+        position: root.localToWorld(new THREE.Vector3(0, PIANO_SEAT_EYE_HEIGHT, front + PIANO_SEAT_BACK)),
+        target: root.localToWorld(new THREE.Vector3(0, PIANO_KEYS_TOP - 0.02, front + 0.08)),
+      };
     },
     /** A computer key goes down: plays its note (true if the key belongs to the piano). */
     keyDown(code, repeat) {

@@ -77,13 +77,21 @@ export const PIANO_MAX_VOICES = 32;
 export const PIANO_DETUNE_CENTS = 1.6;
 
 /**
- * The computer keyboard plays the piano when the free camera is this close (m, along the floor)
- * to the keyboard. Each key: the semitones above the middle C (C4). Two rows like a piano: the
- * lower one (Z S X D V G B H N J M , L . ; /; the C key stays the camera switch, so the E above middle C is missing) from C4, the upper one (Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P [ = ]) from C5.
+ * Close to the keyboard (m, along the floor, free camera) a button (F) offers to sit down at the
+ * piano; seated, the computer keyboard plays it. The eye height when seated (m above the floor),
+ * how far in front of the keyboard's middle the eyes are, and how long the camera takes to get there (s).
  */
-export const PIANO_KEYS_NEAR = 2.2;
+export const PIANO_ENTER_DISTANCE = 2.5;
+export const PIANO_SEAT_EYE_HEIGHT = 1.3;
+export const PIANO_SEAT_BACK = 0.75;
+export const PIANO_SEAT_SECONDS = 0.9;
+/**
+ * The computer keyboard plays the piano while seated. Each key: the semitones above the middle C (C4).
+ * Two rows like a piano: the lower one (Z S X D C V G B H N J M , L . ; /) from C4, the upper one
+ * (Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P [ = ]) from C5.
+ */
 export const PIANO_COMPUTER_KEYS = {
-  KeyZ: 0, KeyS: 1, KeyX: 2, KeyD: 3, KeyV: 5, KeyG: 6, KeyB: 7, KeyH: 8, KeyN: 9, KeyJ: 10, KeyM: 11,
+  KeyZ: 0, KeyS: 1, KeyX: 2, KeyD: 3, KeyC: 4, KeyV: 5, KeyG: 6, KeyB: 7, KeyH: 8, KeyN: 9, KeyJ: 10, KeyM: 11,
   Comma: 12, KeyL: 13, Period: 14, Semicolon: 15, Slash: 16,
   KeyQ: 12, Digit2: 13, KeyW: 14, Digit3: 15, KeyE: 16, KeyR: 17, Digit5: 18, KeyT: 19, Digit6: 20, KeyY: 21, Digit7: 22, KeyU: 23,
   KeyI: 24, Digit9: 25, KeyO: 26, Digit0: 27, KeyP: 28, BracketLeft: 29, Equal: 30, BracketRight: 31,
