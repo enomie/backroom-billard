@@ -34,6 +34,7 @@ import { displayName } from "./name-rules.js";
 import { loadProfile } from "./profile-store.js";
 import { isStartScreenOpen } from "./start-screen.js";
 import { createDoor } from "./door.js";
+import { createNeonSign } from "./neon-sign.js";
 import { createPlayerState } from "./player-state.js";
 import { SWAY_PITCH_OFFSET } from "./player-constants.js";
 import { createWallet } from "./wallet.js";
@@ -377,6 +378,7 @@ function setupLightingAndRoom() {
   createRoom(scene);
   createWallLamps(scene);
   createDoor(scene); // the (dummy) door in the wall behind the player at the start
+  createNeonSign(scene); // the neon sign on the wall opposite
   furnitureKeepOut = createFurniture(scene).keepOut;
   candles = createCandles(scene);
   ashtrays = createAshtrays(scene);

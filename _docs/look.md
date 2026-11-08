@@ -78,6 +78,10 @@ Code: `src/door.js`, Werte in `door-constants.js`. Aus Rücksicht auf die Bildra
 - **Tür:** alte Doppel-Pendeltür aus dem Holz der Wandvertäfelung (gleiche Maserung und Farbe, lackiert; `wainscotWoodMaterial` in `wood.js`), **ohne Spalten** (`DOOR_GAP` 0). Jeder Flügel hat oben 3 × 3 Scheiben, unten zwei Füllungen, eine schräge Druckstange aus dunkler Bronze und drei schwarze Bänder. Schatten wirft sie keine. Sie bewegt sich nicht.
 - **Glas:** durchsichtiges, **gewelltes Bernsteinglas**, leicht emissiv (0,5). Auf der mittleren Scheibe der Mitte des linken Flügels steht das **gespiegelte goldene B**, auf der gleichen Scheibe des rechten Flügels das **normale B** (`DOOR_LOGO_*`).
 
+## Neonschild (umgesetzt)
+
+An der kurzen Wand **gegenüber der Tür** (`src/neon-sign.js`, Werte in `src/neon-sign-constants.js`): **BACKROOM** in leuchtendem Blau über **BILLARD** in leuchtendem Gelb, in der Schrift des Titels (Limelight), 1,5 m breit, Mitte auf 2,7 m Höhe. Die Buchstaben sind als **Leuchtröhren** gezeichnet (Umriss mit hellem Kern und Schein) auf einer Fläche, die zum Bild **addiert** wird: kein echtes Licht, also kein Aufwand pro Pixel, und kein Nebel schluckt es. Die Wand bekommt dadurch keinen Lichtschein.
+
 ## Kugeln: Einschlüsse (umgesetzt)
 
 Die Kugeln tragen kleine **Einschlüsse** wie Elfenbeinkugeln (`src/ball-texture.js`, Werte in `ball-constants.js`), damit man sieht, wie sie sich drehen: etwa 90 winzige Flecken (Radius 0,4–1,2 mm) gleichmäßig über die ganze Kugel verteilt, **für jede Kugel ein anderes Muster** (fest, bei jedem Start gleich). Auf hellen und bunten Kugeln sind sie dunkelbraun, auf der schwarzen 8 hell-grau. Rein optisch: eine kleine Canvas-Textur je Kugel (512 × 256, einmal erzeugt und behalten), die Farbe der Kugel steckt in der Textur. Größe, Anzahl und Stärke der Flecken stehen in `ball-constants.js`.
