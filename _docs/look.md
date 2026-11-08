@@ -36,6 +36,7 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - Die **Aufhängehöhe** (Unterkante der Leuchten über dem Boden) ist der **Parameter `LAMP_HEIGHT`** in `src/room-constants.js`, Standard **2,00 m** (vorher 2,40 m; weil die Leuchten tiefer hängen, sind Lichtstärke und -winkel angepasst, damit der Tisch nicht heller wird). Dort stehen auch Abstand, Kabellänge, Schirm- und Lichtwerte.
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
+- **Schatten:** Nur die drei Deckenleuchten werfen Schatten, und ihr Lichtkegel reicht nur etwa 2 m um den Tisch. Deshalb werfen nur Dinge dort Schatten (Tisch, Kugeln, Cue, Zigaretten, Feuerzeuge, Gläser); Möbel und Kerzen auf den Tischen im Raum nicht (sie stehen außerhalb der Kegel, ein Schatten wäre nie zu sehen und kostet nur Bildrate).
 
 ## Nebel und Lichtkegel (umgesetzt)
 

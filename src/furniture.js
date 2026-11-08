@@ -122,8 +122,10 @@ export function createFurniture(scene) {
   const chairCount = FURNITURE_TABLES.reduce((n, t) => n + t.chairs.length, 0);
   const leatherChairs = new THREE.InstancedMesh(chairs.leather, leatherMat, chairCount);
   const footChairs = new THREE.InstancedMesh(chairs.wood, woodMat, chairCount);
+  // The furniture stands far outside the cones of the lamps over the table (the only shadow casters),
+  // so it casts no shadow: drawing it into the three shadow maps would cost a lot and show nothing.
   for (const m of [leatherChairs, footChairs]) {
-    m.castShadow = m.receiveShadow = true;
+    m.receiveShadow = true;
   }
 
   const keepOut = [];
@@ -137,7 +139,7 @@ export function createFurniture(scene) {
     const base = new THREE.Mesh(baseGeo, brassMat);
     base.position.set(table.x, 0.015, table.z);
     for (const m of [plate, column, base]) {
-      m.castShadow = m.receiveShadow = true;
+      m.receiveShadow = true;
       group.add(m);
     }
 

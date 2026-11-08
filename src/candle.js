@@ -147,7 +147,7 @@ export function createCandles(scene) {
   statics.forEach(([geometry, material, , castShadow], k) => {
     const mesh = new THREE.InstancedMesh(geometry, material, staticMatrices[k].length);
     staticMatrices[k].forEach((matrix, i) => mesh.setMatrixAt(i, matrix));
-    mesh.castShadow = mesh.receiveShadow = castShadow;
+    mesh.receiveShadow = castShadow; // no shadow cast: the candles stand outside the cones of the table lamps
     group.add(mesh);
   });
 
