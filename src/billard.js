@@ -575,7 +575,7 @@ function fireCueStrike() {
   if (shotInProgress) return; // wait until the table is still
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
-  // Ignore double-triggered events (button+space, touch+mouse)
+  // Ignore double-triggered events (button+key, touch+mouse)
   const now = performance.now();
   if (now - lastShotTime < 300) return;
   lastShotTime = now;
@@ -795,7 +795,7 @@ function setupControls() {
   fireBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     fireCueStrike();
-    fireBtn.blur(); // give up focus so the space bar does not trigger the button again
+    fireBtn.blur(); // give up focus so a key does not trigger the button again
   });
 
   // The nub on the disc above the shoot button: drag it to meet the ball off-center (double-click = center)
@@ -896,8 +896,7 @@ function setupControls() {
     if (dy !== 0) elevationGlide = false; // the player tilts the camera: his choice wins
   });
 
-  // Keyboard: C switches the camera, R resets; in cue view arrow keys / A & D aim and space
-  // shoots; in free camera mode WASD move, space goes up and shift goes down.
+  // Keyboard: C switches the camera, N resets; E shoots; in cue view arrow keys / A & D aim; in free camera mode WASD move, space goes up and shift goes down.
   window.addEventListener("keydown", (e) => {
     heldKeys.add(e.code);
     if (e.code === "KeyC" && !e.repeat) {
@@ -913,6 +912,10 @@ function setupControls() {
       drinking.press(camera); // hold R: drink gulp after gulp, release: put the glass back
       return;
     }
+    if (e.code === "KeyE" && !e.repeat) {
+      fireCueStrike(); // E = shoot (only with the cue camera, see fireCueStrike)
+      return;
+    }
     if (e.code === "KeyN" && !e.repeat) {
       setupBalls(); // N = new rack (R is for drinking)
       return;
@@ -926,10 +929,6 @@ function setupControls() {
     }
     if (e.code === "ArrowDown" || e.code === "KeyS") {
       setPower(selectedPower - 0.01);
-    }
-    if (e.code === "Space") {
-      e.preventDefault();
-      if (!e.repeat) fireCueStrike();
     }
   });
   window.addEventListener("keyup", (e) => {

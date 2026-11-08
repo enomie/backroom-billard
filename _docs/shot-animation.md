@@ -4,7 +4,7 @@
 
 ## Ablauf
 
-Ein Klick, die Leertaste oder der SHOOT-Button löst **nicht sofort** den Stoß aus, sondern startet eine Animation. Erst wenn die Spitze die Kugel erreicht, bekommt die Kugel ihre Geschwindigkeit — **durch die echte Kollision der Cue-Spitze**, nicht durch einen künstlichen Impuls.
+Ein Klick, die Taste `E` oder der SHOOT-Button löst **nicht sofort** den Stoß aus, sondern startet eine Animation. Erst wenn die Spitze die Kugel erreicht, bekommt die Kugel ihre Geschwindigkeit — **durch die echte Kollision der Cue-Spitze**, nicht durch einen künstlichen Impuls.
 
 | Phase | Beschreibung | Abhängigkeit von der Kraft |
 |-------|--------------|----------------------------|
