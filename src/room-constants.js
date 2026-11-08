@@ -37,7 +37,7 @@ export const FREE_CAM_MIN_Y = TABLE_H;
 export const LAMP_COUNT = 3;
 
 /** Height of the lamp shade's lower rim above the floor. Changing it moves all lamps together. */
-export const LAMP_HEIGHT = 2.4;
+export const LAMP_HEIGHT = 2.0;
 
 /** Distance between neighbouring lamps along the table length. */
 export const LAMP_SPACING = 0.85;
@@ -65,8 +65,8 @@ export const LAMP_REFLECTION_GLOW = 14;
 
 /** Spot light of each lamp. */
 export const LAMP_LIGHT_COLOR = 0xffd9a0;
-export const LAMP_LIGHT_INTENSITY = 4.6;
-export const LAMP_LIGHT_ANGLE = 0.6; // half opening angle in radians (~34°)
+export const LAMP_LIGHT_INTENSITY = 3.3; // lower than before: the lamps hang closer to the table
+export const LAMP_LIGHT_ANGLE = 0.72; // half opening angle in radians (~41°)
 export const LAMP_LIGHT_PENUMBRA = 0.5;
 export const LAMP_LIGHT_DECAY = 1.4;
 export const LAMP_LIGHT_DISTANCE = 6;
@@ -134,7 +134,7 @@ export const CEILING_FOG_COLOR = AIR_SMOKE_COLOR;
 export const FOG_WISP_SCALE = 0.28;
 export const FOG_DRIFT_SPEED = 0.05;
 /** Light shafts of the ceiling lamps: opening half angle (rad) and strength (0 = invisible). */
-export const SHAFT_ANGLE = 0.5;
+export const SHAFT_ANGLE = 0.6;
 export const SHAFT_INTENSITY = 0.045;
 
 /** Weak warm ambient light so the cream walls stay readable in the dim room. */

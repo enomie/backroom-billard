@@ -33,7 +33,7 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 
 ### Höhe als Parameter (umgesetzt)
 
-- Die **Aufhängehöhe** (Unterkante der Leuchten über dem Boden) ist der **Parameter `LAMP_HEIGHT`** in `src/room-constants.js`, Standard **2,40 m**. Dort stehen auch Abstand, Kabellänge, Schirm- und Lichtwerte.
+- Die **Aufhängehöhe** (Unterkante der Leuchten über dem Boden) ist der **Parameter `LAMP_HEIGHT`** in `src/room-constants.js`, Standard **2,00 m** (vorher 2,40 m; weil die Leuchten tiefer hängen, sind Lichtstärke und -winkel angepasst, damit der Tisch nicht heller wird). Dort stehen auch Abstand, Kabellänge, Schirm- und Lichtwerte.
 - Ändert man ihn (z. B. auf 2,50 m), werden **alle drei Leuchten gemeinsam** höher oder tiefer.
 - Das **Kabel** passt sich automatisch an: Es ist so lang (z. B. 10 m), dass es immer **durch die Decke nach oben herausragt** und nie sichtbar endet.
 
@@ -43,7 +43,7 @@ Alle Maße und Farben sind Parameter in `src/room-constants.js`. Die freie Kamer
 - **Licht:** Rauchfaden, Ausatem-Wolke und beide Nebel werden **von den Lampen beleuchtet** (`smoke-light.js`): unter den drei Deckenleuchten (Kegel mit sanftem Abfall) und nahe an den Kerzen sind sie hell und leicht gelblich bzw. warm, sonst bleibt nur der dunkle Grundanteil (`SMOKE_LIGHT_AMBIENT`). Die Wandleuchten zählen dabei nicht mit. Stärken: `SMOKE_LAMP_STRENGTH`, `SMOKE_CANDLE_STRENGTH`, `SMOKE_CANDLE_RADIUS`.
 - **Farbe:** Rauch, Ausatem-Wolke, Bodennebel und Deckennebel haben **dieselbe Farbe** (`AIR_SMOKE_COLOR`, ein warmes, leicht „verqualmtes“ Grau, kein reines Weißgrau). Der feste Raumnebel (`FOG_COLOR`) bleibt dunkel.
 - **Bodennebel:** 5 durchsichtige Schichten zwischen 5 und 55 cm Höhe, **Deckennebel:** 3 Schichten zwischen 3,6 m und der Decke. Jede Schicht ist ein Rauschen-Shader, das langsam und in eigener Richtung durch den Raum wandert (Schwaden mit Wirbeln). Nahe an der Kamera und in großer Ferne blenden sie aus, damit keine harten Kanten entstehen. Die freie Kamera (mindestens Tischhöhe, höchstens 1 m unter der Decke) kommt nie in eine Schicht hinein.
-- **Lichtkegel:** Unter jeder Deckenleuchte ein weicher Kegel vom Schirm bis zum Boden (additiv, `SHAFT_ANGLE`). Er ist dort heller, wo der „Dunst“ dicht ist, und wandert mit. Die Stärke ist bewusst niedrig (`SHAFT_INTENSITY`), damit der Raum nicht heller wirkt als bisher.
+- **Lichtkegel:** Unter jeder Deckenleuchte ein weicher Kegel, der **an der Öffnung des Schirms beginnt** (Schirmradius) und sich bis zum Boden verbreitert (additiv, `SHAFT_ANGLE` 0,6 rad). Er ist dort heller, wo der „Dunst“ dicht ist, und wandert mit. Die Stärke ist bewusst niedrig (`SHAFT_INTENSITY`), damit der Raum nicht heller wirkt als bisher.
 - **Spiegelung:** Der Nebel entsteht erst nach der Raum-Aufnahme für die Kugeln, ist also in den Kugeln nicht zu sehen.
 
 ## Tische und Sessel (umgesetzt)

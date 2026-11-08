@@ -13,7 +13,7 @@ import {
   LAMP_COUNT,
   LAMP_HEIGHT,
   LAMP_SPACING,
-  LAMP_SHADE_HEIGHT,
+  LAMP_SHADE_RADIUS,
   LAMP_LIGHT_COLOR,
   GROUND_FOG_LAYERS,
   GROUND_FOG_TOP,
@@ -140,9 +140,9 @@ export function createAtmosphere(scene) {
   }
 
   // Light shafts: one cone per ceiling lamp, from the lamp down to the floor
-  const apexY = LAMP_HEIGHT + LAMP_SHADE_HEIGHT * 0.5;
-  const radius = Math.tan(SHAFT_ANGLE) * apexY;
-  const shaftGeo = new THREE.ConeGeometry(radius, apexY, 48, 1, true);
+  // the shaft leaves the opening of the shade (its rim) and widens towards the floor
+  const apexY = LAMP_HEIGHT;
+  const shaftGeo = new THREE.CylinderGeometry(LAMP_SHADE_RADIUS, LAMP_SHADE_RADIUS + Math.tan(SHAFT_ANGLE) * apexY, apexY, 48, 1, true);
   for (let i = 0; i < LAMP_COUNT; i++) {
     const material = new THREE.ShaderMaterial({
       uniforms: {
