@@ -97,7 +97,7 @@ export const BAR_COLOR_GOLD = 0xd9a93a;
  */
 export const BAR_LAMPS_COUNT = 3;
 export const BAR_LAMPS_SPACING = 0.9;
-export const BAR_LAMPS_FRONT = 0.2;
+export const BAR_LAMPS_FRONT = -0.3; // negative: over the counter (-0.3 = the middle of the top)
 export const BAR_LAMPS_HEIGHT = 2.4;
 export const BAR_LAMPS_RADIUS = 0.1;
 export const BAR_LAMPS_SHADE_HEIGHT = 0.12;
