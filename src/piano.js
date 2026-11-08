@@ -8,7 +8,8 @@ import { ROOM_LENGTH } from "./room-constants.js";
 import { receiveWallLampsDeep } from "./wall-lamp-light.js";
 import {
   PIANO_X,
-  PIANO_WALL_GAP,
+  PIANO_WALL_DISTANCE,
+  PIANO_TURN,
   PIANO_WIDTH,
   PIANO_LENGTH,
   PIANO_RIM_BOTTOM,
@@ -67,7 +68,8 @@ function slab(shape, from, to, material) {
 export function createPiano(scene) {
   const root = new THREE.Group();
   root.name = "piano";
-  root.position.set(PIANO_X, 0, -ROOM_LENGTH / 2 + PIANO_WALL_GAP + PIANO_LENGTH / 2);
+  root.position.set(PIANO_X, 0, -ROOM_LENGTH / 2 + PIANO_WALL_DISTANCE);
+  root.rotation.y = PIANO_TURN;
 
   const lacquer = new THREE.MeshPhysicalMaterial({ color: PIANO_COLOR_LACQUER, roughness: 0.18, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.05 });
   const brass = new THREE.MeshStandardMaterial({ color: PIANO_COLOR_BRASS, roughness: 0.35, metalness: 0.6 });

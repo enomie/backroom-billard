@@ -4,7 +4,7 @@
 
 Ein Konzertflügel in schwarzem Lack an der kurzen Wand **gegenüber der Tür**, neben dem Neonschild (`src/piano.js`, Maße in `src/piano-constants.js`).
 
-- **Stellung:** Der Schwanz zeigt zur Wand (25 cm Abstand), die Tastatur zum Raum; Mitte bei `x = 3,2 m`, unter der Wandleuchte.
+- **Stellung:** In der **Mitte** der Wand (unter dem Neonschild), die Mitte des Flügels 2,1 m von der Wand, **um 45° gedreht** (`PIANO_TURN`): die Tastatur schaut schräg in den Raum, der Schwanz zur Wand.
 - **Maße:** 1,55 m breit, 2,75 m lang, Zarge von 0,62 bis 0,98 m, darauf der **geschlossene Deckel** (3 cm). Die Umrissform (gerade Bassseite links, runde Diskantseite rechts, runder Schwanz) ist eine Kurve.
 - **Klaviatur:** Die **volle Klaviatur** (A0 bis C8): 52 weiße Tasten (je 2,35 cm) und 36 schwarze in den Gruppen zu zwei und drei, zwischen zwei Wangen und unter einem Namensbrett mit Messingstreifen.
 - **Beine:** Drei verjüngte Beine mit Messingfüßen, dazu die Pedalleiste mit drei Messingpedalen.

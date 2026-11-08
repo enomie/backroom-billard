@@ -2,10 +2,11 @@
  * The concert grand piano (lid closed) and its stool, at the wall opposite the door, beside the
  * neon sign. All sizes in m. See _docs/piano.md.
  */
-/** Position of the middle of the case (x along the short wall, z = distance of the tail from the wall is below). */
-export const PIANO_X = 3.2;
-/** Distance of the tail end from the wall surface. */
-export const PIANO_WALL_GAP = 0.25;
+/** Position of the middle of the case: x along the short wall (0 = the middle, below the neon sign), distance from the wall surface. */
+export const PIANO_X = 0;
+export const PIANO_WALL_DISTANCE = 2.1;
+/** Turn about the vertical axis (rad, 0 = the keyboard faces the room straight); 45° looks into the room's diagonal. */
+export const PIANO_TURN = Math.PI / 4;
 
 /** The case: width, length (keyboard end to tail), bottom and top height of the rim, lid thickness. */
 export const PIANO_WIDTH = 1.55;
