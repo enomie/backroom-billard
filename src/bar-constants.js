@@ -79,3 +79,13 @@ export const BACKBAR_LED_COLOR = 0xffd08a;
 export const BACKBAR_LED_THICKNESS = 0.012;
 export const BACKBAR_LED_GLOW_HEIGHT = 0.45;
 export const BACKBAR_LED_GLOW_OPACITY = 0.5;
+
+/**
+ * Gold rods on the front of the counter (the side of the stools): radius, distance between the
+ * middles, margin to the left and right end and to the plinth and the top (m).
+ */
+export const BAR_RODS_RADIUS = 0.012;
+export const BAR_RODS_SPACING = 0.075;
+export const BAR_RODS_SIDE_MARGIN = 0.2;
+export const BAR_RODS_END_MARGIN = 0.07;
+export const BAR_COLOR_GOLD = 0xd9a93a;

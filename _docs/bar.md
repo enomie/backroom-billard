@@ -18,6 +18,7 @@ Eine Bar an der langen Wand **gegenüber dem Radio** (`x = -ROOM_WIDTH/2`, in H�
 - **Maße:** 3 m breit, 0,6 m tief (zur Wand hin), 1,2 m hoch insgesamt.
 - **Sockel:** Silber (Metall), 0,16 m hoch, rundum 3 cm kleiner als der Holzblock.
 - **Block:** Holz mit Maserung, bis unter die Platte.
+- **Goldstäbe:** Auf der Vorderseite des Holzblocks (zu den Hockern) stehen senkrechte Stäbe aus Gold (Radius 1,2 cm, 7,5 cm Abstand zwischen den Mitten), 20 cm vor jedem Ende und 7 cm unter der Platte und über dem Sockel aufhörend (`BAR_RODS_*`).
 - **Platte:** Marmor (weiß mit grauen Adern), 4 cm dick, steht rundum 4 cm über, abgerundete Ecken (Radius 7 cm) und leicht gerundete Kanten.
 - **Hocker:** 3 Stück vor der Bar (0,8 m Abstand, 0,4 m von der Vorderkante): gepolsterter Sitz in Weinrot auf einer silbernen Säule mit Fuß und Fußring, Sitzhöhe 0,78 m (`STOOL_*` in `bar-constants.js`).
 - **Getränke:** Auf der Platte stehen zufällig verteilt 7 volle Gläser (alle Sorten) und 2 Flaschen, ohne sich zu berühren (`BAR_DRINKS_*`, fester Zufall).

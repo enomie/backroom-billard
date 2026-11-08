@@ -28,6 +28,11 @@ import {
   BAR_BOTTLES_COUNT,
   BAR_DRINKS_MARGIN,
   BAR_DRINKS_SEED,
+  BAR_RODS_RADIUS,
+  BAR_RODS_SPACING,
+  BAR_RODS_SIDE_MARGIN,
+  BAR_RODS_END_MARGIN,
+  BAR_COLOR_GOLD,
   STOOL_COUNT,
   STOOL_DISTANCE,
   STOOL_SPACING,
@@ -120,6 +125,21 @@ export function createBar(scene, glasses, bottles) {
   };
   box(BAR_WIDTH - 2 * BAR_PLINTH_INSET, BAR_PLINTH_HEIGHT, BAR_DEPTH - 2 * BAR_PLINTH_INSET, silver, 0);
   box(BAR_WIDTH, blockHeight, BAR_DEPTH, wood, BAR_PLINTH_HEIGHT);
+
+  // gold rods on the front of the wooden block, with gaps, not out to the ends
+  const rodsFrom = BAR_PLINTH_HEIGHT + BAR_RODS_END_MARGIN;
+  const rodsTo = BAR_HEIGHT - BAR_TOP_THICKNESS - BAR_RODS_END_MARGIN;
+  const span = BAR_WIDTH - 2 * BAR_RODS_SIDE_MARGIN;
+  const rodCount = Math.floor(span / BAR_RODS_SPACING) + 1;
+  const gold = new THREE.MeshStandardMaterial({ color: BAR_COLOR_GOLD, roughness: 0.3, metalness: 1 });
+  const rods = new THREE.InstancedMesh(new THREE.CylinderGeometry(BAR_RODS_RADIUS, BAR_RODS_RADIUS, rodsTo - rodsFrom, 12), gold, rodCount);
+  const rodMatrix = new THREE.Matrix4();
+  const used = (rodCount - 1) * BAR_RODS_SPACING;
+  for (let i = 0; i < rodCount; i++) {
+    rodMatrix.setPosition(-used / 2 + i * BAR_RODS_SPACING, (rodsFrom + rodsTo) / 2, BAR_DEPTH / 2 + BAR_RODS_RADIUS * 0.6);
+    rods.setMatrixAt(i, rodMatrix);
+  }
+  root.add(rods);
 
   // the top: a rounded plate with rounded edges, lying flat
   const topShape = roundedRect(BAR_WIDTH + 2 * BAR_TOP_OVERHANG, BAR_DEPTH + 2 * BAR_TOP_OVERHANG, BAR_TOP_CORNER_RADIUS);
