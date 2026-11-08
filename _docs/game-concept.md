@@ -35,29 +35,29 @@ Die Stoßkraft stellt man per Slider oder Mausrad ein. Wie in Shootern **schwank
 
 ## Zigaretten
 
-- Man kann an einer **Zigarette ziehen**, um **ruhiger** zu werden (das Fadenkreuz schwankt weniger). Dagegen wirkt der **Nikotinentzug** (siehe „Durst, Betrunkenheit und Entzug“).
+- Man kann an einer **Zigarette ziehen**, um **ruhiger** zu werden (das Fadenkreuz schwankt weniger). Dagegen wirkt das **Verlangen** (Desire, siehe „Durst, Betrunkenheit und Desire“); zu viel Rauchen macht dafür fahrig (Nerves).
 - Zigaretten werden **extra mit Spielgeld gekauft**.
 - Offen: Animation (Aschenbecher, Rauch, Ziehen), wie lange die Ruhe anhält.
 - Grund: Das Spiel spielt in den **80ern**, jedes Billardcafé war rauchig und schummrig. Die **Optik** bekommt später ein eigenes Dokument.
 
-## Durst, Betrunkenheit und Entzug
+## Durst, Betrunkenheit und Desire
 
-Der Spieler hat drei Zustände, die sich mit der Zeit und durch sein Handeln ändern:
+Zwei Balken am oberen Rand in der Mitte, jeder mit einem **Marker, der sich zwischen zwei Enden bewegt**. In der **Mitte** ist man **absolut ruhig**; je weiter ein Marker von der Mitte weg ist, desto unruhiger oder ungenauer wird man.
 
-| Anzeige | Verlauf | Wirkung |
-|---------|---------|---------|
-| **Durst** | steigt mit der Zeit; **Trinken** senkt ihn | Man muss ab und zu trinken. |
-| **Betrunken** | steigt beim **Trinken**, sinkt langsam von selbst | Man wird **ungenauer** (der Zielfehler und das Schwanken nehmen zu). |
-| **Entzug** (Name offen) | steigt mit der Zeit; **Rauchen** senkt ihn | Je größer der Entzug, desto unruhiger (das Fadenkreuz schwankt mehr); Rauchen macht wieder ruhiger. |
+| Balken | Links | Mitte | Rechts |
+|--------|-------|-------|--------|
+| **1: Durst und Rausch** | **Thirsty** (durstig) | ruhig | **Drunk** (betrunken) |
+| **2: Nikotin** (darunter) | **Nerves** (zu viel Nikotin, fahrig) | ruhig | **Desire** (Verlangen, Entzug) |
 
-- **Der Zielkonflikt:** Wer nicht trinkt, wird durstig (Folge noch offen); wer trinkt, wird betrunken und ungenau. Man muss das richtige Maß finden.
-- **Anzeige:** **oben in der Mitte zwei Balken** (Durst und Betrunken), so dass man sieht, ob man durstig, betrunken oder dazwischen ist; **darunter ein dritter Balken** für den Entzug.
-- Umgesetzt sind dafür bisher nur die Gegenstände: Gläser und Flaschen (`glass-objects.md`) und Zigaretten mit Ziehen (`cigarettes.md`). Das Trinken selbst (Glas nehmen, Schluck, Bewegung) und alle Werte sind offen.
+- **Balken 1:** Der Marker **wandert mit der Zeit nach links** (man wird durstig). **Trinken schiebt ihn nach rechts**: ein Schluck bringt ihn zur Mitte, zu viel schiebt ihn zu „Drunk“. Von dort wandert er mit der Zeit wieder zurück durch die Mitte nach links. Also: **oft, aber wenig trinken**.
+- **Balken 2:** Der Marker **wandert mit der Zeit nach rechts** (das Verlangen wächst). **Rauchen schiebt ihn nach links**: ein Zug bringt ihn zur Mitte, zu viel (Kettenrauchen) macht „Nerves“. Von dort wandert er mit der Zeit wieder zurück zur Mitte und weiter zu „Desire“.
+- **Wirkung:** Das Fadenkreuz schwankt umso stärker, je weiter die Marker von der Mitte entfernt sind; beide mittig = kein Schwanken. Die Art kann je Ende anders sein, z. B. *Drunk* = Zielfehler und langsames Schwanken, *Nerves* = schnelles Zittern, *Desire* = größeres Schwanken, *Thirsty* = Konzentration lässt nach (alles noch offen).
+- Umgesetzt sind dafür bisher nur die Gegenstände: Gläser und Flaschen (`glass-objects.md`) und Zigaretten mit Ziehen (`cigarettes.md`). Das Trinken selbst (Glas nehmen, Schluck, Bewegung), die Balken und alle Werte sind offen.
 
 ## Offene Punkte (noch nicht entschieden)
 
-- Wie heißt der dritte Balken (Entzug)? Vorschläge: **Verlangen / Craving**, **Nerven / Nerves**, **Entzug / Withdrawal**, **Jieper**.
-- Was bewirkt Durst, wenn man gar nicht trinkt (Zittern, weniger Konzentration, Abzüge)?
+- Deutsche Beschriftung der Enden (Durstig / Betrunken, Nervös / Desire?); die englischen Namen stehen fest.
+- Wie unterscheidet sich die Wirkung der vier Enden (Thirsty, Drunk, Nerves, Desire) genau auf das Zielen?
 - Wie schnell steigen und sinken die Werte, und wie stark wirken sie auf das Zielen?
 - Wie trinkt man: Glas oder Flasche vom Tisch nehmen wie bei der Zigarette (Taste halten)?
 
