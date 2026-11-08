@@ -29,6 +29,12 @@ export const BAR_COLOR_WOOD = 0x6b4328;
 export const BAR_COLOR_MARBLE = 0xf1eeea;
 export const BAR_COLOR_MARBLE_VEIN = "90,92,98";
 
+/** Drinks on the bar top: how many glasses and bottles, and the margin to the edge of the top (m). */
+export const BAR_DRINKS_COUNT = 7;
+export const BAR_BOTTLES_COUNT = 2;
+export const BAR_DRINKS_MARGIN = 0.15;
+export const BAR_DRINKS_SEED = 11;
+
 /** Bar stools in front of the bar: number, distance of their middle from the bar's front, spacing along the bar (m). */
 export const STOOL_COUNT = 3;
 export const STOOL_DISTANCE = 0.4;

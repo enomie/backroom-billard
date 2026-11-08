@@ -20,6 +20,7 @@ Eine Bar an der langen Wand **gegenüber dem Radio** (`x = -ROOM_WIDTH/2`, in H�
 - **Block:** Holz mit Maserung, bis unter die Platte.
 - **Platte:** Marmor (weiß mit grauen Adern), 4 cm dick, steht rundum 4 cm über, abgerundete Ecken (Radius 7 cm) und leicht gerundete Kanten.
 - **Hocker:** 3 Stück vor der Bar (0,8 m Abstand, 0,4 m von der Vorderkante): gepolsterter Sitz in Weinrot auf einer silbernen Säule mit Fuß und Fußring, Sitzhöhe 0,78 m (`STOOL_*` in `bar-constants.js`).
+- **Getränke:** Auf der Platte stehen zufällig verteilt 7 volle Gläser (alle Sorten) und 2 Flaschen, ohne sich zu berühren (`BAR_DRINKS_*`, fester Zufall).
 - Die Bar wirft keinen Schatten (sie steht außerhalb der Lichtkegel der Tischlampen) und bekommt das Licht der Wandleuchten.
 
 ## Rückbuffet (umgesetzt)
@@ -33,5 +34,5 @@ Hinter der Bar, an der Wand (`src/backbar.js`):
 
 ## Offene Punkte (Ideen, noch nicht gebaut)
 
-- Weitere Module (Spirituosenflaschen, Beleuchtung der Regale), Gläser und Flaschen auf der Bar, Barkeeper.
+- Weitere Module (Spirituosenflaschen, Beleuchtung der Regale), Barkeeper.
 - Kollision/Sperrbereich für die freie Kamera um die Bar.

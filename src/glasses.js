@@ -427,6 +427,8 @@ export function createGlasses(scene, taken) {
     group,
     /** Everything standing on the round tables so far (for what comes next). */
     taken: occupied,
+    /** A new glass with a drink (`kind` like in build): `{ group, radius, kind }` (for the bar). */
+    makeGlass: build,
     /** The two players' glasses on the frame of the billard table. */
     player,
     /** The first drink of the player (the glass on his side, z > 0): a full glass of `kind`; the other glass never holds the same. */

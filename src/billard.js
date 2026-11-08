@@ -385,7 +385,7 @@ function setupLightingAndRoom() {
   packs = createCigarettePacks(scene, bottles.taken);
   lighters = createLighters(scene);
   radio = createRadio(scene);
-  createBar(scene);
+  createBar(scene, glasses, bottles);
   createBackbar(scene, bottles);
 }
 

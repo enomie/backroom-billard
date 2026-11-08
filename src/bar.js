@@ -24,6 +24,10 @@ import {
   BAR_COLOR_WOOD,
   BAR_COLOR_MARBLE,
   BAR_COLOR_MARBLE_VEIN,
+  BAR_DRINKS_COUNT,
+  BAR_BOTTLES_COUNT,
+  BAR_DRINKS_MARGIN,
+  BAR_DRINKS_SEED,
   STOOL_COUNT,
   STOOL_DISTANCE,
   STOOL_SPACING,
@@ -93,8 +97,10 @@ function roundedRect(width, height, radius) {
 /**
  * Build the bar and add it to the scene.
  * @param {THREE.Scene} scene
+ * @param {{ makeGlass: Function }} glasses — the glass maker (glasses.js)
+ * @param {{ makeBottle: Function }} bottles — the bottle maker (bottles.js)
  */
-export function createBar(scene) {
+export function createBar(scene, glasses, bottles) {
   // Local frame: origin at the floor in the middle of the bar, +z = the front (the room), +x along the wall
   const root = new THREE.Group();
   root.name = "bar";
@@ -158,6 +164,33 @@ export function createBar(scene) {
   }
 
   receiveWallLampsDeep(root);
+
+  // a few drinks and bottles at random places on the top (added after the lamp light: their materials are shared and already have it)
+  let seed = BAR_DRINKS_SEED;
+  const rnd = () => {
+    seed = (seed * 16807) % 2147483647;
+    return seed / 2147483647;
+  };
+  const kinds = ["wine-red", "wine-white", "beer", "whiskey", "white-russian"];
+  const placed = [];
+  const place = (object, radius) => {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const x = (rnd() - 0.5) * (BAR_WIDTH - 2 * BAR_DRINKS_MARGIN);
+      const z = (rnd() - 0.5) * (BAR_DEPTH - 2 * BAR_DRINKS_MARGIN);
+      if (placed.some((o) => Math.hypot(o.x - x, o.z - z) < o.r + radius + 0.03)) continue;
+      object.position.set(x, BAR_HEIGHT, z);
+      object.rotation.y = rnd() * Math.PI * 2;
+      root.add(object);
+      placed.push({ x, z, r: radius });
+      return;
+    }
+  };
+  for (let i = 0; i < BAR_DRINKS_COUNT; i++) {
+    const glass = glasses.makeGlass(kinds[Math.floor(rnd() * kinds.length)]);
+    place(glass.group, glass.radius);
+  }
+  for (let i = 0; i < BAR_BOTTLES_COUNT; i++) place(bottles.makeBottle(rnd() < 0.5 ? "wine" : "beer"), 0.04);
+
   scene.add(root);
   return { group: root };
 }
