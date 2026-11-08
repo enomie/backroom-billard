@@ -68,6 +68,17 @@ Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in 
 - **Höhe:** Schirmunterkante 2,0 m über dem Boden (`WALL_LAMP_HEIGHT`).
 - **Licht:** je ein weicher, warmer Spot nach unten ohne Schatten. Er wirft einen sanften Lichtkegel auf Wand und Boden.
 
+## Tür und Foyer (umgesetzt)
+
+Code: `src/door.js`, `src/foyer.js`, Werte in `door-constants.js` und `foyer-constants.js`.
+
+- **Wo:** in der kurzen Wand hinter dem Spieler beim Start (z = +15), zwischen den zwei Wandleuchten. Die Wand hat dort eine Öffnung (1,70 × 2,15 m) mit Laibung (25 cm tief), Schwelle und Zierleisten; die Vertäfelung endet an der Zierleiste.
+- **Tür:** alte Doppel-Pendeltür aus braunem, abgeblättertem Holz. Jeder Flügel hat oben 3 × 3 Scheiben, unten zwei Füllungen, eine schräge Druckstange aus dunkler Bronze und drei schwarze Bänder. Die Tür passt **nicht genau**: **Schlitze von 1,5 cm** zwischen den Flügeln, zu den Seiten, oben und über der Schwelle (`DOOR_GAP`); durch sie scheint das Foyer. Texturen sind generiert.
+- **Glas:** durchsichtiges, **gewelltes Bernsteinglas** (Wellen-Streifen und Normalenkarte, jede Scheibe mit eigenem Versatz). Auf der mittleren Scheibe der Mitte des linken Flügels steht ein **goldenes B**, auf der gleichen Scheibe des rechten Flügels das **gespiegelte B** (`DOOR_LOGO_*`).
+- **Pendeltür:** Die Flügel hängen mittig in der Laibung. Sie sind vorerst geschlossen und nicht passierbar (die freie Kamera bleibt im Raum).
+- **Foyer:** quadratisch, 15 × 15 m, 4,5 m hoch, direkt hinter der Wand (`FOYER_*`). Boden aus schwarz-weißen Marmorfliesen, Wände unten dunkelgrün, oben cremefarben, dazwischen eine Messingleiste. In der Mitte der Decke hängt eine **milchweiße Glaskugel** mit einem echten **Punktlicht** (kühles Weiß). Das Foyer ist vom Raumnebel ausgenommen, damit es aus der Ferne hell bleibt.
+- **Licht im Raum:** Das Punktlicht wirft Schatten (einmal gezeichnet, es bewegt sich nichts), damit es nicht durch die Wand in den Backroom scheint. Dazu kommt ein **bernsteinfarbener Spot** direkt hinter der Tür, der durch Glas und Schlitze auf den Teppich fällt: die Flügel halten das Licht zurück, das Glas lässt es durch, auf dem Boden entsteht das Fensterkreuz-Muster. Die Wände und die Decke des Backrooms empfangen Schatten, die Tür-Wand wirft ihn.
+
 ## Fester Raumnebel
 
 - **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist der Dunst am dichtesten (aber nie komplett deckend).
@@ -76,5 +87,6 @@ Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in 
 
 ## Offene Punkte
 
-- Wanddekoration (Poster, Tapete, Fenster, Tür).
+- Wanddekoration (Poster, Tapete, Fenster).
+- Die Tür bewegt sich noch nicht (Aufschwingen, Quietschen); das Foyer ist leer (später Begrüßung, Getränke- und Zigarettenwahl). Lichtschaft im Rauch hinter der Tür.
 - Feintuning von Armlänge, Höhe und Verteilung der Wandleuchten und des Abstands der Deckenleuchten.

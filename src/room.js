@@ -22,6 +22,8 @@ import {
   FOG_MAX_OPACITY,
 } from "./room-constants.js";
 import { woodTexture, glossyWoodMaterial } from "./wood.js";
+import { wallWithDoorGeometry } from "./door.js";
+import { DOOR_OPENING_WIDTH, DOOR_CASING_WIDTH } from "./door-constants.js";
 
 /**
  * Three.js fog is fully opaque at `far`. Cap its strength at FOG_MAX_OPACITY so the far room
@@ -158,12 +160,13 @@ function roundedCorner(cx, cy, r, steps = 6) {
  * Paneling for one wall. `wall` is a group with its origin on the wall surface, +z into the room.
  * @param {THREE.Group} wall
  * @param {number} length — wall length
+ * @param {number} x — center of this piece along the wall (a wall with a door has two)
  */
-function addWainscot(wall, length, mats) {
+function addWainscot(wall, length, mats, x = 0) {
   const T = WAINSCOT_THICKNESS;
   const H = WAINSCOT_HEIGHT;
   const panel = new THREE.Mesh(new THREE.BoxGeometry(length, H, T), mats.panel(length));
-  panel.position.set(0, H / 2, T / 2);
+  panel.position.set(x, H / 2, T / 2);
   panel.castShadow = panel.receiveShadow = true;
 
   // Baseboard: stepped, rounded top edge
@@ -183,7 +186,8 @@ function addWainscot(wall, length, mats) {
   baseboard.rotation.y = -Math.PI / 2;
   const capRail = new THREE.Mesh(railGeometry(cap, length), mats.trim);
   capRail.rotation.y = -Math.PI / 2;
-  capRail.position.y = H;
+  capRail.position.set(x, H, 0);
+  baseboard.position.x = x;
   for (const m of [baseboard, capRail]) m.castShadow = m.receiveShadow = true;
   wall.add(panel, baseboard, capRail);
 }
@@ -226,6 +230,7 @@ export function createRoom(scene) {
   const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_LENGTH), ceilingMat);
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.y = ROOM_HEIGHT;
+  ceiling.receiveShadow = true;
   group.add(ceiling);
 
   // Paneling: panels repeat every WAINSCOT_PANEL_WIDTH along the wall
@@ -242,18 +247,27 @@ export function createRoom(scene) {
 
   // Walls (face inwards): ±z are the short walls, ±x the long walls. Each wall is a group with its
   // origin on the wall surface, +z into the room; the paneling sits on its lower part.
-  const addWall = (width, x, z, rotationY) => {
+  const addWall = (width, x, z, rotationY, withDoor = false) => {
     const wall = new THREE.Group();
     wall.position.set(x, 0, z);
     wall.rotation.y = rotationY;
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, ROOM_HEIGHT), wallMat);
-    plane.position.y = ROOM_HEIGHT / 2;
+    const plane = new THREE.Mesh(withDoor ? wallWithDoorGeometry(width, ROOM_HEIGHT) : new THREE.PlaneGeometry(width, ROOM_HEIGHT), wallMat);
+    if (!withDoor) plane.position.y = ROOM_HEIGHT / 2;
+    plane.receiveShadow = true; // the light of the foyer must not reach through the walls:
+    plane.castShadow = withDoor; // the door wall stops it, the others receive the shadow
     wall.add(plane);
-    addWainscot(wall, width, panelMats);
+    if (withDoor) {
+      // two pieces of paneling, ending at the trim of the door
+      const edge = DOOR_OPENING_WIDTH / 2 + DOOR_CASING_WIDTH;
+      const length = width / 2 - edge;
+      for (const side of [-1, 1]) addWainscot(wall, length, panelMats, side * (edge + length / 2));
+    } else {
+      addWainscot(wall, width, panelMats);
+    }
     group.add(wall);
   };
   addWall(ROOM_WIDTH, 0, -ROOM_LENGTH / 2, 0);
-  addWall(ROOM_WIDTH, 0, ROOM_LENGTH / 2, Math.PI);
+  addWall(ROOM_WIDTH, 0, ROOM_LENGTH / 2, Math.PI, true); // the door wall: behind the player at the start
   addWall(ROOM_LENGTH, -ROOM_WIDTH / 2, 0, Math.PI / 2);
   addWall(ROOM_LENGTH, ROOM_WIDTH / 2, 0, -Math.PI / 2);
 
