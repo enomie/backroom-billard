@@ -53,8 +53,10 @@ const FRAGMENT = /* glsl */ `
     float edge = 1.0 - smoothstep( 0.2, 0.95, length( p ) + ( n - 0.5 ) * 1.1 ); // ragged outline
     float body = mix( 0.55, 1.0, smoothstep( 0.2, 0.8, n2 ) );
     float near = smoothstep( 0.08, 0.4, distance( cameraPosition, vWorld ) ); // not a wall right in front of the eyes
+    float alpha = edge * body * near * uOpacity;
+    if ( alpha < 0.003 ) discard; // nothing to see here: skip the lighting
     vec3 color = uColor * smokeLight( vWorld ) * mix( 0.75, 1.0, vUv.y ); // lit by the lamps, a little darker at the bottom
-    gl_FragColor = vec4( color, edge * body * near * uOpacity );
+    gl_FragColor = vec4( color, alpha );
   }
 `;
 

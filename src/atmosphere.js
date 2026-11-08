@@ -53,7 +53,9 @@ const LAYER_FRAGMENT = /* glsl */ `
     float wisps = smoothstep( 0.36, 0.78, fbm( p ) );
     float d = distance( cameraPosition, vWorld );
     float fade = smoothstep( 0.5, 2.5, d ) * ( 1.0 - smoothstep( 12.0, 24.0, d ) ); // no hard edge close by or far away
-    gl_FragColor = vec4( uColor * smokeLight( vWorld ), wisps * fade * uOpacity );
+    float alpha = wisps * fade * uOpacity;
+    if ( alpha < 0.002 ) discard; // nothing to see here: skip the lighting
+    gl_FragColor = vec4( uColor * smokeLight( vWorld ), alpha );
   }
 `;
 

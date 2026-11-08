@@ -59,13 +59,19 @@ export function setPannerPosition(panner, [x, y, z]) {
   }
 }
 
-/** The listener (ears) follows the camera. Call once per frame. */
+const lastListener = new Float32Array(16).fill(NaN);
+
+/** The listener (ears) follows the camera. Call once per frame; the audio parameters are set only when the camera moved. */
 export function updateAudioListener(camera) {
   if (!ctx) return;
   const l = ctx.listener;
   if (!l.positionX) return;
   camera.updateMatrixWorld();
   const e = camera.matrixWorld.elements;
+  let same = true;
+  for (let i = 0; i < 15 && same; i++) same = e[i] === lastListener[i]; // rotation and position
+  if (same) return;
+  lastListener.set(e);
   // the camera looks along its local −z, up is its local +y
   l.positionX.value = e[12];
   l.positionY.value = e[13];

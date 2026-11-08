@@ -50,7 +50,9 @@ const FRAGMENT = /* glsl */ `
     float wisp = smoothstep( 0.32, 0.72, n );
     float fadeIn = smoothstep( 0.0, 0.08, h );
     float fadeOut = 1.0 - smoothstep( 0.4, 1.0, h );
-    gl_FragColor = vec4( uColor * smokeLight( vWorld ), across * wisp * fadeIn * fadeOut * uOpacity );
+    float alpha = across * wisp * fadeIn * fadeOut * uOpacity;
+    if ( alpha < 0.003 ) discard; // nothing to see here: skip the lighting
+    gl_FragColor = vec4( uColor * smokeLight( vWorld ), alpha );
     #include <fog_fragment>
   }
 `;

@@ -183,6 +183,25 @@ let candles = null; // candle holders on the tables (candle.js)
 let furnitureKeepOut = []; // circles the free camera stays out of (furniture.js)
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
+/** Physics steps still to run after something was put on the table (new rack, re-spotted ball); everything at rest needs no steps. */
+let physicsAwake = 0;
+const PHYSICS_AWAKE_STEPS = 120;
+const noRolling = [];
+
+/** HUD elements that change every frame, looked up once; they are written only when the value changes. */
+const hud = {
+  markerBody: { element: null, value: NaN },
+  markerNicotine: { element: null, value: NaN },
+  packCountElement: null,
+  packCount: -1,
+};
+function setMarker(marker, percent) {
+  marker.element ??= document.getElementById(marker === hud.markerBody ? "marker-body" : "marker-nicotine");
+  const rounded = Math.round(percent * 20) / 20; // 0.05 % steps are far below a pixel
+  if (rounded === marker.value) return;
+  marker.value = rounded;
+  marker.element.style.left = rounded + "%";
+}
 
 /* ====================================================
    2. THREE.JS SCENE & ATMOSPHERE
@@ -212,6 +231,7 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.autoUpdate = false; // the shadow maps are redrawn only when a shadow caster moved (see updateShadows)
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
   container.appendChild(renderer.domElement);
@@ -331,6 +351,7 @@ function setupLightingAndRoom() {
    3. GLOSSY BALLS WITH REFLECTIONS
 ==================================================== */
 function setupBalls() {
+  physicsAwake = PHYSICS_AWAKE_STEPS; // the new balls settle on the cloth
   if (cueRespawnTimer) {
     clearTimeout(cueRespawnTimer);
     cueRespawnTimer = null;
@@ -988,12 +1009,15 @@ function toggleCamera() {
 }
 
 /** Move and rotate the free camera: WASD, space = up, shift = down, mouse look. */
+const _freeForward = new THREE.Vector3();
+const _freeRight = new THREE.Vector3();
+const _freeMove = new THREE.Vector3();
 function updateFreeCamera(dt) {
   camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
 
-  const forward = new THREE.Vector3(-Math.sin(freeYaw), 0, -Math.cos(freeYaw));
-  const right = new THREE.Vector3(Math.cos(freeYaw), 0, -Math.sin(freeYaw));
-  const move = new THREE.Vector3();
+  const forward = _freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw));
+  const right = _freeRight.set(Math.cos(freeYaw), 0, -Math.sin(freeYaw));
+  const move = _freeMove.set(0, 0, 0);
   if (heldKeys.has("KeyW")) move.add(forward);
   if (heldKeys.has("KeyS")) move.sub(forward);
   if (heldKeys.has("KeyD")) move.add(right);
@@ -1132,6 +1156,7 @@ function onBallPocketed(b, pocketId) {
     b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     b.inPocket = false;
+    physicsAwake = PHYSICS_AWAKE_STEPS; // the ball settles on the cloth
   }, 600);
 }
 
@@ -1167,18 +1192,25 @@ function rememberVelocity(b) {
  * already touch, so a shock travelling through them would be silent. Instead: two touching balls
  * that were approaching each other before the step and are separating/stopped after it hit.
  */
+const impactPositions = new Float64Array(3 * 32);
 function detectBallImpacts() {
   const touch = 2 * BALL_R + BALL_TOUCH_DISTANCE;
+  const pos = impactPositions;
+  // every ball position is read from the physics world once per step (not once per pair)
+  for (let i = 0; i < balls.length; i++) {
+    const t = balls[i].body.translation();
+    pos[3 * i] = t.x;
+    pos[3 * i + 1] = t.y;
+    pos[3 * i + 2] = t.z;
+  }
   for (let i = 0; i < balls.length; i++) {
     const a = balls[i];
     if (a.inPocket) continue;
-    const pa = a.body.translation();
     for (let j = i + 1; j < balls.length; j++) {
       const b = balls[j];
       if (b.inPocket) continue;
-      const pb = b.body.translation();
-      const dx = pb.x - pa.x;
-      const dz = pb.z - pa.z;
+      const dx = pos[3 * j] - pos[3 * i];
+      const dz = pos[3 * j + 2] - pos[3 * i + 2];
       if (dx * dx + dz * dz > touch * touch) continue;
       const d = Math.hypot(dx, dz) || 1;
       const nx = dx / d;
@@ -1188,7 +1220,11 @@ function detectBallImpacts() {
       const closingBefore = (a.preVel.x - b.preVel.x) * nx + (a.preVel.z - b.preVel.z) * nz;
       const closingAfter = (va.x - vb.x) * nx + (va.z - vb.z) * nz;
       if (closingBefore > 0 && closingAfter < closingBefore * 0.5) {
-        playBallHitSound(closingBefore, `b${a.id}-${b.id}`, [(pa.x + pb.x) / 2, (pa.y + pb.y) / 2, (pa.z + pb.z) / 2]);
+        playBallHitSound(closingBefore, `b${a.id}-${b.id}`, [
+          (pos[3 * i] + pos[3 * j]) / 2,
+          (pos[3 * i + 1] + pos[3 * j + 1]) / 2,
+          (pos[3 * i + 2] + pos[3 * j + 2]) / 2,
+        ]);
       }
     }
   }
@@ -1205,6 +1241,12 @@ function velocityChange(b) {
  * @param {number} frameDt — frame time in seconds
  */
 function stepPhysics(frameDt) {
+  // Everything lies still: nothing can change, so the physics world is not stepped at all
+  if (!stroke && !isCueMoving && pendingRemoval.length === 0 && physicsAwake <= 0) {
+    physicsAcc = 0;
+    updateRollingSound(noRolling);
+    return;
+  }
   physicsAcc += frameDt;
   let steps = 0;
   while (physicsAcc >= PHYSICS_STEP && steps < 16) {
@@ -1248,6 +1290,7 @@ function stepPhysics(frameDt) {
     }
     physicsAcc -= PHYSICS_STEP;
     steps++;
+    if (physicsAwake > 0) physicsAwake--;
   }
   physics.world.timestep = PHYSICS_STEP;
   if (steps === 16) physicsAcc = 0; // do not catch up after a long stall
@@ -1271,7 +1314,7 @@ function stepPhysics(frameDt) {
       continue;
     }
 
-    const lin = b.body.linvel();
+    const lin = b.vel; // read from the body by syncBallFromBody just above
     const ang = b.body.angvel();
     const speed = Math.hypot(lin.x, lin.y, lin.z);
     const surface = Math.hypot(ang.x, ang.y, ang.z) * BALL_R;
@@ -1331,10 +1374,14 @@ function gameLoop(currentTime) {
   // The player's condition: time passes, the cue and aim line sway, the bars move
   playerState.update(dt);
   aimSway = playerState.sway(performance.now() / 1000);
-  document.getElementById("marker-body").style.left = 50 + playerState.body * 50 + "%";
-  document.getElementById("marker-nicotine").style.left = 50 + playerState.nicotine * 50 + "%";
+  setMarker(hud.markerBody, 50 + playerState.body * 50);
+  setMarker(hud.markerNicotine, 50 + playerState.nicotine * 50);
 
-  document.getElementById("pack-count").textContent = packs.packs[camera.position.z < 0 ? 0 : 1].count;
+  const packCount = packs.packs[camera.position.z < 0 ? 0 : 1].count;
+  if (packCount !== hud.packCount) {
+    hud.packCount = packCount;
+    (hud.packCountElement ??= document.getElementById("pack-count")).textContent = packCount;
+  }
 
   // Cue positioning & distance adjusted to the selected power
   if (cueBall && cueStickPivot) {
@@ -1385,7 +1432,38 @@ function gameLoop(currentTime) {
     poseCue(cueGap);
   }
 
+  updateShadows(frameSeconds);
   renderer.render(scene, camera);
+}
+
+/**
+ * The shadow maps of the lamps are redrawn only when something that casts a shadow has moved:
+ * the balls, the cue, the cigarettes, the lighters and the radio (all else stands still). A
+ * pose "fingerprint" of these objects is compared with the one of the last frame; in addition
+ * the maps are refreshed twice per second (slow changes such as a burning cigarette).
+ */
+let shadowFingerprint = [NaN, NaN];
+let shadowAge = 0;
+function addPose(object, sums, deep = true) {
+  const p = object.position;
+  const q = object.quaternion;
+  sums[0] += p.x * 1.13 + p.y * 2.31 + p.z * 3.77 + q.x * 5.9 + q.y * 7.1 + q.z * 11.3 + q.w * 13.7;
+  sums[1] += p.x * 17.3 - p.y * 19.1 + p.z * 23.7 - q.x * 29.3 + q.y * 31.7 - q.z * 37.9 + q.w * 41.3;
+  if (deep) for (const child of object.children) if (child.isMesh || child.isGroup) addPose(child, sums);
+}
+function updateShadows(dt) {
+  const sums = [0, 0];
+  for (const b of balls) addPose(b.mesh, sums);
+  addPose(cueStickPivot, sums);
+  for (const child of cigarettes.group.children) if (child.isGroup) addPose(child, sums, false); // only where it lies, not how far it has burnt
+  for (const lighter of lighters.lighters) addPose(lighter.group, sums);
+  addPose(radio.group, sums);
+  shadowAge += dt;
+  if (sums[0] !== shadowFingerprint[0] || sums[1] !== shadowFingerprint[1] || shadowAge > 0.5) {
+    shadowFingerprint = sums;
+    shadowAge = 0;
+    renderer.shadowMap.needsUpdate = true;
+  }
 }
 
 function scheduleInit() {

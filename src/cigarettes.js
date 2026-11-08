@@ -201,6 +201,7 @@ export function createCigarettes(scene, ashtraySlots) {
   const falling = new Set();
   const _axis = new THREE.Vector3();
   const _q = new THREE.Quaternion();
+  const _tip = new THREE.Vector3();
 
   /** Let go of cigarette `c` where it is: it falls with `velocity` and `spin` until it lies in the dish. */
   function startFall(c, velocity, spin) {
@@ -328,7 +329,7 @@ export function createCigarettes(scene, ashtraySlots) {
           c.smoke.visible = c.burn < 1;
           if (c.smoke.visible) {
             c.root.updateMatrixWorld();
-            c.smoke.position.copy(c.root.localToWorld(new THREE.Vector3(c.tipX + 0.004, 0, 0)));
+            c.smoke.position.copy(c.root.localToWorld(_tip.set(c.tipX + 0.004, 0, 0)));
             faceCamera(c.smoke, camera);
             c.smoke.material.uniforms.uTime.value = time;
             c.smoke.material.uniforms.uOpacity.value = SMOKE_OPACITY * (1 - 0.6 * c.drawGlow); // the smoke is drawn in, not rising
