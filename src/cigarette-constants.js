@@ -1,3 +1,5 @@
+import { AIR_SMOKE_COLOR } from "./room-constants.js";
+
 /**
  * Single cigarettes (meters, seconds). See _docs/cigarettes.md.
  */
@@ -36,7 +38,7 @@ export const CIGARETTE_SEED = 41;
 export const SMOKE_WIDTH = 0.05;
 export const SMOKE_HEIGHT = 0.4;
 export const SMOKE_OPACITY = 0.45;
-export const SMOKE_COLOR = 0x8c8c94;
+export const SMOKE_COLOR = AIR_SMOKE_COLOR;
 
 /* ---- Pack: flip-top box with 20 cigarettes (7 – 6 – 7, filters up) ---- */
 export const PACK_WIDTH = 0.058;
@@ -74,7 +76,7 @@ export const EXHALE_SIZE_END = 0.75;
 export const EXHALE_LIFE_MIN = 5;
 export const EXHALE_LIFE_MAX = 8;
 export const EXHALE_OPACITY = 0.4;
-export const EXHALE_COLOR = 0x9a9aa2;
+export const EXHALE_COLOR = AIR_SMOKE_COLOR;
 /** The mouth: this far in front of and below the camera (m). */
 export const EXHALE_MOUTH_FORWARD = 0.35;
 export const EXHALE_MOUTH_DOWN = 0.12;
