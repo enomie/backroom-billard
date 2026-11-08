@@ -8,6 +8,7 @@ import { t, onLanguageChange } from "./i18n/index.js";
 import { woodTexture } from "./wood.js";
 import { receiveWallLampsDeep } from "./wall-lamp-light.js";
 import { RadioAudio } from "./radio-audio.js";
+import { onAudioUnlock } from "./audio.js";
 import { RadioMetadata } from "./radio-metadata.js";
 import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
 import {
@@ -358,10 +359,8 @@ export function createRadio(scene) {
   redraw();
   onLanguageChange(redraw);
 
-  // The first click/key anywhere allows sound (browser autoplay policy)
-  const unlock = () => audio.unlock();
-  window.addEventListener("pointerdown", unlock, { once: true });
-  window.addEventListener("keydown", unlock, { once: true });
+  // The click on the start screen allows sound (browser autoplay policy); it starts the radio
+  onAudioUnlock(() => audio.unlock());
   switchOn(true);
 
   const raycaster = new THREE.Raycaster();

@@ -14,6 +14,27 @@ let ctx = null;
 let master = null;
 
 /**
+ * Sound is allowed once the player has confirmed on the start screen: that click is the gesture the
+ * browsers want. The radio starts from it (and not from any other key or click).
+ */
+let unlocked = false;
+const unlockListeners = new Set();
+
+/** Call from the click on the start screen's button. */
+export function unlockAudio() {
+  unlocked = true;
+  getAudioContext(); // created and woken up inside the gesture
+  unlockListeners.forEach((fn) => fn());
+  unlockListeners.clear();
+}
+
+/** Run `fn` when the sound is unlocked (at once if it already is). */
+export function onAudioUnlock(fn) {
+  if (unlocked) fn();
+  else unlockListeners.add(fn);
+}
+
+/**
  * The audio context, created lazily (browsers only allow sound after a user gesture) and resumed
  * when suspended. Returns null if Web Audio is not available.
  * @returns {AudioContext | null}

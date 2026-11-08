@@ -1,8 +1,10 @@
 /**
  * The start screen: the maker, the title and the age confirmation, bare on a dark page. It is in
  * index.html and visible from the first moment, while the game loads behind it. The click on the
- * button is the first gesture of the visit (from then on the radio may play). See README.md.
+ * button allows the sound (audio.js) and with it the radio. See README.md.
  */
+import { unlockAudio } from "./audio.js";
+
 let open = true;
 
 /** True while the start screen is up: the game keys do nothing. */
@@ -15,6 +17,7 @@ export function waitForConfirmation() {
     button.addEventListener(
       "click",
       () => {
+        unlockAudio(); // the click allows sound and starts the radio
         button.disabled = true; // the game may still be loading: wait quietly
         resolve();
       },

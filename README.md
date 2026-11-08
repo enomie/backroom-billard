@@ -17,7 +17,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 ## Startscreen
 
-Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: **Bad Habits Games**, darunter **PRESENT**, der Titel in Limelight und der Knopf **Confirm Age 18+** (deutsch „Alter bestätigen 18+“; die Sprache kommt aus der gespeicherten Wahl, sonst aus dem Browser, sonst Englisch). Es gibt bewusst keinen „Verlassen“-Knopf, das kann der Browser. Das Spiel lädt im Hintergrund; sobald es bereit ist **und** das Alter bestätigt wurde, blendet der Screen aus. Der Klick ist die erste Eingabe des Besuchs, ab dann darf das Radio spielen. Solange der Screen steht, tun die Spieltasten nichts. Code: `src/start-screen.js`, Markup in `index.html`, `src/entry.js` verbindet Laden und Bestätigung.
+Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: **Bad Habits Games**, darunter **PRESENT**, der Titel in Limelight und der Knopf **Confirm Age 18+** (deutsch „Alter bestätigen 18+“; die Sprache kommt aus der gespeicherten Wahl, sonst aus dem Browser, sonst Englisch). Es gibt bewusst keinen „Verlassen“-Knopf, das kann der Browser. Das Spiel lädt im Hintergrund; sobald es bereit ist **und** das Alter bestätigt wurde, blendet der Screen aus. **Der Klick auf den Knopf schaltet den Ton frei und startet das Radio** (kein anderer Tastendruck tut das); das Alter wird bei jedem Besuch neu gefragt. Solange der Screen steht, tun die Spieltasten nichts. Code: `src/start-screen.js`, Markup in `index.html`, `src/entry.js` verbindet Laden und Bestätigung.
 
 ## Steuerung
 

@@ -25,7 +25,7 @@ Das Sideboard steht an der **+x-Wand** (lange Seite), in Höhe der Tischmitte (`
 ## Bedienung
 
 - **Ein/Aus:** den rechten Knopf anklicken, aus höchstens 6 m Abstand (mit der freien Kamera `C`). Ein Klick auf den Knopf löst keinen Stoß aus.
-- **Erster Klick:** Browser erlauben Ton erst nach einer Nutzeraktion. Das Radio ist von Anfang an „an“, die Skala zeigt bis zum ersten Klick oder Tastendruck **KLICK ZUM STARTEN**.
+- **Start:** Browser erlauben Ton erst nach einer Nutzeraktion. Das ist der Klick auf **Confirm Age 18+** im Startscreen: Er schaltet den Ton frei (`unlockAudio` in `audio.js`) und startet das Radio. Ein anderer Tastendruck oder Klick startet es nicht. Das Radio ist von Anfang an „an“, die Skala zeigt bis zur Bestätigung **KLICK ZUM STARTEN**.
 
 ## Display
 
