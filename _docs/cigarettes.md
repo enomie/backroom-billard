@@ -58,6 +58,8 @@ Die ursprünglichen Vorgaben:
 - **Halten von `T`:** Die glimmende Zigarette aus dem Aschenbecher des Spielers (auf dem Rahmen des Billardtisches, die nächste zur Kamera) **fliegt in einem kleinen Bogen zum Mund** (0,45 s): vor und etwas unterhalb der Kamera, leicht nach rechts, Spitze nach vorn. Dort bleibt sie und folgt der Kamera. Die Glut leuchtet immer heller (voll nach 1,5 s), der Rauchfaden wird schwächer, und die Zigarette brennt schneller herunter.
 - **Ton beim Ziehen:** ein weiches Einatmen, das lauter und heller wird, solange man hält (3 s bis zum Maximum), dazu das Knistern der Glut.
 - **Loslassen:** Die Zigarette fliegt in ihre Kerbe zurück (0,5 s), und der Spieler **atmet aus**. Je länger gehalten (bis 3 s), desto mehr Rauch: 5 bis 36 Rauchballen, schneller und dichter, über 0,5 bis 1,6 s; der Ausatem-Ton wird länger (0,7 bis 2,6 s) und lauter. Ein kurzes Antippen gibt ein kleines Wölkchen.
+- **Brennt beim Ziehen ab:** Ja. Beim Ziehen brennt die Zigarette 12-mal schneller herunter (ein voller 3-Sekunden-Zug verbraucht etwa 8 %, `SMOKING_BURN_FACTOR`), die Papierlänge schrumpft sichtbar und die Asche wächst.
+- **Abgebrannt:** Ist sie beim Ziehen aufgebraucht, endet der Zug von selbst (mit Ausatmen), die Zigarette fliegt über den Aschenbecher und **fällt aus 10 cm Höhe hinein** (`SMOKING_DROP_*`): Schwerkraft, ein paar Aufschläge mit Dämpfung (35 %), sie dreht sich dabei und legt sich flach auf den Schalenboden, wo sie als Stummel liegen bleibt. Der Fall rechnet in festen Schritten, ist also bei jeder Bildrate gleich.
 - Ohne glimmende Zigarette im Spieler-Aschenbecher (heruntergebrannt) passiert nichts. Es gibt noch kein Nachlegen.
 
 Die ursprünglichen Vorgaben:

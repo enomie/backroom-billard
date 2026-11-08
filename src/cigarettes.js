@@ -105,7 +105,7 @@ export function createCigarettes(scene, ashtraySlots) {
   const ashMat = new THREE.MeshStandardMaterial({ color: CIGARETTE_COLOR_ASH, roughness: 1 });
   const glowMap = glowTexture();
 
-  /** @type {{ root: THREE.Group, onFrame: boolean, rest: { position: THREE.Vector3, quaternion: THREE.Quaternion }, drawGlow: number, smoke: THREE.Mesh | null, tipX: number, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
+  /** @type {{ root: THREE.Group, onFrame: boolean, slot: object, rest: { position: THREE.Vector3, quaternion: THREE.Quaternion }, drawGlow: number, smoke: THREE.Mesh | null, tipX: number, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
   const cigarettes = [];
 
   function add(slot, notch, state) {
@@ -138,6 +138,7 @@ export function createCigarettes(scene, ashtraySlots) {
     const c = {
       root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow, smoke, tipX: 0,
       onFrame: slot.onFrame,
+      slot, // the ashtray it belongs to
       rest: { position: root.position.clone(), quaternion: root.quaternion.clone() }, // where it lies in the ashtray
       drawGlow: 0, // 0…1: the ember glows brighter while the player draws on it
     };
