@@ -1,6 +1,6 @@
 # Spielkonzept — Ideen
 
-> **Status: nur Ideen.** Nichts davon ist umgesetzt oder eingeplant. Umgesetzt wird erst, wenn es ausdrücklich beauftragt wird.
+> **Status: Ideen, teilweise umgesetzt** (siehe „Durst, Betrunkenheit und Desire“ und „Tasten und Bedienknöpfe“). Alles andere ist nicht umgesetzt oder eingeplant und wird erst gebaut, wenn es ausdrücklich beauftragt wird.
 
 ## Grundidee
 
@@ -55,7 +55,8 @@ Zwei Balken am oberen Rand in der Mitte, jeder mit einem **Marker, der sich zwis
 - **Trinken:** Jedes Getränk hat **5 Schlucke**, dann ist das Glas leer (der Füllstand sinkt mit jedem Schluck um ein Fünftel). Man kann **nicht zu viel trinken**: es gibt keine Sperre und kein Game Over, man wird nur **ungenauer**, je weiter der Marker Richtung „Drunk“ wandert.
 - **Rauchen:** Jede Zigarette hat **5 kleine Züge** (je Zug etwa ein Fünftel). Man kann aber auch **die ganze Zigarette auf einmal rauchen**, indem man den Zug lange hält (siehe `cigarettes.md`).
 - **Was zählt:** Wichtig sind die Dinge, die **am Billardtisch** liegen (die Getränke und Zigaretten der Spieler). Die Gegenstände auf den Tischen im Raum bleiben unverändert.
-- Umgesetzt sind dafür bisher nur die Gegenstände: Gläser und Flaschen (`glass-objects.md`) und Zigaretten mit Ziehen (`cigarettes.md`). Das Trinken selbst (Glas nehmen, Schluck, Bewegung), die Balken und alle Werte sind offen.
+- **Umgesetzt** (`player-state.js`, Werte in `player-constants.js`): die zwei Balken oben in der Mitte mit den Tasten-Knöpfen **R Drink** und **T Smoke**, das Trinken (`R`, je Druck ein Schluck des nächsten Spielerglases, Glas fliegt zum Mund und kippt, Füllstand sinkt, `drinking.js`) und das Rauchen (`T`, der Nikotin-Marker bewegt sich während des Ziehens). Die Marker wandern von selbst (Durst 0,003/s nach links, Verlangen 0,004/s nach rechts); ein Schluck schiebt Balken 1 um 0,22, ein Zug Balken 2 um 0,1 je Sekunde. **Calm-Zone** ±0,12: dort keine Wirkung.
+- **Wirkung auf das Zielen** (nur Cue und Zielhilfe schwanken, die Kamera bleibt ruhig; größter Ausschlag 0,05 rad ≈ 3°): *Nerves* schnelles kleines Zittern, *Desire* langsames großes Schwanken, *Thirsty* mittleres, unregelmäßiges Schwanken, *Drunk* sehr langsames, großes Schwanken; beim Stoß kommt bei *Drunk* noch ein zufälliger Fehler dazu (bis 0,04 rad). Die Stoßrichtung ist die, in die Cue und Zielhilfe im Moment des Stoßes zeigen.
 
 ## Tasten und Bedienknöpfe (HUD)
 
@@ -65,14 +66,13 @@ Zwei Balken am oberen Rand in der Mitte, jeder mit einem **Marker, der sich zwis
 - **Zuordnung:** Balken 1 (Thirsty – Drunk) gehört zu `R`, Balken 2 (Nerves – Desire) zu `T`.
 - **Kamera-Knopf:** größer als heute, links ein großes `C`, rechts **zweizeilig** der aktuelle Modus: **„Player / Camera“** oder **„Free / Camera“**. Die Texte laufen durch `src/i18n` (heute „Cue view“ und „Free camera“).
 - **Tastenkonflikt gelöst:** „Neu aufbauen“ (Re-rack) liegt jetzt auf **`N`** (und dem Knopf oben rechts), `R` ist frei für das Trinken.
-- **Umgesetzt:** der große Kamera-Knopf (`C`, zweizeilig „Player / Free Camera“) und der Knopf **„Smoke“ (`T`)** unten links, beide im Stil des Shoot-Knopfes. Die Knöpfe bei den Balken und für `R` (Trinken) kommen mit den Balken und dem Trinken.
+- **Umgesetzt:** der große Kamera-Knopf (`C`, zweizeilig „Player / Free Camera“) unten links und die Knöpfe **R Drink** und **T Smoke** neben den Balken, alle im Stil des Shoot-Knopfes. R ist ein Druck pro Schluck, T bleibt gedrückt (halten = stärker ziehen).
 
 ## Offene Punkte (noch nicht entschieden)
 
 - Deutsche Beschriftung der Enden (Durstig / Betrunken, Nervös / Desire?); die englischen Namen stehen fest.
-- Wie unterscheidet sich die Wirkung der vier Enden (Thirsty, Drunk, Nerves, Desire) genau auf das Zielen?
-- Wie schnell steigen und sinken die Werte, und wie stark wirken sie auf das Zielen?
-- Wie trinkt man: Glas vom Rahmen des Billardtisches nehmen wie bei der Zigarette (Taste halten, je Tastendruck ein Schluck)? Gibt es danach Nachschub (neues Getränk)?
+- Feintuning der Werte (Geschwindigkeit der Marker, Stärke der Wirkung) nach dem Spielen.
+- Gibt es Nachschub, wenn ein Glas leer ist (neues Getränk)? Heute bleibt es leer, und die Zigarette im Aschenbecher brennt irgendwann ab.
 
 - Was passiert mit den Einsätzen der Verlierer der Wette?
 - Was passiert, wenn niemand bietet oder zwei Gebote gleich hoch sind?

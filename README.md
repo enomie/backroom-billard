@@ -20,11 +20,13 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Stoß | Klick, Leertaste oder der SHOOT-Button unten in der Mitte |
 | Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
+| Trinken: ein Schluck (5 pro Getränk) | `R` oder der Knopf „Drink“ neben dem oberen Balken |
 | Neu aufbauen | `N` oder der Knopf „Re-rack“ oben rechts |
 | Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` halten oder den Knopf „Smoke“ unten links gedrückt halten (Maus oder Touch) |
 
 ## Regeln
 
+- **Zustand:** Zwei Balken oben in der Mitte (Thirsty ↔ Drunk, Nerves ↔ Desire). Mit der Zeit wird man durstig und will rauchen; trinken und rauchen schieben die Marker. In der Mitte ist man ruhig, sonst schwankt der Cue (und wer betrunken ist, trifft ungenauer). Siehe `_docs/game-concept.md`.
 - Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
 - Ein Stoß ist eine Animation: Der Cue wird zurückgezogen und schnalzt nach vorn; die Kugel bekommt ihre Geschwindigkeit durch die echte Kollision der Cue-Spitze.
@@ -53,6 +55,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `ashtray.js`, `ashtray-constants.js` | Glas-Aschenbecher auf Tischen und am Billardtisch |
 | `glasses.js`, `glasses-constants.js` | Wein-, Bier- und Whiskeyglas mit Getränk auf Tischen und am Billardtisch |
 | `bottles.js`, `bottles-constants.js` | Wein- und Bierflaschen auf den Tischen |
+| `player-state.js`, `player-constants.js`, `drinking.js`, `drink-sounds.js` | Zustand des Spielers (die zwei Balken), Trinken |
 | `cigarette-pack.js` | Klappschachtel mit 20 Zigaretten auf Tischen und Billardtisch |
 | `cigarettes.js`, `cigarette-constants.js`, `smoke.js`, `exhale.js`, `smoking.js`, `smoke-sounds.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |

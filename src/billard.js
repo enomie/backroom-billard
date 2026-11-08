@@ -25,6 +25,8 @@ import { createCigarettePacks } from "./cigarette-pack.js";
 import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
+import { createDrinking } from "./drinking.js";
+import { createPlayerState } from "./player-state.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -116,6 +118,7 @@ const pocketSpecs = createPocketSpecs(tableDimensions);
 // State
 let cameraMode = "fps"; // 'fps' (cue view) or 'free' (free fly camera)
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
+let aimSway = 0; // the swing of the cue and aim line from the player's condition (rad, player-state.js)
 let aimElevation = FP_CAM_DEFAULT_ELEVATION; // camera elevation above the table (rad)
 const camFocus = new THREE.Vector3(); // orbit center of the cue camera (the shot position)
 let selectedPower = 0.4; // 0.10 to 1.0 (default: gentle 40%)
@@ -161,6 +164,8 @@ const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
 let exhale = null; // exhaled smoke cloud (exhale.js)
+let drinking = null; // sips from the player glasses with the R key (drinking.js)
+const playerState = createPlayerState(); // thirst / drunk and nerves / desire (player-state.js)
 let smoking = null; // drawing on the player's cigarette with the T key (smoking.js)
 let atmosphere = null; // drifting fog and light shafts (atmosphere.js)
 let cigarettes = null; // single cigarettes in the ashtrays (cigarettes.js)
@@ -241,9 +246,10 @@ function init() {
   candles.applyReflection(ballReflection);
   ashtrays.applyReflection(ballReflection);
   exhale = createExhale(scene);
-  smoking = createSmoking(cigarettes, exhale);
+  smoking = createSmoking(cigarettes, exhale, (dt) => playerState.drag(dt));
   atmosphere = createAtmosphere(scene); // after the capture, so the balls do not reflect the haze
   glasses.applyReflection(ballReflection);
+  drinking = createDrinking(glasses, () => playerState.sip());
   bottles.applyReflection(ballReflection);
 
   // 2.6 Initialize balls
@@ -534,7 +540,7 @@ function startCueStroke() {
   stroke = {
     phase: "back",
     t: 0,
-    aimAngle,
+    aimAngle: aimAngle + aimSway + playerState.shotError(), // what the player aims at plus a drunk shot's error
     pitch,
     ballPos: { x: t.x, y: t.y, z: t.z },
     backGap,
@@ -546,7 +552,8 @@ function startCueStroke() {
     gap: CUE_AIM_GAP,
     strength: f,
   };
-  playDrawBackSound(f, stroke.tBack, shotSoundPositions(aimAngle)); // hand sliding on the shaft + inhale
+  cueStickPivot.rotation.y = stroke.aimAngle; // the cue points where the shot goes
+  playDrawBackSound(f, stroke.tBack, shotSoundPositions(stroke.aimAngle)); // hand sliding on the shaft + inhale
 }
 
 /** Cue elevation for the current camera elevation: slightly below the line of sight. */
@@ -799,6 +806,10 @@ function setupControls() {
       smoking.press(camera); // hold T: draw on the cigarette, release: exhale
       return;
     }
+    if (e.code === "KeyR" && !e.repeat) {
+      drinking.press(camera); // R = take a sip
+      return;
+    }
     if (e.code === "KeyN" && !e.repeat) {
       setupBalls(); // N = new rack (R is for drinking)
       return;
@@ -868,6 +879,12 @@ function setupControls() {
 
   // Header Buttons
   document.getElementById("btn-camera").addEventListener("click", toggleCamera);
+
+  // Drink button: pressing it is the same as pressing R
+  document.getElementById("btn-drink").addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    drinking.press(camera);
+  });
 
   // Smoke button: pressing and holding it is the same as holding T
   const smokeButton = document.getElementById("btn-smoke");
@@ -1293,12 +1310,18 @@ function gameLoop(currentTime) {
     aimAngle += turn * FP_CAM_KEY_TURN_SPEED * dt;
   }
 
+  // The player's condition: time passes, the cue and aim line sway, the bars move
+  playerState.update(dt);
+  aimSway = playerState.sway(performance.now() / 1000);
+  document.getElementById("marker-body").style.left = 50 + playerState.body * 50 + "%";
+  document.getElementById("marker-nicotine").style.left = 50 + playerState.nicotine * 50 + "%";
+
   // Cue positioning & distance adjusted to the selected power
   if (cueBall && cueStickPivot) {
     // After the shot the cue stays where it struck; it returns once the table is still
     if (!shotInProgress) {
       cueStickPivot.position.set(cueBall.pos.x, cueBall.pos.y, cueBall.pos.z);
-      cueStickPivot.rotation.y = aimAngle;
+      cueStickPivot.rotation.y = aimAngle + aimSway;
     }
     cueStickPivot.visible = true; // also visible with the free camera (carried)
 
@@ -1313,7 +1336,7 @@ function gameLoop(currentTime) {
         cueBall.pos.y - BALL_R + 0.002,
         cueBall.pos.z
       );
-      aimLine.rotation.y = aimAngle;
+      aimLine.rotation.y = aimAngle + aimSway;
     }
   }
 
@@ -1330,6 +1353,8 @@ function gameLoop(currentTime) {
   if (atmosphere) atmosphere.update(frameSeconds);
   if (exhale) exhale.update(frameSeconds, camera);
   if (candles) candles.update(frameSeconds, camera);
+  if (drinking) drinking.update(frameSeconds, camera);
+  if (glasses) glasses.update(frameSeconds);
   if (smoking) smoking.update(frameSeconds, camera); // before the cigarettes: the smoke follows the ember
   if (cigarettes) cigarettes.update(dt, camera);
   if (radio) radio.update(frameSeconds, camera);

@@ -40,6 +40,8 @@ import {
   GLASSES_WHISKEY_SHARE,
   GLASSES_RED_SHARE,
   GLASSES_FRAME_Z,
+  DRINK_SIPS,
+  BEER_FOAM_DECAY_SECONDS,
 } from "./glasses-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
 
@@ -69,15 +71,17 @@ function wineGlassGeometry() {
   return lathe([...outer, ...inner], 64);
 }
 
-function wineLiquidGeometry() {
+/** Wine in the bowl; `share` (0…1) of the full amount. */
+function wineLiquidGeometry(share = 1) {
   const y0 = WINE_GLASS_STEM_HEIGHT;
+  const fill = WINE_FILL * Math.max(share, 0.01);
   const pts = [[0, y0 + 0.004]];
   const n = 10;
   for (let i = 0; i <= n; i++) {
-    const t = (i / n) * WINE_FILL;
+    const t = (i / n) * fill;
     pts.push([Math.max(0.0005, bowlRadius(t) - GLASS_WALL - 0.0003), y0 + t * WINE_BOWL_HEIGHT + 0.004 * (1 - t)]);
   }
-  pts.push([0, y0 + WINE_FILL * WINE_BOWL_HEIGHT + 0.004 * (1 - WINE_FILL)]);
+  pts.push([0, y0 + fill * WINE_BOWL_HEIGHT + 0.004 * (1 - fill)]);
   return lathe(pts, 48);
 }
 
@@ -99,15 +103,27 @@ const beerShape = taperedGlass({ height: BEER_GLASS_HEIGHT, rBottom: BEER_GLASS_
 const whiskeyShape = taperedGlass({ height: WHISKEY_GLASS_HEIGHT, rBottom: WHISKEY_GLASS_RADIUS_BOTTOM, rTop: WHISKEY_GLASS_RADIUS_TOP, base: WHISKEY_GLASS_BASE });
 const beerInnerRadius = beerShape.inner;
 
-/** Foam head: sits on the beer, reaches the rim and domes slightly above it. */
-function beerFoamGeometry() {
-  const top = BEER_LEVEL + BEER_FOAM_HEIGHT;
-  const r = (y) => beerInnerRadius(Math.min(y, BEER_GLASS_HEIGHT)) - 0.0004;
-  const pts = [[0, BEER_LEVEL - 0.001], [r(BEER_LEVEL), BEER_LEVEL - 0.001], [r(BEER_LEVEL), BEER_LEVEL], [r(BEER_GLASS_HEIGHT), BEER_GLASS_HEIGHT - 0.004]];
+/** Height of the beer / whiskey surface for a share (0…1) of the full amount. */
+const beerLevel = (share) => BEER_GLASS_BASE + (BEER_LEVEL - BEER_GLASS_BASE) * share;
+const whiskeyLevel = (share) => WHISKEY_GLASS_BASE + (WHISKEY_LEVEL - WHISKEY_GLASS_BASE) * share;
+
+/**
+ * Foam head: sits on the beer at `level`, domes up (slightly above the rim when full). With
+ * `decay` (0…1) it gets thinner and a hole opens in the middle; at 1 only a ring at the wall is left.
+ */
+function beerFoamGeometry(level = BEER_LEVEL, decay = 0) {
+  const height = BEER_FOAM_HEIGHT * (1 - 0.65 * decay);
+  const top = level + height;
+  const wall = (y) => beerInnerRadius(Math.min(y, BEER_GLASS_HEIGHT)) - 0.0004;
+  const hole = decay > 0 ? wall(level) * Math.pow(decay, 1.3) * 0.92 : 0;
+  const cap = Math.min(0.012, height * 0.6);
+  const shoulder = top - cap;
+  const pts = [[hole, level - 0.001], [wall(level), level - 0.001], [wall(level), level], [wall(shoulder), shoulder]];
   for (let i = 1; i <= 6; i++) {
     const a = (i / 6) * (Math.PI / 2);
-    pts.push([r(BEER_GLASS_HEIGHT) * Math.cos(a), BEER_GLASS_HEIGHT - 0.004 + (top - BEER_GLASS_HEIGHT + 0.004) * Math.sin(a)]);
+    pts.push([hole + (wall(shoulder) - hole) * Math.cos(a), shoulder + cap * Math.sin(a)]);
   }
+  if (hole > 0.0005) pts.push([hole, level - 0.001]); // the wall of the hole
   return lathe(pts, 48);
 }
 
@@ -126,8 +142,8 @@ function random(seed) {
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, z: number, r: number }[]} taken — objects already on the tables (candles, ashtrays)
- * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
- *            applyReflection: (reflection: object) => void }}
+ * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[], player: object[],
+ *            update: (dt: number) => void, applyReflection: (reflection: object) => void }}
  */
 export function createGlasses(scene, taken) {
   const group = new THREE.Group();
@@ -175,14 +191,58 @@ export function createGlasses(scene, taken) {
       "wine-red": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.red, 0]],
       "wine-white": [[geo.wine, glassMat, 2], [geo.wineLiquid, mats.white, 0]],
     }[kind];
-    for (const [geometry, material, order] of parts) {
+    const meshes = parts.map(([geometry, material, order]) => {
       const m = new THREE.Mesh(geometry, material);
       m.renderOrder = order;
       g.add(m);
-    }
+      return m;
+    });
     const radius = { beer: BEER_GLASS_RADIUS_TOP, whiskey: WHISKEY_GLASS_RADIUS_TOP }[kind] ?? WINE_GLASS_BOWL_RADIUS;
-    return { group: g, radius };
+    return { group: g, radius, kind, drink: meshes[1], foam: meshes[2] ?? null };
   };
+
+  /** A glass with a level (share 1 = full … 0 = empty), sips left and, for beer, a decaying foam head. */
+  function makePlayerGlass(glass) {
+    const state = {
+      group: glass.group,
+      kind: glass.kind,
+      share: 1,
+      sipsLeft: DRINK_SIPS,
+      decay: 0,
+      rest: { position: glass.group.position.clone(), quaternion: glass.group.quaternion.clone() },
+      /** Change the level: the drink (and the foam on top) are rebuilt for the new height. */
+      setShare(share) {
+        state.share = THREE.MathUtils.clamp(share, 0, 1);
+        refresh();
+      },
+      /** Per frame: the foam decays (rebuilt a few times per second only). */
+      update(dt) {
+        if (!glass.foam || state.share <= 0 || state.decay >= 1) return;
+        state.decay = Math.min(1, state.decay + dt / BEER_FOAM_DECAY_SECONDS);
+        sinceRebuild += dt;
+        if (sinceRebuild > 0.5) refresh();
+      },
+    };
+    let sinceRebuild = 0;
+    const refresh = () => {
+      sinceRebuild = 0;
+      const empty = state.share <= 0.001;
+      glass.drink.visible = !empty;
+      if (glass.foam) glass.foam.visible = !empty;
+      if (empty) return;
+      glass.drink.geometry.dispose();
+      if (glass.kind === "beer") {
+        glass.drink.geometry = beerShape.liquid(beerLevel(state.share));
+        glass.foam.geometry.dispose();
+        glass.foam.geometry = beerFoamGeometry(beerLevel(state.share), state.decay);
+      } else if (glass.kind === "whiskey") {
+        glass.drink.geometry = whiskeyShape.liquid(whiskeyLevel(state.share));
+      } else {
+        glass.drink.geometry = wineLiquidGeometry(state.share);
+      }
+    };
+    return state;
+  }
 
   const randomKind = () => {
     const r = rnd();
@@ -218,10 +278,12 @@ export function createGlasses(scene, taken) {
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
   const drinks = ["wine-red", "wine-white", "beer", "whiskey"].sort(() => Math.random() - 0.5).slice(0, 2);
-  [-1, 1].forEach((sz, i) => {
+  /** The players' glasses: they can be drunk from (the level falls) and their foam falls apart. */
+  const player = [-1, 1].map((sz, i) => {
     const glass = build(drinks[i]);
     glass.group.position.set(frameX, frameTop, sz * GLASSES_FRAME_Z);
     group.add(glass.group);
+    return makePlayerGlass(glass);
   });
 
   scene.add(group);
@@ -229,6 +291,11 @@ export function createGlasses(scene, taken) {
     group,
     /** Everything standing on the round tables so far (for what comes next). */
     taken: occupied,
+    /** The two players' glasses on the frame of the billard table. */
+    player,
+    update(dt) {
+      for (const g of player) g.update(dt);
+    },
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       for (const m of [glassMat, mats.red, mats.white, mats.beer, mats.whiskey]) {

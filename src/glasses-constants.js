@@ -49,3 +49,18 @@ export const GLASSES_RED_SHARE = 0.7;
 
 /** On the billard table frame: along z, between the last diamond and the ashtray (see ashtray-constants.js). */
 export const GLASSES_FRAME_Z = 0.82;
+
+/* ---- Drinking (the players' glasses on the billard table frame) ---- */
+/** Sips per drink: the level drops by one share with each sip until the glass is empty. */
+export const DRINK_SIPS = 5;
+/** The beer foam falls apart in this many seconds: first thinner, then a hole opens in the middle, until only a ring at the wall is left. */
+export const BEER_FOAM_DECAY_SECONDS = 240;
+/** A sip: the glass flies to the mouth, tilts for a moment, and flies back (s); where it is held (m) and how far it tilts (rad). */
+export const DRINK_FLY_IN = 0.45;
+export const DRINK_SIP_SECONDS = 0.8;
+export const DRINK_FLY_OUT = 0.45;
+export const DRINK_TILT = 0.85;
+export const DRINK_MOUTH_FORWARD = 0.3;
+export const DRINK_MOUTH_DOWN = 0.2;
+export const DRINK_MOUTH_RIGHT = 0.05;
+export const DRINK_ARC = 0.06;

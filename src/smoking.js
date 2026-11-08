@@ -31,8 +31,9 @@ const ease = (k) => k * k * (3 - 2 * k);
 /**
  * @param {{ playerCigarette: (camera: THREE.Camera) => any }} cigarettes
  * @param {{ trigger: (camera: THREE.Camera, strength: number) => void }} exhale
+ * @param {(dt: number) => void} onDraw — called every frame while the player draws (the nicotine marker moves)
  */
-export function createSmoking(cigarettes, exhale) {
+export function createSmoking(cigarettes, exhale, onDraw) {
   /** @type {"idle" | "in" | "drawing" | "out" | "fall"} */
   let phase = "idle";
   let cigarette = null;
@@ -160,6 +161,7 @@ export function createSmoking(cigarettes, exhale) {
       time += dt;
       // burnt down while smoking: let go of it (the drag ends here)
       if ((phase === "in" || phase === "drawing") && cigarette.burn >= 1) endDrag(camera);
+      if (phase === "in" || phase === "drawing") onDraw(dt);
       if (phase === "in") {
         updateMouth(camera);
         fly(flightStart, mouth, time / SMOKING_FLY_IN);

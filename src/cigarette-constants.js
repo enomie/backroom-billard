@@ -103,7 +103,7 @@ export const SMOKING_MOUTH_RIGHT = 0.05; // a little to the right, so it does no
 export const SMOKING_MOUTH_TILT = 0.18;
 /** Drawing: the ember glows brighter (reaches its maximum after this many seconds) and the cigarette burns this much faster. */
 export const SMOKING_GLOW_RISE = 1.5;
-export const SMOKING_BURN_FACTOR = 12; // a full 3 s drag burns about 8 % of a cigarette
+export const SMOKING_BURN_FACTOR = 28; // a full 3 s drag burns about a fifth of a cigarette (5 drags per cigarette)
 
 /** A cigarette that is burnt down is dropped into the ashtray from this height above the rim (m); bounce and spin of the fall. */
 export const SMOKING_DROP_HEIGHT = 0.1;

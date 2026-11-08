@@ -43,6 +43,36 @@
         </div>
       </header>
 
+      <!-- Condition: two bars, calm in the middle; each with the key button that moves its marker -->
+      <div class="meters interactive">
+        <div class="meter">
+          <button id="btn-drink" type="button" class="btn-key btn-key--compact">
+            <span class="btn-key__cap" aria-hidden="true">R</span>
+            <span class="btn-key__label" data-i18n="button.drink">Drink</span>
+          </button>
+          <div class="meter__body">
+            <div class="meter__ends">
+              <span data-i18n="meter.thirsty">Thirsty</span>
+              <span data-i18n="meter.drunk">Drunk</span>
+            </div>
+            <div class="meter__track"><div id="marker-body" class="meter__marker"></div></div>
+          </div>
+        </div>
+        <div class="meter">
+          <button id="btn-smoke" type="button" class="btn-key btn-key--compact">
+            <span class="btn-key__cap" aria-hidden="true">T</span>
+            <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
+          </button>
+          <div class="meter__body">
+            <div class="meter__ends">
+              <span data-i18n="meter.nerves">Nerves</span>
+              <span data-i18n="meter.desire">Desire</span>
+            </div>
+            <div class="meter__track"><div id="marker-nicotine" class="meter__marker"></div></div>
+          </div>
+        </div>
+      </div>
+
       <div id="aim-crosshair" class="aim-crosshair">
         <div class="aim-crosshair__ring">
           <div class="aim-crosshair__dot"></div>
@@ -57,10 +87,6 @@
               <span id="cam-label">Player</span>
               <span data-i18n="camera.label">Camera</span>
             </span>
-          </button>
-          <button id="btn-smoke" type="button" class="btn-key">
-            <span class="btn-key__cap" aria-hidden="true">T</span>
-            <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
           </button>
         </div>
       </footer>

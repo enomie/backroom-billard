@@ -106,3 +106,7 @@ export const SMOKE_EXHALE_SECONDS_MIN = 0.7;
 export const SMOKE_EXHALE_SECONDS_MAX = 2.6;
 export const SMOKE_EXHALE_GAIN_MIN = 0.05;
 export const SMOKE_EXHALE_GAIN_MAX = 0.13;
+
+/* ---- Drinking (drink-sounds.js): a few gulps and the swallow ---- */
+export const SIP_GAIN = 0.12;
+export const SIP_SECONDS = 0.8;
