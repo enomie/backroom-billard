@@ -73,7 +73,7 @@ Dezente Leuchten an den Wänden (`src/wall-lamps.js`, Parameter `WALL_LAMP*` in 
 Code: `src/door.js`, Werte in `door-constants.js`. Aus Rücksicht auf die Bildrate gibt es **kein Foyer** dahinter; die Tür ist eine Attrappe.
 
 - **Wo:** in der kurzen Wand hinter dem Spieler beim Start (z = +15), zwischen den zwei Wandleuchten. Die Wand hat dort eine Öffnung (1,70 × 2,15 m) mit Laibung (25 cm tief), Schwelle und Zierleisten; die Vertäfelung endet an der Zierleiste. Am Ende der Laibung steht eine helle Platte, die das Licht hinter dem Glas ersetzt.
-- **Tür:** alte Doppel-Pendeltür aus braunem, abgeblättertem Holz, **ohne Spalten** (`DOOR_GAP` 0). Jeder Flügel hat oben 3 × 3 Scheiben, unten zwei Füllungen, eine schräge Druckstange aus dunkler Bronze und drei schwarze Bänder. Texturen sind generiert, Schatten wirft sie keine. Sie bewegt sich nicht.
+- **Tür:** alte Doppel-Pendeltür aus demselben dunklen, lackierten Holz wie die Wandvertäfelung (`wainscotWoodMaterial` in `wood.js`), **ohne Spalten** (`DOOR_GAP` 0). Jeder Flügel hat oben 3 × 3 Scheiben, unten zwei Füllungen, eine schräge Druckstange aus dunkler Bronze und drei schwarze Bänder. Schatten wirft sie keine. Sie bewegt sich nicht.
 - **Glas:** durchsichtiges, **gewelltes Bernsteinglas**, leicht emissiv (0,5). Auf der mittleren Scheibe der Mitte des linken Flügels steht das **gespiegelte goldene B**, auf der gleichen Scheibe des rechten Flügels das **normale B** (`DOOR_LOGO_*`).
 
 ## Fester Raumnebel

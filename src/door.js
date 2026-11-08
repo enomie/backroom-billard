@@ -6,6 +6,7 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { ROOM_LENGTH } from "./room-constants.js";
+import { wainscotWoodMaterial } from "./wood.js";
 import * as C from "./door-constants.js";
 
 const { DOOR_OPENING_WIDTH: OW, DOOR_OPENING_HEIGHT: OH, DOOR_WALL_DEPTH: DEPTH, DOOR_GAP: GAP } = C;
@@ -38,35 +39,6 @@ function canvasTexture(width, height, draw, repeat = false) {
   texture.anisotropy = 4;
   if (repeat) texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   return texture;
-}
-
-/** Brown paint, worn down to the bare wood at the edges, scratched and speckled. */
-function doorWoodTexture() {
-  return canvasTexture(256, 512, (ctx, w, h) => {
-    ctx.fillStyle = C.DOOR_COLOR_PAINT;
-    ctx.fillRect(0, 0, w, h);
-    for (let i = 0; i < 900; i++) {
-      ctx.fillStyle = `rgba(${Math.random() < 0.5 ? "20,10,4" : "130,90,55"}, ${0.05 + Math.random() * 0.12})`;
-      ctx.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 1 + Math.random() * 14);
-    }
-    for (let i = 0; i < 40; i++) {
-      // worn patches: bare wood shows through the paint
-      ctx.fillStyle = `rgba(${C.DOOR_COLOR_BARE_WOOD.slice(1).match(/../g).map((v) => parseInt(v, 16)).join(",")}, ${0.15 + Math.random() * 0.35})`;
-      ctx.beginPath();
-      ctx.ellipse(Math.random() * w, Math.random() * h, 3 + Math.random() * 14, 2 + Math.random() * 6, Math.random() * Math.PI, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    for (let i = 0; i < 30; i++) {
-      ctx.strokeStyle = `rgba(200,170,130,${0.1 + Math.random() * 0.25})`;
-      ctx.lineWidth = 0.5 + Math.random();
-      ctx.beginPath();
-      const x = Math.random() * w;
-      const y = Math.random() * h;
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + (Math.random() - 0.5) * 50, y + (Math.random() - 0.5) * 50);
-      ctx.stroke();
-    }
-  });
 }
 
 /** Amber glass: wavy streaks of lighter and darker tint (repeats seamlessly). */
@@ -164,15 +136,10 @@ export function createDoor(scene) {
   group.position.set(0, 0, ROOM_LENGTH / 2);
   group.rotation.y = Math.PI;
 
-  const woodMap = doorWoodTexture();
-  // the paint glows faintly, the room is dark
-  const wood = new THREE.MeshStandardMaterial({
-    map: woodMap,
-    roughness: 0.85,
-    emissive: 0xffffff,
-    emissiveMap: woodMap,
-    emissiveIntensity: C.DOOR_WOOD_GLOW,
-  });
+  const wood = wainscotWoodMaterial(); // the same wood as the wall paneling
+  wood.emissive.set(0xffffff);
+  wood.emissiveMap = wood.map;
+  wood.emissiveIntensity = C.DOOR_WOOD_GLOW;
   const iron = new THREE.MeshStandardMaterial({ color: C.DOOR_COLOR_IRON, roughness: 0.5, metalness: 0.7 });
   const bronze = new THREE.MeshStandardMaterial({ color: C.DOOR_COLOR_BRONZE, roughness: 0.45, metalness: 0.5, emissive: C.DOOR_COLOR_BRONZE, emissiveIntensity: 0.15 });
   const glassMaterial = new THREE.MeshStandardMaterial({

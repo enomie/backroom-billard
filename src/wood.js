@@ -3,6 +3,7 @@
  * the wall paneling and the radio.
  */
 import * as THREE from "three";
+import { WAINSCOT_WOOD_BASE } from "./room-constants.js";
 
 /**
  * Wood veneer with the grain running along u.
@@ -51,4 +52,9 @@ export function glossyWoodMaterial(map, color = 0xffffff) {
     clearcoat: 1,
     clearcoatRoughness: 0.12,
   });
+}
+
+/** The dark varnished wood of the wall paneling's trim; the door is made of the same. */
+export function wainscotWoodMaterial() {
+  return glossyWoodMaterial(woodTexture({ base: WAINSCOT_WOOD_BASE, dark: "30,12,4", light: "150,80,45" }));
 }

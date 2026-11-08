@@ -43,13 +43,11 @@ export const DOOR_HINGE_PLATE = 0.14;
 /** The wall of light behind the glass (a flat plate at the back of the reveal). */
 export const DOOR_BACKDROP_COLOR = 0xffe7bd;
 
-/** Worn brown paint, black iron, dark bronze bars. */
-export const DOOR_COLOR_PAINT = "#5b3d24";
-export const DOOR_COLOR_BARE_WOOD = "#a98255";
+/** Black iron, dark bronze bars (the wood is the wood of the wall paneling). */
 export const DOOR_COLOR_IRON = 0x1c1a18;
 export const DOOR_COLOR_BRONZE = 0x8a6030;
 
-/** How much the paint glows on its own (the room is dark). */
+/** How much the wood glows on its own (the room is dark). */
 export const DOOR_WOOD_GLOW = 0.3;
 
 /** Amber, see-through, wavy glass: tint, opacity, how strongly the waves bend the highlights, glow (the glass shines a little by itself). */
