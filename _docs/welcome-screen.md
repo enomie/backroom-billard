@@ -1,20 +1,20 @@
-# Namens-Screen (Arbeitstitel)
+# Welcome-Screen (Namen und erster Einkauf)
 
-> **Status: Konzept, noch nicht umgesetzt.** Dieser Screen kommt **nach dem Startscreen** (Alterbestätigung, siehe README) und **vor dem Spiel**. Titel offen.
+> **Status: Konzept, noch nicht umgesetzt.** Dieser Screen kommt **nach dem Startscreen** (Alterbestätigung, siehe README) und **vor dem Spiel**. Er erscheint **bei jedem Besuch**.
 
 Hier gibt der Spieler seinen Namen ein und kauft gleich die ersten Dinge. Alles bleibt **nur im Browser** (keine Datenbank, nichts wird gesendet).
 
 ## Ablauf
 
 1. Startscreen: Bad Habits Games, PRESENT, Titel, **Confirm Age 18+** (wird bei jedem Besuch gefragt).
-2. **Dieser Screen:** Name, erstes Getränk, erste Zigaretten, **Continue**.
+2. **Dieser Screen** (**jedes Mal**, mit den gespeicherten Angaben vorausgefüllt): Name, Getränk, Zigaretten, **Continue**.
 3. Das Spiel (die Auswahl ist schon im Glas und in der Packung).
 
 Das Spiel lädt wie beim Startscreen im Hintergrund weiter; der Screen blendet aus, wenn **Continue** gedrückt ist und das Spiel bereit ist.
 
 ## Titel des Screens
 
-Offen. Vorschläge: „Wer bist du?“, „Willkommen im Backroom“, „Name, bitte“. Der Titel läuft wie alle Texte durch `src/i18n` (Englisch und Deutsch).
+**Welcome** (deutsch **Willkommen**). Er läuft wie alle Texte durch `src/i18n` (Englisch und Deutsch).
 
 ## Aussehen
 
@@ -53,18 +53,24 @@ Wo der Name vorkommt, wird die passende Form genommen:
 
 Ohne zweiten Namen entfällt der mittlere Teil.
 
-## Erster Einkauf
+## Einkauf
 
-Das Startgeld ist `START_MONEY` (15.000 $). Der Screen zeigt es oben, es sinkt **sofort** beim Auswählen (wie im Spiel: Getränk und Packung werden bei der Wahl bezahlt, nicht erst bei **Continue**; wer zurückwählt, bekommt es zurück).
+Am Anfang, **beim allerersten Besuch**, bekommt der Spieler `START_MONEY` (**15.000 $**). Der Screen zeigt den Stand oben; er sinkt **sofort** beim Auswählen (wie im Spiel: bezahlt wird bei der Wahl, nicht erst bei **Continue**; wer zurückwählt, bekommt es zurück). Beides ist **Pflicht**:
 
-- **Erstes Getränk:** aus der Getränkekarte (`DRINK_MENU`, `shop-constants.js`): Bier 8 $, Rotwein 14 $, Weißwein 14 $, White Russian 16 $, Whiskey 18 $. Es ist das erste volle Glas des Spielers.
-- **Erste Zigaretten:** ein **Entweder-oder-Feld** (Auswahl ohne „keine“), weil man ja rauchen muss: eine der zwei Packungen (`PACK_DESIGNS`): **Premium Blend** (schwarz/rot/gold) oder **Light Blend** (weiß/blau), je `PACK_PRICE` (75 $). Eine Wahl ist **Pflicht**.
+- **Ein Getränk aus allen fünf** (`DRINK_MENU`, `shop-constants.js`): Bier 8 $, Rotwein 14 $, Weißwein 14 $, White Russian 16 $, Whiskey 18 $. Es ist das erste volle Glas.
+- **Eine Zigarettenpackung, entweder oder:** **Premium Blend** (schwarz/rot/gold) oder **Light Blend** (weiß/blau) (`PACK_DESIGNS`), je `PACK_PRICE` (75 $). Man muss eine nehmen, weil man ja rauchen muss; es gibt kein „keine“. Das Entweder-oder gilt nur für die Zigaretten, beim Getränk wählt man eines von allen.
 
-Die Auswahl ersetzt das Glas und die Packung, die der Spieler sonst zu Beginn bekäme.
+Die Wahl ersetzt das Glas und die Packung, die der Spieler sonst zu Beginn bekäme. Nicht bezahlbare Einträge sind grau.
+
+## Geld bleibt
+
+Das Geld wird **gespeichert**: jede Ausgabe (hier und im Spiel: Getränke an der Karte, neue Packungen) schreibt den neuen Stand sofort in den Browser. Wer etwas ausgibt und die Seite neu lädt, hat danach **weniger** Geld, nicht wieder 15.000 $. Nur ohne gespeichertes Profil (erster Besuch) gibt es die 15.000 $.
+
+Bei jedem weiteren Besuch kauft der Spieler auf diesem Screen **wieder** sein erstes Getränk und seine erste Packung (jeder Besuch beginnt mit einem vollen Glas und einer Packung), und das kostet erneut. Das Spiel verliert damit nichts, das Geld sinkt aber mit jedem Besuch (siehe Offene Fragen: Pleite).
 
 ## Continue
 
-Der Knopf **Continue** ist **aktiv**, wenn Vorname und Nachname gültig sind und die Zigaretten gewählt sind (und, falls das Getränk Pflicht ist, auch das Getränk, siehe Offene Fragen). Er ist im Stil des Startscreens: dünner gelber Rahmen. Ein Klick speichert das Profil und öffnet das Spiel.
+Der Knopf **Continue** ist **aktiv**, wenn Vorname und Nachname gültig sind und ein Getränk und eine Packung gewählt sind. Er ist im Stil des Startscreens: dünner gelber Rahmen. Ein Klick speichert das Profil und öffnet das Spiel.
 
 ## Speichern (nur im Browser)
 
@@ -79,11 +85,13 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
   "lastName": "Meier",
   "firstDrink": "whiskey",
   "firstPack": 0,
+  "money": 14907,
   "createdAt": "2026-11-08T20:00:00.000Z"
 }
 ```
 
-- Beim nächsten Besuch sind die Felder **vorausgefüllt** (man kann sie ändern); die Altersfrage kommt trotzdem jedes Mal.
+- Beim nächsten Besuch sind die Felder und die Auswahl **vorausgefüllt** (man kann sie ändern); die Altersfrage kommt trotzdem jedes Mal.
+- `money` ist der Stand nach jeder Ausgabe (siehe „Geld bleibt“); fehlt das Profil, startet er bei `START_MONEY`.
 - Ist `localStorage` nicht nutzbar (privater Modus, gesperrt), läuft das Spiel trotzdem; der Name wird dann nur für diese Sitzung gehalten.
 - Es wird **nichts gesendet**. Der Name verlässt den Browser nicht.
 - `version` erlaubt, das Format später zu ändern.
@@ -93,18 +101,22 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 | Datei | Inhalt |
 |-------|--------|
 | `src/name-rules.js` | Reine Funktionen: Filtern beim Tippen, Prüfen, Großschreibung, `middleInitial` ableiten, Anzeige-Formen (voll, mit Initiale, nur Initialen) |
-| `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Schutz gegen Fehler) |
+| `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Schutz gegen Fehler), auch das Geld |
 | `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Continue |
 | `index.html`, `style.css` | Markup und Stil (wie der Startscreen) |
 | `src/entry.js` | Ablauf: Startscreen → dieser Screen → Spiel |
 
-Dazu Texte in `en.js` und `de.js`, Kauf über dieselbe Preisliste wie im Spiel (`shop-constants.js`), das Geld über `wallet.js`. Die Namensregeln werden als reine Funktionen mit einer Reihe von Beispielen getestet.
+Dazu Texte in `en.js` und `de.js`, Kauf über dieselbe Preisliste wie im Spiel (`shop-constants.js`), das Geld über `wallet.js`, das den Stand beim Start aus dem Profil liest und bei jeder Änderung speichert. Die Namensregeln werden als reine Funktionen mit einer Reihe von Beispielen getestet.
+
+## Entschieden
+
+- Titel: **Welcome** (de: Willkommen).
+- Der Screen kommt **bei jedem Besuch**.
+- Zigaretten: **entweder oder** zwischen den zwei Packungen, Pflicht. Getränk: **eines von allen fünf**, Pflicht.
+- Das Geld bleibt gespeichert, inklusive aller Ausgaben; die 15.000 $ gibt es nur beim ersten Mal.
 
 ## Offene Fragen
 
-- **Titel** des Screens (siehe oben).
-- **Entweder-oder bei den Zigaretten:** Ich lese es als Wahl zwischen den zwei Packungen (Pflicht). Oder soll man **Getränk oder Zigaretten** wählen, nicht beides?
-- **Getränk Pflicht?** Darf man ohne Getränk weiter, oder muss auch eines gewählt werden?
-- **Jedes Mal oder nur einmal?** Soll der Screen bei jedem Besuch kommen (vorausgefüllt) oder nur beim ersten Mal?
-- **Geld speichern?** Das Geld wird heute nicht gespeichert (es startet bei jedem Laden mit 15.000 $). Soll der Stand nach dem Einkauf bleiben?
+- **Pleite:** Reicht das Geld nicht mehr für ein Getränk (ab 8 $) **und** eine Packung (75 $), also unter 83 $, kann man nicht weiter. Was dann? Vorschlag: ein Knopf „Neu anfangen“ (löscht das Profil, neue 15.000 $), mit Bestätigung.
+- **Wiederkehrer:** Soll bei jedem Besuch wirklich wieder gekauft werden (Geld sinkt), oder nur beim ersten Besuch und danach bleibt das Inventar (Glas und Packung) erhalten? Oben steht der erste Fall; der zweite bräuchte das Speichern von Füllstand und Packung.
 - **Wo erscheint der Name im Spiel?** HUD, später Mehrspieler, Wette, Rangliste: wird mit dem Spielkonzept (`game-concept.md`, Ideen) entschieden.
