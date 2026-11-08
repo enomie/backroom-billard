@@ -1,5 +1,5 @@
 /**
- * The bar, main module: a silver plinth, a wooden block and a marble top with a slight overhang and
+ * The bar, main module with three stools: a silver plinth, a wooden block and a marble top with a slight overhang and
  * rounded corners. It stands opposite the radio with its back towards the wall (a gap for the
  * bartender), the front towards the room. Dimensions and colors: bar-constants.js. See _docs/bar.md.
  */
@@ -24,6 +24,16 @@ import {
   BAR_COLOR_WOOD,
   BAR_COLOR_MARBLE,
   BAR_COLOR_MARBLE_VEIN,
+  STOOL_COUNT,
+  STOOL_DISTANCE,
+  STOOL_SPACING,
+  STOOL_SEAT_HEIGHT,
+  STOOL_SEAT_RADIUS,
+  STOOL_SEAT_THICKNESS,
+  STOOL_COLUMN_RADIUS,
+  STOOL_FOOT_RADIUS,
+  STOOL_RING_HEIGHT,
+  STOOL_COLOR_SEAT,
 } from "./bar-constants.js";
 
 /** White marble with soft grey veins. */
@@ -120,6 +130,27 @@ export function createBar(scene) {
   const top = new THREE.Mesh(plate, marble);
   top.position.y = BAR_HEIGHT - BAR_TOP_THICKNESS + BAR_TOP_EDGE_ROUND;
   root.add(top);
+
+  // the stools: a padded seat on a silver column with a foot and a foot rest ring
+  const leather = new THREE.MeshStandardMaterial({ color: STOOL_COLOR_SEAT, roughness: 0.55 });
+  const part = (parent, geo, mat, y) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.y = y;
+    parent.add(m);
+  };
+  for (let i = 0; i < STOOL_COUNT; i++) {
+    const stool = new THREE.Group();
+    stool.position.set((i - (STOOL_COUNT - 1) / 2) * STOOL_SPACING, 0, BAR_DEPTH / 2 + STOOL_DISTANCE);
+    const column = STOOL_SEAT_HEIGHT - STOOL_SEAT_THICKNESS;
+    part(stool, new THREE.CylinderGeometry(STOOL_FOOT_RADIUS, STOOL_FOOT_RADIUS + 0.01, 0.025, 32), silver, 0.0125);
+    part(stool, new THREE.CylinderGeometry(STOOL_COLUMN_RADIUS, STOOL_COLUMN_RADIUS, column, 16), silver, column / 2);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(STOOL_FOOT_RADIUS * 0.9, 0.012, 8, 32), silver);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = STOOL_RING_HEIGHT;
+    stool.add(ring);
+    part(stool, new THREE.CylinderGeometry(STOOL_SEAT_RADIUS, STOOL_SEAT_RADIUS - 0.01, STOOL_SEAT_THICKNESS, 32), leather, STOOL_SEAT_HEIGHT - STOOL_SEAT_THICKNESS / 2);
+    root.add(stool);
+  }
 
   receiveWallLampsDeep(root);
   scene.add(root);
