@@ -24,7 +24,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
 | Trinken: antippen = ein Schluck, halten = Schluck für Schluck (5 pro Getränk) | `R` oder der Knopf „Drink“ unten links neben dem Shoot-Button (Mitte) |
 | Leeres Glas: Getränkekarte, Klick auf ein Getränk kauft es | Maus oder Touch |
-| Neu aufbauen | `N` oder der Knopf „Re-rack“ oben rechts |
+| Neu aufbauen | `N` oder „Re-rack“ in den Einstellungen (Zahnrad oben rechts) |
 | Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` halten oder den Knopf „Smoke“ unten rechts neben dem Shoot-Button gedrückt halten (Maus oder Touch) |
 
 ## Regeln
@@ -81,12 +81,13 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `door.js`, `door-constants.js` | Doppelte Pendeltür aus Holz und Bernsteinglas in der Wand hinter dem Spieler (Attrappe) |
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `wall-lamp-places.js`, `wall-lamp-light.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
+| `settings.js` | Einstellungen-Overlay: Re-rack, Sprache, Hinweise zur Bedienung |
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
 
 ## Sprachen
 
-Die Oberfläche ist Englisch (Standard) und Deutsch; oben rechts wechseln die Flaggen die Sprache (wird gespeichert). Neue Sprache: Datei in `src/i18n/locales/` anlegen, Flagge in `flags.js` ergänzen, in `LANGUAGES` eintragen. Projektregeln (Sprache, Arbeitsweise): [`CLAUDE.md`](CLAUDE.md).
+Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbol oben rechts) wechseln die Flaggen die Sprache (wird gespeichert). Neue Sprache: Datei in `src/i18n/locales/` anlegen, Flagge in `flags.js` ergänzen, in `LANGUAGES` eintragen. Projektregeln (Sprache, Arbeitsweise): [`CLAUDE.md`](CLAUDE.md).
 
 ## Weiterführend
 

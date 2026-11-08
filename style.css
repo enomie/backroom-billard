@@ -181,13 +181,7 @@ html {
   background: rgba(120, 53, 15, 0.8);
 }
 
-/* The re-rack button in the header: the "again" arrow, with its text on wide screens */
-#btn-reset {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
+/* The "again" arrow (re-rack) and the like */
 .btn__icon {
   width: 1rem;
   height: 1rem;
@@ -197,6 +191,11 @@ html {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.btn__icon--big {
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 /* Key buttons: look like the shoot button, with the key as a big single letter on the left */
@@ -445,6 +444,7 @@ html {
 .menu {
   position: absolute;
   inset: 0;
+  z-index: 20; /* above the buttons at the bottom */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -778,27 +778,106 @@ html {
     justify-content: center;
   }
 
-  .hud-actions {
-    flex-direction: column-reverse;
-    align-items: flex-end;
-    gap: 0.6rem;
-  }
-
-  .lang-switch {
-    flex-direction: column;
-  }
-
-  /* the re-rack button is only the arrow, a square */
-  #btn-reset {
-    padding: 0.5rem;
-  }
-
-  #btn-reset .btn__text {
+  /* no keys on a phone: the buttons show only their names */
+  .btn-key__cap {
     display: none;
+  }
+
+  .btn-key {
+    padding: 0.5rem 0.875rem;
   }
 
   /* a little narrower, so the camera button and the shoot button do not touch */
   .fire-dock .btn-key {
     min-width: 6.5rem;
   }
+}
+
+/* Settings: the gear at the top right (yellow, no background) and the overlay behind it */
+.btn-settings {
+  display: block;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0.15rem;
+  border: 0;
+  background: none;
+  color: var(--amber-400);
+  cursor: pointer;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-settings:hover,
+.btn-settings:focus-visible {
+  color: var(--amber-300);
+  transform: scale(1.1);
+}
+
+.btn-settings svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.settings__card {
+  width: min(26rem, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.settings__head {
+  position: relative;
+}
+
+.settings__close {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.45rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  background: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--amber-400);
+  cursor: pointer;
+}
+
+.settings__close:hover {
+  color: var(--amber-300);
+}
+
+.settings__rerack {
+  margin: 0.2rem auto 0;
+  min-width: 11rem;
+  justify-content: center;
+}
+
+.settings__heading {
+  margin: 1.1rem 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.8);
+}
+
+.settings .lang-switch {
+  gap: 0.9rem;
+}
+
+.settings .lang-btn svg {
+  width: 2.4rem;
+  height: 1.2rem;
+}
+
+.settings__help {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #d4d4d8;
 }

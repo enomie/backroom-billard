@@ -39,13 +39,10 @@
           </div>
 
         <div class="hud-actions interactive">
-          <div id="lang-switch" class="lang-switch" role="group" data-i18n-aria-label="lang.label" aria-label="Language"></div>
-          <button id="btn-reset" type="button" class="btn btn--reset" data-i18n-aria-label="button.rerack" data-i18n-title="button.rerack" aria-label="Re-rack" title="Re-rack">
-            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 12a9 9 0 1 0 3-6.7" />
-              <path d="M3 4v5h5" />
+          <button id="btn-settings" type="button" class="btn-settings" data-i18n-aria-label="settings.title" data-i18n-title="settings.title" aria-label="Settings" title="Settings">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M10.5 1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4H1.5a.5.5 0 0 1 0-1H10V1.5a.5.5 0 0 1 .5-.5M12 3.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m-6.5 2A.5.5 0 0 1 6 6v1.5h8.5a.5.5 0 0 1 0 1H6V10a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5M1 8a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 1 8m9.5 2a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V13H1.5a.5.5 0 0 1 0-1H10v-1.5a.5.5 0 0 1 .5-.5m1.5 2.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5" />
             </svg>
-            <span class="btn__text" data-i18n="button.rerack">Re-rack</span>
           </button>
         </div>
       </header>
@@ -107,6 +104,37 @@
           <div id="power-thumb" class="power-slider__thumb"></div>
         </div>
         <span class="power-dock__label" data-i18n="power.label">Power</span>
+      </div>
+
+      <!-- Settings: re-rack, language and the controls -->
+      <div id="settings" class="menu settings interactive" hidden>
+        <div class="menu__card settings__card" role="dialog" aria-labelledby="settings-title">
+          <div class="settings__head">
+            <h2 id="settings-title" class="menu__title" data-i18n="settings.title">Settings</h2>
+            <button id="settings-close" type="button" class="settings__close" data-i18n-aria-label="settings.close" aria-label="Close">×</button>
+          </div>
+          <button id="btn-reset" type="button" class="btn-key settings__rerack">
+            <svg class="btn__icon btn__icon--big" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 3-6.7" />
+              <path d="M3 4v5h5" />
+            </svg>
+            <span class="btn-key__label" data-i18n="button.rerack">Re-rack</span>
+          </button>
+          <h3 class="settings__heading" data-i18n="lang.label">Language</h3>
+          <div id="lang-switch" class="lang-switch" role="group" data-i18n-aria-label="lang.label" aria-label="Language"></div>
+          <h3 class="settings__heading" data-i18n="settings.controls">Controls</h3>
+          <ul class="settings__help">
+            <li data-i18n="help.aim">Drag the mouse: aim left/right, tilt the camera up/down. A / D or ← / → turn.</li>
+            <li data-i18n="help.power">Mouse wheel, W / S or ↑ / ↓: power.</li>
+            <li data-i18n="help.shoot">E or a click: shoot.</li>
+            <li data-i18n="help.nub">Drag the white dot above the SHOOT button: where the cue tip meets the ball (double-click: center).</li>
+            <li data-i18n="help.drink">R, hold: drink gulp after gulp.</li>
+            <li data-i18n="help.smoke">T, hold: draw on the cigarette, release: exhale.</li>
+            <li data-i18n="help.camera">C: switch between the player camera and the free camera.</li>
+            <li data-i18n="help.free">Free camera: W A S D move, Space up, Shift down, mouse looks around (Esc frees the mouse).</li>
+            <li data-i18n="help.rerack">N: new rack.</li>
+          </ul>
+        </div>
       </div>
 
       <!-- Messages -->

@@ -27,6 +27,7 @@ import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
+import { createSettings } from "./settings.js";
 import { createDoor } from "./door.js";
 import { createPlayerState } from "./player-state.js";
 import { SWAY_PITCH_OFFSET } from "./player-constants.js";
@@ -180,6 +181,7 @@ let packs = null; // the cigarette packs (cigarette-pack.js)
 let lighters = null; // the two lighters (lighter.js)
 let wallet = null; // the player's money (wallet.js)
 let drinkMenu = null; // the drinks popover (drink-menu.js)
+let settings = null; // the settings overlay (settings.js)
 let drinking = null; // sips from the player glasses with the R key (drinking.js)
 const playerState = createPlayerState(); // thirst / drunk and nerves / desire (player-state.js)
 let smoking = null; // drawing on the player's cigarette with the T key (smoking.js)
@@ -898,6 +900,7 @@ function setupControls() {
 
   // Keyboard: C switches the camera, N resets; E shoots; in cue view arrow keys / A & D aim; in free camera mode WASD move, space goes up and shift goes down.
   window.addEventListener("keydown", (e) => {
+    if (settings.isOpen()) return; // the settings are open: the game keys do nothing
     heldKeys.add(e.code);
     if (e.code === "KeyC" && !e.repeat) {
       toggleCamera();
@@ -1018,7 +1021,7 @@ function setupControls() {
     setupBalls();
     updateStatusDisplay(false);
   });
-  document.getElementById("btn-reset").addEventListener("click", () => {
+  settings = createSettings(() => {
     setupBalls();
     updateStatusDisplay(false);
   });
