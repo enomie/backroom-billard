@@ -97,6 +97,11 @@ import {
   REST_LINEAR_SPEED,
   REST_SURFACE_SPEED,
   CUSHION_RESTITUTION,
+  CUE_SQUIRT_MAX_DEG,
+  SWERVE_BOOST,
+  SWERVE_SECONDS,
+  TABLE_FRICTION,
+  BALL_FRICTION,
 } from "./physics-constants.js";
 
 /** @type {typeof import("three")} */
@@ -679,6 +684,7 @@ function advanceCueStroke(dt) {
       s.gap = -CUE_FOLLOW_DISTANCE;
       s.phase = "done";
       physics.cue.collider.setEnabled(false);
+      limitSquirt(s);
       ensureBallWasHit(s);
     }
   }
@@ -706,10 +712,59 @@ function advanceCueStroke(dt) {
 
 /** The tip reaches the ball: sound, status, and the follow-through timer starts. */
 function onCueContact() {
+  swerveTime = 0;
   playStrikeSound(stroke.strength, cueBall.pos.toArray()); // the "tock" of the tip hitting the ball
   updateStatusDisplay(true);
   strokeContacted = true;
   cueShotTime = 0;
+}
+
+/** The angle in (−π, π]. */
+const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+/**
+ * After a hit off center: pull the ball's direction back toward the aim line (see CUE_SQUIRT_MAX_DEG).
+ * Speed and spin stay; the horizontal part of the spin turns with the direction so that the ball
+ * still rolls consistently.
+ */
+function limitSquirt(s) {
+  const v = cueBall.body.linvel();
+  const speed = Math.hypot(v.x, v.z);
+  if (speed < 0.1) return;
+  const heading = Math.atan2(v.x, -v.z); // 0 = along −z
+  const wanted = -s.aimAngle - s.x * THREE.MathUtils.degToRad(CUE_SQUIRT_MAX_DEG);
+  const psi = -wrapAngle(wanted - heading); // the rotation about the vertical axis that gets it there
+  const [c, sn] = [Math.cos(psi), Math.sin(psi)];
+  const w = cueBall.body.angvel();
+  cueBall.body.setLinvel({ x: v.x * c + v.z * sn, y: v.y, z: -v.x * sn + v.z * c }, true);
+  cueBall.body.setAngvel({ x: w.x * c + w.z * sn, y: w.y, z: -w.x * sn + w.z * c }, true);
+}
+
+let swerveTime = SWERVE_SECONDS; // seconds since the hit
+
+/**
+ * Swerve (see SWERVE_BOOST): while the white ball slides on the cloth the friction pulls against the
+ * slip of the contact point; its part across the ball's direction is what bends the path. It is
+ * multiplied here, in the first seconds after the hit.
+ * @param {number} dt — physics step (s)
+ */
+function applySwerve(dt) {
+  swerveTime += dt;
+  if (SWERVE_BOOST <= 1 || swerveTime > SWERVE_SECONDS || !cueBall || cueBall.inPocket) return;
+  if (cueBall.body.translation().y < TABLE_H - 0.01) return;
+  const v = cueBall.body.linvel();
+  const w = cueBall.body.angvel();
+  const speed = Math.hypot(v.x, v.z);
+  // speed of the contact point on the cloth (the point below the center): 0 = rolling, no slip
+  const ux = v.x + BALL_R * w.z;
+  const uz = v.z - BALL_R * w.x;
+  const slip = Math.hypot(ux, uz);
+  if (speed < 0.05 || slip < 0.02) return;
+  const [hx, hz] = [v.x / speed, v.z / speed];
+  const along = (ux * hx + uz * hz) / slip;
+  const [sideX, sideZ] = [ux / slip - along * hx, uz / slip - along * hz]; // slip direction across the path
+  const k = (SWERVE_BOOST - 1) * ((TABLE_FRICTION + BALL_FRICTION) / 2) * 9.81 * cueBall.body.mass() * dt;
+  cueBall.body.applyImpulse({ x: -sideX * k, y: 0, z: -sideZ * k }, true); // friction acts against the slip
 }
 
 /** Safety net: if the physical hit did not move the ball, give it the intended impulse. */
@@ -1359,6 +1414,7 @@ function stepPhysics(frameDt) {
       for (const b of balls) rememberVelocity(b);
       physics.world.step(physics.eventQueue);
       detectBallImpacts();
+      if (!stroke || stroke.phase === "done") applySwerve(physics.world.timestep);
       physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
         if (!started) return;
         const ball1 = ballByCollider.get(h1);

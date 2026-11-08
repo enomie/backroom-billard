@@ -36,6 +36,23 @@ export const CUE_TIP_FRICTION = 0.8;
 export const CUE_TIP_RESTITUTION = 0;
 
 /**
+ * Side spin ("english"). In the simulation the cue tip is infinitely heavy, so a hit off center sends
+ * the ball far off the aim line (14 degrees at the edge of the ball instead of the 1-3 of a real cue).
+ * After the hit its direction is pulled back to a deflection of at most this many degrees (at the
+ * farthest point off center, away from the side that was hit); the spin stays as it is.
+ */
+export const CUE_SQUIRT_MAX_DEG = 2.5;
+
+/**
+ * Swerve: with a raised cue the spin axis is tilted and the ball, as long as it slides on the cloth,
+ * curves. The friction of the cloth already gives this, but weakly. For this many seconds after the
+ * hit the sideways part of the sliding friction on the white ball is multiplied by SWERVE_BOOST
+ * (1 = as the physics gives it).
+ */
+export const SWERVE_BOOST = 8;
+export const SWERVE_SECONDS = 1;
+
+/**
  * Collision groups (Rapier: membership in the high 16 bits, filter in the low 16 bits).
  * The cue only collides with balls, never with the table, cushions or cups.
  */
