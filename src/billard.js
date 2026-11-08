@@ -22,11 +22,14 @@ import { createGlasses } from "./glasses.js";
 import { createBottles } from "./bottles.js";
 import { createCigarettes } from "./cigarettes.js";
 import { createCigarettePacks } from "./cigarette-pack.js";
+import { createLighters } from "./lighter.js";
 import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createPlayerState } from "./player-state.js";
+import { createWallet } from "./wallet.js";
+import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -164,6 +167,10 @@ const pendingRemoval = [];
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
 let exhale = null; // exhaled smoke cloud (exhale.js)
+let packs = null; // the cigarette packs (cigarette-pack.js)
+let lighters = null; // the two lighters (lighter.js)
+let wallet = null; // the player's money (wallet.js)
+let drinkMenu = null; // the drinks popover (drink-menu.js)
 let drinking = null; // sips from the player glasses with the R key (drinking.js)
 const playerState = createPlayerState(); // thirst / drunk and nerves / desire (player-state.js)
 let smoking = null; // drawing on the player's cigarette with the T key (smoking.js)
@@ -245,11 +252,20 @@ function init() {
   ballReflection = captureRoomReflection(renderer, scene);
   candles.applyReflection(ballReflection);
   ashtrays.applyReflection(ballReflection);
+  lighters.applyReflection(ballReflection);
   exhale = createExhale(scene);
-  smoking = createSmoking(cigarettes, exhale, (dt) => playerState.drag(dt));
   atmosphere = createAtmosphere(scene); // after the capture, so the balls do not reflect the haze
   glasses.applyReflection(ballReflection);
-  drinking = createDrinking(glasses, () => playerState.sip());
+  wallet = createWallet();
+  smoking = createSmoking(cigarettes, exhale, lighters, packs, wallet, (dt) => playerState.drag(dt));
+  let orderFor = null; // the empty glass the menu is for
+  drinkMenu = createDrinkMenu(wallet, (item) => {
+    if (wallet.spend(item.price)) orderFor.replace(item.kind);
+  });
+  drinking = createDrinking(glasses, () => playerState.sip(), (glass) => {
+    orderFor = glass;
+    drinkMenu.show();
+  });
   bottles.applyReflection(ballReflection);
 
   // 2.6 Initialize balls
@@ -306,7 +322,8 @@ function setupLightingAndRoom() {
   glasses = createGlasses(scene, [...candles.taken, ...ashtrays.taken]);
   bottles = createBottles(scene, glasses.taken);
   cigarettes = createCigarettes(scene, ashtrays.slots);
-  createCigarettePacks(scene, bottles.taken);
+  packs = createCigarettePacks(scene, bottles.taken);
+  lighters = createLighters(scene);
   radio = createRadio(scene);
 }
 
@@ -802,6 +819,7 @@ function setupControls() {
       toggleCamera();
       return;
     }
+    if (drinkMenu.isOpen()) return; // the menu is open: the other keys do nothing
     if (e.code === "KeyT" && !e.repeat) {
       smoking.press(camera); // hold T: draw on the cigarette, release: exhale
       return;
@@ -1315,6 +1333,8 @@ function gameLoop(currentTime) {
   aimSway = playerState.sway(performance.now() / 1000);
   document.getElementById("marker-body").style.left = 50 + playerState.body * 50 + "%";
   document.getElementById("marker-nicotine").style.left = 50 + playerState.nicotine * 50 + "%";
+
+  document.getElementById("pack-count").textContent = packs.packs[camera.position.z < 0 ? 0 : 1].count;
 
   // Cue positioning & distance adjusted to the selected power
   if (cueBall && cueStickPivot) {

@@ -34,6 +34,8 @@ const H = PACK_HEIGHT;
 const T = PACK_CARDBOARD;
 const LID = PACK_LID_HEIGHT;
 const R = CIGARETTE_DIAMETER / 2;
+/** Cigarettes in a full pack. */
+export const PACK_SIZE = 20;
 
 /** Small deterministic random generator (same layout on every start). */
 function random(seed) {
@@ -90,21 +92,27 @@ function slice(texture, fromBottom, share) {
   return t;
 }
 
-/** The 20 cigarettes of a full pack as two merged shapes (paper and filters), shared by all packs. */
+/** x/z of the 20 cigarettes standing in a pack: three rows of 7 – 6 – 7, closely packed. */
+function cigarettePositions() {
+  const pitch = CIGARETTE_DIAMETER;
+  const rowStep = pitch * Math.sin(Math.PI / 3);
+  const positions = [];
+  for (const [count, z] of [[7, rowStep], [6, 0], [7, -rowStep]]) {
+    for (let i = 0; i < count; i++) positions.push([(i - (count - 1) / 2) * pitch, z]);
+  }
+  return positions;
+}
+
+const PAPER_LENGTH = CIGARETTE_LENGTH - CIGARETTE_FILTER_LENGTH;
+const FLOOR_GAP = 0.002; // cigarettes stand slightly above the pack's floor
+
+/** The 20 cigarettes of a full pack as two merged shapes (paper and filters), shared by the table packs. */
 function cigaretteGeometries() {
   const paper = [];
   const filter = [];
-  const pitch = CIGARETTE_DIAMETER;
-  const rowStep = pitch * Math.sin(Math.PI / 3);
-  const rows = [[7, rowStep], [6, 0], [7, -rowStep]];
-  const paperLen = CIGARETTE_LENGTH - CIGARETTE_FILTER_LENGTH;
-  const y0 = 0.002; // cigarettes stand slightly above the pack's floor
-  for (const [count, z] of rows) {
-    for (let i = 0; i < count; i++) {
-      const x = (i - (count - 1) / 2) * pitch;
-      paper.push(new THREE.CylinderGeometry(R * 0.97, R * 0.97, paperLen, 12).translate(x, y0 + paperLen / 2, z));
-      filter.push(new THREE.CylinderGeometry(R * 0.97, R * 0.97, CIGARETTE_FILTER_LENGTH, 12).translate(x, y0 + paperLen + CIGARETTE_FILTER_LENGTH / 2, z));
-    }
+  for (const [x, z] of cigarettePositions()) {
+    paper.push(new THREE.CylinderGeometry(R * 0.97, R * 0.97, PAPER_LENGTH, 12).translate(x, FLOOR_GAP + PAPER_LENGTH / 2, z));
+    filter.push(new THREE.CylinderGeometry(R * 0.97, R * 0.97, CIGARETTE_FILTER_LENGTH, 12).translate(x, FLOOR_GAP + PAPER_LENGTH + CIGARETTE_FILTER_LENGTH / 2, z));
   }
   return { paper: mergeGeometries(paper), filter: mergeGeometries(filter) };
 }
@@ -112,7 +120,9 @@ function cigaretteGeometries() {
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, z: number, r: number }[]} taken — objects already on the tables
- * @returns {{ group: THREE.Group }}
+ * @returns {{ group: THREE.Group, packs: { side: number, group: THREE.Group, count: number,
+ *            setCount: (n: number) => void }[] }}
+ *   packs: the two players' packs on the frame; they can be emptied (`setCount`)
  */
 export function createCigarettePacks(scene, taken) {
   const group = new THREE.Group();
@@ -140,7 +150,7 @@ export function createCigarettePacks(scene, taken) {
   };
 
   /** One pack, standing upright (y up, front = +z), origin at the middle of its bottom. */
-  const buildPack = (open, designIndex) => {
+  const buildPack = (open, designIndex, countable = false) => {
     const { card: cardMat, bodyFront: bodyFrontMat, lidFront: lidFrontMat } = designs[designIndex];
     const pack = new THREE.Group();
     // body: floor, back, sides (inset, so the lid fits over them), front up to the lid
@@ -151,8 +161,23 @@ export function createCigarettePacks(scene, taken) {
       plate(T, H, D - T, W / 2 - 1.5 * T, H / 2, T / 2 - T, cardMat),
       plate(W - 2 * T, H - LID, T, 0, (H - LID) / 2, D / 2 - T / 2, bodyFrontMat)
     );
-    const paper = new THREE.Mesh(cigs.paper, paperMat);
-    const filter = new THREE.Mesh(cigs.filter, filterMat);
+    let paper;
+    let filter;
+    if (countable) {
+      // the players' packs: single instances, so that the cigarettes can be taken out one by one
+      const positions = cigarettePositions();
+      paper = new THREE.InstancedMesh(new THREE.CylinderGeometry(R * 0.97, R * 0.97, PAPER_LENGTH, 12), paperMat, positions.length);
+      filter = new THREE.InstancedMesh(new THREE.CylinderGeometry(R * 0.97, R * 0.97, CIGARETTE_FILTER_LENGTH, 12), filterMat, positions.length);
+      const matrix = new THREE.Matrix4();
+      positions.forEach(([x, z], i) => {
+        paper.setMatrixAt(i, matrix.makeTranslation(x, FLOOR_GAP + PAPER_LENGTH / 2, z));
+        filter.setMatrixAt(i, matrix.makeTranslation(x, FLOOR_GAP + PAPER_LENGTH + CIGARETTE_FILTER_LENGTH / 2, z));
+      });
+      pack.userData.instances = [paper, filter];
+    } else {
+      paper = new THREE.Mesh(cigs.paper, paperMat);
+      filter = new THREE.Mesh(cigs.filter, filterMat);
+    }
     pack.add(paper, filter);
 
     // lid: front, top and sides, hinged at the top of the back
@@ -178,6 +203,7 @@ export function createCigarettePacks(scene, taken) {
     holder.position.set(x, y + D / 2, z);
     holder.rotation.y = yaw;
     group.add(holder);
+    return holder;
   };
 
   const footprint = Math.hypot(W, H) / 2;
@@ -206,8 +232,22 @@ export function createCigarettePacks(scene, taken) {
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
   const order = Math.random() < 0.5 ? [0, 1] : [1, 0]; // the two players smoke different brands
-  [-1, 1].forEach((sz, i) => lay(buildPack(Math.random() < PACK_OPEN_SHARE, order[i]), frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2));
+  const packs = [-1, 1].map((sz, side) => {
+    const pack = buildPack(Math.random() < PACK_OPEN_SHARE, order[side], true);
+    const holder = lay(pack, frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2);
+    const state = {
+      side,
+      group: holder,
+      count: PACK_SIZE,
+      /** The pack holds `n` cigarettes: the others are gone from it. */
+      setCount(n) {
+        state.count = n;
+        for (const instances of pack.userData.instances) instances.count = n;
+      },
+    };
+    return state;
+  });
 
   scene.add(group);
-  return { group };
+  return { group, packs };
 }

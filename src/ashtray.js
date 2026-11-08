@@ -62,7 +62,7 @@ function random(seed) {
 /**
  * @param {THREE.Scene} scene
  * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
- *            slots: { x: number, y: number, z: number, yaw: number, scale: number, onFrame: boolean }[],
+ *            slots: { x: number, y: number, z: number, yaw: number, scale: number, onFrame: boolean, side: number }[],
  *            applyReflection: (reflection: object) => void }}
  */
 export function createAshtrays(scene) {
@@ -82,14 +82,14 @@ export function createAshtrays(scene) {
 
   const taken = []; // the ashtrays on the round tables
   const slots = []; // every ashtray: where it stands (for the cigarettes lying in it)
-  const place = (x, y, z, scale = 1, onFrame = false) => {
+  const place = (x, y, z, scale = 1, onFrame = false, side = -1) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
     m.scale.setScalar(scale);
     m.rotation.y = rnd() * Math.PI * 2;
     m.renderOrder = 1; // after the opaque objects behind it
     group.add(m);
-    slots.push({ x, y, z, yaw: m.rotation.y, scale, onFrame });
+    slots.push({ x, y, z, yaw: m.rotation.y, scale, onFrame, side });
   };
 
   // Round tables: some have one, off to the side of the candle
@@ -105,7 +105,7 @@ export function createAshtrays(scene) {
   // Billard table: one per player on the left long side of the frame
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
-  for (const sz of [-1, 1]) place(frameX, frameTop, sz * ASHTRAY_FRAME_Z, ASHTRAY_FRAME_SCALE, true);
+  [-1, 1].forEach((sz, side) => place(frameX, frameTop, sz * ASHTRAY_FRAME_Z, ASHTRAY_FRAME_SCALE, true, side));
 
   scene.add(group);
   return {

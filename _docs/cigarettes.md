@@ -1,6 +1,6 @@
 # Zigaretten und Rauch
 
-> **Status:** Die **einzelne Zigarette** und der **Rauchfaden** der glimmenden Zigarette sind umgesetzt (Test: die Zigaretten liegen in den Aschenbechern). die **Schachtel** (Optik, noch nicht bedienbar) ebenfalls. das **Ziehen und Ausatmen** (Taste `T`) ebenfalls. **Entnehmen aus der Schachtel und Anzünden sind Konzept** und werden erst gebaut, wenn es ausdrücklich beauftragt wird. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
+> **Status: umgesetzt** sind die einzelne Zigarette, der Rauchfaden, die Schachtel, das Ziehen und Ausatmen (Taste `T`), das Feuerzeug, das Nehmen und Anzünden einer neuen Zigarette und der Kauf neuer Packungen. **Konzept** bleibt, was unten als „ursprüngliche Vorgaben“ steht, z. B. das Auf- und Zuklappen der Schachtel per Klick. Gläser, Flaschen und Aschenbecher stehen in [`glass-objects.md`](glass-objects.md).
 
 Zur 80er-Kneipe gehört Rauch. Es gibt eine **Zigarettenschachtel zum Aufklappen**, **einzelne Zigaretten** (unangezündet, glimmend, Stummel) und **Rauch** per Shader. Wer an einer Zigarette zieht, **atmet danach eine Rauchwolke aus**.
 
@@ -51,6 +51,26 @@ Die ursprünglichen Vorgaben:
 - **Im Aschenbecher:** Zigaretten liegen in den **5 Kerben**, glimmen weiter und rauchen dünn. Auch bei den Tischen sollen einige Aschenbecher mit **qualmenden Zigaretten** stehen (zufällig verteilt, wenige zugleich).
 - **Ablage:** auf der Kerbe, die Glut zeigt nach innen.
 
+## Feuerzeug (umgesetzt)
+
+- **Code:** `src/lighter.js`, Werte in `src/lighter-constants.js`, Töne in `src/lighter-sounds.js`.
+- **Form:** Ein Klapp-Feuerzeug im Stil eines Zippos: Gehäuse 38 × 13 mm, 40 mm hoch, Klappdeckel (18 mm) mit Scharnier hinten oben, innen Einsatz mit Kamin (zwei Löcher), Funkenrad und eine kleine Flamme mit Schein.
+- **Material:** **gebürstetes Metall**: Schleifstreifen als Bump- und Rauheits-Karte, Spiegelung des Raums. Der erste Spieler hat ein **silbernes**, der zweite ein **goldenes** (`LIGHTER_COLORS`).
+- **Platz:** Je Spieler eines auf dem Rahmen des Billardtisches (links, bei z = ±0,2 zwischen Seitentasche und erster Raute), auf der breiten Seite liegend.
+- **Ton:** Deckel klappt auf („Klick“), Funkenrad und Flamme zünden, Deckel schnappt zu.
+
+## Neue Zigarette: Packung, Feuerzeug, Kauf (umgesetzt)
+
+Hat der Spieler keine glimmende Zigarette im Aschenbecher (abgebrannt und gefallen), nimmt **`T` halten** eine neue:
+
+1. Die Zigarette fliegt aus der Packung des Spielers (Filter voran) zum Mund (0,5 s). In der Packung fehlt dann eine.
+2. Das Feuerzeug des Spielers fliegt zur Zigarettenspitze, der Deckel klappt auf, die Flamme brennt 0,6 s; bei 40 % davon fängt die Zigarette Feuer. Deckel zu, das Feuerzeug fliegt zurück (zusammen 1,5 s).
+3. Wer `T` weiter hält, **zieht** wie gewohnt. Lässt man früher los, wird die brennende Zigarette in den Aschenbecher zurückgelegt.
+
+- **Anzeige:** Die **Zahl der Zigaretten in der Packung** steht als Plakette am Knopf „Smoke“ (die Packung des Spielers, der Seite nahe der Kamera). In der Packung selbst fehlen die genommenen Zigaretten (die Packungen am Billardtisch haben einzelne Zigaretten).
+- **Packung leer:** Dann wird **automatisch eine neue Packung gekauft**: **75 $** (`PACK_PRICE` in `shop-constants.js`) vom Geld, mit kurzer Meldung. Reicht das Geld nicht, passiert nichts („Nicht genug Geld“).
+- **Aschenbecher-Fehler behoben:** Brennt eine Zigarette im Aschenbecher von selbst ab (auch die des anderen Spielers und die auf den Tischen), **fällt sie jetzt in die Schale**, statt als Stummel quer über dem Rand liegen zu bleiben. Stummel zu Beginn liegen gleich flach in der Schale.
+
 ## Spieler und Zigarette
 
 **Umgesetzt: Ziehen mit `T`** (`src/smoking.js`, Werte `SMOKING_*`, Ton in `smoke-sounds.js`):
@@ -61,7 +81,7 @@ Die ursprünglichen Vorgaben:
 - **Brennt beim Ziehen ab:** Ja. Beim Ziehen brennt die Zigarette 28-mal schneller herunter (ein voller 3-Sekunden-Zug verbraucht etwa ein Fünftel, `SMOKING_BURN_FACTOR`), die Papierlänge schrumpft sichtbar und die Asche wächst.
 - **Abgebrannt:** Ist sie beim Ziehen aufgebraucht, endet der Zug von selbst (mit Ausatmen), die Zigarette fliegt über den Aschenbecher und **fällt aus 10 cm Höhe hinein** (`SMOKING_DROP_*`): Schwerkraft, ein paar Aufschläge mit Dämpfung (35 %), sie dreht sich dabei und legt sich flach auf den Schalenboden, wo sie als Stummel liegen bleibt. Der Fall rechnet in festen Schritten, ist also bei jeder Bildrate gleich.
 - **5 Züge pro Zigarette (umgesetzt):** ein voller 3-Sekunden-Zug verbraucht etwa ein Fünftel (`SMOKING_BURN_FACTOR` 28). Wer will, **raucht die ganze Zigarette auf einmal**, indem er `T` entsprechend lange hält (ca. 15 s); dann fällt der Stummel wie oben beschrieben in den Aschenbecher. Das Ziehen schiebt den Nikotin-Balken (`game-concept.md`).
-- Ohne glimmende Zigarette im Spieler-Aschenbecher (heruntergebrannt) passiert nichts. Es gibt noch kein Nachlegen.
+- Ohne glimmende Zigarette im Spieler-Aschenbecher nimmt `T` eine neue (siehe oben).
 
 Die ursprünglichen Vorgaben:
 

@@ -26,7 +26,7 @@ Ein Multiplayer-Billard in einem verrauchten Billardcafé der 80er. Für **alle 
 
 ## Spielgeld
 
-- Jeder neue Spieler bekommt nach der Registrierung **15.000 $ Spielgeld**.
+- Jeder neue Spieler bekommt nach der Registrierung **15.000 $ Spielgeld**. Im Spiel umgesetzt: das Geld steht oben links (`wallet.js`, Start 15.000 $); gekauft wird damit **Trinken** (Getränkekarte, 8 bis 18 $) und **Zigaretten** (automatisch eine neue Packung für 75 $, wenn die alte leer ist).
 - Später: Spielgeld gegen Echtgeld kaufen, sobald ein Payment eingebunden ist.
 
 ## Schuss-Spannung: schwankendes Fadenkreuz

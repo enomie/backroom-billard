@@ -36,6 +36,9 @@ import {
   SMOKE_OPACITY,
   SMOKE_COLOR,
   SMOKING_BURN_FACTOR,
+  SMOKING_DROP_BOUNCE,
+  SMOKING_DROP_SPREAD,
+  SMOKING_DROP_SPIN,
 } from "./cigarette-constants.js";
 import { glowTexture } from "./glow.js";
 import { createSmokeColumn, faceCamera } from "./smoke.js";
@@ -108,7 +111,8 @@ export function createCigarettes(scene, ashtraySlots) {
   /** @type {{ root: THREE.Group, onFrame: boolean, slot: object, rest: { position: THREE.Vector3, quaternion: THREE.Quaternion }, drawGlow: number, smoke: THREE.Mesh | null, tipX: number, state: string, burn: number, phase: number, paper: THREE.Mesh, ash: THREE.Mesh, ember: THREE.Mesh, emberMat: THREE.MeshBasicMaterial, glow: THREE.Sprite }[]} */
   const cigarettes = [];
 
-  function add(slot, notch, state) {
+  /** Put a cigarette into notch `notch` of an ashtray slot (state: "unlit" | "glowing" | "butt"). */
+  function add(slot, notch, state, burnStart) {
     const { origin, dir } = restingPose(slot, notch, CIGARETTE_LENGTH - CIGARETTE_REST_DISTANCE);
     const root = new THREE.Group();
     root.position.copy(origin);
@@ -129,21 +133,43 @@ export function createCigarettes(scene, ashtraySlots) {
     root.add(filter, paper, ash, ember, glow);
     group.add(root);
 
-    const burn = state === "butt" ? 1 : state === "glowing" ? rnd() * CIGARETTE_START_BURN_MAX : 0;
-    const smoke = state === "glowing" ? createSmokeColumn({ width: SMOKE_WIDTH, height: SMOKE_HEIGHT, opacity: SMOKE_OPACITY, color: SMOKE_COLOR, seed: rnd() * 50 }) : null;
-    if (smoke) {
-      smoke.visible = false; // shown (and placed) by the first update
-      group.add(smoke);
-    }
+    const burn = burnStart ?? (state === "butt" ? 1 : state === "glowing" ? rnd() * CIGARETTE_START_BURN_MAX : 0);
     const c = {
-      root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow, smoke, tipX: 0,
+      root, state, burn, phase: rnd() * 100, paper, ash, ember, emberMat, glow, smoke: null, tipX: 0,
+      notch,
+      held: false, // the player has it in the hand (smoking.js)
+      landed: false, // lies in the dish for good (a butt)
       onFrame: slot.onFrame,
       slot, // the ashtray it belongs to
       rest: { position: root.position.clone(), quaternion: root.quaternion.clone() }, // where it lies in the ashtray
       drawGlow: 0, // 0…1: the ember glows brighter while the player draws on it
     };
     cigarettes.push(c);
+    if (state === "glowing") ensureSmoke(c);
+    if (state === "butt") settleInDish(c); // butts do not lie across the rim: they are in the dish
     shape(c, 0);
+    return c;
+  }
+
+  /** The smoke thread of a glowing cigarette (made when it starts to glow). */
+  function ensureSmoke(c) {
+    if (c.smoke) return;
+    c.smoke = createSmokeColumn({ width: SMOKE_WIDTH, height: SMOKE_HEIGHT, opacity: SMOKE_OPACITY, color: SMOKE_COLOR, seed: rnd() * 50 });
+    c.smoke.visible = false; // shown (and placed) by the update
+    group.add(c.smoke);
+  }
+
+  /** Lay a butt flat on the floor of its ashtray, anywhere in the dish. */
+  function settleInDish(c) {
+    const slot = c.slot;
+    const r = rnd() * SMOKING_DROP_SPREAD * slot.scale;
+    const a = rnd() * Math.PI * 2;
+    c.root.position.set(slot.x + Math.cos(a) * r, slot.y + ASHTRAY_FLOOR * slot.scale + R, slot.z + Math.sin(a) * r);
+    c.root.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rnd() * Math.PI * 2);
+    c.rest.position.copy(c.root.position);
+    c.rest.quaternion.copy(c.root.quaternion);
+    c.landed = true;
+    c.notch = -1;
   }
 
   /** Lengths, ash and ember for the current burn state. */
@@ -169,7 +195,60 @@ export function createCigarettes(scene, ashtraySlots) {
     }
   }
 
-  // Test setup: some cigarettes in every ashtray; the player's ashtray on the frame gets exactly one
+  /* ---- Falling into the dish: a burnt-down cigarette is let go and drops in (by hand: gravity, bounces) ---- */
+  const falling = new Set();
+  const _axis = new THREE.Vector3();
+  const _q = new THREE.Quaternion();
+
+  /** Let go of cigarette `c` where it is: it falls with `velocity` and `spin` until it lies in the dish. */
+  function startFall(c, velocity, spin) {
+    c.held = false;
+    c.notch = -1;
+    const length = Math.max(0.02, c.tipX);
+    const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion);
+    c.fall = { velocity: velocity.clone(), spin: spin.clone(), length, center: c.root.position.clone().addScaledVector(axis, length / 2) };
+    falling.add(c);
+  }
+
+  /** One small step of the fall. Returns true when the butt lies still. */
+  function stepFall(c, dt) {
+    const f = c.fall;
+    const half = f.length / 2;
+    const slot = c.slot;
+    const ground = slot.y + ASHTRAY_FLOOR * slot.scale + R;
+    f.velocity.y -= 9.81 * dt;
+    f.center.addScaledVector(f.velocity, dt);
+    if (f.spin.lengthSq() > 1e-6) {
+      c.root.quaternion.premultiply(_q.setFromAxisAngle(_axis.copy(f.spin).normalize(), f.spin.length() * dt));
+    }
+    const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion);
+    const lowest = f.center.y - Math.abs(axis.y) * half;
+    let settled = false;
+    if (lowest < ground && f.velocity.y < 0) {
+      f.center.y += ground - lowest;
+      f.velocity.y = -f.velocity.y * SMOKING_DROP_BOUNCE;
+      f.velocity.x += (Math.random() - 0.5) * 0.15;
+      f.velocity.z += (Math.random() - 0.5) * 0.15;
+      f.spin.multiplyScalar(0.4);
+      settled = f.velocity.y < 0.25;
+      axis.y *= settled ? 0 : 0.4; // each bounce lays it flatter; the last one lays it flat
+      axis.normalize();
+      const current = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion);
+      c.root.quaternion.premultiply(_q.setFromUnitVectors(current, axis));
+      if (settled) f.center.y = ground;
+    }
+    const a = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion);
+    c.root.position.copy(f.center).addScaledVector(a, -half);
+    if (settled) {
+      c.rest.position.copy(c.root.position);
+      c.rest.quaternion.copy(c.root.quaternion);
+      c.landed = true;
+      falling.delete(c);
+    }
+    return settled;
+  }
+
+  // Test setup: some cigarettes in every ashtray; the players' ashtrays on the frame get exactly one each
   for (const slot of ashtraySlots) {
     const count = slot.onFrame ? 1 : CIGARETTE_TABLE_MIN + Math.floor(rnd() * (CIGARETTE_TABLE_MAX - CIGARETTE_TABLE_MIN + 1));
     const notches = [...Array(ASHTRAY_NOTCHES).keys()].sort(() => rnd() - 0.5).slice(0, count);
@@ -183,18 +262,31 @@ export function createCigarettes(scene, ashtraySlots) {
   scene.add(group);
 
   let time = 0;
+  const frameSlots = ashtraySlots.filter((slot) => slot.onFrame);
   return {
     group,
-    /** The glowing cigarette in the nearest player's ashtray (on the frame of the billard table), or null. */
-    playerCigarette(camera) {
-      let best = null;
-      let bestDistance = Infinity;
-      for (const c of cigarettes) {
-        if (!c.onFrame || c.state !== "glowing" || c.burn >= 1) continue;
-        const d = c.root.position.distanceToSquared(camera.position);
-        if (d < bestDistance) [best, bestDistance] = [c, d];
-      }
-      return best;
+    /** The glowing cigarette in the ashtray of player `side` (0 or 1), or null. */
+    playerCigarette(side) {
+      return cigarettes.find((c) => c.slot.onFrame && c.slot.side === side && c.state === "glowing" && c.burn < 1 && !c.landed && !c.fall) ?? null;
+    },
+    /** A new, unlit cigarette for player `side`, lying in a free notch of his ashtray. */
+    spawn(side) {
+      const slot = frameSlots[side];
+      const used = new Set(cigarettes.filter((c) => c.slot === slot && c.notch >= 0).map((c) => c.notch));
+      const free = [...Array(ASHTRAY_NOTCHES).keys()].filter((n) => !used.has(n));
+      const c = add(slot, free.length ? free[Math.floor(rnd() * free.length)] : 0, "unlit", 0);
+      c.held = true; // the player takes it at once
+      return c;
+    },
+    /** The cigarette starts to burn. */
+    ignite(c) {
+      c.state = "glowing";
+      c.burn = 0.001;
+      ensureSmoke(c);
+    },
+    /** Let go of a (burnt-down) cigarette: it drops into the dish from where it is. */
+    drop(c) {
+      startFall(c, new THREE.Vector3(), new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(SMOKING_DROP_SPIN));
     },
     update(dt, camera) {
       time += dt;
@@ -202,15 +294,26 @@ export function createCigarettes(scene, ashtraySlots) {
         if (c.state !== "glowing") continue;
         if (c.burn < 1) c.burn = Math.min(1, c.burn + (dt * (1 + (SMOKING_BURN_FACTOR - 1) * c.drawGlow)) / CIGARETTE_BURN_SECONDS);
         shape(c, time);
-        // the smoke thread rises from the ember while the cigarette glows
-        c.smoke.visible = c.burn < 1;
-        if (c.smoke.visible) {
-          c.root.updateMatrixWorld();
-          c.smoke.position.copy(c.root.localToWorld(new THREE.Vector3(c.tipX + 0.004, 0, 0)));
-          faceCamera(c.smoke, camera);
-          c.smoke.material.uniforms.uTime.value = time;
-          c.smoke.material.uniforms.uOpacity.value = SMOKE_OPACITY * (1 - 0.6 * c.drawGlow); // the smoke is drawn in, not rising
+        // burnt down by itself in the ashtray: it falls into the dish
+        if (c.burn >= 1 && !c.held && !c.landed && !c.fall) {
+          const inward = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion).setY(0).normalize();
+          startFall(c, inward.multiplyScalar(0.35), new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(4));
         }
+        // the smoke thread rises from the ember while the cigarette glows
+        if (c.smoke) {
+          c.smoke.visible = c.burn < 1;
+          if (c.smoke.visible) {
+            c.root.updateMatrixWorld();
+            c.smoke.position.copy(c.root.localToWorld(new THREE.Vector3(c.tipX + 0.004, 0, 0)));
+            faceCamera(c.smoke, camera);
+            c.smoke.material.uniforms.uTime.value = time;
+            c.smoke.material.uniforms.uOpacity.value = SMOKE_OPACITY * (1 - 0.6 * c.drawGlow); // the smoke is drawn in, not rising
+          }
+        }
+      }
+      // falling butts: fixed small steps, so the bounce looks the same at any frame rate
+      for (const c of [...falling]) {
+        for (let left = Math.min(dt, 0.1); left > 0 && falling.has(c); left -= 1 / 240) stepFall(c, Math.min(left, 1 / 240));
       }
     },
   };

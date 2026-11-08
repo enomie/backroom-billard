@@ -22,8 +22,9 @@ const ease = (k) => k * k * (3 - 2 * k);
 /**
  * @param {{ player: any[] }} glasses
  * @param {() => void} onSip — the body marker moves
+ * @param {(glass: any) => void} onEmpty — a glass is empty: ask what the player wants (the menu)
  */
-export function createDrinking(glasses, onSip) {
+export function createDrinking(glasses, onSip, onEmpty) {
   /** @type {"idle" | "in" | "sip" | "out"} */
   let phase = "idle";
   let time = 0;
@@ -59,14 +60,12 @@ export function createDrinking(glasses, onSip) {
     /** R pressed: take a sip of the nearest glass that is not empty. */
     press(camera) {
       if (phase !== "idle") return;
-      let best = null;
-      let bestDistance = Infinity;
-      for (const g of glasses.player) {
-        if (g.sipsLeft <= 0) continue;
-        const d = g.group.position.distanceToSquared(camera.position);
-        if (d < bestDistance) [best, bestDistance] = [g, d];
+      const nearest = (list) => list.reduce((a, b) => (!a || b.group.position.distanceToSquared(camera.position) < a.group.position.distanceToSquared(camera.position) ? b : a), null);
+      const best = nearest(glasses.player.filter((g) => g.sipsLeft > 0));
+      if (!best) {
+        onEmpty(nearest(glasses.player)); // everything is drunk: order the next one
+        return;
       }
-      if (!best) return; // everything is drunk
       glass = best;
       start.position.copy(glass.group.position);
       start.quaternion.copy(glass.group.quaternion);
@@ -104,8 +103,10 @@ export function createDrinking(glasses, onSip) {
         if (time >= DRINK_FLY_OUT) {
           glass.group.position.copy(glass.rest.position);
           glass.group.quaternion.copy(glass.rest.quaternion);
+          const emptied = glass.sipsLeft <= 0 ? glass : null;
           phase = "idle";
           glass = null;
+          if (emptied) onEmpty(emptied); // the last sip: what would the player like next?
         }
       }
     },

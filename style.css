@@ -381,6 +381,113 @@ html {
   font-size: 0.65rem;
 }
 
+.wallet {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fde68a;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* The number of cigarettes left in the pack, on the smoke button */
+.btn-key__badge {
+  position: relative;
+  min-width: 1.4rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: var(--neutral-950);
+  color: var(--amber-300);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.toast {
+  position: absolute;
+  top: 6.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 0.9rem;
+  border-radius: 0.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(252, 211, 77, 0.5);
+  color: #fde68a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.toast.is-visible {
+  opacity: 1;
+}
+
+/* Drinks menu */
+.menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.menu[hidden] {
+  display: none;
+}
+
+.menu__card {
+  width: min(22rem, 90vw);
+  padding: 1.1rem 1.25rem 1.25rem;
+  border: 1px solid rgba(252, 211, 77, 0.55);
+  border-radius: 0.9rem;
+  background: rgba(20, 14, 10, 0.95);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.menu__title {
+  margin: 0 0 0.8rem;
+  font-size: 1.1rem;
+  text-align: center;
+  color: #fde68a;
+}
+
+.menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.menu__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border: 1px solid #fcd34d;
+  border-radius: 0.6rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--neutral-950);
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--amber-500), var(--amber-400), #d97706);
+}
+
+.menu__item:hover:not(:disabled) {
+  box-shadow: 0 0 18px rgba(217, 119, 6, 0.6);
+}
+
+.menu__item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.menu__price {
+  font-weight: 700;
+}
+
 .footer-actions {
   display: flex;
   align-items: flex-end;

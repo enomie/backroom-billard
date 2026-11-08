@@ -21,6 +21,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
 | Trinken: ein Schluck (5 pro Getränk) | `R` oder der Knopf „Drink“ neben dem oberen Balken |
+| Leeres Glas: Getränkekarte, Klick auf ein Getränk kauft es | Maus oder Touch |
 | Neu aufbauen | `N` oder der Knopf „Re-rack“ oben rechts |
 | Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` halten oder den Knopf „Smoke“ unten links gedrückt halten (Maus oder Touch) |
 
@@ -55,6 +56,8 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `ashtray.js`, `ashtray-constants.js` | Glas-Aschenbecher auf Tischen und am Billardtisch |
 | `glasses.js`, `glasses-constants.js` | Wein-, Bier- und Whiskeyglas mit Getränk auf Tischen und am Billardtisch |
 | `bottles.js`, `bottles-constants.js` | Wein- und Bierflaschen auf den Tischen |
+| `lighter.js`, `lighter-constants.js`, `lighter-sounds.js` | Zippo-Feuerzeuge (silbern und golden) |
+| `wallet.js`, `drink-menu.js`, `shop-constants.js` | Geld, Getränkekarte, Preise |
 | `player-state.js`, `player-constants.js`, `drinking.js`, `drink-sounds.js` | Zustand des Spielers (die zwei Balken), Trinken |
 | `cigarette-pack.js` | Klappschachtel mit 20 Zigaretten auf Tischen und Billardtisch |
 | `cigarettes.js`, `cigarette-constants.js`, `smoke.js`, `exhale.js`, `smoking.js`, `smoke-sounds.js` | Einzelne Zigaretten (unangezündet, glimmend, Stummel) in den Aschenbechern, Rauchfaden-Shader |

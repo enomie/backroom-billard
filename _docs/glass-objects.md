@@ -90,6 +90,7 @@ Alle Maße sind Parameter (eigene `*-constants.js`, wie bei den Möbeln), nichts
 - **Füllstand:** Ein Getränk hat **5 Schlucke** (`game-concept.md`). Mit jedem Schluck sinkt der Füllstand um ein Fünftel (sanft über etwa eine halbe Sekunde), danach ist das Glas leer. Technisch: Wein, Bier und Whiskey sind eigene Körper in der Innenform; sie werden für dieses eine Glas mit dem neuen Füllstand neu berechnet (wenige hundert Punkte, kostet nichts).
 - **Schaum (Bier):** Der Schaum sitzt auf dem Bier und sinkt mit ihm. Mit der Zeit **zerfällt er**: erst wird die Krone flacher, dann öffnet sich in der Mitte ein **Loch mit ausgefranstem Rand**, das sich nach außen aufweitet, bis nur noch ein **schmaler Ring an der Glaswand** bleibt. Dauer einstellbar (`BEER_FOAM_DECAY_SECONDS`, 4 Minuten). Bei jedem Schluck sinkt der Schaum mit dem Bier.
 - Flaschen: Der Inhalt ist nicht zu sehen; für Trinken genügt ein Zähler.
+- **Nachschub (umgesetzt):** Ist ein Glas leer (nach dem letzten Schluck, oder `R` bei leeren Gläsern), erscheint die **Getränkekarte** als Popover „Was darf es sein?“ (`drink-menu.js`, Preise in `shop-constants.js`): **Bier 8 $, Rotwein 14 $, Weißwein 14 $, Whiskey 18 $**. Ein Klick **kauft das Getränk sofort** (der Preis wird abgezogen) und ersetzt das leere Glas durch ein volles der gewählten Sorte. Getränke, die man sich nicht leisten kann, sind grau. `Esc` oder ein Klick daneben schließt die Karte.
 
 ## Offene Punkte
 

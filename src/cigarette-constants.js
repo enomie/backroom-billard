@@ -110,3 +110,11 @@ export const SMOKING_DROP_HEIGHT = 0.1;
 export const SMOKING_DROP_BOUNCE = 0.35;
 export const SMOKING_DROP_SPIN = 9; // rad/s
 export const SMOKING_DROP_SPREAD = 0.03; // it lands this far (m, times the ashtray scale) from the middle of the dish
+
+/* ---- Taking a new cigarette from the pack and lighting it (smoking.js): all while T is held ---- */
+export const SMOKING_FETCH_SECONDS = 0.5; // pack → mouth
+export const LIGHTING_FLY = 0.3; // the lighter comes up to the cigarette
+export const LIGHTING_OPEN = 0.15; // the lid flips open
+export const LIGHTING_HOLD = 0.6; // flame on; the cigarette catches fire after 40 % of it
+export const LIGHTING_CLOSE = 0.15; // flame off, lid closes
+export const LIGHTING_BACK = 0.3; // the lighter returns to its place

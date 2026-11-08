@@ -32,6 +32,7 @@
               >Ready to shoot</span
             >
           </div>
+          <div class="wallet" data-i18n-aria-label="wallet.aria" aria-label="Cash"><span id="wallet-amount">$ 0</span></div>
           <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
         </div>
 
@@ -62,6 +63,7 @@
           <button id="btn-smoke" type="button" class="btn-key btn-key--compact">
             <span class="btn-key__cap" aria-hidden="true">T</span>
             <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
+            <span id="pack-count" class="btn-key__badge" data-i18n-aria-label="pack.aria" aria-label="Cigarettes in the pack">20</span>
           </button>
           <div class="meter__body">
             <div class="meter__ends">
@@ -111,6 +113,17 @@
           <div id="power-thumb" class="power-slider__thumb"></div>
         </div>
         <span class="power-dock__label" data-i18n="power.label">Power</span>
+      </div>
+
+      <!-- Messages -->
+      <div id="toast" class="toast" role="status"></div>
+
+      <!-- Drinks menu: a popover that appears when a glass is empty -->
+      <div id="menu" class="menu interactive" hidden>
+        <div class="menu__card" role="dialog" aria-labelledby="menu-title">
+          <h2 id="menu-title" class="menu__title" data-i18n="menu.title">What would you like?</h2>
+          <div id="menu-list" class="menu__list"></div>
+        </div>
       </div>
 
       <!-- Shoot: independent button, bottom center -->

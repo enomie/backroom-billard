@@ -1,12 +1,16 @@
 /**
- * Smoking with the T key: hold T and the player's glowing cigarette flies from the ashtray to
- * the mouth; the longer T is held, the harder the drag (brighter ember, longer intake sound). On
- * release the cigarette flies back into its notch and the player exhales: more smoke after a
- * longer drag. A cigarette that burns down while it is smoked is flown above its ashtray and
- * dropped in from 10 cm. See _docs/cigarettes.md.
+ * Smoking with the T key (or its button): hold T and the player's glowing cigarette flies from
+ * the ashtray to the mouth; the longer T is held, the harder the drag. On release it flies back
+ * and the player exhales. Without a glowing cigarette, holding T first takes a new one from the
+ * pack (a new pack is bought when it is empty), lights it with the lighter and then draws on it.
+ * A cigarette that burns down while it is smoked is flown above its ashtray and dropped in.
+ * See _docs/cigarettes.md.
  */
 import * as THREE from "three";
 import { startDragSound, playExhaleSound } from "./smoke-sounds.js";
+import { playLighterOpen, playLighterFlick, playLighterClose } from "./lighter-sounds.js";
+import { PACK_SIZE } from "./cigarette-pack.js";
+import { PACK_PRICE } from "./shop-constants.js";
 import { ASHTRAY_HEIGHT, ASHTRAY_FLOOR } from "./ashtray-constants.js";
 import {
   SMOKING_FLY_IN,
@@ -20,72 +24,97 @@ import {
   SMOKING_MOUTH_TILT,
   SMOKING_GLOW_RISE,
   SMOKING_DROP_HEIGHT,
-  SMOKING_DROP_BOUNCE,
-  SMOKING_DROP_SPIN,
   SMOKING_DROP_SPREAD,
-  CIGARETTE_DIAMETER,
+  SMOKING_FETCH_SECONDS,
+  LIGHTING_FLY,
+  LIGHTING_OPEN,
+  LIGHTING_HOLD,
+  LIGHTING_CLOSE,
+  LIGHTING_BACK,
 } from "./cigarette-constants.js";
 
 const ease = (k) => k * k * (3 - 2 * k);
+const LIGHTING_TOTAL = LIGHTING_FLY + LIGHTING_OPEN + LIGHTING_HOLD + LIGHTING_CLOSE;
+
+/** The player's side at the billard table: 0 on the −z half, 1 on the +z half. */
+export const sideOf = (camera) => (camera.position.z < 0 ? 0 : 1);
 
 /**
- * @param {{ playerCigarette: (camera: THREE.Camera) => any }} cigarettes
+ * @param {{ playerCigarette: Function, spawn: Function, ignite: Function, drop: Function }} cigarettes
  * @param {{ trigger: (camera: THREE.Camera, strength: number) => void }} exhale
+ * @param {{ lighters: any[] }} lighterSet
+ * @param {{ packs: any[] }} packSet
+ * @param {{ spend: Function, say: Function, format: Function }} wallet
  * @param {(dt: number) => void} onDraw — called every frame while the player draws (the nicotine marker moves)
  */
-export function createSmoking(cigarettes, exhale, onDraw) {
-  /** @type {"idle" | "in" | "drawing" | "out" | "fall"} */
+export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, onDraw) {
+  /** @type {"idle" | "fetch" | "light" | "in" | "drawing" | "out"} */
   let phase = "idle";
   let cigarette = null;
+  let side = 0;
   let time = 0; // time in the current phase
   let drawTime = 0;
   let dragSound = null;
-  const mouth = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
-  const flightStart = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
+  let released = false; // T was let go before the drag began
+  let ignited = false;
+  let dropping = false;
+  const pose = () => ({ position: new THREE.Vector3(), quaternion: new THREE.Quaternion() });
+  const mouth = pose();
+  const flightStart = pose();
+  const target = pose(); // where the cigarette flies after the drag: its notch, or above the dish
+  const lighterStart = pose();
+  const lighterTarget = pose();
+  const lighterReturn = { active: false, time: 0, from: pose(), lighter: null };
   const tilt = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, Math.tan(SMOKING_MOUTH_TILT), 0).normalize());
+  const toCameraForward = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1));
   const forward = new THREE.Vector3();
   const right = new THREE.Vector3();
-  /** Where the cigarette flies after the drag: its notch, or above the dish when it is burnt down. */
-  const target = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
-  let dropping = false;
-  const fall = { center: new THREE.Vector3(), velocity: new THREE.Vector3(), spin: new THREE.Vector3(), landing: new THREE.Vector3(), length: 0.03 };
-  const _axis = new THREE.Vector3();
-  const _q = new THREE.Quaternion();
+  const _v = new THREE.Vector3();
+  let clock = 0;
 
   /** The cigarette at the mouth, pointing along the view (the filter end at the lips). */
   function updateMouth(camera) {
     camera.getWorldDirection(forward);
-    mouth.position.copy(camera.position).addScaledVector(forward, SMOKING_MOUTH_FORWARD).addScaledVector(new THREE.Vector3(0, 1, 0), -SMOKING_MOUTH_DOWN).addScaledVector(right.set(1, 0, 0).applyQuaternion(camera.quaternion), SMOKING_MOUTH_RIGHT);
-    // local +x (filter → tip) points along the camera's forward (−z), tilted up a little
-    mouth.quaternion.copy(camera.quaternion).multiply(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1))).multiply(tilt);
+    right.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    mouth.position
+      .copy(camera.position)
+      .addScaledVector(forward, SMOKING_MOUTH_FORWARD)
+      .addScaledVector(_v.set(0, 1, 0), -SMOKING_MOUTH_DOWN)
+      .addScaledVector(right, SMOKING_MOUTH_RIGHT);
+    mouth.quaternion.copy(camera.quaternion).multiply(toCameraForward).multiply(tilt);
   }
 
-  /** Fly from `from` to `to` along a small arc; k = 0…1. */
-  function fly(from, to, k) {
+  /** Fly an object from `from` to `to` along a small arc; k = 0…1. */
+  function fly(object, from, to, k) {
     const e = ease(THREE.MathUtils.clamp(k, 0, 1));
-    cigarette.root.position.lerpVectors(from.position, to.position, e);
-    cigarette.root.position.y += Math.sin(Math.PI * e) * SMOKING_ARC;
-    cigarette.root.quaternion.slerpQuaternions(from.quaternion, to.quaternion, e);
+    object.position.lerpVectors(from.position, to.position, e);
+    object.position.y += Math.sin(Math.PI * e) * SMOKING_ARC;
+    object.quaternion.slerpQuaternions(from.quaternion, to.quaternion, e);
   }
 
-  /** The drag is over: exhale and fly the cigarette back (or, if it is burnt down, to above its ashtray). */
+  const copyPose = (to, object) => {
+    to.position.copy(object.position);
+    to.quaternion.copy(object.quaternion);
+  };
+
+  /** The drag is over: exhale (if there was a drag) and fly the cigarette back (above its ashtray if it is burnt down). */
   function endDrag(camera) {
-    const strength = Math.max(SMOKING_MIN_STRENGTH, Math.min(1, drawTime / SMOKING_MAX_DRAW));
+    if (drawTime > 0.05) {
+      const strength = Math.max(SMOKING_MIN_STRENGTH, Math.min(1, drawTime / SMOKING_MAX_DRAW));
+      exhale.trigger(camera, strength);
+      playExhaleSound(strength);
+    }
     dragSound?.stop();
     dragSound = null;
-    exhale.trigger(camera, strength);
-    playExhaleSound(strength);
-    flightStart.position.copy(cigarette.root.position);
-    flightStart.quaternion.copy(cigarette.root.quaternion);
+    copyPose(flightStart, cigarette.root);
     dropping = cigarette.burn >= 1;
     if (dropping) {
       // 10 cm above the middle of the dish, a little to the side, lying flat in a random direction
       const slot = cigarette.slot;
       const r = Math.random() * SMOKING_DROP_SPREAD * slot.scale;
       const a = Math.random() * Math.PI * 2;
-      fall.landing.set(slot.x + Math.cos(a) * r, slot.y + ASHTRAY_FLOOR * slot.scale, slot.z + Math.sin(a) * r);
-      target.position.set(fall.landing.x, slot.y + ASHTRAY_HEIGHT * slot.scale + SMOKING_DROP_HEIGHT, fall.landing.z);
-      target.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI * 2).multiply(_q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), (Math.random() - 0.5) * 1.2));
+      target.position.set(slot.x + Math.cos(a) * r, slot.y + ASHTRAY_HEIGHT * slot.scale + SMOKING_DROP_HEIGHT, slot.z + Math.sin(a) * r);
+      target.quaternion.setFromAxisAngle(_v.set(0, 1, 0), Math.random() * Math.PI * 2);
     } else {
       target.position.copy(cigarette.rest.position);
       target.quaternion.copy(cigarette.rest.quaternion);
@@ -94,111 +123,176 @@ export function createSmoking(cigarettes, exhale, onDraw) {
     time = 0;
   }
 
-  /** Put the root (the filter end) so that the middle of the butt is at `fall.center`. */
-  function placeRoot() {
-    const axis = _axis.set(1, 0, 0).applyQuaternion(cigarette.root.quaternion);
-    cigarette.root.position.copy(fall.center).addScaledVector(axis, -fall.length / 2);
+  /** The cigarette is at the mouth and burns: the drag starts. */
+  function startDrawing() {
+    phase = "drawing";
+    time = 0;
+    drawTime = 0;
+    dragSound ??= startDragSound();
   }
 
-  /** Turn the butt so that its axis gets the (normalized) direction `axis`, keeping the rest of the orientation. */
-  function turnAxisTo(axis) {
-    const current = _axis.set(1, 0, 0).applyQuaternion(cigarette.root.quaternion).clone();
-    cigarette.root.quaternion.premultiply(_q.setFromUnitVectors(current, axis));
+  /** Move the lighter along its lighting sequence; `t` = seconds since it started. */
+  function stepLighting(t, camera) {
+    const lighter = lighterSet.lighters[side];
+    if (!ignited && t > LIGHTING_FLY + LIGHTING_OPEN + LIGHTING_HOLD * 0.4) {
+      ignited = true;
+      cigarettes.ignite(cigarette); // the cigarette catches fire while the flame is at its tip
+    }
+    // the flame has to meet the tip of the cigarette (which is at the mouth)
+    cigarette.root.updateMatrixWorld();
+    const tip = cigarette.root.localToWorld(_v.set(cigarette.tipX, 0, 0)).clone();
+    lighterTarget.quaternion.copy(camera.quaternion);
+    lighterTarget.position.copy(tip).sub(lighter.flameLocal.clone().applyQuaternion(lighterTarget.quaternion));
+    if (t < LIGHTING_FLY) {
+      fly(lighter.group, lighterStart, lighterTarget, t / LIGHTING_FLY);
+      return;
+    }
+    lighter.group.position.copy(lighterTarget.position);
+    lighter.group.quaternion.copy(lighterTarget.quaternion);
+    const open = t - LIGHTING_FLY;
+    if (open < LIGHTING_OPEN) {
+      lighter.setOpen(open / LIGHTING_OPEN);
+      return;
+    }
+    lighter.setOpen(1);
+    const hold = open - LIGHTING_OPEN;
+    if (hold < LIGHTING_HOLD) {
+      if (!lighter.lit) {
+        lighter.lit = true;
+        playLighterFlick();
+      }
+      lighter.setFlame(true, clock);
+      return;
+    }
+    lighter.setFlame(false);
+    lighter.lit = false;
+    const close = hold - LIGHTING_HOLD;
+    if (close < LIGHTING_CLOSE) {
+      if (!lighter.closing) {
+        lighter.closing = true;
+        playLighterClose();
+      }
+      lighter.setOpen(1 - close / LIGHTING_CLOSE);
+    }
   }
 
-  /** The butt falls into the dish: gravity, a few bounces, and it settles lying flat. Returns true when it rests. */
-  function stepFall(dt) {
-    const half = fall.length / 2;
-    const slot = cigarette.slot;
-    const ground = slot.y + ASHTRAY_FLOOR * slot.scale + CIGARETTE_DIAMETER / 2;
-    fall.velocity.y -= 9.81 * dt;
-    fall.center.addScaledVector(fall.velocity, dt);
-    if (fall.spin.lengthSq() > 1e-6) {
-      cigarette.root.quaternion.premultiply(_q.setFromAxisAngle(_axis.copy(fall.spin).normalize(), fall.spin.length() * dt));
-    }
-    const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(cigarette.root.quaternion);
-    const lowest = fall.center.y - Math.abs(axis.y) * half;
-    let settled = false;
-    if (lowest < ground && fall.velocity.y < 0) {
-      fall.center.y += ground - lowest;
-      fall.velocity.y = -fall.velocity.y * SMOKING_DROP_BOUNCE;
-      fall.velocity.x += (Math.random() - 0.5) * 0.15;
-      fall.velocity.z += (Math.random() - 0.5) * 0.15;
-      fall.spin.multiplyScalar(0.4);
-      settled = fall.velocity.y < 0.25;
-      axis.y *= settled ? 0 : 0.4; // each bounce lays it flatter; the last one lays it flat
-      turnAxisTo(axis.normalize());
-      if (settled) fall.center.y = ground;
-    }
-    placeRoot();
-    if (settled) {
-      cigarette.rest.position.copy(cigarette.root.position);
-      cigarette.rest.quaternion.copy(cigarette.root.quaternion);
-    }
-    return settled;
-  }
-
+  window.__sp = () => ({ phase, side, packs: packSet.packs.map((p) => p.count), c: cigarette && { burn: +cigarette.burn.toFixed(2), state: cigarette.state, held: cigarette.held } });
   return {
-    /** T pressed: fetch the cigarette. */
+    /** T pressed: fetch the cigarette (a new one if there is no glowing one). */
     press(camera) {
       if (phase !== "idle") return;
-      cigarette = cigarettes.playerCigarette(camera);
-      if (!cigarette) return; // nothing left to smoke
-      phase = "in";
-      time = 0;
+      side = sideOf(camera);
+      released = false;
       drawTime = 0;
-      flightStart.position.copy(cigarette.root.position);
-      flightStart.quaternion.copy(cigarette.root.quaternion);
-      dragSound = startDragSound();
+      ignited = false;
+      cigarette = cigarettes.playerCigarette(side);
+      if (cigarette) {
+        cigarette.held = true;
+        phase = "in";
+        time = 0;
+        copyPose(flightStart, cigarette.root);
+        dragSound = startDragSound();
+        return;
+      }
+      // no cigarette: take a new one from the pack (a new pack is bought when it is empty)
+      const pack = packSet.packs[side];
+      if (pack.count <= 0) {
+        if (!wallet.spend(PACK_PRICE)) {
+          wallet.say("toast.noMoney");
+          return;
+        }
+        wallet.say("toast.pack", { price: wallet.format(PACK_PRICE) });
+        pack.setCount(PACK_SIZE);
+      }
+      pack.setCount(pack.count - 1);
+      cigarette = cigarettes.spawn(side);
+      // it comes out of the pack, filter first
+      pack.group.getWorldPosition(flightStart.position);
+      flightStart.position.y += 0.05;
+      flightStart.quaternion.setFromUnitVectors(_v.set(1, 0, 0), new THREE.Vector3(0, -1, 0));
+      copyPose(cigarette.root, flightStart);
+      phase = "fetch";
+      time = 0;
     },
-    /** T released: put the cigarette back and exhale. */
+    /** T released: put the cigarette back and exhale (a new one is lit first, then put back). */
     release(camera) {
-      if (phase !== "in" && phase !== "drawing") return;
-      endDrag(camera);
+      if (phase === "fetch" || phase === "light") {
+        released = true;
+        return;
+      }
+      if (phase === "in" || phase === "drawing") endDrag(camera);
     },
     update(dt, camera) {
+      clock += dt;
+      // the lighter flies back to its place (also while the drag goes on)
+      if (lighterReturn.active) {
+        lighterReturn.time += dt;
+        const k = lighterReturn.time / LIGHTING_BACK;
+        fly(lighterReturn.lighter.group, lighterReturn.from, lighterReturn.lighter.rest, k);
+        if (k >= 1) lighterReturn.active = false;
+      }
       if (phase === "idle") return;
       time += dt;
       // burnt down while smoking: let go of it (the drag ends here)
       if ((phase === "in" || phase === "drawing") && cigarette.burn >= 1) endDrag(camera);
       if (phase === "in" || phase === "drawing") onDraw(dt);
-      if (phase === "in") {
+      if (phase === "fetch") {
         updateMouth(camera);
-        fly(flightStart, mouth, time / SMOKING_FLY_IN);
+        fly(cigarette.root, flightStart, mouth, time / SMOKING_FETCH_SECONDS);
+        if (time >= SMOKING_FETCH_SECONDS) {
+          phase = "light";
+          time = 0;
+          const lighter = lighterSet.lighters[side];
+          copyPose(lighterStart, lighter.group);
+          lighter.closing = false;
+          playLighterOpen();
+        }
+      } else if (phase === "light") {
+        updateMouth(camera);
+        copyPose(cigarette.root, mouth);
+        stepLighting(time, camera);
+        if (time >= LIGHTING_TOTAL) {
+          // the lighter goes home; the cigarette burns: draw on it if T is still held
+          const lighter = lighterSet.lighters[side];
+          if (!ignited) {
+            ignited = true;
+            cigarettes.ignite(cigarette);
+          }
+          lighter.setOpen(0);
+          lighter.setFlame(false);
+          lighterReturn.active = true;
+          lighterReturn.time = 0;
+          lighterReturn.lighter = lighter;
+          copyPose(lighterReturn.from, lighter.group);
+          if (released) endDrag(camera);
+          else startDrawing();
+        }
+      } else if (phase === "in") {
+        updateMouth(camera);
+        fly(cigarette.root, flightStart, mouth, time / SMOKING_FLY_IN);
         cigarette.drawGlow = Math.min(1, time / SMOKING_GLOW_RISE);
-        if (time >= SMOKING_FLY_IN) [phase, time] = ["drawing", 0];
+        if (time >= SMOKING_FLY_IN) {
+          phase = "drawing";
+          time = 0;
+        }
       } else if (phase === "drawing") {
         updateMouth(camera);
         drawTime += dt;
-        cigarette.root.position.copy(mouth.position);
-        cigarette.root.quaternion.copy(mouth.quaternion);
+        copyPose(cigarette.root, mouth);
         cigarette.drawGlow = Math.min(1, (drawTime + SMOKING_FLY_IN) / SMOKING_GLOW_RISE);
       } else if (phase === "out") {
-        fly(flightStart, target, time / SMOKING_FLY_OUT);
+        fly(cigarette.root, flightStart, target, time / SMOKING_FLY_OUT);
         cigarette.drawGlow = Math.max(0, cigarette.drawGlow - dt / SMOKING_FLY_OUT);
         if (time >= SMOKING_FLY_OUT) {
           cigarette.drawGlow = 0;
           if (dropping) {
-            // let go of the butt above the ashtray
-            fall.velocity.set(0, 0, 0);
-            fall.spin.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize().multiplyScalar(SMOKING_DROP_SPIN);
-            fall.length = Math.max(0.02, cigarette.tipX);
-            fall.center.copy(cigarette.root.position).addScaledVector(_axis.set(1, 0, 0).applyQuaternion(cigarette.root.quaternion), fall.length / 2);
-            phase = "fall";
+            cigarettes.drop(cigarette); // let go of the butt above the ashtray: it falls in
           } else {
-            cigarette.root.position.copy(cigarette.rest.position);
-            cigarette.root.quaternion.copy(cigarette.rest.quaternion);
-            phase = "idle";
-            cigarette = null;
+            copyPose(cigarette.root, cigarette.rest);
+            cigarette.held = false;
           }
-        }
-      } else if (phase === "fall") {
-        // fixed small steps, so the bounce looks the same at any frame rate
-        for (let left = Math.min(dt, 0.1); left > 0 && phase === "fall"; left -= 1 / 240) {
-          if (stepFall(Math.min(left, 1 / 240))) {
-            phase = "idle";
-            cigarette = null;
-          }
+          phase = "idle";
+          cigarette = null;
         }
       }
     },

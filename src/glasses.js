@@ -202,7 +202,8 @@ export function createGlasses(scene, taken) {
   };
 
   /** A glass with a level (share 1 = full … 0 = empty), sips left and, for beer, a decaying foam head. */
-  function makePlayerGlass(glass) {
+  function makePlayerGlass(initial) {
+    let glass = initial;
     const state = {
       group: glass.group,
       kind: glass.kind,
@@ -213,6 +214,17 @@ export function createGlasses(scene, taken) {
       /** Change the level: the drink (and the foam on top) are rebuilt for the new height. */
       setShare(share) {
         state.share = THREE.MathUtils.clamp(share, 0, 1);
+        refresh();
+      },
+      /** A new drink in a new glass (bought at the bar): the old glass is replaced on the spot. */
+      replace(kind) {
+        const next = build(kind);
+        next.group.position.copy(state.rest.position);
+        next.group.quaternion.copy(state.rest.quaternion);
+        group.remove(state.group);
+        group.add(next.group);
+        glass = next;
+        Object.assign(state, { group: next.group, kind, share: 1, sipsLeft: DRINK_SIPS, decay: 0 });
         refresh();
       },
       /** Per frame: the foam decays (rebuilt a few times per second only). */
