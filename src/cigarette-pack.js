@@ -19,7 +19,7 @@ import {
   PACK_LID_HEIGHT,
   PACK_CARDBOARD,
   PACK_LID_OPEN_ANGLE,
-  PACK_COLOR,
+  PACK_DESIGNS,
   PACK_TABLE_SHARE,
   PACK_OPEN_SHARE,
   PACK_RING_MIN,
@@ -47,17 +47,17 @@ function random(seed) {
   };
 }
 
-/** Front art: black card with gold lines and a red band. Invented brand. */
-function frontTexture() {
+/** Front art for a design: colored card, a band with the name, lines. Invented brand. */
+function frontTexture(design) {
   const c = document.createElement("canvas");
   c.width = 232;
   c.height = 352;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#17120f";
+  ctx.fillStyle = design.background;
   ctx.fillRect(0, 0, c.width, c.height);
-  ctx.fillStyle = "#8c1a22"; // red band
+  ctx.fillStyle = design.band;
   ctx.fillRect(0, 150, c.width, 92);
-  ctx.strokeStyle = "#d4a84a";
+  ctx.strokeStyle = design.line;
   ctx.lineWidth = 3;
   ctx.strokeRect(12, 12, c.width - 24, c.height - 24);
   ctx.beginPath();
@@ -66,12 +66,13 @@ function frontTexture() {
   ctx.moveTo(12, 242);
   ctx.lineTo(c.width - 12, 242);
   ctx.stroke();
-  ctx.fillStyle = "#e0b85a";
   ctx.textAlign = "center";
+  ctx.fillStyle = design.bandText;
   ctx.font = "bold 36px serif";
-  ctx.fillText("BACKROOM", c.width / 2, 208);
+  ctx.fillText(design.title, c.width / 2, 208);
+  ctx.fillStyle = design.text;
   ctx.font = "italic 20px serif";
-  ctx.fillText("Premium Blend", c.width / 2, 100);
+  ctx.fillText(design.subtitle, c.width / 2, 100);
   ctx.font = "bold 22px serif";
   ctx.fillText("No. 20", c.width / 2, 300);
   const tex = new THREE.CanvasTexture(c);
@@ -118,10 +119,15 @@ export function createCigarettePacks(scene, taken) {
   group.name = "cigarette-packs";
   const rnd = random(PACK_SEED);
 
-  const front = frontTexture();
-  const cardMat = new THREE.MeshStandardMaterial({ color: PACK_COLOR, roughness: 0.6 });
-  const bodyFrontMat = new THREE.MeshStandardMaterial({ map: slice(front, 0, (H - LID) / H), roughness: 0.55 });
-  const lidFrontMat = new THREE.MeshStandardMaterial({ map: slice(front, (H - LID) / H, LID / H), roughness: 0.55 });
+  // Materials per design: cardboard, front of the body and front of the lid
+  const designs = PACK_DESIGNS.map((design) => {
+    const front = frontTexture(design);
+    return {
+      card: new THREE.MeshStandardMaterial({ color: design.card, roughness: 0.6 }),
+      bodyFront: new THREE.MeshStandardMaterial({ map: slice(front, 0, (H - LID) / H), roughness: 0.55 }),
+      lidFront: new THREE.MeshStandardMaterial({ map: slice(front, (H - LID) / H, LID / H), roughness: 0.55 }),
+    };
+  });
   const paperMat = new THREE.MeshStandardMaterial({ color: CIGARETTE_COLOR_PAPER, roughness: 0.85 });
   const filterMat = new THREE.MeshStandardMaterial({ color: CIGARETTE_COLOR_FILTER, roughness: 0.8 });
   const cigs = cigaretteGeometries();
@@ -134,7 +140,8 @@ export function createCigarettePacks(scene, taken) {
   };
 
   /** One pack, standing upright (y up, front = +z), origin at the middle of its bottom. */
-  const buildPack = (open) => {
+  const buildPack = (open, designIndex) => {
+    const { card: cardMat, bodyFront: bodyFrontMat, lidFront: lidFrontMat } = designs[designIndex];
     const pack = new THREE.Group();
     // body: floor, back, sides (inset, so the lid fits over them), front up to the lid
     pack.add(
@@ -178,6 +185,7 @@ export function createCigarettePacks(scene, taken) {
   for (const table of FURNITURE_TABLES) {
     if (rnd() > PACK_TABLE_SHARE) continue;
     const open = rnd() < PACK_OPEN_SHARE;
+    const design = Math.floor(rnd() * PACK_DESIGNS.length);
     for (let attempt = 0; attempt < 24; attempt++) {
       const angle = rnd() * Math.PI * 2;
       const ring = PACK_RING_MIN + rnd() * (PACK_RING_MAX - PACK_RING_MIN);
@@ -186,7 +194,7 @@ export function createCigarettePacks(scene, taken) {
       const fits = ring + footprint < FURNITURE_TABLE_RADIUS - 0.005 &&
         occupied.every((o) => Math.hypot(o.x - x, o.z - z) > o.r + footprint + 0.005);
       if (!fits) continue;
-      const pack = buildPack(open);
+      const pack = buildPack(open, design);
       const yaw = rnd() * Math.PI * 2;
       lay(pack, x, FURNITURE_TABLE_HEIGHT, z, yaw);
       occupied.push({ x, z, r: footprint });
@@ -194,10 +202,11 @@ export function createCigarettePacks(scene, taken) {
     }
   }
 
-  // Billard table: one pack per player on the left frame, lying across it (open or closed, chosen anew on every load)
+  // Billard table: one pack per player on the left frame, lying across it (open or closed and with the two designs in random order, chosen anew on every load)
   const frameX = -(PLAY_W / 2 + CUSHION_PROFILE_WIDTH + RAIL_WOOD_DEPTH / 2);
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
-  for (const sz of [-1, 1]) lay(buildPack(Math.random() < PACK_OPEN_SHARE), frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2);
+  const order = Math.random() < 0.5 ? [0, 1] : [1, 0]; // the two players smoke different brands
+  [-1, 1].forEach((sz, i) => lay(buildPack(Math.random() < PACK_OPEN_SHARE, order[i]), frameX, frameTop, sz * PACK_FRAME_Z, Math.PI / 2));
 
   scene.add(group);
   return { group };

@@ -54,16 +54,16 @@ function random(seed) {
   };
 }
 
-/** Orange filter with fine speckles. */
+/** Beige-tan filter with fine speckles. */
 function filterTexture() {
   const c = document.createElement("canvas");
   c.width = 64;
   c.height = 64;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#e0903f";
+  ctx.fillStyle = "#dcae6c";
   ctx.fillRect(0, 0, 64, 64);
   for (let i = 0; i < 160; i++) {
-    ctx.fillStyle = Math.random() < 0.5 ? "rgba(255,220,150,0.5)" : "rgba(150,70,20,0.35)";
+    ctx.fillStyle = Math.random() < 0.5 ? "rgba(255,235,190,0.5)" : "rgba(160,110,50,0.3)";
     ctx.fillRect(Math.random() * 64, Math.random() * 64, 1.5, 1.5);
   }
   const tex = new THREE.CanvasTexture(c);

@@ -17,7 +17,7 @@ export const CIGARETTE_ASH_MAX = 0.006;
 export const CIGARETTE_BUTT_PAPER = 0.002;
 
 export const CIGARETTE_COLOR_PAPER = 0xf2eee4;
-export const CIGARETTE_COLOR_FILTER = 0xd68a3a;
+export const CIGARETTE_COLOR_FILTER = 0xd9a85f; // beige-tan, like a real filter
 export const CIGARETTE_COLOR_ASH = 0x8d8982;
 export const CIGARETTE_COLOR_EMBER = 0xff5a14;
 export const CIGARETTE_EMBER_GLOW = 5; // HDR brightness of the ember
@@ -49,7 +49,11 @@ export const PACK_LID_HEIGHT = 0.028;
 export const PACK_CARDBOARD = 0.0006;
 /** How far the open lid is swung back (rad). */
 export const PACK_LID_OPEN_ANGLE = 1.95;
-export const PACK_COLOR = 0x15110e;
+/** The two pack designs: dark (black/red/gold) and light (white/blue). `card` = cardboard color, the rest is the front art. */
+export const PACK_DESIGNS = [
+  { card: 0x15110e, background: "#17120f", band: "#8c1a22", line: "#d4a84a", text: "#e0b85a", bandText: "#e0b85a", title: "BACKROOM", subtitle: "Premium Blend" },
+  { card: 0xf1efe9, background: "#f3f1ea", band: "#1f4e9c", line: "#1f4e9c", text: "#1f3f78", bandText: "#f3f1ea", title: "BACKROOM", subtitle: "Light Blend" },
+];
 
 /** On the round tables: share of tables with a pack, share of the packs that are open. */
 export const PACK_TABLE_SHARE = 0.5;

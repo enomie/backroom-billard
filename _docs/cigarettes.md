@@ -16,7 +16,7 @@ Die drei Bilder liegen **nicht im Repo** (Bildrechte ungeklärt), sie sind nur V
 
 - **Code:** `src/cigarette-pack.js`, Werte `PACK_*` in `cigarette-constants.js`.
 - **Form:** Klappschachtel aus dünnen Kartonplatten, 58 × 88 × 23,5 mm: Boden, Rückwand, Seiten und unterer Teil der Front als Körper, dazu ein **Klappdeckel** mit Scharnier hinten oben (Front, Oberseite, Seiten). Innen **20 Zigaretten** in drei Reihen (7 – 6 – 7, dicht gepackt), Filter nach oben.
-- **Gestaltung:** Schwarzer Karton mit goldenen Linien und rotem Band, Aufschrift „BACKROOM · Premium Blend · No. 20“ (erfundene Marke). Die Front-Grafik ist auf Körper und Deckel aufgeteilt.
+- **Gestaltung:** Zwei Ausführungen (`PACK_DESIGNS`): **schwarz/rot/gold** („BACKROOM · Premium Blend“) und **weiß/blau** („BACKROOM · Light Blend“), beide „No. 20“ (erfundene Marke). Am Billardtisch bekommt jeder Spieler eine andere. Die Front-Grafik ist auf Körper und Deckel aufgeteilt.
 - **Zustand:** geschlossen oder **offen** (Deckel um etwa 110° nach hinten geklappt, die Filter sind zu sehen). Eine Animation zum Auf- und Zuklappen gibt es noch nicht.
 - **Verteilung:** Die Hälfte der Tische hat eine Schachtel (liegt auf dem Rücken, zufällig gedreht, zur Hälfte offen, mit Abstand zu Kerze, Aschenbecher, Gläsern und Flaschen). Auf dem Rahmen des Billardtisches liegt **je Spieler eine** (links, zwischen zwei Rauten, quer zum Rahmen), offen oder geschlossen, bei jedem Laden neu gewürfelt.
 - **Noch nicht:** Entnehmen einer Zigarette (die Anzahl in der Schachtel bleibt 20), Klappen per Klick.
@@ -32,7 +32,7 @@ Die ursprünglichen Vorgaben:
 ## Einzelne Zigarette (umgesetzt)
 
 - **Code:** `src/cigarettes.js`, Werte in `src/cigarette-constants.js`.
-- **Form:** 84 mm lang, Ø 8 mm, Filter 25 mm in Orange mit feinen Sprenkeln, weißer Papierschaft. Zustände: unangezündet, glimmend, Stummel.
+- **Form:** 84 mm lang, Ø 8 mm, Filter 25 mm in Beige-Tan (nach einem Foto) mit feinen Sprenkeln, weißer Papierschaft. Zustände: unangezündet, glimmend, Stummel.
 - **Glimmend:** Die Spitze trägt Asche (bis 6 mm) und eine pulsierende Glut mit weichem Schein (nur leuchtend, kein echtes Licht). Die Zigarette **brennt über die Zeit herunter** (7 Minuten Spielzeit, `CIGARETTE_BURN_SECONDS`) und wird danach zum Stummel ohne Glut.
 - **Test-Aufbau:** Jeder Aschenbecher auf den Tischen bekommt 1–3 Zigaretten in zufälligen Kerben, gemischt aus glimmend (45 %), unangezündet (20 %) und Stummel; die Aschenbecher der Spieler am Billardtisch bekommen **genau eine**, glimmend. Sie liegt quer in der Kerbe, die Spitze ruht innen auf dem Schalenboden.
 - **Rauch:** Jede glimmende Zigarette hat einen Rauchfaden (siehe „Rauch“). Er endet mit der Glut.
