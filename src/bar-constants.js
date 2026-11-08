@@ -56,6 +56,9 @@ export const STOOL_COLOR_SEAT = 0x5a1620;
 export const BACKBAR_WIDTH = 3.6;
 export const BACKBAR_HEIGHT = 3;
 export const BACKBAR_THICKNESS = 0.06;
+/** Wooden frame (the wood of the wall paneling) on the left, right and top of the marble: width and depth (m). */
+export const BACKBAR_FRAME_WIDTH = 0.07;
+export const BACKBAR_FRAME_DEPTH = 0.08;
 export const BACKBAR_SHELF_LEVELS = [1.45, 2.0, 2.55];
 export const BACKBAR_SHELF_WIDTH = 3.2;
 export const BACKBAR_SHELF_DEPTH = 0.22;

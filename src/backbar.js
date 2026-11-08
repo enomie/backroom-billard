@@ -3,7 +3,7 @@
  * standing on them. Dimensions: bar-constants.js. See _docs/bar.md.
  */
 import * as THREE from "three";
-import { woodTexture } from "./wood.js";
+import { woodTexture, wainscotWoodMaterial } from "./wood.js";
 import { receiveWallLampsDeep } from "./wall-lamp-light.js";
 import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
 import { marbleMaterial } from "./bar.js";
@@ -14,6 +14,8 @@ import {
   BACKBAR_WIDTH,
   BACKBAR_HEIGHT,
   BACKBAR_THICKNESS,
+  BACKBAR_FRAME_WIDTH,
+  BACKBAR_FRAME_DEPTH,
   BACKBAR_SHELF_LEVELS,
   BACKBAR_SHELF_WIDTH,
   BACKBAR_SHELF_DEPTH,
@@ -37,6 +39,20 @@ export function createBackbar(scene, bottles) {
   const marble = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_WIDTH, BACKBAR_HEIGHT, BACKBAR_THICKNESS), marbleMaterial());
   marble.position.set(0, BACKBAR_HEIGHT / 2, BACKBAR_THICKNESS / 2);
   root.add(marble);
+
+  // the frame around the marble (left, right, top) in the wood of the paneling; the top bar's grain runs along it
+  const frameUp = wainscotWoodMaterial();
+  const frameAcross = wainscotWoodMaterial();
+  frameAcross.map.center.set(0.5, 0.5);
+  frameAcross.map.rotation = Math.PI / 2;
+  const frameBar = (w, h, x, y, mat) => {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, BACKBAR_FRAME_DEPTH), mat);
+    bar.position.set(x, y, BACKBAR_FRAME_DEPTH / 2);
+    root.add(bar);
+  };
+  const outerHeight = BACKBAR_HEIGHT + BACKBAR_FRAME_WIDTH;
+  for (const side of [-1, 1]) frameBar(BACKBAR_FRAME_WIDTH, outerHeight, side * (BACKBAR_WIDTH + BACKBAR_FRAME_WIDTH) / 2, outerHeight / 2, frameUp);
+  frameBar(BACKBAR_WIDTH + 2 * BACKBAR_FRAME_WIDTH, BACKBAR_FRAME_WIDTH, 0, BACKBAR_HEIGHT + BACKBAR_FRAME_WIDTH / 2, frameAcross);
 
   const wood = new THREE.MeshStandardMaterial({ color: BAR_COLOR_WOOD, map: woodTexture({ base: "#8a5a36", repeatX: 3 }), roughness: 0.45, metalness: 0.05 });
   let seed = BACKBAR_BOTTLE_SEED;
