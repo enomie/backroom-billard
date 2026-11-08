@@ -2,6 +2,8 @@
 
 3D-Billard im Browser (Three.js + Rapier): First-Person-Queue zum Zielen, echter 9-Fuß-Tisch, Kugeln mit Schwerkraft, die selbst ins Loch fallen.
 
+**Hersteller:** Bad Habits Games · **Kontakt:** [bad.habits.games@proton.me](mailto:bad.habits.games@proton.me) (offizielle Adresse)
+
 ## Starten
 
 ```bash

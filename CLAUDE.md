@@ -1,5 +1,9 @@
 # Projektregeln (Backroom Billard)
 
+## Allgemeine Info
+
+- **Hersteller:** Bad Habits Games. **Offizielle E-Mail:** bad.habits.games@proton.me. Gehört in die Docs und überall, wo ein Hersteller oder Kontakt genannt wird (README, Impressum, Metadaten).
+
 ## Sprache
 
 - **Code, Code-Kommentare, Bezeichner, Log- und Fehlermeldungen, Commit-Messages: immer Englisch.**

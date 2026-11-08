@@ -2,6 +2,7 @@
   "name": "backroom-billard",
   "private": true,
   "version": "0.2.0",
+  "author": "Bad Habits Games <bad.habits.games@proton.me>",
   "type": "module",
   "scripts": {
     "dev": "vite",
