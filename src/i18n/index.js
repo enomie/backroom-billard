@@ -103,7 +103,9 @@ export function initI18n() {
   } catch {
     /* ignore */
   }
-  current = find(saved) ? saved : LANGUAGES[0].code;
+  // the stored choice, else the language of the browser, else English
+  const browser = (navigator.languages ?? [navigator.language]).map((l) => l?.slice(0, 2).toLowerCase()).find(find);
+  current = find(saved) ? saved : browser ?? LANGUAGES[0].code;
   renderSwitcher();
   setLanguage(current);
 }

@@ -15,6 +15,10 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 **Auf einem Webserver (z. B. PHP):** `npm run build` und den Ordner `dist/` auf den Server kopieren, auch in einen Unterordner. Die Pfade sind relativ (`base: "./"` in `vite.config.js`), eine `.htaccess` für Apache (richtiger Typ für die `.wasm`-Datei der Physik) liegt dabei (`public/.htaccess`). Der Stream des Radios braucht Internet.
 
+## Startscreen
+
+Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: **Bad Habits Games**, darunter **PRESENT**, der Titel in Limelight und der Knopf **Confirm Age 18+** (deutsch „Alter bestätigen 18+“; die Sprache kommt aus der gespeicherten Wahl, sonst aus dem Browser, sonst Englisch). Es gibt bewusst keinen „Verlassen“-Knopf, das kann der Browser. Das Spiel lädt im Hintergrund; sobald es bereit ist **und** das Alter bestätigt wurde, blendet der Screen aus. Der Klick ist die erste Eingabe des Besuchs, ab dann darf das Radio spielen. Solange der Screen steht, tun die Spieltasten nichts. Code: `src/start-screen.js`, Markup in `index.html`, `src/entry.js` verbindet Laden und Bestätigung.
+
 ## Steuerung
 
 | Aktion | Eingabe |
@@ -84,6 +88,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `wall-lamp-places.js`, `wall-lamp-light.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 | `settings.js` | Einstellungen-Overlay: Re-rack, Sprache, Hinweise zur Bedienung |
+| `start-screen.js` | Startscreen mit Alterbestätigung (blendet aus, wenn das Spiel geladen und bestätigt ist) |
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
 

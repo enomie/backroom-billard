@@ -29,6 +29,7 @@
 }
 
 :root {
+  --start-bg: #1c1c1a;
   /* the buttons at the bottom are all this high and stand on the same line (= the padding of the HUD) */
   --bottom-button-height: 2.75rem;
   --bottom-edge: 1rem;
@@ -957,4 +958,77 @@ html {
   font-size: 0.8rem;
   line-height: 1.35;
   color: #d4d4d8;
+}
+
+/* Start screen: bare, centered, on a dark page */
+.start {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--start-bg);
+  transition: opacity 0.7s ease;
+}
+
+.start--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.start__maker {
+  margin: 0;
+  font-size: clamp(1rem, 3.6vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--amber-200);
+}
+
+.start__present {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.5em;
+  color: var(--text-muted);
+}
+
+.start__title {
+  margin: 1.4rem 0 1.8rem;
+  font-family: "Limelight", serif;
+  font-size: clamp(2rem, 9vw, 4.2rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase; /* the font file holds the capitals only */
+  color: var(--amber-100);
+}
+
+.start__confirm {
+  padding: 0.75rem 1.6rem;
+  border: 1px solid rgba(252, 211, 77, 0.6);
+  border-radius: 0.25rem;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber-300);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.start__confirm:hover:not(:disabled),
+.start__confirm:focus-visible {
+  background: rgba(252, 211, 77, 0.12);
+  color: var(--amber-200);
+  outline: none;
+}
+
+.start__confirm:disabled {
+  opacity: 0.45;
+  cursor: default;
 }

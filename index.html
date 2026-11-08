@@ -14,6 +14,14 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <!-- Start screen: bare, on a dark page; the game loads behind it (src/start-screen.js) -->
+    <div id="start" class="start">
+      <p class="start__maker">Bad Habits Games</p>
+      <p class="start__present" data-i18n="start.present">PRESENT</p>
+      <h1 class="start__title">Backroom Billard</h1>
+      <button id="start-confirm" type="button" class="start__confirm" data-i18n="start.confirm" autofocus>Confirm Age 18+</button>
+    </div>
+
     <div id="canvas-container"></div>
 
     <!-- Game over: game lost / you win -->

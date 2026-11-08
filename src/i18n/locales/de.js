@@ -35,6 +35,8 @@ export default {
   "radio.connecting": "VERBINDE…",
   "radio.live": "LIVE",
   "radio.nosignal": "KEIN SIGNAL",
+  "start.present": "PRÄSENTIERT",
+  "start.confirm": "Alter bestätigen 18+",
   "lang.label": "Sprache",
   "settings.title": "Einstellungen",
   "settings.close": "Schließen",

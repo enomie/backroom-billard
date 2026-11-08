@@ -28,6 +28,7 @@ import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
+import { isStartScreenOpen } from "./start-screen.js";
 import { createDoor } from "./door.js";
 import { createPlayerState } from "./player-state.js";
 import { SWAY_PITCH_OFFSET } from "./player-constants.js";
@@ -903,7 +904,7 @@ function setupControls() {
 
   // Keyboard: C switches the camera, N resets; E shoots; in cue view arrow keys / A & D aim; in free camera mode WASD move, space goes up and shift goes down.
   window.addEventListener("keydown", (e) => {
-    if (settings.isOpen()) return; // the settings are open: the game keys do nothing
+    if (settings.isOpen() || isStartScreenOpen()) return; // the settings or the start screen are up: the game keys do nothing
     heldKeys.add(e.code);
     if (e.code === "KeyC" && !e.repeat) {
       toggleCamera();

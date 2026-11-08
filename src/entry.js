@@ -3,6 +3,7 @@
  */
 import * as THREE from "three";
 import { initI18n, t } from "./i18n/index.js";
+import { waitForConfirmation, hideStartScreen } from "./start-screen.js";
 
 window.THREE = THREE;
 
@@ -44,4 +45,5 @@ async function boot() {
   }
 }
 
-boot();
+// The game loads behind the start screen; it opens when the game is ready and the age confirmed
+Promise.all([boot(), waitForConfirmation()]).then(hideStartScreen);
