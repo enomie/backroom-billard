@@ -29,7 +29,7 @@ Minimalistisch wie der Startscreen: Hintergrund `#1c1c1a`, zentriert, Roboto (Br
 | Nachname | ja | Last name / Nachname |
 
 - **Am PC nebeneinander** (drei Spalten), **am Handy untereinander**.
-- **Erlaubt:** nur **Buchstaben** (alle Schriften und Akzente: ä ö ü ß é ñ …, nicht nur A–Z), der **Punkt `.`** und der **Bindestrich `-`**. Alles andere (Ziffern, Leerzeichen, Sonderzeichen) wird beim Tippen gar nicht angenommen (kein Fehlertext nötig). Doppelnamen gehen also mit Bindestrich: „Anna-Lena“.
+- **Erlaubt:** nur **Buchstaben** (alle Schriften und Akzente: ä ö ü ß é ñ …, nicht nur A–Z), der **Punkt `.`** und der **Bindestrich `-`**. Alles andere (Ziffern, Leerzeichen, Sonderzeichen) wird beim Tippen gar nicht angenommen (kein Fehlertext und keine Erklärungszeile). Doppelnamen gehen also mit Bindestrich: „Anna-Lena“.
 - **Form:** Ein Bindestrich nicht am Anfang oder Ende und nicht doppelt (`--`), ein Punkt nur nach einem Buchstaben und nicht doppelt (`..`); mindestens ein Buchstabe pro ausgefülltem Feld; höchstens 24 Zeichen je Feld (Vorschlag).
 - **Groß- und Kleinschreibung:** Der erste Buchstabe jedes Namensteils (und nach einem Bindestrich) wird automatisch groß (aus „mario“ wird „Mario“), der Rest bleibt, wie getippt (damit „McDonald“ oder „de la Cruz“ nicht zerstört wird). Vorschlag, noch zu bestätigen.
 - **Enter** springt zum nächsten Feld, im letzten löst es **Continue** aus (wenn alles gültig ist).

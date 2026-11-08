@@ -1108,13 +1108,6 @@ html {
   border-bottom-color: var(--amber-300);
 }
 
-.welcome__hint {
-  margin: 0.6rem 0 0;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-
 .welcome__heading {
   margin: 2rem 0 0.7rem;
   font-size: 0.7rem;

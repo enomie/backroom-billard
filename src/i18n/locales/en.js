@@ -40,7 +40,6 @@ export default {
   "welcome.firstName": "First name",
   "welcome.middleName": "Middle name (optional)",
   "welcome.lastName": "Last name",
-  "welcome.hint": "Letters, . and - only. The middle name is optional, \"T.\" is enough.",
   "welcome.drink": "Your first drink",
   "welcome.cigarettes": "Your cigarettes",
   "welcome.broke": "Not enough money for a drink and cigarettes. Start over to get $ 15,000 again.",
