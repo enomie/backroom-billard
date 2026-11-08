@@ -28,6 +28,7 @@ import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
+import { ballTexture } from "./ball-texture.js";
 import { isStartScreenOpen } from "./start-screen.js";
 import { createDoor } from "./door.js";
 import { createPlayerState } from "./player-state.js";
@@ -409,7 +410,8 @@ function setupBalls() {
 
   function createBall(x, z, colorHex, isCue = false, id = 0) {
     const mat = new THREE.MeshPhysicalMaterial({
-      color: colorHex,
+      color: 0xffffff, // the color comes from the texture, with its specks
+      map: ballTexture(colorHex, id),
       roughness: 0.03,
       metalness: 0.04,
       clearcoat: 1.0,

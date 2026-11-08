@@ -78,6 +78,10 @@ Code: `src/door.js`, Werte in `door-constants.js`. Aus Rücksicht auf die Bildra
 - **Tür:** alte Doppel-Pendeltür aus dem Holz der Wandvertäfelung (gleiche Maserung und Farbe, lackiert; `wainscotWoodMaterial` in `wood.js`), **ohne Spalten** (`DOOR_GAP` 0). Jeder Flügel hat oben 3 × 3 Scheiben, unten zwei Füllungen, eine schräge Druckstange aus dunkler Bronze und drei schwarze Bänder. Schatten wirft sie keine. Sie bewegt sich nicht.
 - **Glas:** durchsichtiges, **gewelltes Bernsteinglas**, leicht emissiv (0,5). Auf der mittleren Scheibe der Mitte des linken Flügels steht das **gespiegelte goldene B**, auf der gleichen Scheibe des rechten Flügels das **normale B** (`DOOR_LOGO_*`).
 
+## Kugeln: Einschlüsse (umgesetzt)
+
+Die Kugeln tragen kleine **Einschlüsse** wie Elfenbeinkugeln (`src/ball-texture.js`, Werte in `ball-constants.js`), damit man sieht, wie sie sich drehen: etwa 90 winzige Flecken (Radius 0,4–1,2 mm) gleichmäßig über die ganze Kugel verteilt, **für jede Kugel ein anderes Muster** (fest, bei jedem Start gleich). Auf hellen und bunten Kugeln sind sie dunkelbraun, auf der schwarzen 8 hell-grau. Rein optisch: eine kleine Canvas-Textur je Kugel (512 × 256, einmal erzeugt und behalten), die Farbe der Kugel steckt in der Textur. Größe, Anzahl und Stärke der Flecken stehen in `ball-constants.js`.
+
 ## Fester Raumnebel
 
 - **Linearer Nebel von 1 m bis 12 m** (`FOG_NEAR`, `FOG_FAR`): Ab 1 m beginnt er, bei 12 m ist der Dunst am dichtesten (aber nie komplett deckend).
