@@ -27,6 +27,7 @@ import {
   CANDLE_LIGHT_DECAY,
   CANDLE_LIGHT_FADE,
   CANDLE_LIGHT_REASSIGN,
+  CANDLE_EXTRA_SPOTS,
 } from "./candle-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
 import { glowTexture } from "./glow.js";
@@ -116,11 +117,15 @@ export function createCandles(scene) {
     [wickGeo, wickMat, [0, candleBaseY + CANDLE_HEIGHT + 0.005, 0], false],
   ];
   const staticMatrices = statics.map(() => []);
-  const candles = FURNITURE_TABLES.map((table, i) => {
-    const angle = rnd() * Math.PI * 2;
-    const offset = Math.sqrt(rnd()) * CANDLE_OFFSET_MAX;
+  const candles = [...FURNITURE_TABLES, ...CANDLE_EXTRA_SPOTS].map((table, i) => {
     const root = new THREE.Group();
-    root.position.set(table.x + Math.cos(angle) * offset, FURNITURE_TABLE_HEIGHT, table.z + Math.sin(angle) * offset);
+    if (i < FURNITURE_TABLES.length) {
+      const angle = rnd() * Math.PI * 2;
+      const offset = Math.sqrt(rnd()) * CANDLE_OFFSET_MAX;
+      root.position.set(table.x + Math.cos(angle) * offset, FURNITURE_TABLE_HEIGHT, table.z + Math.sin(angle) * offset);
+    } else {
+      root.position.set(table.x, table.y, table.z); // a fixed place (not on a round table)
+    }
     root.rotation.y = rnd() * Math.PI * 2;
 
     // The standing parts (holder, knob, wax, wick) are the same on every table: they are drawn as

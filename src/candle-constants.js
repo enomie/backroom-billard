@@ -1,5 +1,7 @@
+import { pianoCandleSpot } from "./piano-constants.js";
+
 /**
- * Candle holder with candle and flickering flame, one on every round table (meters).
+ * Candle holder with candle and flickering flame, one on every round table and one on the grand piano (meters).
  * See _docs/glass-objects.md. The holder sits roughly, but not exactly, in the table's middle.
  */
 
@@ -39,3 +41,6 @@ export const CANDLE_LIGHT_DECAY = 2;
 export const CANDLE_LIGHT_FADE = 0.4;
 /** The pool of real lights is reassigned this often (s). */
 export const CANDLE_LIGHT_REASSIGN = 0.5;
+
+/** Candles that do not stand on a round table: places { x, y, z } (the lid of the grand piano). */
+export const CANDLE_EXTRA_SPOTS = [pianoCandleSpot()];

@@ -47,9 +47,9 @@ function caseShape(inflate = 0) {
   const l = PIANO_LENGTH / 2 + inflate;
   const s = new THREE.Shape();
   s.moveTo(-w, -l);
-  s.lineTo(-w, l - 0.15);
-  s.bezierCurveTo(-w, l, -w * 0.15, l, w * 0.1, l - 0.3); // the tail
-  s.bezierCurveTo(w * 0.4, l - 0.65, w, 0.25, w, -l + 0.95); // the curved side
+  s.lineTo(-w, l - 0.45); // the straight bass side
+  s.bezierCurveTo(-w, l - 0.05, -w + 0.2, l, -w + 0.5, l); // the round tail
+  s.bezierCurveTo(w * 0.35, l, w, l * 0.5, w, 0.1 - l * 0.1); // the long curve of the treble side
   s.lineTo(w, -l);
   s.closePath();
   return s;
@@ -87,7 +87,8 @@ export function createPiano(scene) {
     m.position.set(x, y, z);
     root.add(m);
   };
-  for (const side of [-1, 1]) block(cheek, PIANO_RIM_TOP - PIANO_RIM_BOTTOM, PIANO_KEYBED_DEPTH, side * (keysWidth + cheek) / 2, (PIANO_RIM_TOP + PIANO_RIM_BOTTOM) / 2, front + PIANO_KEYBED_DEPTH / 2);
+  const cheekTop = PIANO_KEYS_TOP + 0.05; // the cheeks beside the keys are only a little higher than the keys
+  for (const side of [-1, 1]) block(cheek, cheekTop - PIANO_RIM_BOTTOM, PIANO_KEYBED_DEPTH, side * (keysWidth + cheek) / 2, (cheekTop + PIANO_RIM_BOTTOM) / 2, front + PIANO_KEYBED_DEPTH / 2);
   const bedTop = PIANO_KEYS_TOP - 0.025;
   block(keysWidth, bedTop - PIANO_RIM_BOTTOM, PIANO_KEYBED_DEPTH, 0, (bedTop + PIANO_RIM_BOTTOM) / 2, front + PIANO_KEYBED_DEPTH / 2);
   // the name board: the front of the case above the keys, with a brass strip

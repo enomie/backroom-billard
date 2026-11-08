@@ -1,3 +1,5 @@
+import { ROOM_LENGTH } from "./room-constants.js";
+
 /**
  * The concert grand piano (lid closed) and its stool, at the wall opposite the door, beside the
  * neon sign. All sizes in m. See _docs/piano.md.
@@ -42,3 +44,17 @@ export const PIANO_COLOR_WHITE_KEY = 0xf1ecdc;
 export const PIANO_COLOR_BLACK_KEY = 0x0b0b0c;
 export const PIANO_COLOR_STOOL_SEAT = 0x1a1210;
 export const PIANO_COLOR_BRASS = 0xb08d4a;
+
+/** Where the candle stands on the lid (in the piano's frame: x to the right of the keyboard, z towards the keyboard), off center. */
+export const PIANO_CANDLE_LOCAL = [0.32, 0.1];
+/** The candle's place in the room: [{ x, y, z }] (y = the top of the lid). */
+export function pianoCandleSpot() {
+  const [lx, lz] = PIANO_CANDLE_LOCAL;
+  const cos = Math.cos(PIANO_TURN);
+  const sin = Math.sin(PIANO_TURN);
+  return {
+    x: PIANO_X + lx * cos + lz * sin,
+    y: PIANO_RIM_TOP + PIANO_LID_THICKNESS + 0.004,
+    z: -ROOM_LENGTH / 2 + PIANO_WALL_DISTANCE - lx * sin + lz * cos,
+  };
+}

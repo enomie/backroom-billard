@@ -17,11 +17,11 @@ import {
   SMOKE_CANDLE_STRENGTH,
   SMOKE_CANDLE_RADIUS,
 } from "./room-constants.js";
-import { CANDLE_LIGHT_COLOR } from "./candle-constants.js";
+import { CANDLE_LIGHT_COLOR, CANDLE_EXTRA_SPOTS } from "./candle-constants.js";
 
 /** Candle positions (flame height), shared by all smoke materials; filled by candle.js. */
 export const smokeLightUniforms = {
-  uCandles: { value: FURNITURE_TABLES.map(() => new THREE.Vector3(0, -100, 0)) },
+  uCandles: { value: [...FURNITURE_TABLES, ...CANDLE_EXTRA_SPOTS].map(() => new THREE.Vector3(0, -100, 0)) },
 };
 
 const f = (v) => v.toFixed(4);
@@ -36,7 +36,7 @@ const lampLines = Array.from({ length: LAMP_COUNT }, (_, i) => {
 }).join("\n  ");
 
 export const SMOKE_LIGHT_GLSL = /* glsl */ `
-  uniform vec3 uCandles[ ${FURNITURE_TABLES.length} ];
+  uniform vec3 uCandles[ ${FURNITURE_TABLES.length + CANDLE_EXTRA_SPOTS.length} ];
   float lampLight( vec3 p, vec3 apex ) {
     vec3 d = p - apex;
     float h = -d.y;
