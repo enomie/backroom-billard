@@ -40,6 +40,7 @@ import { createWallet } from "./wallet.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
+import { createBar } from "./bar.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
@@ -383,6 +384,7 @@ function setupLightingAndRoom() {
   packs = createCigarettePacks(scene, bottles.taken);
   lighters = createLighters(scene);
   radio = createRadio(scene);
+  createBar(scene);
 }
 
 /* ====================================================
