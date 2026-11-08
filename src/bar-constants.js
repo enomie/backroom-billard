@@ -67,3 +67,13 @@ export const BACKBAR_BOTTLE_GAP = 0.05;
 export const BACKBAR_BOTTLE_SEED = 7;
 /** The wall lamp on the bar's wall in front of the back bar is left out; lamps this close (m) to it go. */
 export const BACKBAR_LAMP_CLEARANCE = 0.3;
+
+/**
+ * Shelf lighting: an LED strip under the front edge of each shelf and the soft light it throws on
+ * the wall below (a faded plane, no real light: it costs nothing per pixel). Color, strip
+ * thickness, height of the light on the wall (m) and its strength (0…1).
+ */
+export const BACKBAR_LED_COLOR = 0xffd08a;
+export const BACKBAR_LED_THICKNESS = 0.012;
+export const BACKBAR_LED_GLOW_HEIGHT = 0.45;
+export const BACKBAR_LED_GLOW_OPACITY = 0.5;

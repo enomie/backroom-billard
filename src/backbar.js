@@ -23,8 +23,29 @@ import {
   BACKBAR_SHELF_THICKNESS,
   BACKBAR_BOTTLE_GAP,
   BACKBAR_BOTTLE_SEED,
+  BACKBAR_LED_COLOR,
+  BACKBAR_LED_THICKNESS,
+  BACKBAR_LED_GLOW_HEIGHT,
+  BACKBAR_LED_GLOW_OPACITY,
 } from "./bar-constants.js";
 import { WINE_BOTTLE_RADIUS, BEER_BOTTLE_RADIUS } from "./bottles-constants.js";
+
+/** A vertical fade: bright at the top, nothing at the bottom (the light of a shelf on the wall). */
+function glowTexture() {
+  const c = document.createElement("canvas");
+  c.width = 4;
+  c.height = 128;
+  const ctx = c.getContext("2d");
+  const g = ctx.createLinearGradient(0, 0, 0, 128);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.35, "rgba(255,255,255,0.35)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 4, 128);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
 
 /**
  * @param {THREE.Scene} scene
@@ -65,7 +86,24 @@ export function createBackbar(scene, bottles) {
     seed = (seed * 16807) % 2147483647;
     return seed / 2147483647;
   };
+  const ledMat = new THREE.MeshBasicMaterial({ color: BACKBAR_LED_COLOR });
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: BACKBAR_LED_COLOR,
+    map: glowTexture(),
+    transparent: true,
+    opacity: BACKBAR_LED_GLOW_OPACITY,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    fog: false,
+  });
   for (const level of BACKBAR_SHELF_LEVELS) {
+    const under = level - BACKBAR_SHELF_THICKNESS;
+    const led = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_SHELF_WIDTH - 0.04, BACKBAR_LED_THICKNESS, BACKBAR_LED_THICKNESS), ledMat);
+    led.position.set(0, under - BACKBAR_LED_THICKNESS / 2, BACKBAR_THICKNESS + BACKBAR_SHELF_DEPTH - 0.03);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(BACKBAR_SHELF_WIDTH, BACKBAR_LED_GLOW_HEIGHT), glowMat);
+    glow.position.set(0, under - BACKBAR_LED_GLOW_HEIGHT / 2, BACKBAR_THICKNESS + 0.003);
+    glow.renderOrder = 3;
+    root.add(led, glow);
     const shelf = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_SHELF_WIDTH, BACKBAR_SHELF_THICKNESS, BACKBAR_SHELF_DEPTH), wood);
     shelf.position.set(0, level - BACKBAR_SHELF_THICKNESS / 2, BACKBAR_THICKNESS + BACKBAR_SHELF_DEPTH / 2);
     root.add(shelf);
