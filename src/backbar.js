@@ -23,6 +23,7 @@ import {
   BACKBAR_SHELF_THICKNESS,
   BACKBAR_BOTTLE_GAP,
   BACKBAR_BOTTLE_SEED,
+  BACKBAR_LIT_SHELVES,
   BACKBAR_LED_COLOR,
   BACKBAR_LED_THICKNESS,
   BACKBAR_LED_GLOW_HEIGHT,
@@ -96,14 +97,15 @@ export function createBackbar(scene, bottles) {
     depthWrite: false,
     fog: false,
   });
-  for (const level of BACKBAR_SHELF_LEVELS) {
+  for (const [index, level] of BACKBAR_SHELF_LEVELS.entries()) {
+    const lit = index >= BACKBAR_SHELF_LEVELS.length - BACKBAR_LIT_SHELVES;
     const under = level - BACKBAR_SHELF_THICKNESS;
     const led = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_SHELF_WIDTH - 0.04, BACKBAR_LED_THICKNESS, BACKBAR_LED_THICKNESS), ledMat);
     led.position.set(0, under - BACKBAR_LED_THICKNESS / 2, BACKBAR_THICKNESS + BACKBAR_SHELF_DEPTH - 0.03);
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(BACKBAR_SHELF_WIDTH, BACKBAR_LED_GLOW_HEIGHT), glowMat);
     glow.position.set(0, under - BACKBAR_LED_GLOW_HEIGHT / 2, BACKBAR_THICKNESS + 0.003);
     glow.renderOrder = 3;
-    root.add(led, glow);
+    if (lit) root.add(led, glow);
     const shelf = new THREE.Mesh(new THREE.BoxGeometry(BACKBAR_SHELF_WIDTH, BACKBAR_SHELF_THICKNESS, BACKBAR_SHELF_DEPTH), wood);
     shelf.position.set(0, level - BACKBAR_SHELF_THICKNESS / 2, BACKBAR_THICKNESS + BACKBAR_SHELF_DEPTH / 2);
     root.add(shelf);

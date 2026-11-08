@@ -73,6 +73,8 @@ export const BACKBAR_LAMP_CLEARANCE = 0.3;
  * the wall below (a faded plane, no real light: it costs nothing per pixel). Color, strip
  * thickness, height of the light on the wall (m) and its strength (0…1).
  */
+/** Only the top shelves are lit (counted from the top). */
+export const BACKBAR_LIT_SHELVES = 2;
 export const BACKBAR_LED_COLOR = 0xffd08a;
 export const BACKBAR_LED_THICKNESS = 0.012;
 export const BACKBAR_LED_GLOW_HEIGHT = 0.45;
