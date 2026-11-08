@@ -39,13 +39,16 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 ## Leistung (ohne sichtbare Änderung)
 
-- **Physik:** im Ruhezustand wird nichts berechnet (siehe `_docs/physics.md`).
+Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-Monitor), Pixelverhältnis 1: Schleife ca. 1,8 ms, GPU ca. 9,5 ms pro Bild, 185 Draw-Calls. Die Bremse war die **GPU**, nicht die Schleife (der Hauptthread war fast leer); die Hauptlast waren die Wandlampen. Alle Maßnahmen lassen die Optik unverändert.
+
+- **Wandlampen (größter Gewinn, ca. −37 ms GPU):** kein Three.js-Licht, sondern ein eigener Shader-Baustein nur in den Materialien, die sie erreicht (`wall-lamp-light.js`, `_docs/look.md`). Three.js rechnet jedes Licht für jedes Pixel jedes Materials, auch wo es nicht ankommt.
 - **Schatten:** Die Schattenkarten der Lampen werden nur neu gezeichnet, wenn sich im Lampenkegel etwas bewegt (Kugeln, Cue, Zigaretten, Feuerzeuge), sonst nie; `updateShadows` in `billard.js`. Möbel, Kerzen und Radio werfen keine Schatten (außerhalb der Kegel).
-- **Wandlampen:** kein Three.js-Licht, sondern ein eigener Shader-Baustein nur in den Materialien, die sie erreicht (`wall-lamp-light.js`, `_docs/look.md`). Das sparte auf einer echten Grafikkarte etwa 37 ms pro Bild.
-- **Draw-Calls:** gleiche Teile sind instanziert oder zusammengefasst (Wandlampen, Kerzenhalter, Schachtel-Karton auf den Tischen).
+- **Draw-Calls:** gleiche Teile sind instanziert oder zusammengefasst (Wandlampen, Kerzenhalter, Diamanten, Tischteile der Raumtische, Schachtel-Karton auf den Tischen).
+- **Physik:** im Ruhezustand wird nichts berechnet (siehe `_docs/physics.md`).
 - **Nebel und Rauch:** Fragmente ohne Wirkung werden vor der Lichtberechnung verworfen. HUD und Audio-Hörer schreiben nur bei Änderung.
 - Statische Gruppen (`STATIC_GROUPS`) berechnen ihre Matrizen nicht jedes Bild neu.
-- **Messen:** Mit `?perf` hinter der Adresse (z. B. `http://localhost:5173/?perf`) erscheint unten rechts ein Entwickler-Overlay (`src/perf-hud.js`): fps, CPU-Zeit der Schleife und von `render`, **GPU-Zeit** (Timer-Query), Draw-Calls, Dreiecke, Programme, dazu Schalter für Nebelschichten, Schatten und Pixelverhältnis, um an der eigenen Grafikkarte zu sehen, was die Bildrate begrenzt.
+- **Messen:** Mit `?perf` hinter der Adresse (z. B. `http://localhost:5173/?perf`) erscheint unten rechts ein Entwickler-Overlay (`src/perf-hud.js`): fps, CPU-Zeit der Schleife und von `render`, **GPU-Zeit** (Timer-Query), Draw-Calls, Dreiecke, Programme, dazu Schalter für Nebelschichten, Schatten und Pixelverhältnis. Ist `loop`/`render` klein und `gpu` groß, begrenzt die Grafikkarte.
+- **Reserve für schwächere Geräte** (nicht umgesetzt, die Optik soll bleiben): Materialien mit Klarlack (Vertäfelung, Kugeln), die 11 Nebelschichten, Retina-Pixelverhältnis 2 (4× Pixel), die 4 Kerzen-Punktlichter (bleiben wie sie sind).
 
 ## Aufbau
 
