@@ -88,7 +88,7 @@ export const LIQUID_LOOKS = {
   whiskey: { center: 0x6e2a08, edge: 0xc5701a, opacityCenter: 0.86, opacityEdge: 0.42, power: 2.4, glow: 0x7a3306, meniscus: [0.0013, 0.0032] },
   beer: { center: 0xb4680a, edge: 0xf4bc2c, opacityCenter: 0.8, opacityEdge: 0.46, power: 2.0, glow: 0x7a4a08, meniscus: [0.001, 0.0025], sparkle: 0.07 },
   redWine: { center: 0x2c0612, edge: 0x9e1730, opacityCenter: 0.94, opacityEdge: 0.58, power: 2.2, glow: 0x420714, meniscus: [0.0016, 0.0035] },
-  whiteWine: { center: 0x8fa832, edge: 0xdcec86, opacityCenter: 0.64, opacityEdge: 0.3, power: 1.8, glow: 0x3c5010, meniscus: [0.0016, 0.0035] },
+  whiteWine: { center: 0xa4a62e, edge: 0xe8ec80, opacityCenter: 0.64, opacityEdge: 0.3, power: 1.8, glow: 0x4a4c10, meniscus: [0.0016, 0.0035] },
   coffee: { center: 0x1c0b05, edge: 0x7c4220, opacityCenter: 0.96, opacityEdge: 0.78, power: 2.0, glow: 0x2c1307 },
   cream: { center: 0xd8c8a6, edge: 0xf4ebd4, opacityCenter: 0.96, opacityEdge: 0.8, power: 1.6, glow: 0x3a3020, meniscus: [0.0012, 0.003], roughness: 0.35 },
 };
