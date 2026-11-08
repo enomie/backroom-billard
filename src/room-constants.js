@@ -2,7 +2,6 @@
  * Room and lighting parameters (meters). See _docs/look.md.
  * Heights are measured above the floor (y = 0).
  */
-import { TABLE_H } from "./table-constants.js";
 
 /** Free camera (key C): movement speed in m/s and mouse-look sensitivity in rad per pixel. */
 export const FREE_CAM_SPEED = 2;
