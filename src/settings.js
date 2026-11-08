@@ -31,9 +31,17 @@ export function createSettings(onRerack, getInfo) {
 
   opener.addEventListener("click", show);
   document.getElementById("settings-close").addEventListener("click", hide);
-  root.addEventListener("pointerdown", (e) => {
-    if (e.target === root) hide(); // a click outside the card
-  });
+  // a click or touch anywhere outside the card closes it (and does nothing else)
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!open || e.target.closest(".settings__card")) return;
+      e.stopPropagation();
+      e.preventDefault();
+      hide();
+    },
+    true
+  );
   window.addEventListener("keydown", (e) => {
     if (open && e.code === "Escape") hide();
   });
