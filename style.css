@@ -173,16 +173,6 @@ html {
   font-family: inherit;
 }
 
-.btn--camera {
-  background: rgba(23, 23, 23, 0.8);
-  border-color: var(--neutral-800);
-  color: rgba(253, 230, 138, 0.9);
-}
-
-.btn--camera:hover {
-  background: var(--neutral-800);
-}
-
 .btn--reset {
   background: rgba(69, 26, 3, 0.6);
   border-color: rgba(120, 53, 15, 0.5);
@@ -194,9 +184,73 @@ html {
   background: rgba(120, 53, 15, 0.8);
 }
 
-.btn__emphasis {
-  color: #fff;
-  font-weight: 700;
+/* Key buttons: look like the shoot button, with the key as a big single letter on the left */
+.btn-key {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.875rem 0.5rem 0.625rem;
+  border: 1px solid #fcd34d;
+  border-radius: 0.75rem;
+  font-family: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--neutral-950);
+  cursor: pointer;
+  touch-action: none; /* hold and release must not scroll or zoom on a phone */
+  user-select: none;
+  -webkit-user-select: none;
+  background: linear-gradient(90deg, var(--amber-500), var(--amber-400), #d97706);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.35),
+    0 0 15px rgba(217, 119, 6, 0.35);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.btn-key:hover {
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.35),
+    0 0 25px rgba(217, 119, 6, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-key:active,
+.btn-key.is-held {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-key__cap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.btn-key__label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  line-height: 1.15;
+  text-align: left;
+}
+
+/* The camera button is bigger: a large C and the mode on two lines */
+.btn-key--wide {
+  padding: 0.625rem 1.125rem 0.625rem 0.875rem;
+}
+
+.btn-key--wide .btn-key__cap {
+  min-width: 2.25rem;
+  font-size: 2rem;
+}
+
+.btn-key--wide .btn-key__label {
+  font-size: 0.875rem;
 }
 
 /* Crosshair */
@@ -245,6 +299,12 @@ html {
     align-items: flex-end;
     justify-content: space-between;
   }
+}
+
+.footer-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
 }
 
 .power-dock {

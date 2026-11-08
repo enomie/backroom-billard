@@ -51,9 +51,16 @@
 
       <footer class="hud-footer">
         <div class="footer-actions interactive">
-          <button id="btn-camera" type="button" class="btn btn--camera">
-            <span data-i18n="camera.label">Camera:</span>
-            <span id="cam-label" class="btn__emphasis">Cue view</span>
+          <button id="btn-camera" type="button" class="btn-key btn-key--wide">
+            <span class="btn-key__cap" aria-hidden="true">C</span>
+            <span class="btn-key__label">
+              <span id="cam-label">Player</span>
+              <span data-i18n="camera.label">Camera</span>
+            </span>
+          </button>
+          <button id="btn-smoke" type="button" class="btn-key">
+            <span class="btn-key__cap" aria-hidden="true">T</span>
+            <span class="btn-key__label" data-i18n="button.smoke">Smoke</span>
           </button>
         </div>
       </footer>

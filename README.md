@@ -18,10 +18,10 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (10°–80° über dem Tisch); `A` / `D` oder Pfeile links/rechts |
 | Kraft (1-%-Schritte) | Mausrad, `W` / `S` oder Pfeil hoch/runter, vertikaler farbiger Slider rechts (auch per Touch) |
 | Stoß | Klick, Leertaste oder der SHOOT-Button unten in der Mitte |
-| Kamera wechseln (Queue-Ansicht ↔ freie Kamera) | `C` oder der Button unten links |
+| Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |
 | Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
-| Neu aufbauen | `R` |
-| Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` |
+| Neu aufbauen | `N` oder der Knopf „Re-rack“ oben rechts |
+| Ziehen an der Zigarette (halten = stärker) und ausatmen (loslassen) | `T` halten oder den Knopf „Smoke“ unten links gedrückt halten (Maus oder Touch) |
 
 ## Regeln
 

@@ -799,8 +799,8 @@ function setupControls() {
       smoking.press(camera); // hold T: draw on the cigarette, release: exhale
       return;
     }
-    if (e.code === "KeyR" && !e.repeat) {
-      setupBalls();
+    if (e.code === "KeyN" && !e.repeat) {
+      setupBalls(); // N = new rack (R is for drinking)
       return;
     }
     if (cameraMode === "free") {
@@ -868,6 +868,21 @@ function setupControls() {
 
   // Header Buttons
   document.getElementById("btn-camera").addEventListener("click", toggleCamera);
+
+  // Smoke button: pressing and holding it is the same as holding T
+  const smokeButton = document.getElementById("btn-smoke");
+  smokeButton.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    smokeButton.setPointerCapture(e.pointerId);
+    smokeButton.classList.add("is-held");
+    smoking.press(camera);
+  });
+  const releaseSmoke = () => {
+    smokeButton.classList.remove("is-held");
+    smoking.release(camera);
+  };
+  smokeButton.addEventListener("pointerup", releaseSmoke);
+  smokeButton.addEventListener("pointercancel", releaseSmoke);
   document.getElementById("btn-restart").addEventListener("click", () => {
     setupBalls();
     updateStatusDisplay(false);

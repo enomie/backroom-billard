@@ -2,9 +2,10 @@
 export default {
   "status.ready": "Ready to shoot",
   "status.rolling": "Balls rolling…",
-  "camera.label": "Camera:",
-  "camera.fp": "Cue view",
-  "camera.free": "Free camera",
+  "camera.label": "Camera",
+  "camera.fp": "Player",
+  "camera.free": "Free",
+  "button.smoke": "Smoke",
   "button.rerack": "Re-rack",
   "button.shoot": "SHOOT",
   "power.label": "Power",

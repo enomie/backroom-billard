@@ -2,9 +2,10 @@
 export default {
   "status.ready": "Bereit zum Stoß",
   "status.rolling": "Kugeln rollen…",
-  "camera.label": "Kamera:",
-  "camera.fp": "Queue-Ansicht",
-  "camera.free": "Freie Kamera",
+  "camera.label": "Kamera",
+  "camera.fp": "Spieler",
+  "camera.free": "Frei",
+  "button.smoke": "Rauchen",
   "button.rerack": "Neu aufbauen",
   "button.shoot": "STOSSEN",
   "power.label": "Kraft",

@@ -64,14 +64,14 @@ Zwei Balken am oberen Rand in der Mitte, jeder mit einem **Marker, der sich zwis
 - **Aussehen:** wie der **Shoot-Knopf**, aber der **einzelne Buchstabe** darin etwas größer. Der Buchstabe steht links, rechts daneben die Beschriftung.
 - **Zuordnung:** Balken 1 (Thirsty – Drunk) gehört zu `R`, Balken 2 (Nerves – Desire) zu `T`.
 - **Kamera-Knopf:** größer als heute, links ein großes `C`, rechts **zweizeilig** der aktuelle Modus: **„Player / Camera“** oder **„Free / Camera“**. Die Texte laufen durch `src/i18n` (heute „Cue view“ und „Free camera“).
-- **Achtung, Tastenkonflikt:** `R` ist heute **„Neu aufbauen“** (Re-rack). Das muss weichen: Re-rack nur noch über den Knopf oben rechts, oder auf eine andere Taste (Vorschlag: `N` für „neu“).
+- **Tastenkonflikt gelöst:** „Neu aufbauen“ (Re-rack) liegt jetzt auf **`N`** (und dem Knopf oben rechts), `R` ist frei für das Trinken.
+- **Umgesetzt:** der große Kamera-Knopf (`C`, zweizeilig „Player / Free Camera“) und der Knopf **„Smoke“ (`T`)** unten links, beide im Stil des Shoot-Knopfes. Die Knöpfe bei den Balken und für `R` (Trinken) kommen mit den Balken und dem Trinken.
 
 ## Offene Punkte (noch nicht entschieden)
 
 - Deutsche Beschriftung der Enden (Durstig / Betrunken, Nervös / Desire?); die englischen Namen stehen fest.
 - Wie unterscheidet sich die Wirkung der vier Enden (Thirsty, Drunk, Nerves, Desire) genau auf das Zielen?
 - Wie schnell steigen und sinken die Werte, und wie stark wirken sie auf das Zielen?
-- Welche Taste ersetzt `R` für „Neu aufbauen“ (oder nur der Knopf)?
 - Wie trinkt man: Glas vom Rahmen des Billardtisches nehmen wie bei der Zigarette (Taste halten, je Tastendruck ein Schluck)? Gibt es danach Nachschub (neues Getränk)?
 
 - Was passiert mit den Einsätzen der Verlierer der Wette?
