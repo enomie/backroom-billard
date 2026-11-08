@@ -83,6 +83,14 @@ Alle Maße sind Parameter (eigene `*-constants.js`, wie bei den Möbeln), nichts
 - **Stelle:** neben einer Tasche oder an einer Ecke, nicht auf den Diamanten und nicht zu nah an der Bande, damit sie beim Spiel nicht im Weg stehen (Kamera und Cue-Ansicht).
 - Wer „Spieler 1 und 2“ ist und an welcher Seite sie stehen, kommt mit den Rollen aus [`game-concept.md`](game-concept.md). Bis dahin: feste Plätze auf der linken Längsseite.
 
+## Geplant: Füllstand und Schaum (nur am Billardtisch)
+
+> Konzept, nicht umgesetzt. Gilt nur für die **Getränke der Spieler am Billardtisch**; alles auf den Tischen im Raum bleibt unverändert.
+
+- **Füllstand:** Ein Getränk hat **5 Schlucke** (`game-concept.md`). Mit jedem Schluck sinkt der Füllstand um ein Fünftel (sanft über etwa eine halbe Sekunde), danach ist das Glas leer. Technisch: Wein, Bier und Whiskey sind eigene Körper in der Innenform; sie werden für dieses eine Glas mit dem neuen Füllstand neu berechnet (wenige hundert Punkte, kostet nichts).
+- **Schaum (Bier):** Der Schaum sitzt auf dem Bier und sinkt mit ihm. Mit der Zeit **zerfällt er**: erst wird die Krone flacher, dann öffnet sich in der Mitte ein **Loch mit ausgefranstem Rand**, das sich nach außen aufweitet, bis nur noch ein **schmaler Ring an der Glaswand** bleibt. Dauer einstellbar (etwa 3 bis 5 Minuten).
+- Flaschen: Der Inhalt ist nicht zu sehen; für Trinken genügt ein Zähler.
+
 ## Offene Punkte
 
 - Sollen die Gläser mit der Zeit leerer werden (Trinken)?

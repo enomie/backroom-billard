@@ -52,6 +52,9 @@ Zwei Balken am oberen Rand in der Mitte, jeder mit einem **Marker, der sich zwis
 - **Balken 1:** Der Marker **wandert mit der Zeit nach links** (man wird durstig). **Trinken schiebt ihn nach rechts**: ein Schluck bringt ihn zur Mitte, zu viel schiebt ihn zu „Drunk“. Von dort wandert er mit der Zeit wieder zurück durch die Mitte nach links. Also: **oft, aber wenig trinken**.
 - **Balken 2:** Der Marker **wandert mit der Zeit nach rechts** (das Verlangen wächst). **Rauchen schiebt ihn nach links**: ein Zug bringt ihn zur Mitte, zu viel (Kettenrauchen) macht „Nerves“. Von dort wandert er mit der Zeit wieder zurück zur Mitte und weiter zu „Desire“.
 - **Wirkung:** Das Fadenkreuz schwankt umso stärker, je weiter die Marker von der Mitte entfernt sind; beide mittig = kein Schwanken. Die Art kann je Ende anders sein, z. B. *Drunk* = Zielfehler und langsames Schwanken, *Nerves* = schnelles Zittern, *Desire* = größeres Schwanken, *Thirsty* = Konzentration lässt nach (alles noch offen).
+- **Trinken:** Jedes Getränk hat **5 Schlucke**, dann ist das Glas leer (der Füllstand sinkt mit jedem Schluck um ein Fünftel). Man kann **nicht zu viel trinken**: es gibt keine Sperre und kein Game Over, man wird nur **ungenauer**, je weiter der Marker Richtung „Drunk“ wandert.
+- **Rauchen:** Jede Zigarette hat **5 kleine Züge** (je Zug etwa ein Fünftel). Man kann aber auch **die ganze Zigarette auf einmal rauchen**, indem man den Zug lange hält (siehe `cigarettes.md`).
+- **Was zählt:** Wichtig sind die Dinge, die **am Billardtisch** liegen (die Getränke und Zigaretten der Spieler). Die Gegenstände auf den Tischen im Raum bleiben unverändert.
 - Umgesetzt sind dafür bisher nur die Gegenstände: Gläser und Flaschen (`glass-objects.md`) und Zigaretten mit Ziehen (`cigarettes.md`). Das Trinken selbst (Glas nehmen, Schluck, Bewegung), die Balken und alle Werte sind offen.
 
 ## Offene Punkte (noch nicht entschieden)
@@ -59,7 +62,7 @@ Zwei Balken am oberen Rand in der Mitte, jeder mit einem **Marker, der sich zwis
 - Deutsche Beschriftung der Enden (Durstig / Betrunken, Nervös / Desire?); die englischen Namen stehen fest.
 - Wie unterscheidet sich die Wirkung der vier Enden (Thirsty, Drunk, Nerves, Desire) genau auf das Zielen?
 - Wie schnell steigen und sinken die Werte, und wie stark wirken sie auf das Zielen?
-- Wie trinkt man: Glas oder Flasche vom Tisch nehmen wie bei der Zigarette (Taste halten)?
+- Wie trinkt man: Glas vom Rahmen des Billardtisches nehmen wie bei der Zigarette (Taste halten, je Tastendruck ein Schluck)? Gibt es danach Nachschub (neues Getränk)?
 
 - Was passiert mit den Einsätzen der Verlierer der Wette?
 - Was passiert, wenn niemand bietet oder zwei Gebote gleich hoch sind?

@@ -60,6 +60,7 @@ Die ursprünglichen Vorgaben:
 - **Loslassen:** Die Zigarette fliegt in ihre Kerbe zurück (0,5 s), und der Spieler **atmet aus**. Je länger gehalten (bis 3 s), desto mehr Rauch: 5 bis 36 Rauchballen, schneller und dichter, über 0,5 bis 1,6 s; der Ausatem-Ton wird länger (0,7 bis 2,6 s) und lauter. Ein kurzes Antippen gibt ein kleines Wölkchen.
 - **Brennt beim Ziehen ab:** Ja. Beim Ziehen brennt die Zigarette 12-mal schneller herunter (ein voller 3-Sekunden-Zug verbraucht etwa 8 %, `SMOKING_BURN_FACTOR`), die Papierlänge schrumpft sichtbar und die Asche wächst.
 - **Abgebrannt:** Ist sie beim Ziehen aufgebraucht, endet der Zug von selbst (mit Ausatmen), die Zigarette fliegt über den Aschenbecher und **fällt aus 10 cm Höhe hinein** (`SMOKING_DROP_*`): Schwerkraft, ein paar Aufschläge mit Dämpfung (35 %), sie dreht sich dabei und legt sich flach auf den Schalenboden, wo sie als Stummel liegen bleibt. Der Fall rechnet in festen Schritten, ist also bei jeder Bildrate gleich.
+- **Geplant (Konzept):** Eine Zigarette soll **5 kleine Züge** haben: ein voller 3-Sekunden-Zug verbraucht etwa ein Fünftel (heute etwa ein Zwölftel, `SMOKING_BURN_FACTOR`). Wer will, **raucht die ganze Zigarette auf einmal**, indem er `T` entsprechend lange hält (ca. 15 s); dann fällt der Stummel wie oben beschrieben in den Aschenbecher. Die Wirkung auf die Balken steht in `game-concept.md`.
 - Ohne glimmende Zigarette im Spieler-Aschenbecher (heruntergebrannt) passiert nichts. Es gibt noch kein Nachlegen.
 
 Die ursprünglichen Vorgaben:
