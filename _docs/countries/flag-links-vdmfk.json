@@ -1,0 +1,296 @@
+[
+  {
+    "iso": "ar",
+    "name": "Argentinien",
+    "url": "http://www.apbp.com.ar/",
+    "flag_svg": "ar.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ar.svg"
+  },
+  {
+    "iso": "au",
+    "name": "Australien",
+    "url": "http://www.mfpa.com.au/",
+    "flag_svg": "au.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/au.svg"
+  },
+  {
+    "iso": "be",
+    "name": "Belgien",
+    "url": "http://www.apbp-vmvsk.be/",
+    "flag_svg": "be.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/be.svg"
+  },
+  {
+    "iso": "br",
+    "name": "Brasilien",
+    "url": "http://www.apbp.com.br/",
+    "flag_svg": "br.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/br.svg"
+  },
+  {
+    "iso": "dk",
+    "name": "Dänemark",
+    "url": "http://www.mfk.dk/",
+    "flag_svg": "dk.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/dk.svg"
+  },
+  {
+    "iso": "de",
+    "name": "Deutschland",
+    "url": "http://www.mfk-verlag.de/",
+    "flag_svg": "de.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/de.svg"
+  },
+  {
+    "iso": "ee",
+    "name": "Estland",
+    "url": "http://www.sjkkirjastus.ee/",
+    "flag_svg": "ee.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ee.svg"
+  },
+  {
+    "iso": "fi",
+    "name": "Finnland",
+    "url": "http://www.sjkkustannus.fi/",
+    "flag_svg": "fi.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/fi.svg"
+  },
+  {
+    "iso": "fr",
+    "name": "Frankreich",
+    "url": "http://www.apbp.fr/",
+    "flag_svg": "fr.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/fr.svg"
+  },
+  {
+    "iso": "gr",
+    "name": "Griechenland",
+    "url": "http://zosp.gr/",
+    "flag_svg": "gr.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/gr.svg"
+  },
+  {
+    "iso": "ie",
+    "name": "Irland",
+    "url": "https://www.mfpa.ie/",
+    "flag_svg": "ie.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ie.svg"
+  },
+  {
+    "iso": "il",
+    "name": "Israel",
+    "url": "http://www.mfpa.co.il/",
+    "flag_svg": "il.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/il.svg"
+  },
+  {
+    "iso": "it",
+    "name": "Italien",
+    "url": "http://www.pittori-bocca-piede.it/",
+    "flag_svg": "it.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/it.svg"
+  },
+  {
+    "iso": "jp",
+    "name": "Japan",
+    "url": "http://www.mfpa.co.jp/",
+    "flag_svg": "jp.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/jp.svg"
+  },
+  {
+    "iso": "ca",
+    "name": "Kanada",
+    "url": "http://www.mfpacanada.com/",
+    "flag_svg": "ca.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ca.svg"
+  },
+  {
+    "iso": "co",
+    "name": "Kolumbien",
+    "url": "http://www.apbp.com.co/",
+    "flag_svg": "co.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/co.svg"
+  },
+  {
+    "iso": "hr",
+    "name": "Kroatien",
+    "url": "https://usun-hr.com/",
+    "flag_svg": "hr.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/hr.svg"
+  },
+  {
+    "iso": "my",
+    "name": "Malaysia",
+    "url": "https://www.mfpamalaysia.com",
+    "flag_svg": "my.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/my.svg"
+  },
+  {
+    "iso": "mx",
+    "name": "Mexiko",
+    "url": "http://www.apbpmexico.com/",
+    "flag_svg": "mx.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/mx.svg"
+  },
+  {
+    "iso": "nz",
+    "name": "Neuseeland",
+    "url": "http://www.mfpa.co.nz/",
+    "flag_svg": "nz.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/nz.svg"
+  },
+  {
+    "iso": "nl",
+    "name": "Niederlande",
+    "url": "http://www.removos.nl/",
+    "flag_svg": "nl.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/nl.svg"
+  },
+  {
+    "iso": "no",
+    "name": "Norwegen",
+    "url": "https://mfkforlag.no/",
+    "flag_svg": "no.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/no.svg"
+  },
+  {
+    "iso": "at",
+    "name": "Österreich",
+    "url": "http://www.mfka.org/",
+    "flag_svg": "at.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/at.svg"
+  },
+  {
+    "iso": "pe",
+    "name": "Peru",
+    "url": "https://www.facebook.com/AsociacionDePintoresConLaBocaYConElPie/",
+    "flag_svg": "pe.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/pe.svg"
+  },
+  {
+    "iso": "ph",
+    "name": "Philippinen",
+    "url": "https://www.facebook.com/amfpa.ph/",
+    "flag_svg": "ph.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ph.svg"
+  },
+  {
+    "iso": "pl",
+    "name": "Polen",
+    "url": "http://www.amun.com.pl/",
+    "flag_svg": "pl.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/pl.svg"
+  },
+  {
+    "iso": "pt",
+    "name": "Portugal",
+    "url": "https://apbp-portugal.pt/",
+    "flag_svg": "pt.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/pt.svg"
+  },
+  {
+    "iso": "ro",
+    "name": "Rumänien",
+    "url": "https://www.apgp.ro/",
+    "flag_svg": "ro.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ro.svg"
+  },
+  {
+    "iso": "se",
+    "name": "Schweden",
+    "url": "https://mof.se/",
+    "flag_svg": "se.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/se.svg"
+  },
+  {
+    "iso": "ch",
+    "name": "Schweiz",
+    "url": "http://www.gmfk.ch/",
+    "flag_svg": "ch.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/ch.svg"
+  },
+  {
+    "iso": "sg",
+    "name": "Singapur",
+    "url": "http://mfpa.com.sg/",
+    "flag_svg": "sg.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/sg.svg"
+  },
+  {
+    "iso": "sk",
+    "name": "Slowakei",
+    "url": "http://www.numun.sk/",
+    "flag_svg": "sk.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/sk.svg"
+  },
+  {
+    "iso": "si",
+    "name": "Slowenien",
+    "url": "http://www.zalozba-unsu.si/",
+    "flag_svg": "si.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/si.svg"
+  },
+  {
+    "iso": "es",
+    "name": "Spanien",
+    "url": "http://www.apbp-spain.com/",
+    "flag_svg": "es.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/es.svg"
+  },
+  {
+    "iso": "za",
+    "name": "Südafrika",
+    "url": "https://www.mafpasa.co.za",
+    "flag_svg": "za.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/za.svg"
+  },
+  {
+    "iso": "kr",
+    "name": "Südkorea",
+    "url": "http://www.mfpa.co.kr/",
+    "flag_svg": "kr.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/kr.svg"
+  },
+  {
+    "iso": "tw",
+    "name": "Taiwan",
+    "url": "https://www.mfpa.tw/web/about/about.jsp",
+    "flag_svg": "tw.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/tw.svg"
+  },
+  {
+    "iso": "th",
+    "name": "Thailand",
+    "url": "https://mfpa.co.th/%E0%B8%84%E0%B9%89%E0%B8%99%E0%B8%AB%E0%B8%B2.html",
+    "flag_svg": "th.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/th.svg"
+  },
+  {
+    "iso": "cz",
+    "name": "Tschechien",
+    "url": "http://www.umun.cz/",
+    "flag_svg": "cz.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/cz.svg"
+  },
+  {
+    "iso": "hu",
+    "name": "Ungarn",
+    "url": "https://www.szlmkiado.hu/",
+    "flag_svg": "hu.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/hu.svg"
+  },
+  {
+    "iso": "us",
+    "name": "USA",
+    "url": "https://mfpausa.com/",
+    "flag_svg": "us.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/us.svg"
+  },
+  {
+    "iso": "gb",
+    "name": "Vereintes Königreich",
+    "url": "http://www.mfpa.co.uk/",
+    "flag_svg": "gb.svg",
+    "source_url": "https://www.vdmfk.com/wp-content/uploads/vdmfk-flags/gb.svg"
+  }
+]

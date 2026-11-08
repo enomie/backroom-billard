@@ -1,0 +1,430 @@
+{
+  "countries": [
+    {
+      "iso": "af",
+      "name_de": "Afghanistan",
+      "name_en": "Afghanistan",
+      "flag_svg": null
+    },
+    {
+      "iso": "eg",
+      "name_de": "Ägypten",
+      "name_en": "Egypt",
+      "flag_svg": null
+    },
+    {
+      "iso": "dz",
+      "name_de": "Algerien",
+      "name_en": "Algeria",
+      "flag_svg": null
+    },
+    {
+      "iso": "ar",
+      "name_de": "Argentinien",
+      "name_en": "Argentina",
+      "flag_svg": "ar.svg"
+    },
+    {
+      "iso": "au",
+      "name_de": "Australien",
+      "name_en": "Australia",
+      "flag_svg": "au.svg"
+    },
+    {
+      "iso": "by",
+      "name_de": "Belarus",
+      "name_en": "Belarus",
+      "flag_svg": null
+    },
+    {
+      "iso": "be",
+      "name_de": "Belgien",
+      "name_en": "Belgium",
+      "flag_svg": "be.svg"
+    },
+    {
+      "iso": "ba",
+      "name_de": "Bosnien und Herzegowina",
+      "name_en": "Bosnia and Herzegovina",
+      "flag_svg": null
+    },
+    {
+      "iso": "br",
+      "name_de": "Brasilien",
+      "name_en": "Brazil",
+      "flag_svg": "br.svg"
+    },
+    {
+      "iso": "cl",
+      "name_de": "Chile",
+      "name_en": "Chile",
+      "flag_svg": null
+    },
+    {
+      "iso": "dk",
+      "name_de": "Dänemark",
+      "name_en": "Denmark",
+      "flag_svg": "dk.svg"
+    },
+    {
+      "iso": "de",
+      "name_de": "Deutschland",
+      "name_en": "Germany",
+      "flag_svg": "de.svg"
+    },
+    {
+      "iso": "ec",
+      "name_de": "Ecuador",
+      "name_en": "Ecuador",
+      "flag_svg": null
+    },
+    {
+      "iso": "sv",
+      "name_de": "El Salvador",
+      "name_en": "El Salvador",
+      "flag_svg": null
+    },
+    {
+      "iso": "er",
+      "name_de": "Eritrea",
+      "name_en": "Eritrea",
+      "flag_svg": null
+    },
+    {
+      "iso": "ee",
+      "name_de": "Estland",
+      "name_en": "Estonia",
+      "flag_svg": "ee.svg"
+    },
+    {
+      "iso": "fi",
+      "name_de": "Finnland",
+      "name_en": "Finland",
+      "flag_svg": "fi.svg"
+    },
+    {
+      "iso": "fr",
+      "name_de": "Frankreich",
+      "name_en": "France",
+      "flag_svg": "fr.svg"
+    },
+    {
+      "iso": "gh",
+      "name_de": "Ghana",
+      "name_en": "Ghana",
+      "flag_svg": null
+    },
+    {
+      "iso": "gr",
+      "name_de": "Griechenland",
+      "name_en": "Greece",
+      "flag_svg": "gr.svg"
+    },
+    {
+      "iso": "gb",
+      "name_de": "Grossbritannien",
+      "name_en": "United Kingdom",
+      "flag_svg": "gb.svg"
+    },
+    {
+      "iso": "gt",
+      "name_de": "Guatemala",
+      "name_en": "Guatemala",
+      "flag_svg": null
+    },
+    {
+      "iso": "ht",
+      "name_de": "Haiti",
+      "name_en": "Haiti",
+      "flag_svg": null
+    },
+    {
+      "iso": "hk",
+      "name_de": "Hongkong",
+      "name_en": "Hong Kong",
+      "flag_svg": null
+    },
+    {
+      "iso": "in",
+      "name_de": "Indien",
+      "name_en": "India",
+      "flag_svg": null
+    },
+    {
+      "iso": "id",
+      "name_de": "Indonesien",
+      "name_en": "Indonesia",
+      "flag_svg": null
+    },
+    {
+      "iso": "ir",
+      "name_de": "Iran",
+      "name_en": "Iran",
+      "flag_svg": null
+    },
+    {
+      "iso": "is",
+      "name_de": "Island",
+      "name_en": "Iceland",
+      "flag_svg": null
+    },
+    {
+      "iso": "il",
+      "name_de": "Israel",
+      "name_en": "Israel",
+      "flag_svg": "il.svg"
+    },
+    {
+      "iso": "it",
+      "name_de": "Italien",
+      "name_en": "Italy",
+      "flag_svg": "it.svg"
+    },
+    {
+      "iso": "jp",
+      "name_de": "Japan",
+      "name_en": "Japan",
+      "flag_svg": "jp.svg"
+    },
+    {
+      "iso": "ca",
+      "name_de": "Kanada",
+      "name_en": "Canada",
+      "flag_svg": "ca.svg"
+    },
+    {
+      "iso": "co",
+      "name_de": "Kolumbien",
+      "name_en": "Colombia",
+      "flag_svg": "co.svg"
+    },
+    {
+      "iso": "xk",
+      "name_de": "Kosovo",
+      "name_en": "Kosovo",
+      "flag_svg": null
+    },
+    {
+      "iso": "hr",
+      "name_de": "Kroatien",
+      "name_en": "Croatia",
+      "flag_svg": "hr.svg"
+    },
+    {
+      "iso": "cu",
+      "name_de": "Kuba",
+      "name_en": "Cuba",
+      "flag_svg": null
+    },
+    {
+      "iso": "mg",
+      "name_de": "Madagaskar",
+      "name_en": "Madagascar",
+      "flag_svg": null
+    },
+    {
+      "iso": "my",
+      "name_de": "Malaysia",
+      "name_en": "Malaysia",
+      "flag_svg": "my.svg"
+    },
+    {
+      "iso": "mt",
+      "name_de": "Malta",
+      "name_en": "Malta",
+      "flag_svg": null
+    },
+    {
+      "iso": "mu",
+      "name_de": "Mauritius",
+      "name_en": "Mauritius",
+      "flag_svg": null
+    },
+    {
+      "iso": "mk",
+      "name_de": "Mazedonien",
+      "name_en": "North Macedonia",
+      "flag_svg": null
+    },
+    {
+      "iso": "mx",
+      "name_de": "Mexiko",
+      "name_en": "Mexico",
+      "flag_svg": "mx.svg"
+    },
+    {
+      "iso": "np",
+      "name_de": "Nepal",
+      "name_en": "Nepal",
+      "flag_svg": null
+    },
+    {
+      "iso": "nz",
+      "name_de": "Neuseeland",
+      "name_en": "New Zealand",
+      "flag_svg": "nz.svg"
+    },
+    {
+      "iso": "nl",
+      "name_de": "Niederlande",
+      "name_en": "Netherlands",
+      "flag_svg": "nl.svg"
+    },
+    {
+      "iso": "no",
+      "name_de": "Norwegen",
+      "name_en": "Norway",
+      "flag_svg": "no.svg"
+    },
+    {
+      "iso": "at",
+      "name_de": "Österreich",
+      "name_en": "Austria",
+      "flag_svg": "at.svg"
+    },
+    {
+      "iso": "pe",
+      "name_de": "Peru",
+      "name_en": "Peru",
+      "flag_svg": "pe.svg"
+    },
+    {
+      "iso": "ph",
+      "name_de": "Philippinen",
+      "name_en": "Philippines",
+      "flag_svg": "ph.svg"
+    },
+    {
+      "iso": "pl",
+      "name_de": "Polen",
+      "name_en": "Poland",
+      "flag_svg": "pl.svg"
+    },
+    {
+      "iso": "pt",
+      "name_de": "Portugal",
+      "name_en": "Portugal",
+      "flag_svg": "pt.svg"
+    },
+    {
+      "iso": "ro",
+      "name_de": "Rumänien",
+      "name_en": "Romania",
+      "flag_svg": "ro.svg"
+    },
+    {
+      "iso": "ru",
+      "name_de": "Russland",
+      "name_en": "Russia",
+      "flag_svg": null
+    },
+    {
+      "iso": "se",
+      "name_de": "Schweden",
+      "name_en": "Sweden",
+      "flag_svg": "se.svg"
+    },
+    {
+      "iso": "rs",
+      "name_de": "Serbien",
+      "name_en": "Serbia",
+      "flag_svg": null
+    },
+    {
+      "iso": "sg",
+      "name_de": "Singapur",
+      "name_en": "Singapore",
+      "flag_svg": "sg.svg"
+    },
+    {
+      "iso": "sk",
+      "name_de": "Slowakei",
+      "name_en": "Slovakia",
+      "flag_svg": "sk.svg"
+    },
+    {
+      "iso": "si",
+      "name_de": "Slowenien",
+      "name_en": "Slovenia",
+      "flag_svg": "si.svg"
+    },
+    {
+      "iso": "es",
+      "name_de": "Spanien",
+      "name_en": "Spain",
+      "flag_svg": "es.svg"
+    },
+    {
+      "iso": "za",
+      "name_de": "Südafrika",
+      "name_en": "South Africa",
+      "flag_svg": "za.svg"
+    },
+    {
+      "iso": "kr",
+      "name_de": "Südkorea",
+      "name_en": "South Korea",
+      "flag_svg": "kr.svg"
+    },
+    {
+      "iso": "tw",
+      "name_de": "Taiwan",
+      "name_en": "Taiwan",
+      "flag_svg": "tw.svg"
+    },
+    {
+      "iso": "th",
+      "name_de": "Thailand",
+      "name_en": "Thailand",
+      "flag_svg": "th.svg"
+    },
+    {
+      "iso": "cz",
+      "name_de": "Tschechien",
+      "name_en": "Czech Republic",
+      "flag_svg": "cz.svg"
+    },
+    {
+      "iso": "tn",
+      "name_de": "Tunesien",
+      "name_en": "Tunisia",
+      "flag_svg": null
+    },
+    {
+      "iso": "ug",
+      "name_de": "Uganda",
+      "name_en": "Uganda",
+      "flag_svg": null
+    },
+    {
+      "iso": "ua",
+      "name_de": "Ukraine",
+      "name_en": "Ukraine",
+      "flag_svg": null
+    },
+    {
+      "iso": "hu",
+      "name_de": "Ungarn",
+      "name_en": "Hungary",
+      "flag_svg": "hu.svg"
+    },
+    {
+      "iso": "us",
+      "name_de": "USA",
+      "name_en": "United States",
+      "flag_svg": "us.svg"
+    },
+    {
+      "iso": "ve",
+      "name_de": "Venezuela",
+      "name_en": "Venezuela",
+      "flag_svg": null
+    },
+    {
+      "iso": "cn",
+      "name_de": "Volksrepublik China",
+      "name_en": "China",
+      "flag_svg": null
+    }
+  ]
+}
