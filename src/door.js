@@ -1,7 +1,7 @@
 /**
  * The old double swing door of wood and amber glass in the short wall behind the player, with its
- * reveal and trim. The leaves do not fit exactly: slits of DOOR_GAP all around let the light of the
- * foyer through. See door-constants.js and _docs/look.md.
+ * reveal and trim: a dummy that does not open. A glowing plate at the back of the reveal stands in
+ * for the light behind the glass. See door-constants.js and _docs/look.md.
  */
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -165,7 +165,7 @@ export function createDoor(scene) {
   group.rotation.y = Math.PI;
 
   const woodMap = doorWoodTexture();
-  // the paint glows faintly: the light of the foyer comes round the leaves and off the glass
+  // the paint glows faintly, the room is dark
   const wood = new THREE.MeshStandardMaterial({
     map: woodMap,
     roughness: 0.85,
@@ -187,9 +187,8 @@ export function createDoor(scene) {
     side: THREE.DoubleSide,
     depthWrite: false,
   });
-  const add = (geometry, material, shadow = true, parent = group) => {
+  const add = (geometry, material, parent = group) => {
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = shadow;
     mesh.receiveShadow = true;
     parent.add(mesh);
     return mesh;
@@ -203,6 +202,9 @@ export function createDoor(scene) {
     box(OW, C.DOOR_SILL_HEIGHT, DEPTH, 0, C.DOOR_SILL_HEIGHT / 2, -DEPTH / 2),
   ];
   add(mergeGeometries(reveal.map((g) => g.toNonIndexed())), wood);
+  const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(OW, OH), new THREE.MeshBasicMaterial({ color: C.DOOR_BACKDROP_COLOR, fog: false }));
+  backdrop.position.set(0, OH / 2, -DEPTH);
+  group.add(backdrop);
 
   // --- trim around the opening on the room side
   const cw = C.DOOR_CASING_WIDTH;
@@ -232,7 +234,7 @@ export function createDoor(scene) {
   const midY = glassTop - C.DOOR_GLASS_HEIGHT - C.DOOR_MID_RAIL / 2;
   const panelWidth = (inner - C.DOOR_PANEL_STILE) / 2;
   const panelY = bottom + C.DOOR_BOTTOM_RAIL + panelHeight / 2;
-  const logos = [logoTexture(false), logoTexture(true)];
+  const logos = [logoTexture(true), logoTexture(false)]; // left leaf: mirrored B, right leaf: normal B
 
   /**
    * One leaf. `dir` is +1 for the left leaf (hinged at the left edge of the opening, extends to the
@@ -263,7 +265,7 @@ export function createDoor(scene) {
       parts(panelWidth, panelHeight, C.DOOR_PANEL_THICKNESS, u, panelY);
       parts(panelWidth - 0.07, panelHeight - 0.07, C.DOOR_PANEL_THICKNESS + 0.014, u + 0.035, panelY);
     }
-    add(mergeGeometries(frame.map((g) => g.toNonIndexed())), wood, true, leaves);
+    add(mergeGeometries(frame.map((g) => g.toNonIndexed())), wood, leaves);
 
     // glass: 3 × 3 panes, each with its own offset into the wave texture
     const panes = [];
@@ -279,7 +281,7 @@ export function createDoor(scene) {
         panes.push(pane);
       }
     }
-    add(mergeGeometries(panes), glassMaterial, false, leaves).renderOrder = 2;
+    add(mergeGeometries(panes), glassMaterial, leaves).renderOrder = 2;
 
     // the gilded letter on one pane, painted on the room side of the glass
     const logoU = C.DOOR_STILE + C.DOOR_LOGO_COLUMN * (paneWidth + C.DOOR_MUNTIN) + paneWidth / 2;
@@ -309,7 +311,7 @@ export function createDoor(scene) {
     const lowEnd = new THREE.Vector3(topEnd.x - dir * C.DOOR_BAR_RUN, topEnd.y - C.DOOR_BAR_RISE, barZ);
     const metal = [rod(lowEnd, topEnd, C.DOOR_BAR_RADIUS)];
     for (const end of [lowEnd, topEnd]) metal.push(rod(end, end.clone().setZ(T / 2), C.DOOR_BAR_RADIUS * 0.8));
-    add(mergeGeometries(metal.map((g) => g.toNonIndexed())), bronze, true, leaves);
+    add(mergeGeometries(metal.map((g) => g.toNonIndexed())), bronze, leaves);
 
     // strap hinges at the hinge edge
     const straps = [];
@@ -318,7 +320,7 @@ export function createDoor(scene) {
       straps.push(box(C.DOOR_HINGE_PLATE, 0.045, 0.006, x(0, C.DOOR_HINGE_PLATE), y, T / 2 + 0.003));
       straps.push(new THREE.CylinderGeometry(0.014, 0.014, 0.1, 10).translate(hingeX, y, 0));
     }
-    add(mergeGeometries(straps.map((g) => g.toNonIndexed())), iron, true, leaves);
+    add(mergeGeometries(straps.map((g) => g.toNonIndexed())), iron, leaves);
   };
   buildLeaf(1, logos[0]);
   buildLeaf(-1, logos[1]);

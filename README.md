@@ -73,7 +73,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 | `ball-reflection.js` | Raum-Spiegelung in den Kugeln (Würfel-Karte, Lampenflecken) |
 | `smoke-light.js`, `noise-glsl.js` | Gemeinsamer Shader-Code für Rauch und Nebel: Beleuchtung durch Lampen und Kerzen, Rauschen |
 | `atmosphere.js` | Wandernder Boden- und Deckennebel, sichtbare Lichtkegel der Deckenleuchten |
-| `door.js`, `door-constants.js`, `foyer.js`, `foyer-constants.js` | Doppelte Pendeltür aus Holz und Bernsteinglas in der Wand hinter dem Spieler, dahinter das helle Foyer |
+| `door.js`, `door-constants.js` | Doppelte Pendeltür aus Holz und Bernsteinglas in der Wand hinter dem Spieler (Attrappe) |
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 

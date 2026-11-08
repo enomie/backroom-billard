@@ -28,7 +28,6 @@ import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createDoor } from "./door.js";
-import { createFoyer } from "./foyer.js";
 import { createPlayerState } from "./player-state.js";
 import { SWAY_PITCH_OFFSET } from "./player-constants.js";
 import { createWallet } from "./wallet.js";
@@ -352,8 +351,7 @@ function setupLightingAndRoom() {
   // Room: carpet floor, cream walls, wooden ceiling + smoke fog, and subtle wall lamps
   createRoom(scene);
   createWallLamps(scene);
-  createDoor(scene); // the door in the wall behind the player at the start
-  createFoyer(scene); // and the bright foyer behind it
+  createDoor(scene); // the (dummy) door in the wall behind the player at the start
   furnitureKeepOut = createFurniture(scene).keepOut;
   candles = createCandles(scene);
   ashtrays = createAshtrays(scene);

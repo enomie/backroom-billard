@@ -230,7 +230,6 @@ export function createRoom(scene) {
   const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_LENGTH), ceilingMat);
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.y = ROOM_HEIGHT;
-  ceiling.receiveShadow = true;
   group.add(ceiling);
 
   // Paneling: panels repeat every WAINSCOT_PANEL_WIDTH along the wall
@@ -253,8 +252,6 @@ export function createRoom(scene) {
     wall.rotation.y = rotationY;
     const plane = new THREE.Mesh(withDoor ? wallWithDoorGeometry(width, ROOM_HEIGHT) : new THREE.PlaneGeometry(width, ROOM_HEIGHT), wallMat);
     if (!withDoor) plane.position.y = ROOM_HEIGHT / 2;
-    plane.receiveShadow = true; // the light of the foyer must not reach through the walls:
-    plane.castShadow = withDoor; // the door wall stops it, the others receive the shadow
     wall.add(plane);
     if (withDoor) {
       // two pieces of paneling, ending at the trim of the door
