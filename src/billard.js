@@ -84,6 +84,8 @@ import {
   ROOM_HEIGHT,
   ROOM_AMBIENT_COLOR,
   ROOM_AMBIENT_INTENSITY,
+  LAMP_SHADOW_SWAY_INTERVAL,
+  LAMP_SHADOW_BURN_STEP,
 } from "./room-constants.js";
 import { t, onLanguageChange } from "./i18n/index.js";
 import {
@@ -1507,13 +1509,16 @@ function gameLoop(currentTime) {
 }
 
 /**
- * The shadow maps of the lamps are redrawn only when something that casts a shadow has moved:
- * the balls, the cue, the cigarettes, the lighters and the radio (all else stands still). A
- * pose "fingerprint" of these objects is compared with the one of the last frame; in addition
- * the maps are refreshed twice per second (slow changes such as a burning cigarette).
+ * The shadow maps of the lamps are redrawn only when something that casts a shadow in the cones has
+ * moved: the balls, the cigarettes (also as they burn down), the lighters and the cue (all else, the
+ * furniture, the candles and the radio, stands outside the cones and casts no shadow). A pose
+ * "fingerprint" of these objects is compared with the one of the last redraw. The cue's slow sway
+ * (no shot under way) is followed at most every LAMP_SHADOW_SWAY_INTERVAL; with nothing moving, no
+ * map is drawn at all.
  */
 let shadowFingerprint = [NaN, NaN];
-let shadowAge = 0;
+let cueFingerprint = [NaN, NaN];
+let swayAge = 0;
 function addPose(object, sums, deep = true) {
   const p = object.position;
   const q = object.quaternion;
@@ -1524,14 +1529,19 @@ function addPose(object, sums, deep = true) {
 function updateShadows(dt) {
   const sums = [0, 0];
   for (const b of balls) addPose(b.mesh, sums);
-  addPose(cueStickPivot, sums);
-  for (const child of cigarettes.group.children) if (child.isGroup) addPose(child, sums, false); // only where it lies, not how far it has burnt
+  for (const child of cigarettes.group.children) if (child.isGroup) addPose(child, sums, false); // only where it lies
+  sums[0] += cigarettes.burnSteps(LAMP_SHADOW_BURN_STEP) * 0.37; // and how far it has burnt
   for (const lighter of lighters.lighters) addPose(lighter.group, sums);
-  addPose(radio.group, sums);
-  shadowAge += dt;
-  if (sums[0] !== shadowFingerprint[0] || sums[1] !== shadowFingerprint[1] || shadowAge > 0.5) {
+  const cue = [0, 0];
+  addPose(cueStickPivot, cue);
+  swayAge += dt;
+  const moved = sums[0] !== shadowFingerprint[0] || sums[1] !== shadowFingerprint[1];
+  const cueMoved = cue[0] !== cueFingerprint[0] || cue[1] !== cueFingerprint[1];
+  const cueFast = stroke && stroke.phase !== "done"; // the stroke is quick, the sway is slow
+  if (moved || (cueMoved && (cueFast || swayAge >= LAMP_SHADOW_SWAY_INTERVAL))) {
     shadowFingerprint = sums;
-    shadowAge = 0;
+    cueFingerprint = cue;
+    swayAge = 0;
     renderer.shadowMap.needsUpdate = true;
   }
 }

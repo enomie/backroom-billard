@@ -197,8 +197,7 @@ export function createRadio(scene) {
   const add = (parent, geo, mat, x, y, z) => {
     const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
-    m.castShadow = true;
-    m.receiveShadow = true;
+    m.receiveShadow = true; // the radio casts no shadow: it stands outside the cones of the table lamps
     parent.add(m);
     return m;
   };
@@ -284,7 +283,7 @@ export function createRadio(scene) {
     const tick = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.022, 0.004), new THREE.MeshStandardMaterial({ color: 0x222222 }));
     tick.position.set(0, 0.015, 0.014);
     g.add(tick);
-    g.children.forEach((m) => (m.castShadow = true));
+    g.children.forEach((m) => (m.receiveShadow = true));
     radio.add(g);
     return g;
   };

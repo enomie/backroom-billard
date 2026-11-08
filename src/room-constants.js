@@ -72,6 +72,13 @@ export const LAMP_LIGHT_DECAY = 1.4;
 export const LAMP_LIGHT_DISTANCE = 6;
 export const LAMP_SHADOW_MAP_SIZE = 1024;
 export const LAMP_SHADOW_RADIUS = 4; // soft shadow edge
+/**
+ * The three shadow maps are redrawn only when something in the cones has moved (billard.js,
+ * updateShadows). The slow sway of the cue (no shot under way) is followed at most this often (s);
+ * a burning cigarette counts as moved with each step of this share of its length.
+ */
+export const LAMP_SHADOW_SWAY_INTERVAL = 0.05;
+export const LAMP_SHADOW_BURN_STEP = 0.02;
 
 /* ---- Room (see _docs/look.md) ---------------------------------------------------------
  * Origin = table center, floor at y = 0. Length runs along the table length (z),

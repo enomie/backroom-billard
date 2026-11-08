@@ -279,6 +279,10 @@ export function createCigarettes(scene, ashtraySlots) {
   const frameSlots = ashtraySlots.filter((slot) => slot.onFrame);
   return {
     group,
+    /** Total burn progress of all cigarettes in whole steps of `step` (a share of the length): changes when one has visibly got shorter. */
+    burnSteps(step) {
+      return cigarettes.reduce((n, c) => n + Math.floor(c.burn / step), 0);
+    },
     /** The glowing cigarette in the ashtray of player `side` (0 or 1), or null. */
     playerCigarette(side) {
       return cigarettes.find((c) => c.slot.onFrame && c.slot.side === side && c.state === "glowing" && c.burn < 1 && !c.landed && !c.fall) ?? null;
