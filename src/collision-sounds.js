@@ -10,9 +10,16 @@ import {
   BALL_HIT_VARIANTS,
   BALL_HIT_GAIN_MIN,
   BALL_HIT_GAIN_MAX,
-  BALL_HIT_RING_HZ,
-  BALL_HIT_RING_DECAY_MIN,
-  BALL_HIT_RING_DECAY_MAX,
+  BALL_HIT_MODES,
+  BALL_HIT_MODE_FLOOR,
+  BALL_HIT_MODE_PITCH_DROP,
+  BALL_HIT_DECAY_SCALE_MIN,
+  BALL_HIT_DECAY_SCALE_MAX,
+  BALL_HIT_CLICK_HZ_MIN,
+  BALL_HIT_CLICK_HZ_MAX,
+  BALL_HIT_CLICK_DECAY,
+  BALL_HIT_CLICK_GAIN_MIN,
+  BALL_HIT_CLICK_GAIN_MAX,
   CUSHION_HIT_SECONDS,
   CUSHION_HIT_STAGES,
   CUSHION_HIT_VARIANTS,
@@ -39,30 +46,40 @@ function ring(sampleRate, seconds, modes, clickGain, clickHz, clickDecay) {
 const detune = () => 1 + (Math.random() - 0.5) * 0.06; // every variant rings slightly differently
 
 /**
- * The "klack" of two phenolic balls: first a crisp, dry click (the contact), then a tone around
- * BALL_HIT_RING_HZ that fades out — the harder the hit, the longer it rings.
+ * The "klack" of two phenolic balls: a hard noise click (the contact) plus the ball's vibration modes.
+ * The harder the hit, the brighter the click, the more the high modes ring and the longer they last.
  */
 function synthBallHit(sampleRate, stage) {
   const hard = stage / Math.max(1, BALL_HIT_STAGES - 1); // 0 soft … 1 hard
   const n = Math.floor(BALL_HIT_SECONDS * sampleRate);
   const out = new Float32Array(n);
-  const contact = 0.00016 - 0.00005 * hard; // length of the click pulse (s)
-  const ringHz = BALL_HIT_RING_HZ * (1 + (Math.random() - 0.5) * 0.06);
-  const ringTau = lerp(BALL_HIT_RING_DECAY_MIN, BALL_HIT_RING_DECAY_MAX, hard);
-  // [Hz, amplitude, decay seconds]: the ringing tone (a split pair, so it shimmers a little)
-  // plus a short woody body underneath
-  const modes = [
-    [ringHz, 1.0, ringTau],
-    [ringHz * (1.007 + Math.random() * 0.01), 0.7, ringTau * 0.9],
-    [1250 * detune(), 0.35, 0.012],
-    [520 * detune(), 0.2, 0.018],
-  ];
-  const click = bandpass(sampleRate, 1.2);
+  const decayScale = lerp(BALL_HIT_DECAY_SCALE_MIN, BALL_HIT_DECAY_SCALE_MAX, hard);
+  const brightness = Math.pow(hard, 1.3);
+  const pitch = 1 + (Math.random() - 0.5) * 0.03;
+  const modes = BALL_HIT_MODES.map((m) => {
+    const decay = m.decay * decayScale;
+    const gain = m.gain * (1 - m.hard + m.hard * brightness);
+    return {
+      hz: m.hz * pitch,
+      decay,
+      gain,
+      tau: decay / Math.log(Math.max(gain, BALL_HIT_MODE_FLOOR * 2) / BALL_HIT_MODE_FLOOR), // exponential fade to the floor
+      phase: 0,
+    };
+  });
+  const click = bandpass(sampleRate, 2.5);
+  const clickHz = lerp(BALL_HIT_CLICK_HZ_MIN, BALL_HIT_CLICK_HZ_MAX, hard);
+  const clickGain = lerp(BALL_HIT_CLICK_GAIN_MIN, BALL_HIT_CLICK_GAIN_MAX, hard);
   for (let i = 0; i < n; i++) {
     const t = i / sampleRate;
-    let v = t < contact ? 2.2 * Math.sin((Math.PI * t) / contact) : 0; // the contact pulse
-    v += 0.9 * click(Math.random() * 2 - 1, 3200) * Math.exp(-t / 0.0006); // dry crack of the contact
-    for (const [f, a, tau] of modes) v += a * Math.sin(2 * Math.PI * f * t) * Math.exp(-t / tau);
+    let v = clickGain * click(Math.random() * 2 - 1, clickHz) * Math.exp(-t / BALL_HIT_CLICK_DECAY);
+    for (const m of modes) {
+      if (t > m.decay + 0.01) continue;
+      // pitch glides down by BALL_HIT_MODE_PITCH_DROP over the decay time
+      const hz = m.hz * Math.pow(BALL_HIT_MODE_PITCH_DROP, Math.min(t, m.decay) / m.decay);
+      m.phase += (2 * Math.PI * hz) / sampleRate;
+      v += m.gain * Math.sin(m.phase) * Math.exp(-t / m.tau);
+    }
     out[i] = v;
   }
   return finish(out, sampleRate, 0.9, 0.00005);

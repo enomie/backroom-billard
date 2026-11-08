@@ -52,15 +52,33 @@ export const COLLISION_MAX_SPEED = 4.5;
 /** Two balls count as touching when their surfaces are closer than this (m). */
 export const BALL_TOUCH_DISTANCE = 0.0015;
 /** Bright, hard "klack" of phenolic balls. */
-export const BALL_HIT_SECONDS = 0.28;
+export const BALL_HIT_SECONDS = 0.08;
 export const BALL_HIT_STAGES = 5;
 export const BALL_HIT_VARIANTS = 4;
 export const BALL_HIT_GAIN_MIN = 0.06;
 export const BALL_HIT_GAIN_MAX = 0.7;
-/** The tone that fades out after the klack: pitch (Hz) and decay time (s), longer for harder hits. */
-export const BALL_HIT_RING_HZ = 2750;
-export const BALL_HIT_RING_DECAY_MIN = 0.012;
-export const BALL_HIT_RING_DECAY_MAX = 0.05;
+/**
+ * Vibration modes of a solid phenolic ball: pitch (Hz), amplitude, decay time (s) at a soft hit, and
+ * how strongly the mode depends on the hit force (0 = always there, 1 = only on hard hits).
+ */
+export const BALL_HIT_MODES = [
+  { hz: 3250, gain: 0.5, decay: 0.028, hard: 0.4 }, // fundamental
+  { hz: 5600, gain: 0.25, decay: 0.016, hard: 0.8 }, // second overtone
+  { hz: 8150, gain: 0.12, decay: 0.009, hard: 1.0 }, // crystalline edge
+  { hz: 520, gain: 0.35, decay: 0.008, hard: 0.0 }, // mass / low-mid body
+];
+/** A mode fades to this fraction of its start amplitude within its decay time; its pitch drops by the factor below. */
+export const BALL_HIT_MODE_FLOOR = 0.0001;
+export const BALL_HIT_MODE_PITCH_DROP = 0.96;
+/** Hard hits ring longer: decay time is scaled from MIN (soft) to MAX (hard). */
+export const BALL_HIT_DECAY_SCALE_MIN = 0.75;
+export const BALL_HIT_DECAY_SCALE_MAX = 1.25;
+/** Noise click of the contact: band center (Hz) for soft/hard hits, decay (s), gain for soft/hard hits. */
+export const BALL_HIT_CLICK_HZ_MIN = 2500;
+export const BALL_HIT_CLICK_HZ_MAX = 5000;
+export const BALL_HIT_CLICK_DECAY = 0.001;
+export const BALL_HIT_CLICK_GAIN_MIN = 0.25;
+export const BALL_HIT_CLICK_GAIN_MAX = 0.8;
 /** Duller "thump" of a ball on the rubber cushion. */
 export const CUSHION_HIT_SECONDS = 0.22;
 export const CUSHION_HIT_STAGES = 4;
