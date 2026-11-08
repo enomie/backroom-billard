@@ -222,6 +222,7 @@ export function createGlasses(scene, taken) {
     clearcoatRoughness: 0.02,
     depthWrite: false,
   });
+  const liquidTime = { value: 0 }; // seconds, for the rising bubbles
   const colorVec = (hex) => {
     const k = new THREE.Color(hex);
     return `vec3(${k.r.toFixed(4)}, ${k.g.toFixed(4)}, ${k.b.toFixed(4)})`;
@@ -240,15 +241,21 @@ export function createGlasses(scene, taken) {
     material.onBeforeCompile = (shader) => {
       if (look.sparkle) {
         // fine bubbles: tiny bright points at fixed places in the liquid
+        shader.uniforms.uTime = liquidTime;
         shader.vertexShader = shader.vertexShader
           .replace("#include <common>", "#include <common>\nvarying vec3 vLiquid;")
           .replace("#include <begin_vertex>", "#include <begin_vertex>\nvLiquid = position;");
-        shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vLiquid;");
+        shader.fragmentShader = shader.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vLiquid;\nuniform float uTime;");
       }
+      // round bubbles that rise: a lattice of cells, one bubble in some of them; each column rises at its own speed
       const sparkle = look.sparkle
-        ? `vec3 cell = floor( vLiquid * vec3( 1400.0, 700.0, 1400.0 ) );
-          float bubble = fract( sin( dot( cell, vec3( 12.9898, 78.233, 37.719 ) ) ) * 43758.5453 );
-          totalEmissiveRadiance += step( ${(1 - look.sparkle).toFixed(3)}, bubble ) * vec3( 0.35, 0.28, 0.12 );`
+        ? `vec2 column = floor( vLiquid.xz * 420.0 );
+          float rise = 0.6 + 0.8 * fract( sin( dot( column, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
+          vec3 bp = vec3( vLiquid.x * 420.0, vLiquid.y * 420.0 - uTime * rise * 4.0, vLiquid.z * 420.0 );
+          vec3 cell = floor( bp );
+          vec3 h = fract( sin( vec3( dot( cell, vec3( 12.9898, 78.233, 37.719 ) ), dot( cell, vec3( 39.346, 11.135, 83.155 ) ), dot( cell, vec3( 73.156, 52.235, 9.151 ) ) ) ) * 43758.5453 );
+          float bubble = h.x < ${look.sparkle.toFixed(3)} ? 1.0 - smoothstep( 0.14, 0.26, length( bp - cell - ( 0.3 + 0.4 * h.yzy ) ) ) : 0.0;
+          totalEmissiveRadiance += bubble * vec3( 0.5, 0.42, 0.2 );`
         : "";
       shader.fragmentShader = shader.fragmentShader.replace(
         "#include <normal_fragment_maps>",
@@ -261,6 +268,8 @@ export function createGlasses(scene, taken) {
             diffuseColor.rgb *= vColor.rgb;
           #endif
           diffuseColor.a = mix( ${look.opacityEdge.toFixed(3)}, ${look.opacityCenter.toFixed(3)}, depth );
+          // the glossy streak of a window on the glass wall (a narrow band on the side facing the light)
+          totalEmissiveRadiance += vec3( 0.34 ) * ${(look.streak ?? 1).toFixed(2)} * ( smoothstep( 0.10, 0.0, abs( normal.x - 0.5 ) ) + 0.35 * smoothstep( 0.30, 0.0, abs( normal.x - 0.5 ) ) ) * ( 1.0 - abs( normal.y ) );
           ${sparkle}
         }`
       );
@@ -426,6 +435,7 @@ export function createGlasses(scene, taken) {
       if (player[0].kind === kind) player[0].replace(["wine-red", "wine-white", "beer", "whiskey", "white-russian"].find((k) => k !== kind));
     },
     update(dt) {
+      liquidTime.value += dt;
       for (const g of player) g.update(dt);
     },
     /** Let the glass reflect the room (call after the room reflection was captured). */
