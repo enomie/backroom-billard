@@ -246,6 +246,7 @@ function init() {
 
   // 2.4 Light & backroom
   setupLightingAndRoom();
+  if (new URLSearchParams(location.search).has("perf")) import("./perf-hud.js").then((m) => (perfHud = m.createPerfHud(renderer, scene)));
 
   // 2.5 Table & pockets with real holes (blueprint: table-blueprint.js)
   const tableDims = {
@@ -1411,9 +1412,11 @@ function stepPhysics(frameDt) {
    8. GAME LOOP
 ==================================================== */
 let lastTime = performance.now();
+let perfHud = null; // developer overlay, only with ?perf in the URL (perf-hud.js)
 
 function gameLoop(currentTime) {
   requestAnimationFrame(gameLoop);
+  perfHud?.loopStart(currentTime);
 
   const frameSeconds = (currentTime - lastTime) / 1000;
   const dt = Math.min(frameSeconds, 0.033);
@@ -1505,7 +1508,9 @@ function gameLoop(currentTime) {
   }
 
   updateShadows(frameSeconds);
+  perfHud?.renderStart();
   renderer.render(scene, camera);
+  perfHud?.renderEnd();
 }
 
 /**
