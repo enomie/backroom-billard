@@ -85,8 +85,8 @@ Die Kugeln tragen kleine **Einschlüsse** wie Elfenbeinkugeln (`src/ball-texture
 ## Filz: abgenutzt und mit Flecken (umgesetzt)
 
 Der Filz ist nicht mehr einfarbig (`src/felt-texture.js`, Werte in `felt-constants.js`). Eine Farb- und eine Rauigkeits-Textur (je 1024 × 512, ca. 2,5 mm pro Pixel, einmal erzeugt) legen sich nach der Position (u = x, v = z in Metern) über das ganze Spielfeld. **Immer gleiches Aussehen**, nichts ist zufällig. Die Grundfarbe ist die alte (`0x0a4032`), dazu ein feines Faserrauschen (±2).
-- **Abgenutzter Kopfpunkt** (dort, wo die weiße Kugel aufgelegt wird, `HEAD_SPOT_Z` in `table-constants.js`): heller und grauer (die Fasern sind flachgedrückt), unregelmäßiger, gesprenkelter Rand, Radius ca. 13 cm, und etwas glatter (Rauigkeit 0,58 statt 0,9), also mit schwachem Schimmer unter den Lampen. Er ist mit Absicht deutlicher als die Flecken.
-- **Drei Wasserflecken** (Rotwein, vergeblich ausgewaschen): innen minimal heller und grauer, am Rand ein feiner, unregelmäßiger, etwas dunklerer Ring (einer mit einem Hauch Rot), matt (Rauigkeit 1,0). Sehr dezent, man sieht sie erst beim Hinsehen.
+- **Abgenutzter Kopfpunkt** (dort, wo die weiße Kugel aufgelegt wird, `HEAD_SPOT_Z` in `table-constants.js`): eine **kleine, dunkle, wulstige Stelle** (ca. 8 cm breit, etwas größer als die Kugel), an der der Filz durchgescheuert ist und der dunkle Untergrund zeigt; der Umriss ist unregelmäßig gelappt, der Rand leicht ausgefranst. Rundherum ein ganz schwacher, hellerer Hof (flachgedrückte Fasern). Er liegt minimal neben dem Mittelpunkt der Kugel und ist mit Absicht deutlicher als die Flecken.
+- **Drei Wasserflecken** (Rotwein, vergeblich ausgewaschen): jeder hat einen **unregelmäßigen, langgezogenen, gelappten Umriss** wie eine verlaufene Pfütze (Form, Länge und Drehung je Fleck verschieden), innen minimal heller und grauer, am Rand ein feiner Ring, der **an manchen Stellen kräftig ist und an anderen fehlt**, mit einem schwächeren zweiten Ring innen (einer mit einem Hauch Rot), matt (Rauigkeit 1,0). Sehr dezent, man sieht sie erst beim Hinsehen.
 - Rein optisch, die Reibung ändert sich nicht.
 
 ## Fester Raumnebel

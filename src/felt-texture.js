@@ -38,6 +38,28 @@ const smooth = (a, b, x) => {
   return t * t * (3 - 2 * t);
 };
 
+/** A fixed random number 0..1 for a seed. */
+const phase = (seed) => noise(seed * 7.31, seed * 3.17, 99);
+
+/**
+ * How far a point is from the edge of a lumpy, long blob: 1 = on the edge, less inside. The outline
+ * swells and narrows with a few waves around the blob (the lumps), and a fine unevenness is added.
+ * @param {{ x: number, z: number, radius: number, aspect?: number, rotation?: number, lobes?: number }} blob
+ * @returns {{ t: number, angle: number }}
+ */
+function blobEdge(x, z, blob, seed) {
+  const [dx, dz] = [x - blob.x, z - blob.z];
+  const [c, s] = [Math.cos(blob.rotation ?? 0), Math.sin(blob.rotation ?? 0)];
+  const stretch = Math.sqrt(blob.aspect ?? 1);
+  const [u, v] = [((dx * c + dz * s) / stretch), (-dx * s + dz * c) * stretch];
+  const angle = Math.atan2(v, u);
+  let wave = 0;
+  for (const [k, weight] of [[2, 0.55], [3, 0.5], [4, 0.3], [5, 0.16]]) wave += weight * Math.cos(k * angle + phase(seed + k) * 6.283);
+  const edge = blob.radius * (1 + (blob.lobes ?? 0) * wave);
+  const fine = (noise(x * 45, z * 45, seed) - 0.5) * 0.12;
+  return { t: Math.hypot(u, v) / edge + fine, angle };
+}
+
 /**
  * @param {{ minX: number, maxX: number, minZ: number, maxZ: number }} bounds — the cloth in meters
  * @returns {{ map: THREE.CanvasTexture, roughnessMap: THREE.CanvasTexture }} (u, v already set up)
@@ -59,21 +81,22 @@ export function feltTextures(bounds) {
       const rgb = [...FELT_COLOR];
       let roughness = FELT_ROUGHNESS;
 
-      // the worn head spot: an uneven edge, a mottled inside
+      // the head spot: worn through, dark, with a faint lighter halo around it
       const wear = FELT_WEAR;
-      const d = Math.hypot(x - wear.x, z - wear.z);
-      const edge = wear.radius * (0.75 + 0.5 * noise(x * 7, z * 7, 1));
-      const mottle = 0.8 + 0.4 * noise(x * 40, z * 40, 2);
-      const w = wear.strength * (1 - smooth(edge * 0.35, edge * 1.6, d)) * mottle;
-      for (let k = 0; k < 3; k++) rgb[k] = mix(rgb[k], wear.color[k], w);
-      roughness = mix(roughness, wear.roughness, Math.min(1, w / wear.strength));
+      const { t: wt } = blobEdge(x, z, wear, 1);
+      const hole = wear.strength * (1 - smooth(0.82, 1, wt)); // a short, slightly frayed edge
+      const halo = wt > 0.9 ? wear.halo * (1 - smooth(1, 2, wt)) * (0.6 + 0.8 * noise(x * 35, z * 35, 5)) : 0;
+      for (let k = 0; k < 3; k++) rgb[k] = mix(mix(rgb[k], wear.haloColor[k], halo), wear.color[k], hole);
+      roughness = mix(mix(roughness, 0.7, halo), wear.roughness, hole);
 
       // the water stains
       for (const [i, stain] of FELT_STAINS.entries()) {
-        const t = Math.hypot(x - stain.x, z - stain.z) / (stain.radius * (0.75 + 0.5 * noise(x * 9, z * 9, 10 + i)));
-        const lift = stain.lift * (1 - smooth(0.55, 1, t)) * (0.7 + 0.6 * noise(x * 30, z * 30, 20 + i));
-        const rim = stain.rim * Math.exp(-(((t - 1) / 0.09) ** 2)) * (0.5 + 0.8 * noise(x * 60, z * 60, 30 + i));
-        for (let k = 0; k < 3; k++) rgb[k] = mix(mix(rgb[k], FELT_STAIN_LIFT_COLOR[k], lift), stain.rimColor[k], rim);
+        const { t, angle } = blobEdge(x, z, stain, 10 + i * 10);
+        const lift = stain.lift * (1 - smooth(0.5, 1, t)) * (0.6 + 0.8 * noise(x * 28, z * 28, 20 + i));
+        // the edge ring: strong in places, missing in others; a fainter one inside
+        const along = Math.max(0, noise(Math.cos(angle) * 2.2 + i * 5, Math.sin(angle) * 2.2, 30 + i) * 1.6 - 0.25);
+        const ring = stain.rim * (Math.exp(-(((t - 1) / 0.07) ** 2)) + 0.4 * Math.exp(-(((t - 0.62) / 0.06) ** 2))) * along;
+        for (let k = 0; k < 3; k++) rgb[k] = mix(mix(rgb[k], FELT_STAIN_LIFT_COLOR[k], lift), stain.rimColor[k], Math.min(1, ring));
         roughness = mix(roughness, FELT_STAIN_ROUGHNESS, Math.min(1, lift / stain.lift) * (1 - smooth(0.9, 1.2, t)));
       }
 

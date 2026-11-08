@@ -15,27 +15,34 @@ export const FELT_NAP_NOISE = 2;
 export const FELT_ROUGHNESS = 0.9;
 
 /**
- * The worn head spot: lighter and greyer (the nap is pressed flat), a little smoother, so it
- * shimmers faintly under the lamps. radius (m) is where it is half as strong; strength 0..1.
+ * The head spot where the white ball is put: the cloth is worn through in a small, lumpy place and
+ * the dark backing shows. Around it the nap is a little flatter (a faint, lighter halo). x, z and
+ * radius in m (the radius of the lump, a ball is 0.0286); lobes 0..1 = how lumpy the outline is.
  */
 export const FELT_WEAR = {
-  x: 0,
-  z: HEAD_SPOT_Z,
-  radius: 0.13,
-  strength: 0.6,
-  color: [44, 96, 78],
-  roughness: 0.58,
+  x: 0.01,
+  z: HEAD_SPOT_Z - 0.008,
+  radius: 0.042,
+  aspect: 1.2,
+  rotation: 0.5,
+  lobes: 0.34,
+  color: [3, 27, 22],
+  strength: 0.9,
+  roughness: 0.95,
+  halo: 0.14,
+  haloColor: [38, 88, 70],
 };
 
 /**
- * Water stains, very faint: inside a little lighter and greyer (pigment washed out), a fine, uneven
- * ring at the edge (where the water stopped), a little darker and, for red wine, with a hint of red.
- * They do not shine (matt). x, z, radius in m.
+ * Water stains, very faint, and irregular like a puddle that ran: a lumpy outline (lobes), a long
+ * form (aspect, rotation in rad), inside a little lighter and greyer (pigment washed out), at the
+ * edge an uneven, in places missing ring (where the water stopped) with a second, fainter one inside,
+ * a little darker and, for red wine, with a hint of red. They do not shine (matt). x, z, radius in m.
  */
 export const FELT_STAINS = [
-  { x: 0.31, z: 0.36, radius: 0.1, lift: 0.28, rim: 0.3, rimColor: [24, 52, 42] },
-  { x: -0.27, z: -0.58, radius: 0.13, lift: 0.22, rim: 0.34, rimColor: [34, 50, 42] }, // a hint of wine
-  { x: 0.4, z: -0.84, radius: 0.07, lift: 0.3, rim: 0.28, rimColor: [22, 54, 44] },
+  { x: 0.31, z: 0.36, radius: 0.1, aspect: 1.5, rotation: 0.6, lobes: 0.4, lift: 0.28, rim: 0.34, rimColor: [24, 52, 42] },
+  { x: -0.27, z: -0.58, radius: 0.12, aspect: 1.25, rotation: -0.4, lobes: 0.5, lift: 0.22, rim: 0.38, rimColor: [36, 50, 42] }, // a hint of wine
+  { x: 0.4, z: -0.84, radius: 0.065, aspect: 1.8, rotation: 1.1, lobes: 0.42, lift: 0.3, rim: 0.32, rimColor: [22, 54, 44] },
 ];
 export const FELT_STAIN_LIFT_COLOR = [26, 78, 62];
 export const FELT_STAIN_ROUGHNESS = 1;
