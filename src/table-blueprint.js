@@ -381,14 +381,18 @@ export function buildAuthenticTableWithHoles(
     sheenColor: new THREE.Color(0xd9e6ff),
   });
   const diamondTop = TABLE_H + railH + 0.01;
+  const diamondMatrices = []; // all diamonds are drawn as one instanced mesh
+  const turnedDiamond = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
   const addDiamonds = (fixed, from, to, alongX) => {
     for (let i = 1; i <= DIAMONDS_PER_SPAN; i++) {
       const pos = from + ((to - from) * i) / (DIAMONDS_PER_SPAN + 1);
-      const d = new THREE.Mesh(diamondGeo, pearlMat);
-      d.position.set(alongX ? pos : fixed, diamondTop, alongX ? fixed : pos);
-      if (!alongX) d.rotation.y = Math.PI / 2;
-      d.name = "table-diamond";
-      scene.add(d);
+      diamondMatrices.push(
+        new THREE.Matrix4().compose(
+          new THREE.Vector3(alongX ? pos : fixed, diamondTop, alongX ? fixed : pos),
+          alongX ? new THREE.Quaternion() : turnedDiamond,
+          new THREE.Vector3(1, 1, 1)
+        )
+      );
     }
   };
   for (const side of [-1, 1]) {
@@ -397,6 +401,10 @@ export function buildAuthenticTableWithHoles(
     addDiamonds(mid, 0, hl, false);
     addDiamonds(side * (hl + railThick / 2), -hw, hw, true);
   }
+  const diamonds = new THREE.InstancedMesh(diamondGeo, pearlMat, diamondMatrices.length);
+  diamondMatrices.forEach((matrix, i) => diamonds.setMatrixAt(i, matrix));
+  diamonds.name = "table-diamond";
+  scene.add(diamonds);
 
   // Legs: one below each corner pocket cup, from the floor up to LEG_CUP_GAP below the cup bottom
   const cornerCups = (pocketSpecs ?? []).filter((spec) => spec.id.startsWith("corner"));

@@ -131,18 +131,20 @@ export function createFurniture(scene) {
   const keepOut = [];
   const matrix = new THREE.Matrix4();
   let index = 0;
+  // The parts of the tables are the same everywhere: one instanced mesh each
+  const plates = new THREE.InstancedMesh(plateGeo, woodMat, FURNITURE_TABLES.length);
+  const columns = new THREE.InstancedMesh(columnGeo, brassMat, FURNITURE_TABLES.length);
+  const bases = new THREE.InstancedMesh(baseGeo, brassMat, FURNITURE_TABLES.length);
+  for (const m of [plates, columns, bases]) {
+    m.receiveShadow = true;
+    group.add(m);
+  }
+  FURNITURE_TABLES.forEach((table, i) => {
+    plates.setMatrixAt(i, matrix.makeTranslation(table.x, FURNITURE_TABLE_HEIGHT - FURNITURE_TABLE_PLATE_THICKNESS, table.z));
+    columns.setMatrixAt(i, matrix.makeTranslation(table.x, 0.03 + columnHeight / 2, table.z));
+    bases.setMatrixAt(i, matrix.makeTranslation(table.x, 0.015, table.z));
+  });
   for (const table of FURNITURE_TABLES) {
-    const plate = new THREE.Mesh(plateGeo, woodMat);
-    plate.position.set(table.x, FURNITURE_TABLE_HEIGHT - FURNITURE_TABLE_PLATE_THICKNESS, table.z);
-    const column = new THREE.Mesh(columnGeo, brassMat);
-    column.position.set(table.x, 0.03 + columnHeight / 2, table.z);
-    const base = new THREE.Mesh(baseGeo, brassMat);
-    base.position.set(table.x, 0.015, table.z);
-    for (const m of [plate, column, base]) {
-      m.receiveShadow = true;
-      group.add(m);
-    }
-
     for (const [angleDeg, pull] of table.chairs) {
       const a = THREE.MathUtils.degToRad(angleDeg);
       const dist = CHAIR_RING_RADIUS + pull;
