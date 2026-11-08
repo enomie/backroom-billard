@@ -15,10 +15,11 @@ Ein Konzertflügel in schwarzem Lack an der kurzen Wand **gegenüber der Tür**,
 ## Spielen
 
 - **Bedienung:** Maustaste auf eine Taste **drücken und halten**: Die Taste senkt sich und der Ton klingt; beim Loslassen dämpft der Ton ab. In der freien Kamera (C) zielt das Fadenkreuz in der Mitte des Bildes, sonst die Mausposition; bis 5 m Entfernung. Die schwarzen Tasten liegen über den weißen. Ein Klick auf eine Taste schießt nicht und zielt nicht.
+- **Computertastatur:** In der **freien Kamera** und **nahe an der Klaviatur** (unter 2,2 m, `PIANO_KEYS_NEAR`) spielen die Buchstabentasten: untere Reihe `Z S X D V G B H N J M , L . ; /` (das `C` bleibt die Kamera-Umschaltung, deshalb fehlt dort das E4) ab dem eingestrichenen C (C4, mittleres C; schwarze Tasten `S D G H J` und `L`), obere Reihe `Q 2 W 3 E R 5 T 6 Y 7 U I 9 O 0 P [ = ]` ab C5 (schwarze `2 3 5 6 7 9 0`). **Akkorde gehen** (mehrere Tasten gleichzeitig); Halten = Ton klingt, Loslassen = Dämpfer. Die Tasten, die Noten sind, verlieren dort ihre Spielfunktion (T, R, E, N, W, S, D): dafür bewegen dort **die Pfeiltasten** (in der freien Kamera jetzt immer: ↑ ↓ vor und zurück, ← → seitlich). Die Zuordnung steht in `PIANO_COMPUTER_KEYS`. `C` schaltet auch nahe am Flügel weiter die Kamera um.
 - **Töne:** Alle 88 Tasten (A0 bis C8) mit den richtigen Tonhöhen (A4 = 440 Hz).
 - **Klang** (`src/piano-sound.js`, Werte `PIANO_*` in `piano-constants.js`): ohne Samples, **generativ**. Jede Note besteht aus einigen Sinusteiltönen (tiefe Noten bis 9, hohe 3), leicht gedehnt wie bei echten Saiten (Inharmonizität), die zwei tiefsten doppelt und minimal verstimmt (zwei Saiten pro Ton, das gibt das lebendige Schweben), dazu ein weicher Hammerklang (kurzes gefiltertes Rauschen). Tiefe Töne klingen bis 7 s nach, hohe etwa 1,2 s; höhere Teiltöne sterben früher; ein Tiefpass macht leise Anschläge dunkler. Der Klang kommt aus dem Raum vom Flügel (Richtung und Entfernung folgen der Kamera), bis 32 Töne gleichzeitig, ein Kompressor hält es sauber.
 
 ## Offene Punkte (Ideen)
 
-- Mehrere Tasten gleichzeitig (Akkord, Mehrfingerbedienung), Gleiten mit gedrückter Maus, Pedal, Anschlagstärke je nach Stelle auf der Taste, Tastatur des Computers, Handy (Touch).
+- Mehrere Finger mit der Maus (Akkord geht nur mit der Computertastatur), Gleiten mit gedrückter Maus, Pedal, Anschlagstärke je nach Stelle auf der Taste, Handy (Touch).
 - Notenständer, Deckel öffnen, ein Halleffekt.

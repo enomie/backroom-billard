@@ -37,6 +37,9 @@ import {
   PIANO_COLOR_BRASS,
   PIANO_CLICK_DISTANCE,
   PIANO_KEY_PRESS_ANGLE,
+  PIANO_KEYS_NEAR,
+  PIANO_COMPUTER_KEYS,
+  PIANO_MIDDLE_C,
 } from "./piano-constants.js";
 import { createPianoSound } from "./piano-sound.js";
 
@@ -196,8 +199,41 @@ export function createPiano(scene) {
     return i >= 0 && i < PIANO_WHITE_KEYS ? keys[i] : null;
   }
 
+  const heldByCode = new Map(); // the computer keys held down: code → { key, id }
+  const keyPosition = new THREE.Vector3();
+
   return {
     group: root,
+    /** True when the (free) camera is close enough to the keyboard for the computer keyboard to play. */
+    isNear(camera) {
+      root.localToWorld(keyPosition.set(0, 0, front + 0.2));
+      return Math.hypot(camera.position.x - keyPosition.x, camera.position.z - keyPosition.z) < PIANO_KEYS_NEAR;
+    },
+    /** A computer key goes down: plays its note (true if the key belongs to the piano). */
+    keyDown(code, repeat) {
+      const offset = PIANO_COMPUTER_KEYS[code];
+      if (offset === undefined) return false;
+      if (repeat || heldByCode.has(code)) return true;
+      const key = keys.find((k) => k.midi === PIANO_MIDDLE_C + offset);
+      if (!key) return true;
+      heldByCode.set(code, { key, id: sound.noteOn(key.midi, key.black ? 0.7 : 0.8) });
+      setKey(key, true);
+      return true;
+    },
+    /** A computer key goes up: the note ends (true if this key was playing). */
+    keyUp(code) {
+      const note = heldByCode.get(code);
+      if (!note) return false;
+      sound.noteOff(note.id);
+      setKey(note.key, false);
+      heldByCode.delete(code);
+      return true;
+    },
+    /** Let go of everything (the window lost the focus, the camera left). */
+    releaseAll() {
+      for (const code of [...heldByCode.keys()]) this.keyUp(code);
+      this.release();
+    },
     /**
      * A press of the mouse button: plays the key under the pointer.
      * @param {THREE.Camera} camera

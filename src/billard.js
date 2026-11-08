@@ -986,6 +986,25 @@ function setupControls() {
     if (dy !== 0) elevationGlide = false; // the player tilts the camera: his choice wins
   });
 
+  // Near the piano (free camera) the letter keys play it: this runs before the game keys and takes the keys that are notes
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (!piano || cameraMode !== "free" || settings.isOpen() || isStartScreenOpen() || drinkMenu.isOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (!piano.isNear(camera) || !piano.keyDown(e.code, e.repeat)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    true
+  );
+  document.addEventListener(
+    "keyup",
+    (e) => {
+      if (piano?.keyUp(e.code)) e.stopPropagation(); // the note ends; the key did nothing else
+    },
+    true
+  );
+
   // Keyboard: C switches the camera, N resets; E shoots; in cue view arrow keys / A & D aim; in free camera mode WASD move, space goes up and shift goes down.
   window.addEventListener("keydown", (e) => {
     if (settings.isOpen() || isStartScreenOpen()) return; // the settings or the start screen are up: the game keys do nothing
@@ -1028,6 +1047,7 @@ function setupControls() {
     if (e.code === "KeyR") drinking.release();
   });
   window.addEventListener("blur", () => {
+    piano?.releaseAll();
     heldKeys.clear();
     smoking.release(camera);
     drinking.release();
@@ -1200,10 +1220,11 @@ function updateFreeCamera(dt) {
   const forward = _freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw));
   const right = _freeRight.set(Math.cos(freeYaw), 0, -Math.sin(freeYaw));
   const move = _freeMove.set(0, 0, 0);
-  if (heldKeys.has("KeyW")) move.add(forward);
-  if (heldKeys.has("KeyS")) move.sub(forward);
-  if (heldKeys.has("KeyD")) move.add(right);
-  if (heldKeys.has("KeyA")) move.sub(right);
+  // (arrow keys too: near the piano the letters play)
+  if (heldKeys.has("KeyW") || heldKeys.has("ArrowUp")) move.add(forward);
+  if (heldKeys.has("KeyS") || heldKeys.has("ArrowDown")) move.sub(forward);
+  if (heldKeys.has("KeyD") || heldKeys.has("ArrowRight")) move.add(right);
+  if (heldKeys.has("KeyA") || heldKeys.has("ArrowLeft")) move.sub(right);
   if (heldKeys.has("Space")) move.y += 1;
   if (heldKeys.has("ShiftLeft") || heldKeys.has("ShiftRight")) move.y -= 1;
 
