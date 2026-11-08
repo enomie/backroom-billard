@@ -69,7 +69,7 @@ Hat der Spieler keine glimmende Zigarette im Aschenbecher (abgebrannt und gefall
 
 - **Anzeige:** Die **Zahl der Zigaretten in der Packung** steht als Plakette am Knopf „Smoke“ (die Packung des Spielers, der Seite nahe der Kamera). In der Packung selbst fehlen die genommenen Zigaretten (die Packungen am Billardtisch haben einzelne Zigaretten).
 - **Packung leer:** Dann wird **automatisch eine neue Packung gekauft**: **75 $** (`PACK_PRICE` in `shop-constants.js`) vom Geld, mit kurzer Meldung. Reicht das Geld nicht, passiert nichts („Nicht genug Geld“).
-- **Aschenbecher-Fehler behoben:** Brennt eine Zigarette im Aschenbecher von selbst ab (auch die des anderen Spielers und die auf den Tischen), **fällt sie jetzt in die Schale**, statt als Stummel quer über dem Rand liegen zu bleiben. Stummel zu Beginn liegen gleich flach in der Schale.
+- **Aschenbecher-Fehler behoben:** Brennt eine Zigarette im Aschenbecher von selbst ab (auch die des anderen Spielers und die auf den Tischen), **rutscht sie jetzt vom Rand und fällt in die Schale** (in einem kurzen Hüpfer zu einer Stelle im Schalenboden), statt als Stummel quer über dem Rand oder daneben auf dem Tisch zu liegen. Ein Stummel bleibt immer innerhalb der Schale. Stummel zu Beginn liegen gleich flach in der Schale.
 
 ## Spieler und Zigarette
 

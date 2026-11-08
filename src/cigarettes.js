@@ -44,6 +44,8 @@ import { glowTexture } from "./glow.js";
 import { createSmokeColumn, faceCamera } from "./smoke.js";
 
 const PAPER_FULL = CIGARETTE_LENGTH - CIGARETTE_FILTER_LENGTH;
+/** A cigarette that burns down in the ashtray slips off the rim and reaches the dish after this long (s). */
+const SLIP_TIME = 0.12;
 const R = CIGARETTE_DIAMETER / 2;
 
 /** Small deterministic random generator (same layout on every start). */
@@ -235,7 +237,18 @@ export function createCigarettes(scene, ashtraySlots) {
       axis.normalize();
       const current = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion);
       c.root.quaternion.premultiply(_q.setFromUnitVectors(current, axis));
-      if (settled) f.center.y = ground;
+      if (settled) {
+        f.center.y = ground;
+        // it must lie in the dish, never beyond its rim
+        const reach = Math.max(0.01, (ASHTRAY_RADIUS - 0.03) * slot.scale - half);
+        const dx = f.center.x - slot.x;
+        const dz = f.center.z - slot.z;
+        const away = Math.hypot(dx, dz);
+        if (away > reach) {
+          f.center.x = slot.x + (dx / away) * reach;
+          f.center.z = slot.z + (dz / away) * reach;
+        }
+      }
     }
     const a = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion);
     c.root.position.copy(f.center).addScaledVector(a, -half);
@@ -294,10 +307,21 @@ export function createCigarettes(scene, ashtraySlots) {
         if (c.state !== "glowing") continue;
         if (c.burn < 1) c.burn = Math.min(1, c.burn + (dt * (1 + (SMOKING_BURN_FACTOR - 1) * c.drawGlow)) / CIGARETTE_BURN_SECONDS);
         shape(c, time);
-        // burnt down by itself in the ashtray: it falls into the dish
+        // burnt down by itself in the ashtray: it slips off the rim and falls into the dish
         if (c.burn >= 1 && !c.held && !c.landed && !c.fall) {
-          const inward = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion).setY(0).normalize();
-          startFall(c, inward.multiplyScalar(0.35), new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(4));
+          const slot = c.slot;
+          const length = Math.max(0.02, c.tipX);
+          const middle = new THREE.Vector3(1, 0, 0).applyQuaternion(c.root.quaternion).multiplyScalar(length / 2).add(c.root.position);
+          const a = Math.random() * Math.PI * 2;
+          const r = Math.random() * SMOKING_DROP_SPREAD * slot.scale;
+          const ground = slot.y + ASHTRAY_FLOOR * slot.scale + R;
+          // a short hop: it reaches a spot in the dish after FALL_TIME and lands there
+          const velocity = new THREE.Vector3(
+            (slot.x + Math.cos(a) * r - middle.x) / SLIP_TIME,
+            (ground - middle.y + (9.81 * SLIP_TIME * SLIP_TIME) / 2) / SLIP_TIME,
+            (slot.z + Math.sin(a) * r - middle.z) / SLIP_TIME
+          );
+          startFall(c, velocity, new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(4));
         }
         // the smoke thread rises from the ember while the cigarette glows
         if (c.smoke) {
