@@ -34,6 +34,14 @@ const saveToken = (token) => {
     /* not allowed: the guest is a new one next time */
   }
 };
+/** Call a reducer; a refusal or a lost connection is only noted (the call is a promise), it must not stop the game. */
+const call = (fn) => {
+  try {
+    fn()?.catch?.((error) => console.warn("[Backroom Billard] multiplayer: the database said no:", error?.message ?? error));
+  } catch (error) {
+    console.warn("[Backroom Billard] multiplayer: call failed:", error);
+  }
+};
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const euler = new THREE.Euler();
 
@@ -86,7 +94,8 @@ export function createMultiplayer(scene) {
   const onPlayer = (row) => {
     const id = hex(row.identity);
     if (id === myId) {
-      finishJoin(); // the own row is there: the room is set up
+      joined = true; // the own row is there: the room is set up, signs of life and places may follow
+      finishJoin();
       return;
     }
     let face = null;
@@ -137,8 +146,7 @@ export function createMultiplayer(scene) {
           if (e) e.free = false; // away: no face (the guest stays in the list)
         });
         conn.subscriptionBuilder().subscribe([tables.player, tables.presence]);
-        conn.reducers.setProfile(args);
-        joined = true;
+        call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -192,14 +200,14 @@ export function createMultiplayer(scene) {
         heartbeatAge += dt;
         if (heartbeatAge >= MULTIPLAYER_HEARTBEAT_SECONDS) {
           heartbeatAge = 0;
-          connection.reducers.heartbeat();
+          call(() => connection.reducers.heartbeat());
         }
         presenceAge += dt;
         // the free camera: its place about 10 times per second; otherwise only the change ("away") once
         if (presenceAge >= MULTIPLAYER_PRESENCE_SECONDS && (free || sentFree !== false)) {
           presenceAge = 0;
           euler.setFromQuaternion(camera.quaternion, "YXZ");
-          connection.reducers.setPresence({ x: camera.position.x, y: camera.position.y, z: camera.position.z, yaw: euler.y, pitch: euler.x, free });
+          call(() => connection.reducers.setPresence({ x: camera.position.x, y: camera.position.y, z: camera.position.z, yaw: euler.y, pitch: euler.x, free }));
           sentFree = free;
         }
       } catch (error) {

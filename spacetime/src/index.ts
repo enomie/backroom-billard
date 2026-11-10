@@ -133,9 +133,12 @@ const me = (ctx: Ctx) => {
   return player;
 };
 
+/** The one game at the table. Made on first use (the `init` of a module only runs when its database is created). */
 const theGame = (ctx: Ctx) => {
-  const game = ctx.db.game.id.find(1);
-  if (!game) throw new SenderError('no game yet');
+  const found = ctx.db.game.id.find(1);
+  if (found) return found;
+  const game = ctx.db.game.insert({ id: 1, state: GAME_WAITING, turnSeat: 0, shotSeq: 0, shotRunning: false, winnerSeat: 0, reason: '', stake: 0, challenger: undefined });
+  resetBalls(ctx);
   return game;
 };
 
@@ -159,11 +162,6 @@ function resetBalls(ctx: Ctx) {
   for (const chunk of [...ctx.db.shotChunk.iter()]) ctx.db.shotChunk.id.delete(chunk.id);
 }
 
-export const init = spacetimedb.init((ctx) => {
-  ctx.db.game.insert({ id: 1, state: GAME_WAITING, turnSeat: 0, shotSeq: 0, shotRunning: false, winnerSeat: 0, reason: '', stake: 0, challenger: undefined });
-  resetBalls(ctx);
-});
-
 export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   const player = ctx.db.player.identity.find(ctx.sender);
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
@@ -181,7 +179,7 @@ export const set_presence = spacetimedb.reducer(
   }
 );
 
-/** Come into the room (or change the name, the country, the face). The money of a new guest is the start money. */
+/** Come into the room (or change the name, the country, the face): there is one room, everybody joins it, as a spectator. */
 export const set_profile = spacetimedb.reducer(
   { name: t.string(), country: t.string(), face: t.string(), money: t.u32() },
   (ctx, { name, country, face, money }) => {
@@ -191,11 +189,8 @@ export const set_profile = spacetimedb.reducer(
       ctx.db.player.identity.update({ ...old, name, country, face, connected: true, lastSeen: ctx.timestamp });
       return;
     }
-    // the first guest sits down, the second too (order of joining); everybody else watches
-    const seated = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR).map((p) => p.seat);
-    const seat = !seated.includes(1) ? 1 : !seated.includes(2) ? 2 : SPECTATOR;
-    ctx.db.player.insert({ identity: ctx.sender, name, country, face, money, seat, connected: true, lastSeen: ctx.timestamp, joinedAt: ctx.timestamp });
-    startIfReady(ctx);
+    // everybody comes in as a spectator (one room for all); sitting down at the table is a step of its own
+    ctx.db.player.insert({ identity: ctx.sender, name, country, face, money, seat: SPECTATOR, connected: true, lastSeen: ctx.timestamp, joinedAt: ctx.timestamp });
   }
 );
 

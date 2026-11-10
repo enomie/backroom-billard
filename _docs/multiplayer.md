@@ -47,6 +47,19 @@ Folgen:
 - **Kleinkram im Fluss** (Cue-Zielen) als flüchtige Werte, ohne Verlauf.
 - Wer später dazukommt (Zuschauer, Wiederverbinden), liest den Ruhezustand und, falls gerade ein Stoß läuft, die Häppchen bis jetzt und spielt ab dort weiter.
 
+## Ein Raum, ein Tisch: wie ein Spiel zustande kommt
+
+Es gibt **einen** Raum für alle Besucher und **einen** Tisch. **Jeder kommt zuerst als Zuschauer** (geht herum, sieht die Gesichter der anderen, kann trinken, rauchen, Klavier spielen, Radio hören); niemand wird automatisch an den Tisch gesetzt (so ist es im Modul umgesetzt: `set_profile` setzt keinen Platz).
+
+> **Vorschlag, noch zu bestätigen** (die Regeln der Tischwette weiter unten bleiben die Grundlage):
+
+1. **Der erste Besucher** ist allein. Er kann sich **an den Tisch setzen** („Platz nehmen“): Dann ist er der **Platzhalter** (Platz 1), setzt nichts ein, kann **allein üben** (seine Stöße sehen die Zuschauer) und wartet auf einen Herausforderer. Wer sich nicht setzt, bleibt Zuschauer.
+2. **Der zweite Besucher** kommt ebenfalls als Zuschauer. Er sieht das Gesicht des ersten (und in einer Liste, wer im Raum ist und wer am Tisch sitzt). **Will er spielen**, legt er eine **Tischwette** (+10 / +100, mindestens 10): Er ist damit der **Herausforderer** des Platzhalters. Das Spiel beginnt nach kurzem Hinweis („Spiel beginnt in 5 s“); der Platzhalter kann in dieser Zeit aufstehen (dann kein Spiel, das Gebot geht zurück).
+3. **Ist der Tisch leer** und zwei Zuschauer wollen spielen, entscheiden die Gebote: der **Höchstbietende setzt sich ohne Einsatz** auf den Platz, der **zweithöchste fordert ihn** mit seinem Gebot (dieselbe Regel wie beim Aufhören des Siegers).
+4. **Alle weiteren Besucher** bleiben Zuschauer und können bieten; ihre Gebote bleiben stehen (siehe „Entschieden“).
+
+Dafür fehlen im Modul noch Aktionen wie `sit_down` (Platz nehmen) und `stand_up` (aufstehen) und die Anzeige im Spiel (Knöpfe, Liste, Hinweis).
+
 ## Gesicht als Kugel im Raum (als Vorschau umgesetzt)
 
 `src/face-ball.js` baut das Gesicht aus denselben Daten wie die Vorschau auf dem Welcome-Screen (`face.js`) als Kugel (Kopf, Nase, Augen, Augenbrauen, Frisur, Bart; schmal bis breit) und darüber das Schild mit Flaggen-Icon und Name mit Initiale. Heute **schwebt ein Gesicht neben dem Ende der Bar** (Kopfmitte auf 1,70 m, `FACE_BALL_*` in `face-ball-constants.js`, schaut in den Raum), zeigt nach dem Welcome-Screen das **eigene** Gesicht mit Name und Land, und ein **Klick** darauf (wie beim Radioknopf, in der freien Kamera mit dem Fadenkreuz) würfelt ein **neues Zufallsgesicht** (nur zur Ansicht, das Profil bleibt). Im Mehrspieler entsteht daraus pro Spieler ein solches Gesicht an der Stelle der freien Kamera.
@@ -77,7 +90,7 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
 - **Schwarze zu früh:** Wer die schwarze 8 versenkt, solange noch andere Kugeln auf dem Tisch liegen, verliert (wie im Einzelspiel); der andere gewinnt.
 - **Spielerwechsel:** Wer **mindestens eine Kugel versenkt**, stößt nochmal. Versenkt er **keine** Kugel, ist der andere dran. Das gilt für jeden Stoß.
 - **Weiße Kugel:** Wird die weiße im Stoß **auch versenkt** (oder vom Tisch geschossen), ist **immer Spielerwechsel**, auch wenn im selben Stoß eine farbige fällt. Die weiße wird erst neu aufgelegt, wenn alles ruht (wie heute).
-- **Wer beginnt:** Nach der **Reihenfolge des Beitretens**: Meist ist schon ein Spieler da, wenn der zweite kommt; der, der zuerst da war, stößt zuerst.
+- **Wer beginnt:** Wer **zuerst am Tisch sitzt** (der Platzhalter, siehe „Ein Raum, ein Tisch“), stößt zuerst.
 - **Zuschauer kommen zu einem laufenden Spiel:** Sie legen eine **Tischwette** (Einsatz) an den Tisch. **Wer am meisten setzt, fordert den Sieger der letzten Runde** (der Sieger bleibt am Tisch, der Verlierer wird Zuschauer). Zuschauer ohne Wette bleiben Zuschauer.
 - **Verbindung weg:** Ein Spieler, dessen Verbindung abbricht, bekommt **10 Sekunden** (er kann zurückkommen und dort weiterspielen, wo er war). Danach hat er **verloren**. Nachrücken darf nur ein Zuschauer, der eine **Tischwette** platziert hat (der Höchstbietende).
 - **Gesicht:** Jeder (Spieler und Zuschauer) erscheint für die anderen als **Gesicht** (Kugel mit Nase und zwei Augen, Haut- und Haarfarbe aus dem Facegenerator, siehe [`welcome-screen.md`](welcome-screen.md)). Es **schwebt dort, wo die freie Kamera** des anderen ist. Die **Blickrichtung ist die der Kamera**, sonst bewegt sich nichts: ein **starres Gesicht**, keine Mimik (spätere Stufe).
