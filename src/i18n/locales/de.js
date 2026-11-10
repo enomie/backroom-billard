@@ -103,7 +103,7 @@ export default {
   "radio.about": "Über Jazz24",
   "help.aim": "Maus ziehen: links/rechts zielen, Kamera hoch/runter kippen. A / D oder ← / → drehen.",
   "help.power": "Mausrad, W / S oder ↑ / ↓: Kraft.",
-  "help.shoot": "E oder ein Klick: Stoß.",
+  "help.shoot": "E oder der SHOOT-Button: Stoß. Die Maus zielt nur (ziehen).",
   "help.nub": "Weißen Punkt über dem SHOOT-Button ziehen: wo die Cue-Spitze die Kugel trifft (Doppelklick: Mitte).",
   "help.drink": "R halten: Schluck für Schluck trinken.",
   "help.smoke": "T halten: an der Zigarette ziehen, loslassen: ausatmen.",

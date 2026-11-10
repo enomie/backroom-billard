@@ -103,7 +103,7 @@ export default {
   "radio.about": "About Jazz24",
   "help.aim": "Drag the mouse: aim left/right, tilt the camera up/down. A / D or ← / → turn.",
   "help.power": "Mouse wheel, W / S or ↑ / ↓: power.",
-  "help.shoot": "E or a click: shoot.",
+  "help.shoot": "E or the SHOOT button: shoot. The mouse only aims (drag).",
   "help.nub": "Drag the white dot above the SHOOT button: where the cue tip meets the ball (double-click: center).",
   "help.drink": "R, hold: drink gulp after gulp.",
   "help.smoke": "T, hold: draw on the cigarette, release: exhale.",

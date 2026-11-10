@@ -1030,7 +1030,7 @@ function setupControls() {
     showNub();
   });
 
-  // Mouse control (click & drag to aim, click without drag = shot)
+  // Mouse control (drag to aim; a click does not shoot: E or the SHOOT button does)
   container.addEventListener("mousedown", (e) => {
     if (e.button === 0 && tryPianoPress(e)) return; // a key of the piano: play it, no aiming, no shot
     if (pianoMode !== "off") return; // seated at the piano: the mouse only plays
@@ -1076,10 +1076,7 @@ function setupControls() {
     if (freeLookDragging && freeClickDistance < 5 && cameraMode === "free") tryRadioClick(e);
     freeLookDragging = false;
     if (isMouseDown && cameraMode === "fps") {
-      // Mouse was only clicked briefly (no aim rotation) -> radio knob or take the shot
-      if (totalDragDist < 5 && !tryRadioClick(e)) {
-        fireCueStrike();
-      }
+      if (totalDragDist < 5) tryRadioClick(e); // (clicked briefly: maybe the radio knob)
     }
     isMouseDown = false;
   });
