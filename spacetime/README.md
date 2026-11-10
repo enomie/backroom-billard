@@ -34,20 +34,26 @@ npm install
 npm run check   # TypeScript, ohne Ausgabe
 ```
 
-## Veröffentlichen (wenn du eingeloggt bist)
+## Veröffentlichen (auf deinem Rechner, eingeloggt)
 
-Die genauen Aufrufe stehen in der SpacetimeDB-Dokumentation (die Befehle ändern sich); sinngemäß:
+Die Datenbank heißt **`backroom-billard-3000`** (Konto `liquid3logic`, Maincloud): <https://spacetimedb.com/@liquid3logic/backroom-billard-3000>.
+
+Die Schnellstart-Schritte der Seite (`spacetime dev … --template chat-react-ts`) legen ein **Chat-Beispiel** an; das brauchen wir **nicht**. Wir veröffentlichen **dieses Modul** in dieselbe Datenbank:
 
 ```bash
-spacetime install   # falls noch nicht: curl -sSf https://install.spacetimedb.com | sh
-spacetime login
-spacetime publish --server maincloud --module-path spacetime backroom-billard-3000
+curl -sSf https://install.spacetimedb.com | sh   # einmal: die Kommandozeile installieren
+spacetime login                                   # einmal
+cd spacetime && npm install
+spacetime publish backroom-billard-3000 --module-path . --server maincloud
+```
+
+Danach die Anbindung für das Spiel erzeugen (Typen für den Browser, im Spiel-Ordner):
+
+```bash
 spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetime
 ```
 
-**Nicht** `spacetime dev … --template chat-react-ts` ausführen: Das legt ein Beispielprojekt (Chat) an; wir haben ein eigenes Modul in diesem Ordner.
-
-`generate` erzeugt die Anbindung für das Spiel (`module_bindings`), mit dem Paket `spacetimedb` im Browser (`DbConnection.builder()…`). Das Spiel selbst hat diese Abhängigkeit noch nicht.
+Die Aufrufe sind die der Schnellstart-Seite und der Dokumentation (`spacetime publish` ist der Befehl für ein vorhandenes Modul); die genauen Schalter bitte dort gegenprüfen, sie ändern sich. Das Spiel verbindet sich dann mit `DbConnection.builder().withUri('wss://maincloud.spacetimedb.com').withDatabaseName('backroom-billard-3000')` (Paket `spacetimedb`, noch nicht im Spiel).
 
 ## Noch offen
 
