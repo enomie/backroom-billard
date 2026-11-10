@@ -1,6 +1,6 @@
 # Kamera und Cue: Befund und Umbau (Plan)
 
-> **Status: Plan, nichts davon ist umgesetzt.** Es gibt heute zwei Kameras (Spielerkamera hinter dem Cue, freie Kamera) und den Klavierhocker; der Wechsel dazwischen geht über mehrere Sonderwege. Hier steht, was an der Spielerkamera nicht stimmt (Teil 1, Ursachen), wie sie und der Cue zusammenpassen sollen (Teil 2) und wie die Kameras vereinfacht werden (Teil 3).
+> **Status: Teil 1 (Befund) und Teil 2 (Spielerkamera und Cue) sind umgesetzt, Teil 3 (ein Kamerasystem) ist Plan.** Es gibt heute zwei Kameras (Spielerkamera hinter dem Cue, freie Kamera) und den Klavierhocker; der Wechsel dazwischen geht über mehrere Sonderwege. Hier steht, was an der Spielerkamera nicht stimmt (Teil 1, Ursachen), wie sie und der Cue zusammenpassen sollen (Teil 2) und wie die Kameras vereinfacht werden (Teil 3).
 
 ## 1. Befund (Ursachen)
 

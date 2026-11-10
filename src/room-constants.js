@@ -2,6 +2,7 @@
  * Room and lighting parameters (meters). See _docs/look.md.
  * Heights are measured above the floor (y = 0).
  */
+import { CUE_PITCH_MIN, CUE_PITCH_MAX, CUE_PITCH_BELOW_CAMERA } from "./cue-constants.js";
 
 /** Free camera (key C): movement speed in m/s and mouse-look sensitivity in rad per pixel. */
 export const FREE_CAM_SPEED = 2;
@@ -16,15 +17,13 @@ export const FREE_CAM_TOUCH_MOVE = 0.012;
 export const FREE_CAM_START_POSITION = [2.1, 2.1, 3.0];
 export const FREE_CAM_START_TARGET = [0, 1.7, 0];
 /**
- * Cue camera: orbits the cue ball at this distance (m). The player tilts it between the minimum and
- * maximum elevation above the table (rad, 10° … 80°: almost level … almost straight down).
- * The camera looks at a point FP_CAM_LOOK_AHEAD · cos(elevation) in front of the ball.
+ * Cue camera: orbits the cue ball at this distance (m) and always looks at the ball. The player tilts it between the
+ * minimum and maximum elevation above the table (rad): exactly what the cue can follow (see cue-constants.js).
  */
 export const FP_CAM_DISTANCE = 1.02;
-export const FP_CAM_MIN_ELEVATION = (10 * Math.PI) / 180;
-export const FP_CAM_MAX_ELEVATION = (80 * Math.PI) / 180;
+export const FP_CAM_MIN_ELEVATION = CUE_PITCH_MIN + CUE_PITCH_BELOW_CAMERA;
+export const FP_CAM_MAX_ELEVATION = CUE_PITCH_MAX + CUE_PITCH_BELOW_CAMERA;
 export const FP_CAM_DEFAULT_ELEVATION = 0.28;
-export const FP_CAM_LOOK_AHEAD = 1.88;
 /** Turning with the keys (A/D, arrows): rad per second. Mouse and touch rotate directly. */
 export const FP_CAM_KEY_TURN_SPEED = 1.4;
 /** The orbit center eases back to the new shot position at this rate (1/s) once the table is still. */

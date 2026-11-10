@@ -103,7 +103,6 @@ import {
   FP_CAM_MIN_ELEVATION,
   FP_CAM_MAX_ELEVATION,
   FP_CAM_DEFAULT_ELEVATION,
-  FP_CAM_LOOK_AHEAD,
   FP_CAM_KEY_TURN_SPEED,
   FP_CAM_FOCUS_RATE,
   SHOT_REST_DELAY,
@@ -403,8 +402,7 @@ function placeAimCamera() {
     camFocus.y + Math.sin(aimElevation) * FP_CAM_DISTANCE,
     camFocus.z + Math.cos(aimAngle) * ce * FP_CAM_DISTANCE
   );
-  const ahead = FP_CAM_LOOK_AHEAD * ce;
-  camera.lookAt(camFocus.x - Math.sin(aimAngle) * ahead, camFocus.y, camFocus.z - Math.cos(aimAngle) * ahead);
+  camera.lookAt(camFocus); // always at the ball, however high the camera is
 }
 
 /** Jump the cue camera to the cue ball (start, new rack). */

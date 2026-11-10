@@ -23,7 +23,7 @@ Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: *
 
 | Aktion | Eingabe |
 |--------|---------|
-| Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (10°–80° über dem Tisch; jeder neue Zug beginnt wieder flach mit 16°); `A` / `D` oder Pfeile links/rechts |
+| Zielen und Kamera drehen (auch während die Kugeln rollen) | Maus ziehen: links/rechts schwenken, hoch/runter kippen (11,5°–69° über dem Tisch, der Cue folgt; die Kamera schaut immer auf die weiße Kugel; jeder neue Zug beginnt wieder flach mit 16°); `A` / `D` oder Pfeile links/rechts |
 | Kraft (1 bis 100, in Einerschritten, ohne %-Zeichen) | Mausrad, `W` / `S` oder Pfeil hoch/runter, vertikaler farbiger Slider rechts (auch per Touch) |
 | Stoß | Klick, `E` oder der SHOOT-Button unten in der Mitte |
 | Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |

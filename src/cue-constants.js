@@ -45,12 +45,13 @@ export const CUE_STROKE_SUBSTEPS = 8;
 
 /**
  * Elevation of the cue (rad) follows the camera: it lies slightly below the camera's line of sight
- * (CUE_PITCH_BELOW_CAMERA), clamped to a realistic range. Above CUE_PITCH_MAX the cue stays put,
- * so a steep camera never makes the tip drive the ball into the cloth.
+ * (CUE_PITCH_BELOW_CAMERA), between CUE_PITCH_MIN and CUE_PITCH_MAX (60°). The cue camera may go exactly as
+ * high and as low as the cue allows (FP_CAM_MIN_ELEVATION and FP_CAM_MAX_ELEVATION in room-constants.js are
+ * these limits plus CUE_PITCH_BELOW_CAMERA), so the two never part. See _docs/camera.md.
  */
 export const CUE_PITCH_BELOW_CAMERA = 0.16;
 export const CUE_PITCH_MIN = 0.04;
-export const CUE_PITCH_MAX = 0.5;
+export const CUE_PITCH_MAX = Math.PI / 3;
 
 /** Furthest the cue tip can meet the ball from its center, as a share of the ball radius (set with the nub on the shoot button). */
 export const CUE_STRIKE_OFFSET_MAX = 0.5;
