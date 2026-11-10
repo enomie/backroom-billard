@@ -11,41 +11,41 @@ Der eigene Webserver hat **nur HTML und PHP**: kein Node, keine Websockets, kein
 - **Keine Rechnung auf dem eigenen Server:** Das passt zur Entscheidung, dass der Schütze selbst rechnet (siehe „Vertrauen“). Eine Server-Rechnung gäbe es nur auf einem zusätzlichen, externen Dienst.
 - PHP wäre höchstens für Kleinigkeiten da (etwa eine Konfiguration oder ein Gästebuch), nie für das Spiel selbst.
 
-## Grundidee: aufnehmen und abspielen
+## Grundidee: den laufenden Stoß mitschneiden und abspielen
 
-Billard ist **rundenbasiert**: Es stößt immer nur einer, dann rollen die Kugeln aus, dann ist der Nächste dran. Deshalb muss die Physik nicht live über das Netz laufen.
+Billard ist **rundenbasiert**: Es stößt immer nur einer, dann rollen die Kugeln aus, dann ist der Nächste dran. Deshalb muss die Physik nicht live über das Netz laufen, und es rechnet immer nur **einer**.
 
-1. **Der Schütze rechnet seinen Stoß komplett selbst** (ohne Anzeige, so schnell der Rechner kann, mit denselben festen 240-Hz-Schritten wie im Spiel) und **nimmt dabei den ganzen Verlauf auf**: Lage und Drehung jeder Kugel (ca. 120-mal pro Sekunde), dazu die Ereignisse (Klack, Bande, Loch, mit Zeit und Stärke).
-2. Er schickt **eine** Aufnahme (ein paar zehn KB, quantisiert und als Differenzen gepackt) mit den Stoßdaten an SpacetimeDB.
-3. SpacetimeDB schickt sie allen Zuschauern. **Jeder Rechner spielt dieselbe Aufnahme ab** (Zwischenwerte interpoliert, mit der Bildrate des eigenen Bildschirms). Auch der Schütze sieht die Aufnahme, nicht eine zweite Rechnung.
-4. Gleichzeitig läuft bei allen **dieselbe Cue-Animation** aus den Stoßdaten (Zurückziehen, Halt, Vorschnalzen), und der Klack fällt auf den Moment, in dem die Aufnahme beginnt.
+1. **Der Schütze spielt wie heute**, in Echtzeit, mit dem unveränderten Physikcode (feste 240 Hz, echte Spitze, Squirt, Swerve). Ein kleiner **Rekorder** liest dabei mit (er ändert nichts) und schreibt etwa **120-mal pro Sekunde** Lage und Drehung jeder Kugel auf, dazu die **Ereignisse** (Klack, Bande, Loch, mit Zeit und Stärke).
+2. Der Rekorder schickt das **in kleinen Häppchen** (z. B. alle 100 ms, quantisiert und als Differenzen gepackt) an SpacetimeDB, schon **während** die Kugeln rollen.
+3. SpacetimeDB verteilt die Häppchen an die anderen. **Ihr Abspieler** zeigt sie mit einem **kleinen Puffer** (etwa 0,5 bis 1 s Verzögerung), Zwischenwerte interpoliert, mit der Bildrate des eigenen Bildschirms, Töne aus den Ereignissen.
+4. Die **Cue-Animation** (Zurückziehen, Halt, Vorschnalzen) läuft bei allen aus denselben Stoßdaten, zeitlich mit demselben Puffer versetzt.
 
 Folgen:
 
-- **Kein Ruckeln durch das Netz:** Die Aufnahme ist vollständig da, bevor sie abgespielt wird. Netzschwankungen verschieben höchstens den Start, sie unterbrechen nie den Ablauf.
-- **Nie unterschiedliche Ergebnisse:** Es gibt nur **eine** Rechnung pro Stoß. Das Ergebnis (versenkt? Foul? schwarze 8?) steht in der Aufnahme.
-- **Keine Gleichheit der Rechner nötig:** Verschiedene Browser rechnen `Math.sin` & Co. minimal anders, und Billard ist chaotisch (beim Anstoß verstärkt sich jeder Fehler). Ein Lockstep („alle rechnen mit denselben Eingaben“) würde irgendwann zu verschiedenen Ergebnissen führen. Aufnehmen und abspielen vermeidet das ganz.
-- **Die Physik bleibt unangetastet:** keine Vorhersage, kein Zurückrollen, keine Vereinfachung für das Netz.
+- **Die Verzögerung stört nicht:** Der andere wartet ohnehin, bis der Stoß vorbei ist. Er sieht den Stoß nur einen Moment später als der Schütze. Der Puffer fängt Netzschwankungen ab; er wird **mitgeregelt** (bei Verspätung etwas größer, nie wird die Zeit angehalten oder zurückgespult).
+- **Nie unterschiedliche Ergebnisse:** Es gibt nur **eine** Rechnung pro Stoß, die des Schützen; alle anderen sehen ihre Aufnahme. Das Ergebnis (versenkt? Foul? schwarze 8?) steht in den Ereignissen.
+- **Keine Gleichheit der Rechner nötig:** Verschiedene Browser rechnen `Math.sin` & Co. minimal anders, und Billard ist chaotisch (beim Anstoß verstärkt sich jeder Fehler). Ein Lockstep („alle rechnen mit denselben Eingaben“) würde irgendwann zu verschiedenen Ergebnissen führen. Mitschneiden und abspielen vermeidet das ganz.
+- **Die Physik bleibt unangetastet:** keine Vorhersage, kein Zurückrollen, keine Vereinfachung für das Netz, **kein Umbau** des Stoßes. Der Schütze sieht seine eigene Rechnung live, nicht die Aufnahme.
+
+**Verworfen: den Stoß als reine Funktion vorab rechnen** (komplett im Hintergrund, dann eine fertige Aufnahme hochladen). Sie würde den Stoß aus der Spielschleife herauslösen (Cue-Animation, Squirt, Swerve, Foul, Versenken, Töne, Kamera hängen alle daran) und dabei die empfindlichste Stelle der Physik berühren. Der Gewinn (die Aufnahme liegt vollständig vor dem Abspielen vor, Wiederholung, Physiktests ohne Browser) hängt nicht am Multiplayer. **Nur wenn** sich im Test zeigt, dass der Puffer nicht reicht (Ruckeln bei schlechter Leitung), wird sie nachgezogen.
 
 ## Ablauf eines Zuges
 
 | Zeit | Schütze | Gegner / Zuschauer |
 |------|---------|--------------------|
 | vorher | Zielt; Winkel, Nubbel, Kraft gehen **etwa 15-mal pro Sekunde** an die Datenbank | sieht den Cue sich bewegen (aus den Werten interpoliert) |
-| Stoß | drückt SHOOT: `take_shot` (Stoßdaten) | Cue-Animation startet bei allen zum gleichen **Server-Zeitpunkt** |
-| 0 bis ~0,5 s | rechnet den Stoß im Hintergrund und lädt die Aufnahme hoch, während der Cue zurückgezogen wird | Cue zieht zurück |
-| Kontakt | Start der Aufnahme: spielt sie ab | spielt dieselbe Aufnahme ab, Töne aus den Ereignissen |
-| Ruhe | letzte Lage = neuer Ruhezustand; Regeln werten Ergebnis; nächster Spieler | dasselbe, aus derselben Aufnahme |
-
-Der gemeinsame Start ist ein **Server-Zeitpunkt** (jeder Rechner schätzt seinen Zeitunterschied zum Server). Er liegt weit genug hinter dem Stoß, dass die Aufnahme schon überall angekommen ist (Zurückziehen und Halt dauern ca. 0,3 bis 0,75 s); bei langsamer Leitung wird der Start etwas später gesetzt, nie wird abgespielt, bevor alles da ist.
+| Stoß | drückt SHOOT: `take_shot` (Stoßdaten) wird angenommen, wenn er dran ist | bekommt die Stoßdaten, startet die Cue-Animation mit dem Puffer |
+| Zurückziehen, Vorschnalzen, Kontakt | spielt wie heute, der Rekorder schickt Häppchen | Cue-Animation, dann die Kugeln aus den Häppchen (mit Puffer) |
+| Rollen | der Rekorder schickt weiter | spielt die Aufnahme, Töne aus den Ereignissen |
+| Ruhe | letzte Lage = neuer Ruhezustand; Regeln werten das Ergebnis; nächster Spieler | dasselbe, aus denselben Ereignissen |
 
 ## Was SpacetimeDB speichert
 
 - **Spieler und Zug:** wer am Tisch sitzt, wer dran ist. Eine Aktion (`take_shot`) wird nur angenommen, wenn der Absender dran ist und kein Stoß läuft (die Datenbank ist die einzige Instanz, die die Reihenfolge entscheidet).
 - **Ruhezustand:** Lage der Kugeln, versenkte Kugeln, Spielzustand (läuft, gewonnen, verloren und Grund).
-- **Stoß:** Stoßdaten + Aufnahme (ein Zeilenpaket) + Startzeit.
+- **Stoß:** Stoßdaten + die **Häppchen** der Aufnahme (Zeilen, die schnell wachsen und nach dem Zug nicht mehr gebraucht werden; nur der Ruhezustand bleibt) + Startzeit.
 - **Kleinkram im Fluss** (Cue-Zielen) als flüchtige Werte, ohne Verlauf.
-- Wer später dazukommt (Zuschauer, Wiederverbinden), liest den Ruhezustand und, falls gerade ein Stoß läuft, die Aufnahme mit dem Zeitversatz.
+- Wer später dazukommt (Zuschauer, Wiederverbinden), liest den Ruhezustand und, falls gerade ein Stoß läuft, die Häppchen bis jetzt und spielt ab dort weiter.
 
 ## Gesicht als Kugel im Raum (als Vorschau umgesetzt)
 
@@ -88,16 +88,16 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
 
 ## Vertrauen
 
-Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hochladen). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Aufnahmen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um. Das ist ein späterer Schritt.
+Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen schicken). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Häppchen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um (das bräuchte dann doch den Stoß als reine Funktion). Das ist ein späterer Schritt.
 
 ## Was dafür im Spiel zuerst nötig wäre
 
-1. Der Stoß als **reine Funktion**: (Ruhezustand, Stoßdaten, Zufallswerte) → Aufnahme, ohne Anzeige, mit denselben festen Schritten (dann ist sie auch alleine nutzbar: schneller Vorlauf, Wiederholung).
-2. Alles, was zufällig oder zeitabhängig in der Physik steckt (Cue-Schwanken, `performance.now`), wird **Eingabe** der Funktion.
-3. Ein **Abspieler** für Aufnahmen (Interpolation, Töne aus Ereignissen), den auch der Schütze benutzt.
-4. Danach erst SpacetimeDB (Tabellen, `take_shot`, Zeitabgleich) und die Anzeige der anderen Spieler.
+1. Ein **Rekorder** in der Spielschleife (nur lesend): Lage und Drehung der Kugeln etwa 120-mal pro Sekunde, dazu die Ereignisse, in Häppchen.
+2. Ein **Abspieler** (Puffer, Interpolation, Töne aus den Ereignissen), den man auch ohne Netz mit einer Aufnahme füttern kann (so lässt er sich allein testen).
+3. Zufälliges und zeitabhängiges (Cue-Schwanken, `performance.now`) wird ohnehin **in den Stoßdaten** festgehalten, damit die Cue-Animation bei allen gleich läuft.
+4. Danach erst SpacetimeDB (Tabellen, `take_shot`, Zeitabgleich, Häppchen) und die Anzeige der anderen Spieler.
 
 ## Offene Fragen
 
-Keine zum Regelwerk. Für den Bau stehen noch die Schritte unter „Was dafür im Spiel zuerst nötig wäre“ an (Stoß als reine Funktion, Abspieler, dann SpacetimeDB).
+Keine zum Regelwerk. Für den Bau stehen noch die Schritte unter „Was dafür im Spiel zuerst nötig wäre“ an (Rekorder, Abspieler, dann SpacetimeDB).
 
