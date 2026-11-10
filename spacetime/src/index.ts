@@ -113,6 +113,15 @@ const spacetimedb = schema({
     }
   ),
 
+  /** Which seat pocketed which ball in this game (for the two lists of the pocketed balls above the table). */
+  pocket: table(
+    { public: true },
+    {
+      ballId: t.u8().primaryKey(),
+      seat: t.u8(),
+    }
+  ),
+
   /** What a guest does with his hands: the R key (drinking) and the T key (smoking) held down, so that the others see it. */
   hand: table(
     { public: true },
@@ -190,6 +199,7 @@ function resetBalls(ctx: Ctx) {
     else ctx.db.ball.insert(row);
   }
   for (const chunk of [...ctx.db.shotChunk.iter()]) ctx.db.shotChunk.id.delete(chunk.id);
+  for (const p of [...ctx.db.pocket.iter()]) ctx.db.pocket.ballId.delete(p.ballId);
 }
 
 export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
@@ -389,6 +399,7 @@ export const end_shot = spacetimedb.reducer(
     for (const id of r.pocketed) {
       const b = ctx.db.ball.id.find(id);
       if (b) ctx.db.ball.id.update({ ...b, pocketed: true });
+      if (!ctx.db.pocket.ballId.find(id)) ctx.db.pocket.insert({ ballId: id, seat: shooter.seat }); // the shooter pocketed it
     }
     r.restIds.forEach((id, i) => {
       const b = ctx.db.ball.id.find(id);

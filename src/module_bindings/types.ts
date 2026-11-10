@@ -77,6 +77,12 @@ export const Player = __t.object("Player", {
 });
 export type Player = __Infer<typeof Player>;
 
+export const Pocket = __t.object("Pocket", {
+  ballId: __t.u8(),
+  seat: __t.u8(),
+});
+export type Pocket = __Infer<typeof Pocket>;
+
 export const Presence = __t.object("Presence", {
   identity: __t.identity(),
   x: __t.f64(),

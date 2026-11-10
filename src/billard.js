@@ -2103,6 +2103,33 @@ function updateRemoteHands(dt) {
   }
 }
 
+/** The match above the table (two at the table): the names and the balls each one pocketed. */
+let matchNames = ["", ""];
+let matchPockets = []; // [{ ball, seat }]
+function renderMatch() {
+  const both = !!(matchNames[0] && matchNames[1]);
+  document.getElementById("match").hidden = !both;
+  document.getElementById("pocketed-balls").hidden = both; // (the common list is for one player alone)
+  if (!both) return;
+  [1, 2].forEach((seat) => {
+    const name = document.getElementById(`match-name-${seat}`);
+    name.textContent = matchNames[seat - 1];
+    name.classList.toggle("is-up", mpGame.running && mpGame.turnSeat === seat);
+    document.getElementById(`match-balls-${seat}`).replaceChildren(
+      ...matchPockets
+        .filter((p) => p.seat === seat)
+        .sort((a, b) => a.ball - b.ball)
+        .map((p) => {
+          const dot = document.createElement("span");
+          dot.className = "pocketed-ball";
+          dot.style.backgroundColor = "#" + BALL_COLORS[p.ball - 1].toString(16).padStart(6, "0");
+          dot.title = t("pocketed.ball", { n: p.ball });
+          return dot;
+        })
+    );
+  });
+}
+
 /** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */
 function onMultiplayerGame(e) {
   if (e.kind === "aim") {
@@ -2115,6 +2142,11 @@ function onMultiplayerGame(e) {
   if (e.kind === "shotStart") {
     replay.begin();
     watchedShot = true; // I have seen a game being played (not only found its remains)
+    return;
+  }
+  if (e.kind === "pockets") {
+    matchPockets = e.rows;
+    renderMatch();
     return;
   }
   if (e.kind === "kit") {
@@ -2149,6 +2181,7 @@ function onMultiplayerGame(e) {
     mpGame.running = true;
     mpGame.myTurn = e.myTurn;
     mpGame.turnSeat = e.turnSeat;
+    renderMatch(); // (who is up)
     if (e.myTurn) remoteCue.active = false; // my cue now
     else Object.assign(remoteCue, { relax: 0, place: null }); // his cue is at the ball again (his aim comes next)
     mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
@@ -2319,6 +2352,8 @@ function applyKit(seat, kit) {
 
 /** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */
 function applyRoom(room) {
+  matchNames = room.players;
+  renderMatch();
   applySeats(room.taken, room.mySide);
   showWaiting(room.others === 0);
   if (room.others === 0 && gameState !== "playing" && !mpGame.running) {

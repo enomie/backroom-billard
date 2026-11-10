@@ -59,6 +59,7 @@ import GameRow from "./game_table";
 import HandRow from "./hand_table";
 import KitRow from "./kit_table";
 import PlayerRow from "./player_table";
+import PocketRow from "./pocket_table";
 import PresenceRow from "./presence_table";
 import RematchRow from "./rematch_table";
 import ShotRow from "./shot_table";
@@ -145,6 +146,17 @@ const tablesSchema = __schema({
       { name: 'player_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PlayerRow),
+  pocket: __table({
+    name: 'pocket',
+    indexes: [
+      { accessor: 'ballId', name: 'pocket_ball_id_idx_btree', algorithm: 'btree', columns: [
+        'ballId',
+      ] },
+    ],
+    constraints: [
+      { name: 'pocket_ball_id_key', constraint: 'unique', columns: ['ballId'] },
+    ],
+  }, PocketRow),
   presence: __table({
     name: 'presence',
     indexes: [

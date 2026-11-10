@@ -105,6 +105,10 @@ Hält ein Gast **R** (trinken) oder **T** (rauchen) gedrückt oder lässt los, s
 - Die Geräusche (Schluck, Feuerzeug, Ausatmen) kommen **nicht aus dem Raum**, sie klingen beim Zuschauer wie beim Trinkenden selbst (noch ohne Ort).
 - **Was am Platz steht (umgesetzt):** Jeder Gast schickt, was an seinem Platz steht (`set_kit`, nur bei einer Änderung, höchstens viermal pro Sekunde): das **Getränk** (Sorte) und **wie viele Schlucke noch drin sind**, die **Marke** der Zigaretten und **wie viele noch in der Packung** sind. Die anderen zeigen es so: Ihr Glas am Platz des Gastes wird zu **seiner Sorte** (ein neues Getränk, das er an der Karte bestellt, tauscht das Glas aus), der **Stand** folgt seinen Schlucken, die Packung hat seine Marke und seine Zahl. Trinkt oder raucht er gerade, wird die Änderung erst am Ende der Animation übernommen (sie zeigt sie selbst). Wer sich setzt, bekommt **sein** Getränk und **seine** Packung von der Wahl auf dem Welcome-Screen auf seinen Platz (auch als Zweiter, auf der −z-Seite), voll.
 
+## Das Spiel auf dem Bildschirm: „Anna gegen Ben“ (umgesetzt)
+
+Sitzen **zwei** am Tisch, steht oben in der Mitte (unter den zwei Balken) **Name gegen Name** („Anna T. Meier gegen Ben Huber“, Platz 1 links, Platz 2 rechts; wer **dran** ist, ist gelb) und **darunter bei jedem die Kugeln, die er versenkt hat**, einzeln, als kleine Kreise in der Kugelfarbe (nach Nummern geordnet; die Kugeln des linken liegen zur Mitte hin). Die gemeinsame Liste der versenkten Kugeln links oben fehlt dann. Die Datenbank führt Buch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`), die Liste gilt also auch für den, der später dazukommt, und wird mit jedem neuen Aufbau geleert. Am Handy steht das Feld unter Status und Geld.
+
 ## Zufall und Spielzustand
 
 Alles, was wirkt, kommt **vom Schützen mit in die Aufnahme**: das zufällige Schwanken beim Stoß (Cue-Fehler bis 0,04 rad), Squirt und Swerve, das Neuauflegen der weißen Kugel. Die anderen würfeln nie selbst.

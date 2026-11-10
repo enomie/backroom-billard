@@ -17,6 +17,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `kit` | was am Platz eines Gastes steht: Getränk, Schlucke, Marke und Zahl der Zigaretten |
 | `hand` | was die Hände tun: R (trinken) und T (rauchen) gedrückt; die anderen sehen es |
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
+| `pocket` | welche Kugel welcher Platz versenkt hat (die zwei Listen über dem Tisch) |
 | `rematch` | wer nach einem Spielende nochmal spielen will (beide Spieler müssen drücken) |
 | `bid` | die Tischwetten der Zuschauer (ein Gebot je Zuschauer) |
 

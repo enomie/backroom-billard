@@ -47,7 +47,7 @@ const euler = new THREE.Euler();
 
 /**
  * @param {THREE.Scene} scene
- * @param {(room: { others: number, taken: boolean[], mySide: number | null }) => void} onRoom — called when somebody
+ * @param {(room: { players: string[], others: number, taken: boolean[], mySide: number | null }) => void} onRoom — called when somebody
  *   comes or goes: how many others are here, which seats of the table are taken (index 0 = the −z side, 1 = the +z
  *   side) and the seat of this guest (null: a spectator). The first two guests present take the seats: the one
  *   who came first sits on the +z side.
@@ -107,7 +107,9 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   const tellRoom = () => {
     const guests = [...roster.entries()];
     const seat = roster.get(myId)?.seat ?? 0;
+    const nameOfSeat = (seat) => guests.find(([, p]) => p.seat === seat)?.[1].name ?? "";
     onRoom({
+      players: [nameOfSeat(1), nameOfSeat(2)], // the two at the table (seat 1, seat 2)
       others: guests.filter(([id, p]) => id !== myId && p.connected).length,
       taken: [guests.some(([, p]) => p.seat === 2), guests.some(([, p]) => p.seat === 1)],
       mySide: seat === 1 ? 1 : seat === 2 ? 0 : null,
@@ -242,6 +244,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           const seat = roster.get(id)?.seat ?? 0;
           if (id !== myId && seat > 0) onGame({ kind: "kit", seat, drink: row.drink, sips: row.sips, pack: row.pack, packCount: row.packCount });
         };
+        // who pocketed which ball (the two lists above the table): the whole list each time something changes
+        const tellPockets = () => onGame({ kind: "pockets", rows: [...conn.db.pocket.iter()].map((p) => ({ ball: p.ballId, seat: p.seat })) });
+        conn.db.pocket.onInsert(tellPockets);
+        conn.db.pocket.onDelete(tellPockets);
         conn.db.kit.onInsert((_ctx, row) => onKit(row));
         conn.db.kit.onUpdate((_ctx, _old, row) => onKit(row));
         conn.db.hand.onInsert((_ctx, row) => onHand(row));
@@ -255,7 +261,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat, turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk, tables.hand, tables.kit]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })

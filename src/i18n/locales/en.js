@@ -53,6 +53,7 @@ export default {
   "welcome.restartAsk": "Delete your name and money and start with $ 15,000?",
   "welcome.restartYes": "Yes, start over",
   "welcome.restartNo": "Cancel",
+  "match.vs": "vs",
   "room.waiting": "Waiting for another player",
   "room.joined": "{name} joined",
   "room.left": "{name} left",
