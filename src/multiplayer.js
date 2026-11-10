@@ -9,6 +9,7 @@ import { DbConnection, tables } from "./module_bindings/index.ts";
 import { createFaceBall } from "./face-ball.js";
 import { isFace } from "./face.js";
 import { encodeKeys, decodeKeys } from "./piano-keys.js";
+import { makeKey, loadKey, saveKey } from "./account-key.js";
 import { displayName } from "./name-rules.js";
 import { DEFAULT_COUNTRY } from "./country-list.js";
 import {
@@ -35,10 +36,18 @@ const saveToken = (token) => {
     /* not allowed: the guest is a new one next time */
   }
 };
-/** Call a reducer; a refusal or a lost connection is only noted (the call is a promise), it must not stop the game. */
-const call = (fn) => {
+let kickedHandler = null; // set by the room: the account was opened on another device
+const isKicked = (error) => String(error?.message ?? error).includes("logged-in-elsewhere");
+/** Call a reducer; a refusal or a lost connection is only noted (the call is a promise), it must not stop the game. `refused` is told when the database says no. */
+const call = (fn, refused) => {
   try {
-    fn()?.catch?.((error) => console.warn("[Backroom Billard] multiplayer: the database said no:", error?.message ?? error));
+    fn()?.catch?.((error) => {
+      if (isKicked(error)) kickedHandler?.();
+      else {
+        console.warn("[Backroom Billard] multiplayer: the database said no:", error?.message ?? error);
+        refused?.();
+      }
+    });
   } catch (error) {
     console.warn("[Backroom Billard] multiplayer: call failed:", error);
   }
@@ -67,7 +76,6 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let ready = null; // { resolve, reject, timer } while joining
   let lastHand = "false/false"; // what the database knows about my hands
   let lastKit = ""; // and about my drink and cigarettes
-  let lastMoney = null; // and my money
   const kits = new Map(); // identity (hex) → the last kit row of a guest
   const roster = new Map(); // identity (hex) → { name, country, money, seat, connected, joinedAt }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
@@ -139,6 +147,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       onGame({ kind: "kit", seat: row.seat, drink: k.drink, sips: k.sips, pack: k.pack, packCount: k.packCount });
     }
     if (id === myId) {
+      onGame({ kind: "money", money: row.money }); // (the server counts my money)
       joined = true; // the own row is there: the room is set up, signs of life and places may follow
       finishJoin();
       return;
@@ -165,13 +174,55 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     e.current ??= { ...e.pose };
   };
 
+  let kicked = false; // the account was opened on another device: this one is logged out for good
+  const kick = () => {
+    if (kicked) return;
+    kicked = true;
+    joined = false;
+    try {
+      connection?.disconnect();
+    } catch {
+      /* already closed */
+    }
+    onGame({ kind: "kicked" });
+  };
+  kickedHandler = kick;
+
+  /**
+   * Log in to the account of this browser: with its key, or (the first time, or when the database does not know the key) create it
+   * from the profile of the welcome screen. The key is made up here and kept in localStorage.
+   */
+  let account = null; // { name, country, face }
+  function joinRoom(conn) {
+    const create = (key) => conn.reducers.createAccount({ key, ...account });
+    let key = loadKey();
+    let attempt;
+    if (key) {
+      attempt = conn.reducers.enter({ key }).catch((error) => {
+        if (String(error?.message ?? error).includes("unknown key")) return create(key);
+        throw error;
+      });
+    } else {
+      key = makeKey();
+      saveKey(key);
+      attempt = create(key);
+    }
+    Promise.resolve(attempt).catch((error) => {
+      if (isKicked(error)) kick();
+      else {
+        console.warn("[Backroom Billard] multiplayer: could not log in:", error?.message ?? error);
+        finishJoin(error instanceof Error ? error : new Error(String(error)));
+      }
+    });
+  }
+
   function connect(profile) {
     const args = {
       name: displayName(profile, "short"),
       country: profile.country ?? DEFAULT_COUNTRY,
       face: JSON.stringify(profile.face),
-      money: profile.money,
     };
+    account = args;
     connection = DbConnection.builder()
       .withUri(MULTIPLAYER_URI)
       .withDatabaseName(MULTIPLAYER_DATABASE)
@@ -187,7 +238,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           if (id === myId) {
             // the database took me out (a long pause, a throttled tab): come back into the room
             joined = false;
-            call(() => conn.reducers.setProfile({ ...args, money: lastMoney ?? args.money }));
+            if (!kicked) joinRoom(conn);
             return;
           }
           const gone = roster.get(id);
@@ -203,14 +254,14 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           if (e) e.pose = null; // away: the face stays where it was until the guest is gone from the list
         });
         // The game: what the row says is turned into events for the game (after the first look; a guest who comes into a running game gets "init")
-        let before = { state: 0, turnSeat: 0, shotRunning: false, stake: 0 };
+        let before = { state: 0, turnSeat: 0, shotRunning: false };
         let shooterSeat = 0; // the seat of the one whose shot is running
         const nameOf = (seat) => [...roster.values()].find((p) => p.seat === seat)?.name ?? "";
         const mySeat = () => roster.get(myId)?.seat ?? 0;
         const onGameRow = (row) => {
           const running = row.state === 1;
           if (looked) {
-            if (running && before.state !== 1) onGame({ kind: "start", firstName: nameOf(row.turnSeat), stake: row.stake, isPlayer: mySeat() > 0 });
+            if (running && before.state !== 1) onGame({ kind: "start", firstName: nameOf(row.turnSeat) });
             const shotJustEnded = before.shotRunning && !row.shotRunning;
             if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat || shotJustEnded)) {
               // (also when the same one shoots again: his camera has to come back to the cue)
@@ -226,10 +277,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             }
             if (before.state === 1 && !running) {
               const loserSeat = row.winnerSeat === 1 ? 2 : 1;
-              onGame({ kind: "over", iWon: row.winnerSeat === mySeat(), isPlayer: mySeat() > 0, winnerName: nameOf(row.winnerSeat), loserName: nameOf(loserSeat), reason: row.reason, stake: before.stake });
+              onGame({ kind: "over", iWon: row.winnerSeat === mySeat(), isPlayer: mySeat() > 0, winnerName: nameOf(row.winnerSeat), loserName: nameOf(loserSeat), reason: row.reason });
             }
           }
-          before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning, stake: row.stake };
+          before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning };
           tellTableNow();
         };
         // The stake window and the table bets: the whole picture each time something changes (offers are shown with the money of the guest as the limit)
@@ -310,7 +361,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
           .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano]);
-        call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
+        joinRoom(conn); // `joined` becomes true when the own row is there (see onPlayer)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
       .onConnectError((_ctx, error) => {
@@ -345,11 +396,9 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       lastHand = text;
       call(() => connection?.reducers.setHand({ drinking: hand.drinking, smoking: hand.smoking }));
     },
-    /** The money of this guest changed (the others see it under his name); only a change is sent. */
-    setMoney(money) {
-      if (!joined || money === lastMoney) return;
-      lastMoney = money;
-      call(() => connection?.reducers.setMoney({ money }));
+    /** Buy a drink (its glass kind) or "pack" at the bar: the database takes the price from the account, or says no (then the money is shown as the database has it). */
+    buy(item) {
+      call(() => connection?.reducers.buy({ item }), () => onGame({ kind: "money", money: roster.get(myId)?.money ?? 0 }));
     },
     /** The drink and the cigarettes of this guest ({ drink, sips, pack, packCount }); only a change is sent. */
     setKit(kit) {

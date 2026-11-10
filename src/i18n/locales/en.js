@@ -69,6 +69,7 @@ export default {
   "bet.place": "Place bet",
   "bet.withdraw": "Withdraw bet",
   "room.waiting": "Waiting for another player",
+  "room.kicked": "You were logged out: this account was opened on another device.",
   "room.joined": "{name} joined",
   "room.left": "{name} left",
   "game.over.title": "GAME OVER",

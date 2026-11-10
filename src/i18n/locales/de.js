@@ -69,6 +69,7 @@ export default {
   "bet.place": "Wette setzen",
   "bet.withdraw": "Wette zurückziehen",
   "room.waiting": "Warte auf einen weiteren Spieler",
+  "room.kicked": "Du wurdest abgemeldet: Dieses Konto wurde auf einem anderen Gerät geöffnet.",
   "room.joined": "{name} ist beigetreten",
   "room.left": "{name} ist gegangen",
   "game.over.title": "SPIEL VORBEI",

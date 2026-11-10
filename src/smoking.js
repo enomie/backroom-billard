@@ -206,7 +206,7 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
       // no cigarette: take a new one from the pack (a new pack is bought when it is empty)
       const pack = packSet.packs[side];
       if (pack.count <= 0) {
-        if (!wallet.spend(PACK_PRICE)) {
+        if (!wallet.spend(PACK_PRICE, "pack")) {
           wallet.say("toast.noMoney");
           return;
         }

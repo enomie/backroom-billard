@@ -356,12 +356,11 @@ function init() {
     myBalance = balance;
     renderMatch();
     tellStakeWindow();
-    multiplayer?.setMoney(balance); // (the others see it under my name)
   });
   smoking = createSmoking(cigarettes, exhale, lighters, packs, wallet, (dt) => playerState.drag(dt));
   let orderFor = null; // the empty glass the menu is for
   drinkMenu = createDrinkMenu(wallet, (item) => {
-    if (wallet.spend(item.price)) orderFor.replace(item.kind);
+    if (wallet.spend(item.price, item.kind)) orderFor.replace(item.kind);
   });
   drinking = createDrinking(glasses, () => playerState.sip(), (glass) => {
     orderFor = glass;
@@ -2178,6 +2177,23 @@ function onMultiplayerGame(e) {
     watchedShot = true; // I have seen a game being played (not only found its remains)
     return;
   }
+  if (e.kind === "money") {
+    wallet.syncBalance(e.money); // multiplayer: my money is the database's
+    return;
+  }
+  if (e.kind === "kicked") {
+    // the account was opened on another device: this one is out of the room and plays on alone
+    mpMode = false;
+    matchMode = "single";
+    mpGame.running = false;
+    mpGame.myTurn = false;
+    mpWantCamera = null;
+    renderMatch();
+    endGame(false, "room.kicked", {}, true);
+    document.getElementById("btn-restart").hidden = false;
+    document.getElementById("game-over-again").hidden = true;
+    return;
+  }
   if (e.kind === "piano") {
     // who sits at the grand piano and what he plays: it sounds from the piano for everybody; if the database stood me up (my turn), I get up
     const wasMine = pianoMine;
@@ -2225,7 +2241,6 @@ function onMultiplayerGame(e) {
   }
   if (e.kind === "start") {
     setupBalls(); // a new rack for both
-    if (e.isPlayer && e.stake > 0) wallet.spend(e.stake); // my stake goes in (the winner takes both)
     watchedShot = false;
     remoteCue.active = false;
     hideGameOver();
@@ -2241,7 +2256,6 @@ function onMultiplayerGame(e) {
   } else if (e.kind === "sync") {
     applyRestState(e.balls);
   } else if (e.kind === "over") {
-    if (e.isPlayer && e.iWon && e.stake > 0) wallet.setBalance(wallet.balance + 2 * e.stake); // both stakes
     mpGame.running = false;
     mpGame.myTurn = false;
     remoteCue.active = false;
@@ -2351,8 +2365,12 @@ export async function applyProfile(profile, mode) {
   matchMe = { name: displayName(profile, "short"), country: profile.country };
   renderMatch();
   myChoice = { drink: profile.firstDrink, pack: profile.firstPack }; // put on his seat as soon as he has one (applySeats)
-  if (mode === "multi") await multiplayer.join(profile);
-  wallet.setBalance(profile.money);
+  if (mode === "multi") {
+    wallet.useServer((item) => multiplayer.buy(item)); // the money is the database's
+    await multiplayer.join(profile);
+    multiplayer.buy(profile.firstDrink); // the first drink and the first pack
+    multiplayer.buy("pack");
+  } else wallet.setBalance(profile.money);
   faceBall.setProfile(profile);
   if (mode === "single") applySeats([false, true], 1); // one set at the table: the +z seat
 }

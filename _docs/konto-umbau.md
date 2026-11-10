@@ -39,10 +39,11 @@
 - `set_money` und der Geld-Parameter von `set_profile` werden entfernt; `place_bid`, `set_stake` rechnen mit dem Geld des Kontos.
 - **Prüfen:** Typcheck; auf dem Papier alle Fälle durchgehen (Start, Gewinn, Timeout, Aufgabe, zu wenig Geld beim Einsatz, Deckel). **Das Modul und der Client müssen zusammen veröffentlicht werden** (alte Clients rufen entfernte Aktionen auf).
 
-### 3. Client: Verbindung und Geld im Mehrspieler
+### 3. Client: Verbindung und Geld im Mehrspieler – **umgesetzt** (Modul und Client jetzt zusammen veröffentlichen)
 
 - `multiplayer.js`: `join` mit Schlüssel (erst `create_account`/`enter`, dann der bisherige Ablauf); das Geld der Anzeige kommt aus der eigenen `player`-Zeile; `setMoney` entfällt; neuer Aufruf `buy`; Fehler `logged-in-elsewhere` wird gemeldet („Dieses Konto ist auf einem anderen Gerät angemeldet“) und trennt.
 - `wallet.js`: zwei Arten: **Einzelspiel** (wie bisher im Browser) und **Mehrspieler** (Geld aus der Anzeige, `spend` fragt `buy` und zeigt sofort, korrigiert bei Nein). Der Einsatz wird im Browser nicht mehr abgezogen oder gutgeschrieben (die Zeilen in `onMultiplayerGame` entfallen).
+- Gebaut: `src/account-key.js` (Schlüssel würfeln, in `localStorage` merken, Eingabe normalisieren). Bis zum Schritt 4 legt der Browser beim ersten Beitritt **selbst** ein Konto mit dem Profil des Welcome-Screens an und meldet sich danach mit dem Schlüssel an (ist er der Datenbank unbekannt, legt er ihn neu an). `wallet.js` kennt jetzt den Server-Modus (`useServer`, `syncBalance`); `spend(preis, ware)` fragt dort `buy`. Der Fehler `logged-in-elsewhere` trennt und meldet „Du wurdest abgemeldet …“ (das Spiel geht allein weiter). Bekannte Übergangslücke bis Schritt 4: Der Welcome-Screen zieht die erste Wahl noch vom Einzelspiel-Geld im Browser ab, und im Mehrspieler wird sie zusätzlich beim Server gekauft.
 - **Prüfen:** Build; zwei Browser: Kaufen (Karte und neue Packung), Einsatz und Gewinn, Timeout; die Zahl oben stimmt bei beiden; Neuladen mitten im Spiel kostet nichts.
 
 ### 4. Client: der neue Ablauf (Welcome)

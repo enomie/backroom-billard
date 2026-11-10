@@ -113,7 +113,7 @@ Oben in der Mitte (unter dem kleinen Titel und den zwei Balken) steht immer ein 
 - **Mehrspieler, allein:** links wie gehabt ich (Flagge, Name, Geld), dann **VS**, rechts „Warte auf einen weiteren Spieler“ (kursiv, ohne Geld).
 - **Mehrspieler, zwei am Tisch:** links der Gast auf Platz 1, rechts auf Platz 2, jeweils Flagge und Name, darunter sein **Geld**, darunter **seine** versenkten Kugeln; wer **dran** ist, hat einen gelben, abgerundeten Rahmen. Zwischen den beiden läuft eine **Trennlinie**, die das **VS** überdeckt. Die Kugeln des linken wachsen **von der Linie nach links**, die des rechten **von der Linie nach rechts**.
 
-Das Geld des anderen kommt von der Datenbank (`set_money`; mein Spiel schickt mein Geld bei jeder Änderung), die Kugeln auch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`). Das gilt auch für den, der später dazukommt, und die Kugeln werden mit jedem neuen Aufbau geleert. „Warte auf einen weiteren Spieler“ steht nur noch in diesem Feld (keine eigene Meldung mehr).
+Das Geld des anderen kommt von der Datenbank (`player.money`, vom Server gesetzt), die Kugeln auch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`). Das gilt auch für den, der später dazukommt, und die Kugeln werden mit jedem neuen Aufbau geleert. „Warte auf einen weiteren Spieler“ steht nur noch in diesem Feld (keine eigene Meldung mehr).
 
 **Links oben** steht nur noch der **Status** („Ready to shoot“, „Balls rolling …“): der Punkt, darunter jedes Wort in einer eigenen Zeile („Balls“ / „rolling …“).
 
