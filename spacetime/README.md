@@ -19,7 +19,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 
 | Reducer | Zweck |
 |---------|-------|
-| `set_profile` | in den Raum kommen (Name, Land, Gesicht, Geld): es gibt **einen** Raum für alle, jeder kommt als Zuschauer; das Spiel (eine Zeile in `game`) wird beim ersten Gebrauch angelegt |
+| `set_profile` | in den Raum kommen (Name, Land, Gesicht, Geld): es gibt **einen** Raum für alle, jeder kommt als Zuschauer; die ersten zwei anwesenden Gäste setzen sich in der Reihenfolge des Beitretens (Platz 1 und 2), bei zwei Spielern beginnt das Spiel von selbst; das Spiel (eine Zeile in `game`) wird beim ersten Gebrauch angelegt |
 | `set_presence` | Ort und Blick der Kamera (etwa 10-mal pro Sekunde) |
 | `heartbeat`, `check_timeouts` | Lebenszeichen alle 2 s; wer als Spieler 10 s fehlt, hat verloren |
 | `place_bid`, `withdraw_bid` | Tischwette: Vielfache von 10, mindestens 10, höchstens das Geld; nur erhöhen oder zurückziehen (nicht als Herausforderer im laufenden Spiel) |

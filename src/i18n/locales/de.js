@@ -56,6 +56,7 @@ export default {
   "room.waiting": "Warte auf einen weiteren Spieler",
   "room.joined": "{name} ist beigetreten",
   "room.left": "{name} ist gegangen",
+  "room.gameStart": "Das Spiel beginnt: {name} stößt zuerst",
   "welcome.single": "Einzelspieler",
   "welcome.multi": "Mehrspieler",
   "welcome.multiFailed": "Der Raum konnte nicht eingerichtet werden (keine Verbindung?). Versuche es noch einmal oder spiele allein.",

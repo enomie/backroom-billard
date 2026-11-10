@@ -460,13 +460,25 @@ html {
   opacity: 1;
 }
 
-/* The room messages sit under the money toast */
-.room-waiting,
-.room-note {
+/* The room messages sit under the money toast, one below the other */
+.room-messages {
+  position: absolute;
   top: 9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: none;
 }
 
-.room-waiting[hidden] {
+.room-messages .toast {
+  position: static;
+  transform: none;
+}
+
+.room-messages .toast[hidden] {
   display: none;
 }
 

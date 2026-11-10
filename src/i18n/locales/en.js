@@ -56,6 +56,7 @@ export default {
   "room.waiting": "Waiting for another player",
   "room.joined": "{name} joined",
   "room.left": "{name} left",
+  "room.gameStart": "The game starts: {name} shoots first",
   "welcome.single": "Singleplayer",
   "welcome.multi": "Multiplayer",
   "welcome.multiFailed": "The room could not be set up (no connection?). Try again or play alone.",

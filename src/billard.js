@@ -410,7 +410,15 @@ function setupLightingAndRoom() {
   createBarLamps(scene);
   createBackbar(scene, bottles);
   faceBall = createFaceBall(scene);
-  multiplayer = createMultiplayer(scene, applyRoom, (kind, name) => roomNote(kind === "joined" ? "room.joined" : "room.left", name));
+  multiplayer = createMultiplayer(
+    scene,
+    applyRoom,
+    (kind, name) => roomNote(kind === "joined" ? "room.joined" : "room.left", name),
+    (firstName) => {
+      setupBalls(); // a new rack for both
+      roomNote("room.gameStart", firstName);
+    }
+  );
 }
 
 /* ====================================================

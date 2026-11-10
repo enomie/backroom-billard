@@ -166,6 +166,7 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   const player = ctx.db.player.identity.find(ctx.sender);
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
   ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
+  seatTheFirstTwo(ctx); // (does nothing while a game runs: the 10 s of check_timeouts decide then)
 });
 
 /** Where the guest is (position and view of the camera), about 10 times per second. */
@@ -187,12 +188,28 @@ export const set_profile = spacetimedb.reducer(
     const old = ctx.db.player.identity.find(ctx.sender);
     if (old) {
       ctx.db.player.identity.update({ ...old, name, country, face, connected: true, lastSeen: ctx.timestamp });
-      return;
+    } else {
+      // everybody comes in as a spectator (one room for all)
+      ctx.db.player.insert({ identity: ctx.sender, name, country, face, money, seat: SPECTATOR, connected: true, lastSeen: ctx.timestamp, joinedAt: ctx.timestamp });
     }
-    // everybody comes in as a spectator (one room for all); sitting down at the table is a step of its own
-    ctx.db.player.insert({ identity: ctx.sender, name, country, face, money, seat: SPECTATOR, connected: true, lastSeen: ctx.timestamp, joinedAt: ctx.timestamp });
+    seatTheFirstTwo(ctx);
   }
 );
+
+/**
+ * While no game is running, the first two guests present (in the order they came) take the two seats, the
+ * first one seat 1; when both seats are taken the game starts by itself. A running game keeps its players.
+ */
+function seatTheFirstTwo(ctx: Ctx) {
+  if (theGame(ctx).state === GAME_PLAYING) return;
+  const present = [...ctx.db.player.iter()].filter((p) => p.connected).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
+  const seats = new Map(present.map((p, i) => [p.identity.toHexString(), i < 2 ? i + 1 : SPECTATOR]));
+  for (const p of ctx.db.player.iter()) {
+    const seat = seats.get(p.identity.toHexString()) ?? SPECTATOR;
+    if (p.seat !== seat) ctx.db.player.identity.update({ ...p, seat });
+  }
+  startIfReady(ctx);
+}
 
 /** Both seats are taken and nobody plays yet: the game begins, the first one to join shoots. */
 function startIfReady(ctx: Ctx) {

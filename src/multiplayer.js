@@ -52,8 +52,9 @@ const euler = new THREE.Euler();
  *   side) and the seat of this guest (null: a spectator). The first two guests present take the seats: the one
  *   who came first sits on the +z side.
  * @param {(kind: "joined" | "left", name: string) => void} onNote — somebody joined or left (after the first look into the room)
+ * @param {(firstName: string) => void} onGameStart — the game starts (two guests sit at the table); the name of the one who shoots first
  */
-export function createMultiplayer(scene, onRoom, onNote) {
+export function createMultiplayer(scene, onRoom, onNote, onGameStart) {
   let connection = null;
   let myId = ""; // the identity of this guest (hex)
   let joined = false;
@@ -63,7 +64,7 @@ export function createMultiplayer(scene, onRoom, onNote) {
   let sentFree = null; // what the database knows about the free camera of this guest
 
   let ready = null; // { resolve, reject, timer } while joining
-  const roster = new Map(); // identity (hex) → { name, joinedAt, connected }: who is in the room
+  const roster = new Map(); // identity (hex) → { name, seat, connected }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
   const finishJoin = (error) => {
@@ -99,21 +100,21 @@ export function createMultiplayer(scene, onRoom, onNote) {
     faces.delete(id);
   };
 
-  /** Who sits at the table and who is here: the guests present in the order they came. */
+  /** Who sits at the table and who is here. The database gives the seats: seat 1 is the +z side of the table, seat 2 the −z side. */
   const tellRoom = () => {
-    const present = [...roster.entries()].filter(([, p]) => p.connected).sort((a, b) => Number(a[1].joinedAt - b[1].joinedAt));
-    const index = present.findIndex(([id]) => id === myId);
+    const guests = [...roster.entries()];
+    const seat = roster.get(myId)?.seat ?? 0;
     onRoom({
-      others: present.filter(([id]) => id !== myId).length,
-      taken: [present.length >= 2, present.length >= 1],
-      mySide: index === 0 ? 1 : index === 1 ? 0 : null,
+      others: guests.filter(([id, p]) => id !== myId && p.connected).length,
+      taken: [guests.some(([, p]) => p.seat === 2), guests.some(([, p]) => p.seat === 1)],
+      mySide: seat === 1 ? 1 : seat === 2 ? 0 : null,
     });
   };
   /** A guest (the row of `player`): face, name, country. */
   const onPlayer = (row) => {
     const id = hex(row.identity);
     const before = roster.get(id);
-    roster.set(id, { name: row.name, joinedAt: row.joinedAt.microsSinceUnixEpoch, connected: row.connected });
+    roster.set(id, { name: row.name, seat: row.seat, connected: row.connected });
     if (looked && id !== myId && (!before || before.connected !== row.connected)) onNote(row.connected ? "joined" : "left", row.name);
     if (joined || id === myId) tellRoom();
     if (id === myId) {
@@ -175,11 +176,23 @@ export function createMultiplayer(scene, onRoom, onNote) {
           const e = faces.get(hex(row.identity));
           if (e) e.free = false; // away: no face (the guest stays in the list)
         });
+        // the game starts when it turns to "playing" (after the first look: a guest who comes into a running game is no start)
+        let playing = false;
+        const onGame = (row) => {
+          const now = row.state === 1;
+          if (looked && now && !playing) {
+            const first = [...roster.values()].find((p) => p.seat === row.turnSeat);
+            onGameStart(first?.name ?? "");
+          }
+          playing = now;
+        };
+        conn.db.game.onInsert((_ctx, row) => onGame(row));
+        conn.db.game.onUpdate((_ctx, _old, row) => onGame(row));
         conn.subscriptionBuilder()
           .onApplied(() => {
             looked = true; // the guests that were there already are no news
           })
-          .subscribe([tables.player, tables.presence]);
+          .subscribe([tables.player, tables.presence, tables.game]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
@@ -237,6 +250,7 @@ export function createMultiplayer(scene, onRoom, onNote) {
         if (heartbeatAge >= MULTIPLAYER_HEARTBEAT_SECONDS) {
           heartbeatAge = 0;
           call(() => connection.reducers.heartbeat());
+          call(() => connection.reducers.checkTimeouts()); // a player who is gone for 10 s has lost (anybody may ask)
         }
         presenceAge += dt;
         // the free camera: its place about 10 times per second; otherwise only the change ("away") once
