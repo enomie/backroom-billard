@@ -23,74 +23,124 @@
       <button id="start-confirm" type="button" class="start__confirm" data-i18n="start.confirm" autofocus>Confirm Age 18+</button>
     </div>
 
-    <!-- Welcome screen after the start screen: name, first drink, first pack (src/welcome-screen.js) -->
+    <!-- Welcome screen after the start screen: the mode, the account (multiplayer), "What'll it be?" (src/welcome-screen.js) -->
     <div id="welcome" class="welcome" hidden>
       <div class="welcome__inner">
-        <div class="welcome__top">
-          <h2 class="welcome__title" data-i18n="welcome.title">Welcome</h2>
-          <p class="welcome__money"><span data-i18n="welcome.money">Money</span> <b id="welcome-money">$ 15,000</b></p>
-        </div>
-
-        <div class="welcome__names">
-          <label class="welcome__field">
-            <span data-i18n="welcome.firstName">First name</span>
-            <input id="welcome-first" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="10" />
-          </label>
-          <label class="welcome__field">
-            <span data-i18n="welcome.middleName">Middle name (optional)</span>
-            <input id="welcome-middle" type="text" autocomplete="additional-name" autocapitalize="words" spellcheck="false" maxlength="10" />
-          </label>
-          <label class="welcome__field">
-            <span data-i18n="welcome.lastName">Last name</span>
-            <input id="welcome-last" type="text" autocomplete="family-name" autocapitalize="words" spellcheck="false" maxlength="10" />
-          </label>
-        </div>
-
-        <h3 class="welcome__heading" data-i18n="welcome.country">Your country</h3>
-        <div class="welcome__country">
-          <button id="welcome-country" type="button" class="welcome__select" aria-haspopup="listbox" aria-expanded="false">
-            <img id="welcome-country-flag" class="welcome__flag" alt="" width="24" height="24" />
-            <span id="welcome-country-name"></span>
-            <span class="welcome__caret" aria-hidden="true">▾</span>
-          </button>
-          <div id="welcome-country-panel" class="welcome__panel" hidden>
-            <input id="welcome-country-search" type="text" autocomplete="off" spellcheck="false" maxlength="30" />
-            <ul id="welcome-country-list" class="welcome__list" role="listbox"></ul>
-          </div>
-        </div>
-
-        <h3 class="welcome__heading" data-i18n="welcome.face">Your face</h3>
-        <div class="welcome__face">
-          <div id="welcome-face" class="welcome__face-preview"></div>
-          <button id="welcome-face-random" type="button" class="welcome__option" data-i18n="welcome.faceRandom">Random</button>
-        </div>
-
-        <h3 class="welcome__heading" data-i18n="welcome.drink">Your first drink</h3>
-        <div id="welcome-drinks" class="welcome__options" role="radiogroup"></div>
-
-        <h3 class="welcome__heading" data-i18n="welcome.cigarettes">Your cigarettes</h3>
-        <div id="welcome-packs" class="welcome__options" role="radiogroup"></div>
-
-        <p id="welcome-error" class="welcome__broke" data-i18n="welcome.multiFailed" hidden>The room could not be set up (no connection?). Try again or play alone.</p>
-        <p id="welcome-broke" class="welcome__broke" data-i18n="welcome.broke" hidden>Not enough money for a drink and cigarettes. Start over to get $ 15,000 again.</p>
-
-        <div class="welcome__actions">
-          <div class="welcome__restart">
-            <button id="welcome-restart" type="button" class="welcome__link" data-i18n="welcome.restart">Start over</button>
-            <span id="welcome-restart-ask" hidden>
-              <span data-i18n="welcome.restartAsk">Delete your name and money and start with $ 15,000?</span>
-              <button id="welcome-restart-yes" type="button" class="welcome__link welcome__link--danger" data-i18n="welcome.restartYes">Yes, start over</button>
-              <button id="welcome-restart-no" type="button" class="welcome__link" data-i18n="welcome.restartNo">Cancel</button>
-            </span>
-          </div>
-          <div class="welcome__modes">
-            <button id="welcome-single" type="button" class="start__confirm" data-i18n="welcome.single" disabled>Singleplayer</button>
-            <button id="welcome-multi" type="button" class="start__confirm" disabled>
+        <!-- 1. The mode -->
+        <section id="welcome-step-mode" class="welcome__step">
+          <h2 class="welcome__title" data-i18n="welcome.modeTitle">How do you want to play?</h2>
+          <p id="welcome-error" class="welcome__broke" data-i18n="welcome.multiFailed" hidden>The room could not be set up (no connection?). Try again or play alone.</p>
+          <div class="welcome__modes welcome__modes--big">
+            <button id="welcome-single" type="button" class="start__confirm" data-i18n="welcome.single">Singleplayer</button>
+            <button id="welcome-multi" type="button" class="start__confirm">
               <span data-i18n="welcome.multi">Multiplayer</span>
               <span class="welcome__spinner" aria-hidden="true"></span>
             </button>
           </div>
-        </div>
+        </section>
+
+        <!-- 2. Multiplayer: the account (new, or with a key) -->
+        <section id="welcome-step-account" class="welcome__step" hidden>
+          <div class="welcome__tabs" role="tablist">
+            <button id="welcome-tab-new" type="button" class="welcome__option" role="tab" aria-selected="true" data-i18n="welcome.accountNew">New here</button>
+            <button id="welcome-tab-key" type="button" class="welcome__option" role="tab" aria-selected="false" data-i18n="welcome.accountKey">I have a key</button>
+          </div>
+
+          <div id="welcome-new">
+            <div class="welcome__names">
+              <label class="welcome__field">
+                <span data-i18n="welcome.firstName">First name</span>
+                <input id="welcome-first" type="text" autocomplete="given-name" autocapitalize="words" spellcheck="false" maxlength="10" />
+              </label>
+              <label class="welcome__field">
+                <span data-i18n="welcome.middleName">Middle name (optional)</span>
+                <input id="welcome-middle" type="text" autocomplete="additional-name" autocapitalize="words" spellcheck="false" maxlength="10" />
+              </label>
+              <label class="welcome__field">
+                <span data-i18n="welcome.lastName">Last name</span>
+                <input id="welcome-last" type="text" autocomplete="family-name" autocapitalize="words" spellcheck="false" maxlength="10" />
+              </label>
+            </div>
+
+            <h3 class="welcome__heading" data-i18n="welcome.country">Your country</h3>
+            <div class="welcome__country">
+              <button id="welcome-country" type="button" class="welcome__select" aria-haspopup="listbox" aria-expanded="false">
+                <img id="welcome-country-flag" class="welcome__flag" alt="" width="24" height="24" />
+                <span id="welcome-country-name"></span>
+                <span class="welcome__caret" aria-hidden="true">▾</span>
+              </button>
+              <div id="welcome-country-panel" class="welcome__panel" hidden>
+                <input id="welcome-country-search" type="text" autocomplete="off" spellcheck="false" maxlength="30" />
+                <ul id="welcome-country-list" class="welcome__list" role="listbox"></ul>
+              </div>
+            </div>
+
+            <h3 class="welcome__heading" data-i18n="welcome.face">Your face</h3>
+            <div class="welcome__face">
+              <div id="welcome-face" class="welcome__face-preview"></div>
+              <button id="welcome-face-random" type="button" class="welcome__option" data-i18n="welcome.faceRandom">Random</button>
+            </div>
+            <p class="welcome__note" data-i18n="welcome.fixed">Name, country and face cannot be changed later.</p>
+          </div>
+
+          <div id="welcome-keyin" hidden>
+            <label class="welcome__field">
+              <span data-i18n="welcome.keyLabel">Your key</span>
+              <input id="welcome-key" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" />
+            </label>
+            <p id="welcome-key-error" class="welcome__broke" hidden></p>
+            <p id="welcome-key-warn" class="welcome__broke" hidden>
+              <span data-i18n="welcome.keyWarn">This browser has an account already. If you log in with another key, it is given up: its money is lost unless you saved its key.</span>
+            </p>
+          </div>
+
+          <div class="welcome__actions">
+            <button id="welcome-account-back" type="button" class="welcome__link" data-i18n="welcome.back">Back</button>
+            <button id="welcome-account-go" type="button" class="start__confirm" disabled>Continue</button>
+          </div>
+        </section>
+
+        <!-- 3. Multiplayer, new account: the key, once -->
+        <section id="welcome-step-key" class="welcome__step" hidden>
+          <h2 class="welcome__title" data-i18n="welcome.keyShowTitle">Your key</h2>
+          <p id="welcome-key-show" class="welcome__key"></p>
+          <p class="welcome__note" data-i18n="welcome.keyShowNote">Save this key. It is the only way to get your account and its money back on another device or after the browser data is gone.</p>
+          <div class="welcome__actions">
+            <button id="welcome-key-copy" type="button" class="welcome__link" data-i18n="welcome.keyCopy">Copy</button>
+            <button id="welcome-key-ok" type="button" class="start__confirm" data-i18n="welcome.keyOk">I saved it</button>
+          </div>
+        </section>
+
+        <!-- 4. What'll it be? -->
+        <section id="welcome-step-menu" class="welcome__step" hidden>
+          <div class="welcome__top">
+            <h2 class="welcome__title" data-i18n="welcome.menuTitle">What'll it be?</h2>
+            <p class="welcome__money"><span data-i18n="welcome.money">Money</span> <b id="welcome-money">$ 15,000</b></p>
+          </div>
+
+          <h3 class="welcome__heading" data-i18n="welcome.drink">Your first drink</h3>
+          <div id="welcome-drinks" class="welcome__options" role="radiogroup"></div>
+
+          <h3 class="welcome__heading" data-i18n="welcome.cigarettes">Your cigarettes</h3>
+          <div id="welcome-packs" class="welcome__options" role="radiogroup"></div>
+
+          <p id="welcome-menu-error" class="welcome__broke" data-i18n="welcome.multiFailed" hidden>The room could not be set up (no connection?). Try again or play alone.</p>
+          <p id="welcome-broke" class="welcome__broke" data-i18n="welcome.broke" hidden>Not enough money for a drink and cigarettes. You can still play, but you cannot buy anything.</p>
+
+          <div class="welcome__actions">
+            <div class="welcome__restart">
+              <button id="welcome-back" type="button" class="welcome__link" data-i18n="welcome.back">Back</button>
+              <button id="welcome-restart" type="button" class="welcome__link" data-i18n="welcome.restart">Start over</button>
+              <button id="welcome-switch" type="button" class="welcome__link" data-i18n="welcome.switch" hidden>Other account</button>
+              <span id="welcome-restart-ask" hidden>
+                <span id="welcome-restart-text"></span>
+                <button id="welcome-restart-yes" type="button" class="welcome__link welcome__link--danger" data-i18n="welcome.restartYes">Yes, start over</button>
+                <button id="welcome-restart-no" type="button" class="welcome__link" data-i18n="welcome.restartNo">Cancel</button>
+              </span>
+            </div>
+            <button id="welcome-go" type="button" class="start__confirm" data-i18n="welcome.go">Start</button>
+          </div>
+        </section>
       </div>
     </div>
 

@@ -82,6 +82,15 @@ export const Pocket = __t.object("Pocket", {
 });
 export type Pocket = __Infer<typeof Pocket>;
 
+export const Lobby = __t.object("Lobby", {
+  identity: __t.identity(),
+  name: __t.string(),
+  country: __t.string(),
+  face: __t.string(),
+  money: __t.u32(),
+});
+export type Lobby = __Infer<typeof Lobby>;
+
 export const Piano = __t.object("Piano", {
   id: __t.u8(),
   sitter: __t.option(__t.identity()),

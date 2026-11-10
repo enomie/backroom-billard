@@ -46,16 +46,17 @@
 - Gebaut: `src/account-key.js` (Schlüssel würfeln, in `localStorage` merken, Eingabe normalisieren). Bis zum Schritt 4 legt der Browser beim ersten Beitritt **selbst** ein Konto mit dem Profil des Welcome-Screens an und meldet sich danach mit dem Schlüssel an (ist er der Datenbank unbekannt, legt er ihn neu an). `wallet.js` kennt jetzt den Server-Modus (`useServer`, `syncBalance`); `spend(preis, ware)` fragt dort `buy`. Der Fehler `logged-in-elsewhere` trennt und meldet „Du wurdest abgemeldet …“ (das Spiel geht allein weiter). Bekannte Übergangslücke bis Schritt 4: Der Welcome-Screen zieht die erste Wahl noch vom Einzelspiel-Geld im Browser ab, und im Mehrspieler wird sie zusätzlich beim Server gekauft.
 - **Prüfen:** Build; zwei Browser: Kaufen (Karte und neue Packung), Einsatz und Gewinn, Timeout; die Zahl oben stimmt bei beiden; Neuladen mitten im Spiel kostet nichts.
 
-### 4. Client: der neue Ablauf (Welcome)
+### 4. Client: der neue Ablauf (Welcome) – **umgesetzt** (Modul und Client zusammen veröffentlichen)
 
 - `profile-store.js`: **Einzelspiel-Profil** (nur `money`, Getränk, Packung) und **Mehrspieler-Gerät** (der Schlüssel; Name, Land, Gesicht stehen auf dem Server und werden beim Beitritt gelesen). Das alte Profil wird einmal gelesen: sein Geld wird das Einzelspiel-Geld, Name, Land, Gesicht füllen „Neu hier“ vor.
 - `welcome-screen.js` und `index.html`: **Spielart** → (nur Mehrspieler) **Konto** („Neu hier“ / „Ich habe einen Schlüssel“, Schlüssel einmal anzeigen und kopieren, Warnung beim Wechsel) → **„Was darf es sein?“** (vorausgewählt Bier und Premium Blend; danach das Letzte) mit Geld der Spielart, **Zurück**, **Los**.
 - Einzelspiel: Anzeige und Einstellungs-Panel zeigen fest „Einzelspiel“ / „Single player“; kein Gesicht und keine Flagge.
 - **Neu anfangen:** je Spielart; im Mehrspieler ein neues Konto mit neuem Schlüssel.
 - Alle neuen Texte in `en.js` und `de.js`.
+- Gebaut, abweichend vom Plan: Damit der Gast während der Wahl **nicht schon im Raum steht** (und am Tisch sitzt), meldet `enter`/`create_account` nur an und legt eine Zeile in der öffentlichen Tabelle `lobby` an (Name, Land, Gesicht, Geld; so sieht der Client sein Konto für die Karte); **`join_room`** betritt den Raum, erst mit **Los**. Neu im Modul: `lobby`, `join_room`; im Client `multiplayer.login()` und `multiplayer.join()`, in `billard.js` `loginMulti` und `startGame` statt `applyProfile`. Die Übergangslücke aus Schritt 3 (doppelte Abbuchung) ist weg.
 - **Prüfen:** Build; alle Wege: Einzelspiel ohne Verbindung, neues Mehrspielerkonto, Schlüssel auf zweitem Gerät (Ausloggen am ersten, Warnung), Verbindung klappt nicht, Zurück, alte Profile.
 
-### 5. Pleite
+### 5. Pleite – **zum Teil schon in Schritt 4** (die Karte und leere Plätze)
 
 - Karte: Wer sich Getränk und Packung nicht leisten kann, kommt trotzdem herein (mit dem, was er hat), kann aber nichts mehr kaufen; die Trink- und Rauchtasten tun dann nichts. Setzen mit „alles, was er hat“ geht weiter.
 - Dummy-Knöpfe **„Spielgeld kaufen“** und **„Name oder Gesicht ändern“** (tun nichts, nur ein Hinweis „kommt später“).

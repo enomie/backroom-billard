@@ -40,6 +40,7 @@ import CreateAccountReducer from "./create_account_reducer";
 import EnterReducer from "./enter_reducer";
 import EndShotReducer from "./end_shot_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
+import JoinRoomReducer from "./join_room_reducer";
 import LeavePianoReducer from "./leave_piano_reducer";
 import LeaveTableReducer from "./leave_table_reducer";
 import PlaceBidReducer from "./place_bid_reducer";
@@ -64,6 +65,7 @@ import BidRow from "./bid_table";
 import GameRow from "./game_table";
 import HandRow from "./hand_table";
 import KitRow from "./kit_table";
+import LobbyRow from "./lobby_table";
 import PianoRow from "./piano_table";
 import PlayerRow from "./player_table";
 import PocketRow from "./pocket_table";
@@ -142,6 +144,17 @@ const tablesSchema = __schema({
       { name: 'kit_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, KitRow),
+  lobby: __table({
+    name: 'lobby',
+    indexes: [
+      { accessor: 'identity', name: 'lobby_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'lobby_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, LobbyRow),
   piano: __table({
     name: 'piano',
     indexes: [
@@ -232,6 +245,7 @@ const reducersSchema = __reducers(
   __reducerSchema("enter", EnterReducer),
   __reducerSchema("end_shot", EndShotReducer),
   __reducerSchema("heartbeat", HeartbeatReducer),
+  __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_piano", LeavePianoReducer),
   __reducerSchema("leave_table", LeaveTableReducer),
   __reducerSchema("place_bid", PlaceBidReducer),

@@ -56,8 +56,9 @@ async function enter() {
   const game = boot();
   await waitForConfirmation();
   // the choice (single or multi) is applied to the game when it is ready; multiplayer waits for the room
-  const welcome = showWelcome(async (profile, mode) => {
-    await (await game)?.applyProfile(profile, mode);
+  const welcome = showWelcome({
+    login: async (spec) => (await game).loginMulti(spec), // multiplayer: log in (the game has to be loaded for the connection)
+    start: async (choice) => (await game)?.startGame(choice),
   }); // appears over the start screen
   removeStartScreen();
   await welcome;

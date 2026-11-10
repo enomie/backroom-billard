@@ -18,6 +18,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `hand` | was die Hände tun: R (trinken) und T (rauchen) gedrückt; die anderen sehen es |
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
 | `pocket` | welche Kugel welcher Platz versenkt hat (die zwei Listen über dem Tisch) |
+| `lobby` | (öffentlich) wer angemeldet ist, aber noch nicht im Raum (Wahl an der Bar): Name, Land, Gesicht, Geld; verschwindet mit `join_room` |
 | `account`, `link` | (privat) das Konto je Schlüssel (Geld, Name, Land, Gesicht) und welche Verbindung gerade angemeldet ist |
 | `rate` | (privat) Aufrufe je Gast in der laufenden Sekunde, höchstens 100 |
 | `piano` | der Flügel: wer am Hocker sitzt (nur einer) und welche Tasten gedrückt sind (88 Bits) |
@@ -26,7 +27,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 
 | Reducer | Zweck |
 |---------|-------|
-| `create_account`, `enter` | Konto anlegen (der Browser würfelt den Schlüssel `XXXX-XXXX-XXXX-XXXX-XXXX`, Name, Land und Gesicht werden geprüft, 15.000 $) und mit einem Schlüssel anmelden. Es gibt **einen** Raum für alle, jeder kommt als Zuschauer; eine Verbindung je Konto (ein zweites Gerät loggt das erste aus); die ersten zwei Gäste setzen sich |
+| `create_account`, `enter`, `join_room` | Konto anlegen (der Browser würfelt den Schlüssel `XXXX-XXXX-XXXX-XXXX-XXXX`, Name, Land und Gesicht werden geprüft, 15.000 $) und mit einem Schlüssel anmelden (`enter`; nur angemeldet, noch nicht im Raum); `join_room` betritt den Raum. Es gibt **einen** Raum für alle, jeder kommt als Zuschauer; eine Verbindung je Konto (ein zweites Gerät loggt das erste aus); die ersten zwei Gäste setzen sich |
 | `buy` | Getränk oder Packung kaufen: Preis aus dem Modul (`PRICES`), der Server zieht vom Konto ab oder lehnt ab; das Geld zählt nur der Server (`player.money` ist die Anzeige) |
 | `set_kit` | das Getränk oder die Zigaretten haben sich geändert (nur bei einer Änderung) |
 | `set_hand` | R und T gedrückt oder losgelassen (nur bei einer Änderung) |

@@ -30,8 +30,6 @@ import { createSmoking, sideOf, setMySide } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
 import { ballTexture } from "./ball-texture.js";
-import { displayName } from "./name-rules.js";
-import { loadProfile } from "./profile-store.js";
 import { isStartScreenOpen } from "./start-screen.js";
 import { createDoor } from "./door.js";
 import { createNeonSign } from "./neon-sign.js";
@@ -1294,7 +1292,7 @@ function setupControls() {
       setupBalls();
       updateStatusDisplay(false);
     },
-    () => ({ name: displayName(loadProfile(), "full"), money: wallet.format(wallet.balance) })
+    () => ({ name: matchMode === "multi" ? settingsName : t("mode.single"), money: wallet.format(wallet.balance) })
   );
 
   window.addEventListener("resize", () => {
@@ -2137,7 +2135,7 @@ function renderMatch() {
   // who stands where: (name, country, money) of the left and of the right one
   const mySeat = mySideNow === 1 ? 1 : mySideNow === 0 ? 2 : 0;
   const entry = (seat) => ({ ...matchNames[seat - 1], money: seat === mySeat ? myBalance : matchNames[seat - 1].money });
-  const left = two ? entry(1) : { ...matchMe, money: myBalance };
+  const left = two ? entry(1) : { ...matchMe, name: matchMode === "single" ? t("mode.single") : matchMe.name, money: myBalance };
   const right = two ? entry(2) : alone ? { name: t("room.waiting"), country: "", money: null } : null;
   [left, right].forEach((who, i) => {
     const n = i + 1;
@@ -2351,29 +2349,38 @@ function applyRestState(rows) {
   physicsAwake = PHYSICS_AWAKE_STEPS; // the balls settle on the cloth
 }
 
-/**
- * The choices of the welcome screen: the money after the purchases, the first drink and the first pack,
- * and the mode. Multiplayer: joins the room first and waits until it is set up (rejects if it fails,
- * then nothing has been applied). Single player: no connection at all, and only one set of glass,
- * pack, lighter and ashtray stands at the table (the seat on the +z side).
- * @param {import("./profile-store.js").Profile} profile
- * @param {"single" | "multi"} mode
- */
-export async function applyProfile(profile, mode) {
-  mpMode = mode === "multi";
-  matchMode = mode;
-  matchMe = { name: displayName(profile, "short"), country: profile.country };
-  renderMatch();
-  myChoice = { drink: profile.firstDrink, pack: profile.firstPack }; // put on his seat as soon as he has one (applySeats)
-  if (mode === "multi") {
-    wallet.useServer((item) => multiplayer.buy(item)); // the money is the database's
-    await multiplayer.join(profile);
-    multiplayer.buy(profile.firstDrink); // the first drink and the first pack
-    multiplayer.buy("pack");
-  } else wallet.setBalance(profile.money);
-  faceBall.setProfile(profile);
-  if (mode === "single") applySeats([false, true], 1); // one set at the table: the +z seat
+/** Multiplayer, at the welcome screen: log in (a new account, or with a key). Resolves with the account { name, country, face, money, key }. */
+export function loginMulti(spec) {
+  return multiplayer.login(spec);
 }
+
+/**
+ * The end of the welcome screen: the mode and what he chose at the bar. Single player: no connection at all, only one set of glass,
+ * pack, lighter and ashtray stands at the table (the seat on the +z side), no name and no face. Multiplayer: he comes into the room
+ * (waits until it is set up, rejects if it fails, then nothing has been applied) and buys his first drink and pack with the account.
+ * @param {{ mode: "single" | "multi", money?: number, firstDrink: string | null, firstPack: number | null,
+ *   name?: string, fullName?: string, country?: string, face?: string }} choice — `face` is the JSON of face.js
+ */
+export async function startGame(choice) {
+  const multi = choice.mode === "multi";
+  mpMode = multi;
+  matchMode = choice.mode;
+  matchMe = { name: multi ? choice.name : "", country: multi ? choice.country : "" };
+  settingsName = multi ? choice.fullName : "";
+  renderMatch();
+  myChoice = { drink: choice.firstDrink, pack: choice.firstPack }; // put on his seat as soon as he has one (applySeats); null: he could not pay it
+  if (multi) {
+    wallet.useServer((item) => multiplayer.buy(item)); // the money is the database's
+    await multiplayer.join();
+    if (choice.firstDrink) multiplayer.buy(choice.firstDrink); // the first drink and the first pack
+    if (choice.firstPack !== null) multiplayer.buy("pack");
+    faceBall.show(JSON.parse(choice.face), choice.name, choice.country);
+  } else {
+    wallet.setBalance(choice.money);
+    applySeats([false, true], 1); // one set at the table: the +z seat
+  }
+}
+let settingsName = ""; // the name in the settings panel (multiplayer); single player shows "Single player"
 
 /** Which seats of the table are taken: only their sets (glass, pack, lighter, ashtray with cigarettes) stand there; `mySide` is this guest's seat. */
 let mpMode = false; // this guest is in the multiplayer room (not single player)
@@ -2390,8 +2397,10 @@ function applySeats(taken, mySide) {
   setMySide(mySide);
   if (myChoice && mySide !== null && mySide !== mySideNow) {
     // he sits (or sits elsewhere now): his drink and his cigarettes stand at his seat, full
-    glasses.setSeatGlass(mySide, myChoice.drink, DRINK_SIPS);
-    packs.setSeatPack(mySide, myChoice.pack, PACK_SIZE);
+    // (what he could not pay at the bar stands empty: an empty glass, a pack without cigarettes)
+    if (myChoice.drink) glasses.setSeatGlass(mySide, myChoice.drink, DRINK_SIPS);
+    else glasses.setSeatGlass(mySide, glasses.seat(mySide).kind, 0);
+    packs.setSeatPack(mySide, myChoice.pack ?? packs.packs[mySide].design, myChoice.pack === null ? 0 : PACK_SIZE);
   }
   mySideNow = mySide;
 }

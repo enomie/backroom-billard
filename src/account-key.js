@@ -34,6 +34,16 @@ export function loadKey() {
   return memory;
 }
 
+/** The account of this browser is given up (a new one is made next time). */
+export function clearKey() {
+  memory = null;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* nothing to remove */
+  }
+}
+
 /** @param {string} key */
 export function saveKey(key) {
   memory = key;

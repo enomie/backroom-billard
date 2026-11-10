@@ -4,13 +4,13 @@
  */
 import { START_MONEY, TOAST_SECONDS } from "./shop-constants.js";
 import { t } from "./i18n/index.js";
-import { loadProfile, saveMoney } from "./profile-store.js";
+import { loadSingle, saveSingleMoney } from "./profile-store.js";
 
 const format = (amount) => "$ " + amount.toLocaleString("en-US");
 
 /** @param {(balance: number) => void} onChange */
 export function createWallet(onChange) {
-  let balance = loadProfile()?.money ?? START_MONEY; // the money is kept between the visits
+  let balance = loadSingle()?.money ?? START_MONEY; // the money is kept between the visits
   const toast = document.getElementById("toast");
   let toastTimer = 0;
   let buyAtServer = null; // multiplayer: the database counts the money; purchases are asked there ((item) => void)
@@ -31,14 +31,14 @@ export function createWallet(onChange) {
       balance -= price;
       render();
       if (buyAtServer) buyAtServer(item);
-      else saveMoney(balance);
+      else saveSingleMoney(balance);
       return true;
     },
     /** Set the balance (the welcome screen has paid for the first drink and the first pack). */
     setBalance(amount) {
       balance = amount;
       render();
-      if (!buyAtServer) saveMoney(balance);
+      if (!buyAtServer) saveSingleMoney(balance);
     },
     /** Multiplayer: the money is the database's. `buy` asks it for a purchase; `setBalance` no longer writes the browser's money. */
     useServer(buy) {

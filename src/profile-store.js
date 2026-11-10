@@ -1,70 +1,85 @@
 /**
- * The player's profile (name, first purchase, money), kept only in the browser (localStorage); there
- * is no database. If the browser does not allow it (private mode), the profile lives in memory for
- * this visit. See _docs/welcome-screen.md.
+ * What the browser keeps (localStorage; in memory if the browser does not allow it), see _docs/welcome-screen.md:
+ * - the single player's purse: money, last drink, last pack. Single player is offline and has no name, flag or face.
+ * - the last drink and pack chosen in multiplayer (the account itself, with name, country, face and money, lives in the database;
+ *   the browser only keeps its key, see account-key.js).
+ * - the old profile of earlier versions (name, country, face, money): read once, see loadLegacy.
  */
 import { normalizeName, isValidName } from "./name-rules.js";
 
-const KEY = "backroom-billard.profile";
-const VERSION = 1;
+const SINGLE_KEY = "backroom-billard.single";
+const MULTI_KEY = "backroom-billard.multi-choice";
+const LEGACY_KEY = "backroom-billard.profile";
 
-/** Used when localStorage is not available. */
-let memory = null;
-
-/**
- * @typedef {{ version: number, firstName: string, middleName: string, middleInitial: string,
- *   lastName: string, country: string, face: import("./face.js").Face, firstDrink: string, firstPack: number, money: number, createdAt: string }} Profile
- * `country` (ISO code, see country-list.js) and `face` (face.js) are missing in older profiles: Austria and a random face then.
- */
-
-const isProfile = (p) =>
-  p && p.version === VERSION && typeof p.firstName === "string" && typeof p.lastName === "string" && Number.isFinite(p.money);
-
-/** A saved profile can be old or changed by hand: the name parts are brought into the rules again (letters, at most 10 each). */
-function cleaned(profile) {
-  const middleName = normalizeName(typeof profile.middleName === "string" ? profile.middleName : "");
-  const clean = { ...profile, firstName: normalizeName(profile.firstName), middleName, lastName: normalizeName(profile.lastName) };
-  return isValidName(clean.firstName, true) && isValidName(clean.lastName, true) && isValidName(middleName, false) ? clean : null;
-}
-
-/** @returns {Profile | null} the saved profile, or null for a new player */
-export function loadProfile() {
+const memory = new Map(); // when localStorage is not available
+const read = (key) => {
   try {
-    const text = localStorage.getItem(KEY);
-    if (text) {
-      const profile = JSON.parse(text);
-      if (isProfile(profile)) return cleaned(profile);
-    }
+    const text = localStorage.getItem(key);
+    if (text) return JSON.parse(text);
   } catch {
-    return memory;
+    /* not allowed or not JSON: the memory has it, if anything */
   }
-  return memory && isProfile(memory) ? cleaned(memory) : null;
-}
-
-/** @param {Profile} profile */
-export function saveProfile(profile) {
-  memory = profile;
+  return memory.get(key) ?? null;
+};
+const write = (key, value) => {
+  memory.set(key, value);
   try {
-    localStorage.setItem(KEY, JSON.stringify(profile));
+    localStorage.setItem(key, JSON.stringify(value));
   } catch {
     /* not allowed: it stays in memory */
   }
-}
-
-/** The money after a purchase: written into the profile at once (nothing happens without a profile). */
-export function saveMoney(money) {
-  const profile = loadProfile();
-  if (profile) saveProfile({ ...profile, money });
-}
-
-/** Start over: the profile is gone, the next one begins with the start money again. */
-export function clearProfile() {
-  memory = null;
+};
+const remove = (key) => {
+  memory.delete(key);
   try {
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(key);
   } catch {
     /* nothing to remove */
   }
+};
+
+/** @typedef {{ money: number, firstDrink: string | null, firstPack: number | null }} Purse */
+
+/**
+ * The old profile (an earlier version kept name, country, face, money and the choices in one entry): its name parts are brought into the
+ * rules again (letters, at most 10 each). null if there is none or it is damaged.
+ */
+export function loadLegacy() {
+  const p = read(LEGACY_KEY);
+  if (!p || p.version !== 1 || typeof p.firstName !== "string" || typeof p.lastName !== "string" || !Number.isFinite(p.money)) return null;
+  const clean = { ...p, firstName: normalizeName(p.firstName), middleName: normalizeName(typeof p.middleName === "string" ? p.middleName : ""), lastName: normalizeName(p.lastName) };
+  return isValidName(clean.firstName, true) && isValidName(clean.lastName, true) && isValidName(clean.middleName, false) ? clean : null;
+}
+/** The old name, country and face are not needed any more (the account has them). */
+export function clearLegacy() {
+  remove(LEGACY_KEY);
 }
 
-export const PROFILE_VERSION = VERSION;
+/** @returns {Purse | null} the single player's purse; the first time it takes over what the old profile had (the money) */
+export function loadSingle() {
+  const own = read(SINGLE_KEY);
+  if (own && Number.isFinite(own.money)) return own;
+  const old = loadLegacy();
+  return old ? { money: old.money, firstDrink: old.firstDrink ?? null, firstPack: Number.isInteger(old.firstPack) ? old.firstPack : null } : null;
+}
+/** @param {Purse} purse */
+export function saveSingle(purse) {
+  write(SINGLE_KEY, purse);
+}
+/** The money after a purchase: written at once (single player only). */
+export function saveSingleMoney(money) {
+  saveSingle({ ...(loadSingle() ?? { firstDrink: null, firstPack: null }), money });
+}
+/** Single player starts over: 15,000 $ again. */
+export function clearSingle() {
+  remove(SINGLE_KEY);
+  remove(LEGACY_KEY);
+}
+
+/** @returns {{ firstDrink: string | null, firstPack: number | null } | null} the last choice at the bar in multiplayer */
+export function loadMultiChoice() {
+  return read(MULTI_KEY);
+}
+export function saveMultiChoice(choice) {
+  write(MULTI_KEY, choice);
+}

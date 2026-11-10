@@ -1642,7 +1642,8 @@ html {
   border-color: rgba(252, 211, 77, 0.7);
 }
 
-.welcome__option[aria-checked="true"] {
+.welcome__option[aria-checked="true"],
+.welcome__option[aria-selected="true"] {
   border-color: var(--amber-300);
   background: rgba(252, 211, 77, 0.16);
   color: var(--amber-200);
@@ -1708,6 +1709,47 @@ html {
 .welcome__modes .start__confirm:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+.welcome__step[hidden] {
+  display: none;
+}
+
+/* The first step: the title and the two big buttons in the middle */
+.welcome__modes--big {
+  justify-content: center;
+  margin-top: 2.4rem;
+}
+
+.welcome__modes--big .start__confirm {
+  min-width: 13rem;
+}
+
+.welcome__step > .welcome__title {
+  text-align: center;
+}
+
+.welcome__tabs {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.6rem;
+}
+
+.welcome__note {
+  margin: 1.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* The key of a new account */
+.welcome__key {
+  margin: 1.6rem 0 0;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(1.1rem, 4.4vw, 1.7rem);
+  letter-spacing: 0.08em;
+  color: var(--amber-300);
+  user-select: all;
 }
 
 /* The multiplayer button while the room is being set up: a spinner next to the word, no other click */

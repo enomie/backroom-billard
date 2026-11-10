@@ -7,7 +7,6 @@
 import * as THREE from "three";
 import { randomFace, darker } from "./face.js";
 import { flagUrl, DEFAULT_COUNTRY } from "./country-list.js";
-import { displayName } from "./name-rules.js";
 import {
   FACE_BALL_POSITION,
   FACE_BALL_TURN,
@@ -172,11 +171,6 @@ export function createFaceBall(scene, { placed = true } = {}) {
 
   return {
     group: root,
-    /** The player's own face, name and country (after the welcome screen). */
-    setProfile(profile) {
-      if (profile.face) setFace(profile.face);
-      sign.set(displayName(profile, "short"), profile.country ?? DEFAULT_COUNTRY);
-    },
     /** The face, name and country of another player (the name as it is to be shown). */
     show(face, name, country) {
       setFace(face);

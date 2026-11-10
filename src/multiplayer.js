@@ -10,8 +10,6 @@ import { createFaceBall } from "./face-ball.js";
 import { isFace } from "./face.js";
 import { encodeKeys, decodeKeys } from "./piano-keys.js";
 import { makeKey, loadKey, saveKey } from "./account-key.js";
-import { displayName } from "./name-rules.js";
-import { DEFAULT_COUNTRY } from "./country-list.js";
 import {
   MULTIPLAYER_URI,
   MULTIPLAYER_DATABASE,
@@ -73,7 +71,13 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let heartbeatAge = 0;
   let presenceAge = 0;
 
-  let ready = null; // { resolve, reject, timer } while joining
+  let loginWait = null; // { resolve, reject, timer } while the welcome screen waits for the login
+  let joinWait = null; // the same while he comes into the room
+  let spec = null; // how to log in: { key } or { create: { name, country, face } } (after a login: { key })
+  let stage = "none"; // "lobby" (logged in) or "room" (in the room: a lost connection or removal comes back into it)
+  let lobbyInfo = null; // the account as the lobby shows it: { name, country, face, money, key }
+  let loginInfo = null; // the lobby row of this login arrived
+  let loginDone = false; // and the login call went through
   let lastHand = "false/false"; // what the database knows about my hands
   let lastKit = ""; // and about my drink and cigarettes
   const kits = new Map(); // identity (hex) → the last kit row of a guest
@@ -81,23 +85,33 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
   let tellTableNow = null; // set when the connection is there: sends the stake window and the bids to the game
-  const finishJoin = (error) => {
-    if (!ready) return;
-    window.clearTimeout(ready.timer);
-    const { resolve, reject } = ready;
-    ready = null;
-    if (error) {
-      // it did not work: close what was opened, so that a new try starts from scratch
-      try {
-        connection?.disconnect();
-      } catch {
-        /* nothing to close */
-      }
-      connection = null;
-      joined = false;
-      reject(error);
-    } else resolve();
+  const closeConnection = () => {
+    try {
+      connection?.disconnect();
+    } catch {
+      /* nothing to close */
+    }
+    connection = null;
+    joined = false;
   };
+  const settle = (wait, error, value) => {
+    window.clearTimeout(wait.timer);
+    if (error) wait.reject(error);
+    else wait.resolve(value);
+  };
+  const finishLogin = (error, info) => {
+    if (!loginWait) return;
+    const wait = loginWait;
+    loginWait = null;
+    settle(wait, error, info);
+  };
+  const finishJoin = (error) => {
+    if (!joinWait) return;
+    const wait = joinWait;
+    joinWait = null;
+    settle(wait, error);
+  };
+  const asError = (error) => (error instanceof Error ? error : new Error(String(error?.message ?? error)));
   const entry = (id) => {
     let e = faces.get(id);
     if (!e) {
@@ -178,51 +192,43 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   const kick = () => {
     if (kicked) return;
     kicked = true;
-    joined = false;
-    try {
-      connection?.disconnect();
-    } catch {
-      /* already closed */
-    }
+    stage = "none";
+    closeConnection();
     onGame({ kind: "kicked" });
   };
   kickedHandler = kick;
 
-  /**
-   * Log in to the account of this browser: with its key, or (the first time, or when the database does not know the key) create it
-   * from the profile of the welcome screen. The key is made up here and kept in localStorage.
-   */
-  let account = null; // { name, country, face }
-  function joinRoom(conn) {
-    const create = (key) => conn.reducers.createAccount({ key, ...account });
-    let key = loadKey();
-    let attempt;
-    if (key) {
-      attempt = conn.reducers.enter({ key }).catch((error) => {
-        if (String(error?.message ?? error).includes("unknown key")) return create(key);
-        throw error;
-      });
-    } else {
-      key = makeKey();
-      saveKey(key);
-      attempt = create(key);
+  /** The login of `spec` (see above): a new account (the key is made up here) or the key; the key is kept in localStorage once the database accepted it. */
+  function runLogin(conn) {
+    if (!spec) return;
+    loginInfo = null;
+    loginDone = false;
+    let key = spec.key ?? (spec.create ? makeKey() : loadKey());
+    if (!key) {
+      finishLogin(new Error("no-key"));
+      return;
     }
-    Promise.resolve(attempt).catch((error) => {
-      if (isKicked(error)) kick();
-      else {
+    const attempt = spec.create ? conn.reducers.createAccount({ key, ...spec.create }) : conn.reducers.enter({ key });
+    Promise.resolve(attempt)
+      .then(() => {
+        saveKey(key);
+        spec = { key };
+        loginDone = true;
+        if (stage === "room") call(() => conn.reducers.joinRoom());
+        if (loginInfo) {
+          lobbyInfo = { ...loginInfo, key };
+          finishLogin(null, lobbyInfo);
+        }
+      })
+      .catch((error) => {
+        if (isKicked(error)) return kick();
         console.warn("[Backroom Billard] multiplayer: could not log in:", error?.message ?? error);
-        finishJoin(error instanceof Error ? error : new Error(String(error)));
-      }
-    });
+        const unknown = String(error?.message ?? error).includes("unknown key");
+        finishLogin(unknown ? new Error("unknown-key") : asError(error));
+      });
   }
 
-  function connect(profile) {
-    const args = {
-      name: displayName(profile, "short"),
-      country: profile.country ?? DEFAULT_COUNTRY,
-      face: JSON.stringify(profile.face),
-    };
-    account = args;
+  function connect() {
     connection = DbConnection.builder()
       .withUri(MULTIPLAYER_URI)
       .withDatabaseName(MULTIPLAYER_DATABASE)
@@ -238,7 +244,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           if (id === myId) {
             // the database took me out (a long pause, a throttled tab): come back into the room
             joined = false;
-            if (!kicked) joinRoom(conn);
+            if (!kicked && stage === "room") call(() => conn.reducers.joinRoom());
             return;
           }
           const gone = roster.get(id);
@@ -247,6 +253,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           if (looked && gone?.connected) onNote("left", gone.name);
           tellRoom();
         });
+        // the account while he chooses at the welcome screen (before the room)
+        const onLobby = (row) => {
+          if (hex(row.identity) !== myId) return;
+          loginInfo = { name: row.name, country: row.country, face: row.face, money: row.money };
+          lobbyInfo = { ...loginInfo, key: spec?.key ?? "" };
+          if (loginDone) finishLogin(null, lobbyInfo);
+        };
+        conn.db.lobby.onInsert((_ctx, row) => onLobby(row));
+        conn.db.lobby.onUpdate((_ctx, _old, row) => onLobby(row));
         conn.db.presence.onInsert((_ctx, row) => onPresence(row));
         conn.db.presence.onUpdate((_ctx, _old, row) => onPresence(row));
         conn.db.presence.onDelete((_ctx, row) => {
@@ -360,13 +375,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano]);
-        joinRoom(conn); // `joined` becomes true when the own row is there (see onPlayer)
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby]);
+        runLogin(conn); // (also after a lost connection: log in again, and come back into the room if he was in it)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
       .onConnectError((_ctx, error) => {
         console.warn("[Backroom Billard] multiplayer: no connection:", error);
-        finishJoin(error instanceof Error ? error : new Error(String(error)));
+        finishLogin(asError(error));
+        finishJoin(asError(error));
+        closeConnection();
       })
       .onDisconnect(() => {
         joined = false;
@@ -457,22 +474,44 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       call(() => connection?.reducers.endShot({ shotSeq, ...result }));
     },
     /**
-     * Join the room with the profile of the welcome screen. Resolves when the room is set up (connected, the
-     * guest is in the list), rejects if that does not work (no connection, or it takes too long).
-     * @returns {Promise<void>}
+     * Log in (the welcome screen, multiplayer): `{ create: { name, country, face } }` makes a new account (the key is made up here and kept),
+     * `{ key }` logs in with a key, `{}` with the key of this browser. Connects first. Resolves with the account { name, country, face, money, key }
+     * (he is not in the room yet), rejects with "unknown-key" (the database has no such account), "no-key", "timeout" or the refusal.
+     * @param {{ key?: string, create?: { name: string, country: string, face: string } }} next
+     * @returns {Promise<{ name: string, country: string, face: string, money: number, key: string }>}
      */
-    join(profile) {
+    login(next) {
       return new Promise((resolve, reject) => {
-        if (connection) {
-          resolve(); // already in
+        const key = next.key ?? (next.create ? null : loadKey());
+        if (connection && lobbyInfo && key && key === spec?.key) {
+          resolve(lobbyInfo); // already logged in to this account
           return;
         }
-        ready = { resolve, reject, timer: window.setTimeout(() => finishJoin(new Error("timeout")), MULTIPLAYER_JOIN_SECONDS * 1000) };
+        spec = next.create ? next : { key };
+        lobbyInfo = null;
+        loginWait = { resolve, reject, timer: window.setTimeout(() => { finishLogin(new Error("timeout")); closeConnection(); }, MULTIPLAYER_JOIN_SECONDS * 1000) };
+        kicked = false;
         try {
-          connect(profile);
+          if (connection) runLogin(connection);
+          else connect();
         } catch (error) {
-          finishJoin(error);
+          finishLogin(asError(error));
         }
+      });
+    },
+    /**
+     * Come into the room with the account of the login. Resolves when the room is set up (the guest is in the list).
+     * @returns {Promise<void>}
+     */
+    join() {
+      return new Promise((resolve, reject) => {
+        if (joined) {
+          resolve();
+          return;
+        }
+        stage = "room";
+        joinWait = { resolve, reject, timer: window.setTimeout(() => finishJoin(new Error("timeout")), MULTIPLAYER_JOIN_SECONDS * 1000) };
+        call(() => connection?.reducers.joinRoom(), () => finishJoin(new Error("join-refused")));
       });
     },
     /** Every frame: the sign of life, the place of the own camera, the faces of the others follow their cameras. */

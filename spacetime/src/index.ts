@@ -178,6 +178,18 @@ const spacetimedb = schema({
     }
   ),
 
+  /** Who is logged in but not in the room yet (choosing at the welcome screen): his account as the welcome screen shows it. Gone when he comes into the room. */
+  lobby: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+      name: t.string(),
+      country: t.string(),
+      face: t.string(),
+      money: t.u32(),
+    }
+  ),
+
   /** How many calls a guest made in the current second (private: only the module sees it). */
   rate: table(
     {},
@@ -332,6 +344,7 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
   const sitter = thePiano(ctx).sitter;
   if (sitter && sitter.toHexString() === ctx.sender.toHexString()) freePiano(ctx);
+  ctx.db.lobby.identity.delete(ctx.sender);
   ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
   ctx.db.hand.identity.delete(ctx.sender);
   ctx.db.kit.identity.delete(ctx.sender);
@@ -350,6 +363,8 @@ function changeMoney(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identit
   ctx.db.account.key.update({ ...account, money });
   const guest = ctx.db.player.identity.find(identity);
   if (guest) ctx.db.player.identity.update({ ...guest, money });
+  const waiting = ctx.db.lobby.identity.find(identity);
+  if (waiting) ctx.db.lobby.identity.update({ ...waiting, money });
 }
 
 /** Buy a drink or a pack of cigarettes at the bar: the price is the module's, the money is taken from the account or the call is refused. */
@@ -415,9 +430,9 @@ function checkProfile(name: string, country: string, face: string) {
 
 /**
  * A connection logs in to an account: at most one connection per account (a second device logs the first one out: he
- * loses the table like a player who leaves), and the guest in the room gets name, country, face and money from the account.
+ * loses the table like a player who leaves). The account shows in `lobby`; he comes into the room with join_room.
  */
-function joinAccount(ctx: Ctx, key: string) {
+function loginAccount(ctx: Ctx, key: string) {
   const account = ctx.db.account.key.find(key);
   if (!account) throw new SenderError('unknown key');
   const old = ctx.db.link.key.find(key);
@@ -425,17 +440,29 @@ function joinAccount(ctx: Ctx, key: string) {
     ctx.db.link.identity.delete(old.identity);
     const gone = ctx.db.player.identity.find(old.identity);
     if (gone && gone.seat !== SPECTATOR && theGame(ctx).state === GAME_PLAYING) finishGame(ctx, gone.seat === 1 ? 2 : 1, 'left');
-    if (gone) dropGuest(ctx, old.identity);
+    dropGuest(ctx, old.identity);
   }
   const own = ctx.db.link.identity.find(ctx.sender);
   if (!own) ctx.db.link.insert({ identity: ctx.sender, key });
   else if (own.key !== key) ctx.db.link.identity.update({ identity: ctx.sender, key }); // (the account he had before is left)
+  const shown = { name: account.name, country: account.country, face: account.face, money: account.money };
+  if (ctx.db.lobby.identity.find(ctx.sender)) ctx.db.lobby.identity.update({ identity: ctx.sender, ...shown });
+  else if (!ctx.db.player.identity.find(ctx.sender)) ctx.db.lobby.insert({ identity: ctx.sender, ...shown });
+}
+
+/** Come into the room with the account this connection is logged in to: name, country, face and money from the account, first as a spectator. */
+export const join_room = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
+  const link = ctx.db.link.identity.find(ctx.sender);
+  const account = link && ctx.db.account.key.find(link.key);
+  if (!account) throw new SenderError('logged-in-elsewhere');
+  ctx.db.lobby.identity.delete(ctx.sender);
   const row = ctx.db.player.identity.find(ctx.sender);
   const guest = { name: account.name, country: account.country, face: account.face, money: account.money, connected: true, lastSeen: ctx.timestamp };
   if (row) ctx.db.player.identity.update({ ...row, ...guest });
   else ctx.db.player.insert({ identity: ctx.sender, ...guest, seat: SPECTATOR, joinedAt: ctx.timestamp });
-  sweep(ctx);
-}
+  sweep(ctx); // (ghosts of earlier visits go at once, not after their 10 s)
+});
 
 /** A new account: the browser makes up the key; name, country and face are checked by checkProfile. Starts with 15,000 $ and logs in. */
 export const create_account = spacetimedb.reducer({ key: t.string(), name: t.string(), country: t.string(), face: t.string() }, (ctx, { key, name, country, face }) => {
@@ -444,14 +471,14 @@ export const create_account = spacetimedb.reducer({ key: t.string(), name: t.str
   if (!KEY_PATTERN.test(key)) throw new SenderError('bad key');
   if (ctx.db.account.key.find(key)) throw new SenderError('key taken');
   ctx.db.account.insert({ key, money: START_MONEY, name, country, face, createdAt: ctx.timestamp });
-  joinAccount(ctx, key);
+  loginAccount(ctx, key);
 });
 
-/** Log in to an existing account with its key (also from another device). */
+/** Log in to an existing account with its key (also from another device); the room is entered with join_room. */
 export const enter = spacetimedb.reducer({ key: t.string() }, (ctx, { key }) => {
   if (limited(ctx)) return;
   if (!KEY_PATTERN.test(key)) throw new SenderError('bad key');
-  joinAccount(ctx, key);
+  loginAccount(ctx, key);
 });
 
 /** A guest who is gone: the connection is closed, or no sign of life for 10 s (a closed tab, a crash, a module that was published anew). */
@@ -467,6 +494,7 @@ function dropGuest(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identity.
   ctx.db.kit.identity.delete(identity);
   ctx.db.presence.identity.delete(identity);
   ctx.db.rate.identity.delete(identity);
+  ctx.db.lobby.identity.delete(identity);
   const piano = thePiano(ctx);
   if (piano.sitter && piano.sitter.toHexString() === identity.toHexString()) freePiano(ctx);
 }
