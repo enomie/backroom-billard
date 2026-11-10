@@ -9,7 +9,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | Tabelle | Inhalt |
 |---------|--------|
 | `player` | wer im Raum ist: Name, Land, Gesicht (JSON), Geld, Platz (0 Zuschauer, 1 und 2 am Tisch), Lebenszeichen |
-| `game` | das eine Spiel: Zustand, wer stößt, Stoßnummer, läuft ein Stoß, Sieger und Grund, Einsatz und Herausforderer |
+| `game` | das eine Spiel: Zustand, wer stößt, Stoßnummer, läuft ein Stoß, Sieger und Grund, Einsatz (je Spieler) |
 | `ball` | die Kugeln in Ruhe (Lage, versenkt oder nicht) |
 | `shot` | der Stoß (Winkel, Kraft, Nubbel, Neigung, der Zufallsfehler des Schützen) |
 | `shotChunk` | die Aufnahme des laufenden Stoßes in Häppchen (nach dem Zug nicht mehr nötig) |
@@ -18,7 +18,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `hand` | was die Hände tun: R (trinken) und T (rauchen) gedrückt; die anderen sehen es |
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
 | `pocket` | welche Kugel welcher Platz versenkt hat (die zwei Listen über dem Tisch) |
-| `rematch` | wer nach einem Spielende nochmal spielen will (beide Spieler müssen drücken) |
+| `stake` | das Einsatz-Fenster der zwei Spieler, live: Angebot und Bereit je Spieler (Einsatz = das kleinere Angebot) |
 | `bid` | die Tischwetten der Zuschauer (ein Gebot je Zuschauer) |
 
 | Reducer | Zweck |
@@ -29,16 +29,16 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `set_hand` | R und T gedrückt oder losgelassen (nur bei einer Änderung) |
 | `set_presence` | Ort und Blick der Kamera (etwa 10-mal pro Sekunde) |
 | `heartbeat`, `check_timeouts` | Lebenszeichen alle 2 s; wer als Spieler 10 s fehlt, hat verloren |
-| `place_bid`, `withdraw_bid` | Tischwette: Vielfache von 10, mindestens 10, höchstens das Geld; nur erhöhen oder zurückziehen (nicht als Herausforderer im laufenden Spiel) |
+| `place_bid`, `withdraw_bid` | Tischwette der Zuschauer: Vielfache von 10, mindestens 100, höchstens das Geld (wer weniger als 100 hat: alles); jederzeit änderbar oder zurückziehbar |
 | `set_aim`, `take_shot`, `push_chunk`, `end_shot` | Zielen, Schuss (nur wer dran ist und kein Stoß läuft), Häppchen der Aufnahme, Ende des Stoßes mit Ergebnis |
-| `play_again` | „Nochmal“: wenn beide Spieler gedrückt haben, beginnt das nächste Spiel (der Verlierer stößt zuerst) |
+| `set_stake`, `set_ready` | Einsatz-Fenster: das eigene Angebot (gleiche Grenzen wie die Wette); Bereit. Ändert sich der Einsatz, ist Bereit bei beiden zurückgesetzt; sind beide bereit, beginnt das Spiel (der Verlierer stößt zuerst) |
 | `leave_table` | vom Tisch aufstehen (im Spiel: verloren) |
 
-Regeln im Modul: Foul oder zu früh versenkte schwarze 8 verliert der Schütze, die schwarze 8 als letzte Kugel gewinnt; wer eine Kugel versenkt (und die weiße nicht), stößt nochmal, sonst der andere; der Einsatz des Herausforderers gehört dem Sieger (gewinnt der Herausforderer, bekommt er ihn zurück); der Verlierer wird Zuschauer, der Sieger bleibt, der Höchstbietende (bei Gleichstand der erste) rückt nach.
+Regeln im Modul: Foul oder zu früh versenkte schwarze 8 verliert der Schütze, die schwarze 8 als letzte Kugel gewinnt; wer eine Kugel versenkt (und die weiße nicht), stößt nochmal, sonst der andere; der Einsatz (das kleinere der beiden Angebote, von jedem gezahlt) gehört dem Sieger, der beide Beträge bekommt (die Clients buchen das Geld, das Spiel hält es lokal); der Sieger bleibt, der Verlierer wird Zuschauer, sobald jemand geboten hat (der Höchstbietende, bei Gleichstand der erste, rückt nach), sonst bleiben beide.
 
 ## Aufräumen von selbst
 
-Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und die ersten zwei Gäste, die **wirklich da** sind, setzen sich; sind es zwei, beginnt das Spiel. Ein beendetes Spiel, das auf „Nochmal“ wartet, hält die Plätze nur, solange **beide** Spieler da sind.
+Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und freie Plätze gehen an die Gäste, die **wirklich da** sind (in der Reihenfolge des Kommens); wer sitzt, behält seinen Platz. Sitzen zwei, öffnet sich das Einsatz-Fenster (Zustand 2).
 
 ## Prüfen
 
