@@ -10,3 +10,9 @@ export const MULTIPLAYER_PRESENCE_SECONDS = 0.1;
 export const MULTIPLAYER_FACE_FOLLOW = 12;
 /** The most the welcome screen waits for the room to be set up (s); then it says that it did not work. */
 export const MULTIPLAYER_JOIN_SECONDS = 15;
+
+/** The recording of a shot is sent in pieces of this many ms; the others play it back this much later (a buffer for the network). */
+export const REPLAY_CHUNK_MS = 100;
+export const REPLAY_DELAY_MS = 700;
+/** The aim of the shooter is sent this often (seconds); the others see his cue move. */
+export const AIM_SEND_SECONDS = 1 / 15;

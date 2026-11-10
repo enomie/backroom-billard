@@ -189,7 +189,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat)) {
               onGame({ kind: "turn", myTurn: row.turnSeat === mySeat(), turnName: nameOf(row.turnSeat), first: before.state !== 1 });
             }
-            if (row.shotRunning && !before.shotRunning) shooterSeat = row.turnSeat;
+            if (row.shotRunning && !before.shotRunning) {
+              shooterSeat = row.turnSeat;
+              if (shooterSeat !== mySeat()) onGame({ kind: "shotStart" }); // the recording of somebody else's shot will come
+            }
             if (before.shotRunning && !row.shotRunning && shooterSeat !== mySeat()) {
               // the shot of another guest is over: the balls lie where his table has them
               onGame({ kind: "sync", balls: [...conn.db.ball.iter()].map((b) => ({ id: b.id, x: b.x, z: b.z, pocketed: b.pocketed })) });
@@ -205,6 +208,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         conn.db.rematch.onInsert((_ctx, row) => {
           if (looked && hex(row.identity) !== myId) onGame({ kind: "again", name: roster.get(hex(row.identity))?.name ?? "" });
         });
+        // the aim of the one who is up (the cue moves for the others) and the pieces of the recording of his shot
+        const onAim = (row) => {
+          if (looked && row.seat === before.turnSeat && row.seat !== mySeat()) onGame({ kind: "aim", angle: row.angle, pitch: row.elevation, x: row.nubX, y: row.nubY });
+        };
+        conn.db.aim.onInsert((_ctx, row) => onAim(row));
+        conn.db.aim.onUpdate((_ctx, _old, row) => onAim(row));
+        conn.db.shotChunk.onInsert((_ctx, row) => {
+          if (looked && before.shotRunning && shooterSeat !== mySeat()) onGame({ kind: "chunk", index: row.index, data: row.data });
+        });
         conn.db.game.onInsert((_ctx, row) => onGameRow(row));
         conn.db.game.onUpdate((_ctx, _old, row) => onGameRow(row));
         conn.subscriptionBuilder()
@@ -213,7 +225,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
@@ -235,6 +247,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     /** The shooter says that his shot begins (the database checks that he is up). */
     takeShot(shot) {
       call(() => connection?.reducers.takeShot(shot));
+    },
+    /** The aim of the one who is up (about 15 times per second): angle, pitch, where the tip meets the ball, power. */
+    setAim(aim) {
+      call(() => connection?.reducers.setAim(aim));
+    },
+    /** A piece of the recording of my shot. */
+    pushChunk(index, data) {
+      const game = connection?.db.game.id.find(1);
+      if (game) call(() => connection.reducers.pushChunk({ shotSeq: game.shotSeq, index, data }));
     },
     /** "Play again": the next game begins when both players have pressed it. */
     playAgain() {
