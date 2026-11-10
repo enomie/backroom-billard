@@ -140,16 +140,18 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
 - **Abstand zum Tisch:** Zuschauer halten **mindestens 2 m** Abstand zur Tischkante (Spieler dürfen nah heran).
 - **Zuschauer sind Gäste wie die Spieler:** Sie sehen die **Trink- und Rauchanimationen** der Spieler, und sie können selbst **trinken und rauchen**. Sie haben **dieselben zwei Zustandsbalken** (Thirsty ↔ Drunk, Nerves ↔ Desire), Geld und Getränke wie ein Spieler; nur stoßen dürfen sie nicht. Die Anzeige der anderen (Trinken, Rauchen) wird als kleine Zustandsdaten (Glas hoch, Zigarette im Mund, Rauch) an alle gemeldet und lokal gezeichnet, nicht als Bild.
 
-- **Tischwette (Einsatz):**
-  - Der **Sieger bekommt nur den Einsatz des Herausforderers**; der Sieger der letzten Runde setzt nichts dagegen.
-  - Man kann **jederzeit** bieten, auch während ein Spiel läuft, und so viel, wie man Geld hat. Der Einsatz wächst über die Knöpfe **+10** und **+100** (Schritte von 10 und 100), **Mindesteinsatz 10**.
-  - **Gleich hohe Gebote:** Wer zuerst geboten hat, gewinnt (first come).
-  - **Ohne Gebot kein Spiel:** Ohne Tischwette setzt sich niemand an den Tisch; der Sieger wartet, bis jemand bietet.
-  - **Die Bank legt nichts drauf:** Gewinnt der Herausforderer, bekommt er nur **seinen eigenen Einsatz zurück** (kein Gewinn, kein Verlust); gewinnt der Sieger der letzten Runde, bekommt er den Einsatz des Herausforderers.
-  - **Der Sieger der letzten Runde bleibt immer am Tisch.** Er kann aber freiwillig aufhören oder sich ausloggen (siehe Offene Fragen).
-  - **Gebote der anderen Zuschauer** (die nicht Herausforderer wurden) **bleiben für die nächste Runde stehen**.
-  - **Zurückziehen:** Ein Gebot kann jederzeit **zurückgezogen** werden (das Geld ist sofort wieder frei), solange der Bieter nicht der Herausforderer des laufenden Spiels ist. **Hört der Herausforderer mitten im Spiel auf** (aussteigen, ausloggen, Verbindung länger als 10 Sekunden weg), hat er verloren und **sein Einsatz gehört dem anderen**.
-  - **Der Sieger will aufhören oder loggt sich aus:** Dann ist ein Platz frei. Der **Höchstbietende** setzt sich **ohne Einsatz** auf den Platz, der **zweithöchste** fordert ihn mit seinem Gebot, die übrigen Gebote bleiben stehen. Gibt es nur ein Gebot oder keines, wartet der Tisch (ohne Gebot kein Spiel).
+- **Einsatz-Fenster (für die zwei am Tisch):**
+  - Es öffnet sich, sobald der zweite Gast sitzt, und ebenso vor jeder neuen Runde („Nochmal“). Es ist **live**: beide sehen den Betrag des anderen und ob er **Ready** gedrückt hat.
+  - Jeder stellt **seinen eigenen Betrag** mit **−100 −10 +10 +100** ein: **mindestens 100, höchstens sein Geld**. Hat jemand weniger als 100, darf er **alles, was er hat**, einsetzen.
+  - **Der gültige Einsatz ist der kleinere der beiden Beträge.** Wer erhöht, wartet, ob der andere mitzieht.
+  - **Ready** wird bei beiden zurückgesetzt, sobald sich der gültige Einsatz ändert. **Los geht es, wenn beide Ready gedrückt haben**; dann wird der Einsatz bei beiden abgezogen (Treuhand), und der **Sieger bekommt beide Beträge**.
+- **Tischwette (Zuschauer, ab dem dritten Gast):**
+  - Zuschauer haben einen Knopf **Tischwette** mit demselben +/−-Fenster (Mindestgebot 100, höchstens ihr Geld, bei weniger als 100 alles). Man kann **jederzeit** bieten, auch während ein Spiel läuft.
+  - **Wer am meisten bietet, fordert den Sieger der letzten Runde**; bei gleich hohen Geboten gewinnt, wer zuerst geboten hat. Dann öffnet sich das Einsatz-Fenster für beide mit dem Gebot als Vorschlag; es gilt die Regel oben (kleinerer Betrag, beide Ready).
+  - **Der Sieger der letzten Runde bleibt immer am Tisch,** der Verlierer wird Zuschauer. Er kann aber freiwillig aufhören oder sich ausloggen.
+  - **Gebote der anderen Zuschauer** bleiben für die nächste Runde stehen. Ein Gebot kann jederzeit **zurückgezogen** werden (das Geld ist sofort frei), solange der Bieter nicht Herausforderer des laufenden Spiels ist.
+  - **Hört der Herausforderer mitten im Spiel auf** (aussteigen, ausloggen, Verbindung länger als 10 Sekunden weg), hat er verloren und **sein Einsatz gehört dem anderen**.
+  - **Der Sieger will aufhören oder loggt sich aus:** Der **Höchstbietende** setzt sich auf den Platz, der **zweithöchste** fordert ihn; die übrigen Gebote bleiben stehen. Gibt es nur ein Gebot oder keines, wartet der Tisch.
   - **Ein Spieler fehlt nach 10 Sekunden und kein Zuschauer hat eine Wette:** Das Spiel ist beendet, der Verbliebene gewinnt.
 
 ## Vertrauen
@@ -169,5 +171,5 @@ Das SpacetimeDB-Modul liegt in [`spacetime/`](../spacetime/README.md) (TypeScrip
 
 ## Offene Fragen
 
-- **Nach einem Spiel mit nur zwei Online:** Der Verlierer wäre Zuschauer, und ohne Gebot gibt es kein Spiel. Vorschlag: Bei nur zwei Online bleiben **beide sitzen**, und eine neue Runde beginnt, wenn beide **„Nochmal“** drücken (der Verlierer stößt zuerst); den Einsatz (die Tischwette) gibt es erst ab drei Online.
+- **Nach einem Spiel mit nur zwei Online:** Beide bleiben sitzen, das Einsatz-Fenster öffnet sich wieder (Betrag bleibt stehen), und die neue Runde beginnt, wenn beide Ready drücken (der Verlierer stößt zuerst).
 - Wie sieht der Zuschauer-Satz in der Hand aus (dieselben Glas-, Zigaretten- und Feuerzeugmodelle wie am Tisch, nur ohne Tisch)? Und sieht man das Trinken und Rauchen der anderen aus der Ferne (kleine Modelle an ihrem Gesicht)?
