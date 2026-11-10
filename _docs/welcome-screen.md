@@ -147,7 +147,7 @@ Wegen der getrennten Börsen (Einzelspiel im Browser, Mehrspieler auf dem Server
 2. **Getränk und Zigaretten** (nach der Wahl des Modus), mit dem **Geld dieses Modus** oben: im Einzelspiel das aus dem Browser, im Mehrspieler das Konto vom Server (dafür wird beim Klick auf Multiplayer zuerst verbunden, mit dem Spinner; klappt das nicht, bleibt man auf Schritt 1 mit der roten Meldung). Ein Link **Zurück** führt zu Schritt 1. Der Start-Knopf heißt **Los** (de) / **Start** (en).
 - **Profil:** Name, Land, Gesicht und `moneySingle` (das bisherige `money`, bleibt gültig) im Browser; das Mehrspieler-Geld gibt es dort nicht.
 - **Neu anfangen** löscht Name, Gesicht und das **Einzelspiel-Geld** (15.000 $) und beginnt im Mehrspieler ein **neues Konto** mit neuem Schlüssel (siehe [`multiplayer.md`](multiplayer.md)); wer ein Konto behalten will, speichert seinen Schlüssel.
-- **Schlüssel eingeben:** Auf Schritt 1 gibt es für den Mehrspieler einen Link „Ich habe einen Schlüssel“: Das Konto eines anderen Geräts wird geladen (Geld und Rang).
+- **Schlüssel eingeben (nur Mehrspieler):** Auf Schritt 1 gibt es einen Link „Ich habe einen Schlüssel“: Das Konto eines anderen Geräts wird geladen (Geld und Rang), und dort wird der Spieler **ausgeloggt** (eine Verbindung je Konto). Hat das Gerät schon ein eigenes Konto, kommt vorher eine **Warnung**: Es wird aufgegeben, das Geld ist weg, wenn dessen Schlüssel nicht gespeichert ist.
 
 ## Offene Fragen
 
