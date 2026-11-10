@@ -205,6 +205,15 @@ Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** beh
 18. Docs: der Abschnitt „Vorbereitet: das Datenbank-Modul“ in diesem Dokument sagt noch, das Spiel benutze es nicht.
 19. Prüfen, ob `winnerSeat` und `reason` nach mehreren Spielen sauber zurückgesetzt werden (Verlierer stößt zuerst).
 
+## Geld im Mehrspieler: ein Konto auf dem Server (Vorschlag, noch nicht umgesetzt)
+
+Einzelspiel und Mehrspieler haben **getrennte Börsen mit je 15.000 $ am Anfang**. Das Einzelspiel bleibt wie heute im Browser (offline). Im Mehrspieler führt der **Server das Geld**, der Browser zeigt es nur an.
+
+- **Konto:** Tabelle `account` (privat): Identität (der Token im Browser) und Geld. Die Zeile entsteht beim ersten Beitritt mit 15.000 $; der Client sagt **nie mehr**, wie viel Geld er hat (`set_money` und der Geld-Parameter von `set_profile` entfallen). `player.money` ist nur noch die Anzeige für die anderen und wird vom Server gesetzt. Das Konto bleibt, auch wenn der Gast den Raum verlässt.
+- **Kaufen:** Getränke an der Karte, die neue Packung und das erste Getränk und die erste Packung vom Welcome-Screen laufen über eine Aktion `buy` mit dem Namen der Ware; **die Preise stehen im Modul** (Bier 8 $ … Packung 75 $), der Server zieht ab und lehnt ab, wenn das Geld nicht reicht. Der Client zeigt das Getränk sofort (er kennt sein Geld aus der Anzeige) und korrigiert, wenn der Server Nein sagt.
+- **Einsatz (Treuhand):** Beim Spielstart zieht der **Server** den Einsatz bei beiden ab, am Spielende schreibt er dem Sieger beide Beträge gut (auch bei Timeout oder Aufgabe). Der Browser rechnet nichts mehr. Ein Neuladen mitten im Spiel oder nach dem Spielende kostet nichts mehr.
+- **Preis der Anzeige:** Das Geld in der Anzeige oben ist im Mehrspieler die Zahl des Servers; im Einzelspiel die des Browsers.
+
 ## Vertrauen
 
 Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen schicken). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Häppchen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um (das bräuchte dann doch den Stoß als reine Funktion). Das ist ein späterer Schritt.

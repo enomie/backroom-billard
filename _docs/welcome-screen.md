@@ -139,6 +139,15 @@ Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil ge
 - **Land (umgesetzt):** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste hat **nur die Länder, zu denen es eine (runde) Flagge gibt**: 42 Länder (`src/country-list.js`, Flaggen in `public/flags/{iso}.svg`, kopiert aus [`countries/`](countries/README.md), das nur Info bleibt). Mehr Länder: Flaggendatei und eine Zeile in `country-list.js`. Gesucht wird ohne Akzente und Groß-/Kleinschreibung („osterreich“ findet „Österreich“); Pfeiltasten und Enter wählen, Esc und ein Klick daneben schließen die Liste. Über dem Kopf des Spielers stehen später ein kleines Flaggen-Icon und sein Name, kompakt (siehe `multiplayer.md`).
 - Profil: `country` (Länderkürzel) und `face` (Hautfarbe, Augenfarbe, Haarfarbe, Breite, Frisur, Bart, Nase, Augenbrauen), beides umgesetzt. Die `version` bleibt 1 (sonst wären die alten Profile samt Geld weg): fehlende Felder bekommen beim Lesen Österreich beziehungsweise ein Zufallsgesicht.
 
+## Zwei Schritte statt einem (Vorschlag, noch nicht umgesetzt)
+
+Wegen der getrennten Börsen (Einzelspiel im Browser, Mehrspieler auf dem Server, siehe [`multiplayer.md`](multiplayer.md)) wird der Screen geteilt:
+
+1. **Willkommen:** Name, Land und Gesicht (hängen am Gast, nicht am Modus), darunter die Knöpfe **Singleplayer** und **Multiplayer**.
+2. **Getränk und Zigaretten** (nach der Wahl des Modus), mit dem **Geld dieses Modus** oben: im Einzelspiel das aus dem Browser, im Mehrspieler das Konto vom Server (dafür wird beim Klick auf Multiplayer zuerst verbunden, mit dem Spinner; klappt das nicht, bleibt man auf Schritt 1 mit der roten Meldung). Ein Link **Zurück** führt zu Schritt 1. Der Start-Knopf heißt **Los** (de) / **Start** (en).
+- **Profil:** Name, Land, Gesicht und `moneySingle` (das bisherige `money`, bleibt gültig) im Browser; das Mehrspieler-Geld gibt es dort nicht.
+- **Neu anfangen** löscht Name, Gesicht und das **Einzelspiel-Geld** (15.000 $); das Mehrspieler-Konto bleibt, sonst wäre das Geld dort nichts wert.
+
 ## Offene Fragen
 
 - **Wo erscheint der Name sonst im Spiel?** Heute nur im Einstellungs-Panel (voll, mit Guthaben). HUD, später Mehrspieler, Wette, Rangliste: wird mit dem Spielkonzept (`game-concept.md`, Ideen) entschieden; die kurzen Formen (`displayName`) liegen bereit.
