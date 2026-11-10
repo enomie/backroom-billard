@@ -2,6 +2,15 @@
 
 > **Status: Idee, nichts davon ist umgesetzt.** Nur ein Entwurf, wie zwei Spieler (und Zuschauer) mit SpacetimeDB dasselbe sehen, ohne dass etwas ruckelt. Oberstes Ziel: **Die Physik bleibt wie sie ist** (Rapier, feste 240 Hz, echte Spitze); das Netz darf sie nie verbiegen.
 
+## Rahmen: Server nur mit HTML und PHP
+
+Der eigene Webserver hat **nur HTML und PHP**: kein Node, keine Websockets, kein Dienst, der dauerhaft läuft. Folgen für den Multiplayer:
+
+- Das Spiel bleibt ein **statischer `dist/`-Ordner** (HTML, JS, WASM, Bilder, Töne); er läuft ohne jede Server-Logik.
+- **SpacetimeDB läuft extern** (nicht auf diesem Server). Der **Browser verbindet sich direkt** mit ihr (Websocket); der eigene Server liefert nur die Seiten.
+- **Keine Rechnung auf dem eigenen Server:** Das passt zur Entscheidung, dass der Schütze selbst rechnet (siehe „Vertrauen“). Eine Server-Rechnung gäbe es nur auf einem zusätzlichen, externen Dienst.
+- PHP wäre höchstens für Kleinigkeiten da (etwa eine Konfiguration oder ein Gästebuch), nie für das Spiel selbst.
+
 ## Grundidee: aufnehmen und abspielen
 
 Billard ist **rundenbasiert**: Es stößt immer nur einer, dann rollen die Kugeln aus, dann ist der Nächste dran. Deshalb muss die Physik nicht live über das Netz laufen.

@@ -4,6 +4,8 @@
 
 - **Hersteller:** Bad Habits Games. **Offizielle E-Mail:** bad.habits.games@proton.me. Gehört in die Docs und überall, wo ein Hersteller oder Kontakt genannt wird (README, Impressum, Metadaten).
 
+- **Server des Herstellers:** Nur **HTML und PHP** (kein Node, kein eigener Dienst, keine Datenbank, keine dauerhaft laufenden Prozesse). Das Spiel muss als statischer `dist/`-Ordner laufen (siehe README); alles andere (Multiplayer, SpacetimeDB) läuft **extern**, der Browser verbindet sich direkt dorthin.
+
 ## Sprache
 
 - **Code, Code-Kommentare, Bezeichner, Log- und Fehlermeldungen, Commit-Messages: immer Englisch.**
