@@ -73,5 +73,4 @@ Wie in Shootern könnte das Fadenkreuz schwanken, sodass man den **richtigen Mom
 - Feintuning der Werte (Geschwindigkeit der Marker, Stärke der Wirkung) nach dem Spielen.
 - Tischwette: Rest der Regeln (Gebote, Aussteigen des Siegers) in [`multiplayer.md`](multiplayer.md).
 - Wie lange dauert ein Spiel höchstens (Zeitlimit pro Stoß, Abbruch bei Inaktivität)?
-- Wie nah dürfen Zuschauer an den Tisch (Radius)?
 - Wie wird ein Spiel im Mehrspieler synchronisiert? Entworfen in [`multiplayer.md`](multiplayer.md) (aufnehmen und abspielen).
