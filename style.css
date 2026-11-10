@@ -1114,6 +1114,9 @@ html {
 }
 
 .welcome__field input {
+  box-sizing: border-box;
+  width: 100%; /* the three name fields share the row (an input has a width of its own otherwise) */
+  min-width: 0;
   padding: 0.35rem 0;
   border: 0;
   border-bottom: 1px solid rgba(252, 211, 77, 0.4);
@@ -1131,6 +1134,122 @@ html {
 
 .welcome__field input:focus {
   border-bottom-color: var(--amber-300);
+}
+
+/* The country: a button that opens a list with a search field */
+.welcome__country {
+  position: relative;
+  width: min(22rem, 100%);
+}
+
+.welcome__select {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.55rem 0.2rem;
+  border: 0;
+  border-bottom: 1px solid rgba(252, 211, 77, 0.4);
+  background: none;
+  font: inherit;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: var(--amber-100);
+  text-align: left;
+  cursor: pointer;
+}
+
+.welcome__select:hover,
+.welcome__select:focus-visible,
+.welcome__select[aria-expanded="true"] {
+  border-bottom-color: var(--amber-300);
+  outline: none;
+}
+
+.welcome__select #welcome-country-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.welcome__flag,
+.welcome__country-item img {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%; /* the flags are round already; this only keeps an odd file round too */
+}
+
+.welcome__caret {
+  color: var(--text-muted);
+}
+
+.welcome__panel {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.3rem);
+  padding: 0.5rem;
+  border: 1px solid rgba(252, 211, 77, 0.45);
+  border-radius: 0.25rem;
+  background: #24221f;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+.welcome__panel[hidden] {
+  display: none;
+}
+
+.welcome__panel input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.1rem;
+  border: 0;
+  border-bottom: 1px solid rgba(252, 211, 77, 0.4);
+  background: none;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--amber-100);
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.welcome__list {
+  max-height: 14rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.welcome__country-item,
+.welcome__country-none {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0.4rem;
+  font-size: 1rem;
+  color: var(--amber-100);
+}
+
+.welcome__country-item {
+  cursor: pointer;
+}
+
+.welcome__country-item.is-marked,
+.welcome__country-item:hover {
+  background: rgba(252, 211, 77, 0.16);
+}
+
+.welcome__country-item[aria-selected="true"] {
+  color: var(--amber-200);
+  font-weight: 700;
+}
+
+.welcome__country-none {
+  color: var(--text-muted);
 }
 
 .welcome__heading {

@@ -12,7 +12,8 @@ let memory = null;
 
 /**
  * @typedef {{ version: number, firstName: string, middleName: string, middleInitial: string,
- *   lastName: string, firstDrink: string, firstPack: number, money: number, createdAt: string }} Profile
+ *   lastName: string, country: string, firstDrink: string, firstPack: number, money: number, createdAt: string }} Profile
+ * `country` (ISO code, see country-list.js) is missing in older profiles: Austria then.
  */
 
 const isProfile = (p) =>

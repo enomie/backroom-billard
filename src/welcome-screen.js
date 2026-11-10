@@ -5,8 +5,9 @@
  */
 import { DRINK_MENU, PACK_PRICE, START_MONEY } from "./shop-constants.js";
 import { PACK_DESIGNS } from "./cigarette-constants.js";
-import { t, onLanguageChange } from "./i18n/index.js";
+import { t, onLanguageChange, getLanguage } from "./i18n/index.js";
 import { filterName, normalizeName, isValidName, middleInitial } from "./name-rules.js";
+import { COUNTRIES, DEFAULT_COUNTRY, isCountry, countryName, flagUrl } from "./country-list.js";
 import { loadProfile, saveProfile, clearProfile, PROFILE_VERSION } from "./profile-store.js";
 
 const format = (amount) => "$ " + amount.toLocaleString("en-US");
@@ -25,6 +26,7 @@ export function showWelcome() {
   let money = previous?.money ?? START_MONEY; // what he has before buying
   let drink = previous?.firstDrink ?? null;
   let pack = previous?.firstPack ?? null;
+  let country = isCountry(previous?.country) ? previous.country : DEFAULT_COUNTRY;
 
   const priceOfDrink = (kind) => DRINK_MENU.find((d) => d.kind === kind)?.price ?? 0;
   const spent = () => (drink ? priceOfDrink(drink) : 0) + (pack !== null ? PACK_PRICE : 0);
@@ -103,6 +105,83 @@ export function showWelcome() {
     })
   );
 
+  // the country: a drop-down list with a search (typing filters; names in the language of the page)
+  const countryButton = $("welcome-country");
+  const panel = $("welcome-country-panel");
+  const search = $("welcome-country-search");
+  const list = $("welcome-country-list");
+  /** Lower case without accents, so that "osterreich" finds "Österreich". */
+  const plain = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  let shown = []; // the codes in the list, and which one is marked
+  let marked = 0;
+
+  const renderCountry = () => {
+    $("welcome-country-flag").src = flagUrl(country);
+    $("welcome-country-name").textContent = countryName(country, getLanguage());
+  };
+  const mark = (index) => {
+    marked = Math.max(0, Math.min(shown.length - 1, index));
+    [...list.children].forEach((li, i) => li.classList.toggle("is-marked", i === marked));
+    list.children[marked]?.scrollIntoView({ block: "nearest" });
+  };
+  const renderList = () => {
+    const language = getLanguage();
+    const wanted = plain(search.value.trim());
+    shown = COUNTRIES.map((c) => c[0])
+      .map((code) => ({ code, name: countryName(code, language) }))
+      .filter((c) => plain(c.name).includes(wanted))
+      .sort((a, b) => a.name.localeCompare(b.name, language));
+    list.replaceChildren(
+      ...(shown.length
+        ? shown.map((c) => {
+            const li = document.createElement("li");
+            li.setAttribute("role", "option");
+            li.setAttribute("aria-selected", String(c.code === country));
+            li.className = "welcome__country-item";
+            const flag = document.createElement("img");
+            flag.src = flagUrl(c.code);
+            flag.alt = "";
+            flag.width = flag.height = 24;
+            li.append(flag, document.createTextNode(c.name));
+            li.addEventListener("click", () => choose(c.code));
+            return li;
+          })
+        : [Object.assign(document.createElement("li"), { className: "welcome__country-none", textContent: t("welcome.countryNone") })])
+    );
+    search.placeholder = t("welcome.countrySearch");
+    mark(Math.max(0, shown.findIndex((c) => c.code === country)));
+    shown = shown.map((c) => c.code);
+  };
+  const setOpen = (open) => {
+    panel.hidden = !open;
+    countryButton.setAttribute("aria-expanded", String(open));
+    if (open) {
+      search.value = "";
+      renderList();
+      search.focus();
+    }
+  };
+  const choose = (code) => {
+    country = code;
+    renderCountry();
+    setOpen(false);
+    countryButton.focus();
+  };
+  countryButton.addEventListener("click", () => setOpen(panel.hidden));
+  search.addEventListener("input", renderList);
+  search.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") mark(marked + 1);
+    else if (e.key === "ArrowUp") mark(marked - 1);
+    else if (e.key === "Enter" && shown[marked]) choose(shown[marked]);
+    else if (e.key === "Escape") setOpen(false);
+    else return;
+    e.preventDefault();
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if (!panel.hidden && !e.target.closest(".welcome__country")) setOpen(false); // a click outside closes the list
+  });
+  renderCountry();
+
   // start over: after a question, the profile is gone and the money is the start money again
   const ask = (open) => {
     $("welcome-restart-ask").hidden = !open;
@@ -115,13 +194,19 @@ export function showWelcome() {
     money = START_MONEY;
     drink = null;
     pack = null;
+    country = DEFAULT_COUNTRY;
+    renderCountry();
     for (const field of Object.values(fields)) field.value = "";
     ask(false);
     update();
     fields.first.focus();
   });
 
-  onLanguageChange(update);
+  onLanguageChange(() => {
+    renderCountry();
+    if (!panel.hidden) renderList();
+    update();
+  });
   root.hidden = false;
   update();
   fields.first.focus();
@@ -136,6 +221,7 @@ export function showWelcome() {
         middleName,
         middleInitial: middleInitial(middleName),
         lastName,
+        country,
         firstDrink: drink,
         firstPack: pack,
         money: money - spent(),

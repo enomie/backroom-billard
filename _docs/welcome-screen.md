@@ -85,6 +85,7 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
   "lastName": "Meier",
   "firstDrink": "whiskey",
   "firstPack": 0,
+  "country": "at",
   "money": 14907,
   "createdAt": "2026-11-08T20:00:00.000Z"
 }
@@ -102,6 +103,7 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 |-------|--------|
 | `src/name-rules.js` | Reine Funktionen: Filtern beim Tippen (`filterName`), Fertigstellen (`normalizeName`), Prüfen (`isValidName`), `middleInitial`, `displayName` (voll, mit Initiale, nur Initialen); Beispiele in `_Scripts/test-name-rules.mjs` (`npm test`) |
 | `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Speicher im Arbeitsspeicher als Ersatz), `saveMoney`, `clearProfile` |
+| `src/country-list.js`, `public/flags/` | Die Länder mit runder Flagge (Kürzel, deutscher und englischer Name), `countryName`, `flagUrl`, Standard Österreich |
 | `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Neu anfangen, Continue |
 | `src/wallet.js` | Liest das Geld beim Start aus dem Profil und speichert jede Änderung; `setBalance` |
 | `src/entry.js` | Ablauf: Startscreen, Welcome, Spiel (das Spiel lädt im Hintergrund, danach `applyProfile` in `billard.js`) |
@@ -123,13 +125,13 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 - **Pleite:** Unter 83 $ hilft nur „Neu anfangen“ (löscht das Profil, 15.000 $).
 - **Name und Guthaben** stehen im Einstellungs-Panel; dieses scrollt innen.
 
-## Gesicht und Land (beschlossen, noch nicht gebaut)
+## Gesicht und Land (Land umgesetzt, Gesicht beschlossen, noch nicht gebaut)
 
 Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil gespeichert.
 
 - **Gesicht (Facegenerator):** Eine Vorschau des Gesichts (Kugel mit Nase und zwei Augen, dazu Haar, Bart und Augenbrauen) mit **einem** Knopf **Zufall**, der ein neues Gesicht würfelt. Es gibt **keinen** Bestätigungsknopf: **Das gezeigte Gesicht gilt**, **Continue** geht auch ohne zu würfeln. Beim ersten Besuch steht schon ein Zufallsgesicht da. **Alles wird gewürfelt**: Hautfarbe, **Augenfarbe**, **Haarfarbe** (eine Farbe für **Haar, Bart und Augenbrauen** zusammen) und die **Formen** (Frisur, Bartform, Nase, Augenbrauen). Das Gesicht ist **starr** (keine Mimik). So sehen es die anderen, siehe [`multiplayer.md`](multiplayer.md).
-- **Land:** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste und die Flaggen kommen aus [`countries/`](countries/README.md); im Spiel werden **runde Flaggen** (runde SVGs, die Daten dazu kommen noch) gezeigt. Land und Name stehen später über dem Kopf (siehe `multiplayer.md`).
-- Profil: neue Felder (z. B. `face` mit Hautfarbe, Augenfarbe, Haarfarbe und den Formen, `country` als Länderkürzel); `version` im Profil erhöhen, ältere Profile bekommen ein Zufallsgesicht und Österreich.
+- **Land (umgesetzt):** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste hat **nur die Länder, zu denen es eine (runde) Flagge gibt**: 42 Länder (`src/country-list.js`, Flaggen in `public/flags/{iso}.svg`, kopiert aus [`countries/`](countries/README.md), das nur Info bleibt). Mehr Länder: Flaggendatei und eine Zeile in `country-list.js`. Gesucht wird ohne Akzente und Groß-/Kleinschreibung („osterreich“ findet „Österreich“); Pfeiltasten und Enter wählen, Esc und ein Klick daneben schließen die Liste. Land und Name stehen später über dem Kopf (siehe `multiplayer.md`).
+- Profil: `country` (Länderkürzel, umgesetzt) und später `face` (Hautfarbe, Augenfarbe, Haarfarbe, Formen). Die `version` bleibt 1 (sonst wären die alten Profile samt Geld weg): fehlende Felder bekommen beim Lesen Österreich beziehungsweise ein Zufallsgesicht.
 
 ## Offene Fragen
 

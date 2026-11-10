@@ -46,6 +46,19 @@
           </label>
         </div>
 
+        <h3 class="welcome__heading" data-i18n="welcome.country">Your country</h3>
+        <div class="welcome__country">
+          <button id="welcome-country" type="button" class="welcome__select" aria-haspopup="listbox" aria-expanded="false">
+            <img id="welcome-country-flag" class="welcome__flag" alt="" width="24" height="24" />
+            <span id="welcome-country-name"></span>
+            <span class="welcome__caret" aria-hidden="true">▾</span>
+          </button>
+          <div id="welcome-country-panel" class="welcome__panel" hidden>
+            <input id="welcome-country-search" type="text" autocomplete="off" spellcheck="false" maxlength="30" />
+            <ul id="welcome-country-list" class="welcome__list" role="listbox"></ul>
+          </div>
+        </div>
+
         <h3 class="welcome__heading" data-i18n="welcome.drink">Your first drink</h3>
         <div id="welcome-drinks" class="welcome__options" role="radiogroup"></div>
 
