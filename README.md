@@ -17,7 +17,7 @@ Produktion: `npm run build` und `npm run preview`. Der Port steht in `vite.confi
 
 ## Startscreen
 
-Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: **Bad Habits Games**, darunter **PRESENT**, der Titel in Limelight und der Knopf **Confirm Age 18+** (deutsch „Alter bestätigen 18+“; die Sprache kommt aus der gespeicherten Wahl, sonst aus dem Browser, sonst Englisch). Es gibt bewusst keinen „Verlassen“-Knopf, das kann der Browser. Das Spiel lädt im Hintergrund; sobald es bereit ist **und** das Alter bestätigt wurde, blendet der Screen aus. **Der Klick auf den Knopf schaltet den Ton frei und startet das Radio** (kein anderer Tastendruck tut das); das Alter wird bei jedem Besuch neu gefragt. Solange der Screen steht, tun die Spieltasten nichts. Danach kommt der **Welcome-Screen** (Name in drei Feldern, erstes Getränk und erste Zigaretten kaufen, Singleplayer oder Multiplayer; Name, Auswahl und Geld bleiben im Browser, siehe [`_docs/welcome-screen.md`](_docs/welcome-screen.md)), dann das Spiel. Code: `src/start-screen.js`, `src/welcome-screen.js`, Markup in `index.html`, `src/entry.js` verbindet Laden und beide Screens.
+Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: **Bad Habits Games**, darunter **PRESENT**, der Titel in Limelight und der Knopf **Confirm Age 18+** (deutsch „Alter bestätigen 18+“; die Sprache kommt aus der gespeicherten Wahl, sonst aus dem Browser, sonst Englisch). Es gibt bewusst keinen „Verlassen“-Knopf, das kann der Browser. Das Spiel lädt im Hintergrund; sobald es bereit ist **und** das Alter bestätigt wurde, blendet der Screen aus. **Der Klick auf den Knopf schaltet den Ton frei und startet das Radio** (kein anderer Tastendruck tut das); das Alter wird bei jedem Besuch neu gefragt. Solange der Screen steht, tun die Spieltasten nichts. Danach kommt der **Welcome-Screen** (Spielart: Einzelspiel oder Mehrspieler; im Mehrspieler das Konto mit Schlüssel oder neu mit Name, Land und Gesicht; zuletzt „Was darf es sein?“ mit erstem Getränk und erster Packung; das Einzelspiel-Geld bleibt im Browser, das Mehrspieler-Konto liegt auf dem Server, siehe [`_docs/welcome-screen.md`](_docs/welcome-screen.md)), dann das Spiel. Code: `src/start-screen.js`, `src/welcome-screen.js`, Markup in `index.html`, `src/entry.js` verbindet Laden und beide Screens.
 
 ## Steuerung
 
@@ -93,7 +93,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `room.js`, `wood.js`, `ceiling-lamps.js`, `wall-lamps.js`, `wall-lamp-places.js`, `wall-lamp-light.js`, `room-constants.js` | Raum (Teppich, Wände mit Holzvertäfelung, Holzdecke, Nebel), Holz-Material, Decken- und Wandleuchten und alle Parameter dazu |
 | `i18n/` | Übersetzungen (`locales/`), Flaggen, Sprachumschalter |
 | `settings.js` | Einstellungen-Overlay: Re-rack, Sprache, Hinweise zur Bedienung |
-| `welcome-screen.js`, `name-rules.js`, `profile-store.js` | Welcome-Screen (Name, erstes Getränk und Packung), Namensregeln, Profil im Browser |
+| `welcome-screen.js`, `account-key.js`, `name-rules.js`, `profile-store.js` | Welcome-Screen (Spielart, Konto, Karte), Konto-Schlüssel, Namensregeln, Geldbeutel des Einzelspiels im Browser |
 | `start-screen.js` | Startscreen mit Alterbestätigung (blendet aus, wenn das Spiel geladen und bestätigt ist) |
 
 Root: `index.html`, `style.css` (HUD), `vite.config.js`. Optik und Physik teilen sich dieselbe Geometrie, deshalb gibt es nur eine Quelle für Maße.
@@ -122,7 +122,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbo
 - [`_docs/glass-objects.md`](_docs/glass-objects.md) — Kerzenhalter, Aschenbecher, Gläser, Flaschen, Trinken und Getränkekarte
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
 - [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen
-- [`_docs/welcome-screen.md`](_docs/welcome-screen.md) — Welcome-Screen nach dem Startscreen: Name in drei Feldern, erstes Getränk und erste Zigaretten kaufen, Speichern im Browser
+- [`_docs/welcome-screen.md`](_docs/welcome-screen.md) — Welcome-Screen nach dem Startscreen: Spielart, Konto (Schlüssel, Name in drei Feldern, Land, Gesicht), „Was darf es sein?“
 - [`_docs/konto-umbau.md`](_docs/konto-umbau.md) — Plan (nicht umgesetzt): Spielart zuerst, Konto und Geld auf dem Server, Rangliste; die Schritte mit Prüfungen
 - [`_docs/countries/`](_docs/countries/README.md) — Länderdaten aus einem anderen Projekt (71 ISO-Codes mit deutschen und englischen Namen, 42 Flaggen als SVG); nur Material, noch nicht im Spiel verwendet. Die Flaggen stammen von der VDMFK-Seite, die Nutzungsrechte sind nicht geklärt.
 

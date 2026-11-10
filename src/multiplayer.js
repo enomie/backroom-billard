@@ -316,7 +316,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             }
           }
           before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning };
-          tellTableNow();
+          tellTableNow?.(); // (null after a lost connection)
         };
         // The stake window and the table bets: the whole picture each time something changes (offers are shown with the money of the guest as the limit)
         const idOfSeat = (seat) => [...roster.entries()].find(([, p]) => p.seat === seat)?.[0];

@@ -1,6 +1,6 @@
 # Umbau: Spielart zuerst, Konto auf dem Server (Plan)
 
-> **Status: Plan, nichts davon ist umgesetzt.** Die Regeln stehen in [`multiplayer.md`](multiplayer.md) (Abschnitt „Geld im Mehrspieler“) und [`welcome-screen.md`](welcome-screen.md) (Abschnitt „Neuer Ablauf“); hier stehen die **Schritte**. Jeder Schritt lässt das Spiel lauffähig und wird geprüft, bevor der nächste beginnt. Wo das Modul neu veröffentlicht werden muss, steht es dabei.
+> **Status: umgesetzt (Schritte 1 bis 7).** Die Regeln stehen in [`multiplayer.md`](multiplayer.md) (Abschnitt „Geld im Mehrspieler“) und [`welcome-screen.md`](welcome-screen.md) (Abschnitt „Ablauf“); hier stehen die **Schritte**. Jeder Schritt lässt das Spiel lauffähig und wird geprüft, bevor der nächste beginnt. Wo das Modul neu veröffentlicht werden muss, steht es dabei.
 
 ## Ziel in Kürze
 
@@ -68,7 +68,7 @@
 - Client: Panel mit der Liste (Platz, Flagge, Name, Geld). Ist der Spieler nicht unter den ersten 100: eine Zeile „…“ und darunter seine Zeile „Platz 126“. Zu erreichen über einen Knopf (Ort noch festlegen).
 - **Prüfen:** mehrere Konten, Platz 1 bis 100 und außerhalb, Gleichstand.
 
-### 7. Aufräumen
+### 7. Aufräumen – **umgesetzt**
 
 - Docs nachziehen (`welcome-screen.md`, `multiplayer.md`, `spacetime/README.md`, `game-concept.md`), Aufräumliste (C) schließen, toten Code entfernen (`set_money`, alte Geldzeilen, nicht mehr gebrauchte Texte und Schlüssel), Bindings neu erzeugen lassen.
 

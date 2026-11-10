@@ -90,7 +90,7 @@ Meldungen gibt es nur über das, was **nach** dem eigenen Beitritt geschieht: We
 
 `src/multiplayer.js` (Werte in `multiplayer-constants.js`, Typen in `src/module_bindings/`, erzeugt mit `spacetime generate`, nicht von Hand ändern):
 
-- **Anmelden (nur im Multiplayer):** Der Welcome-Screen fragt **Singleplayer oder Multiplayer**; nur der Multiplayer-Knopf verbindet sich (mit Spinner, bis der Raum eingerichtet ist), der Einzelspieler benutzt SpacetimeDB gar nicht. Die Verbindung geht mit der Datenbank `backroom-billard-3000` und ruft `set_profile` (Name mit Initiale, Land, Gesicht als JSON, Geld). Das Login dieses Browsers (Token) liegt im `localStorage`, damit man beim nächsten Besuch derselbe Gast bleibt; ein privates Fenster oder ein anderer Browser ist ein neuer Gast.
+- **Anmelden (nur im Multiplayer):** Der Welcome-Screen fragt **Singleplayer oder Multiplayer**; nur der Multiplayer-Knopf verbindet sich (mit Spinner, bis der Raum eingerichtet ist), der Einzelspieler benutzt SpacetimeDB gar nicht. Die Verbindung geht mit der Datenbank `backroom-billard-3000`; angemeldet wird mit dem **Konto** (`create_account` oder `enter` mit dem Schlüssel), den Raum betritt der Gast mit `join_room` erst nach der Wahl an der Bar (siehe unten und [`welcome-screen.md`](welcome-screen.md)). Das Login dieses Browsers (Token) und sein Schlüssel liegen im `localStorage`.
 - **Lebenszeichen und Ort:** `heartbeat` alle 2 s. In der **freien Kamera** schickt jeder alle 0,1 s Ort und Blick der Kamera (`set_presence`); wechselt er zurück zur Spielerkamera, einmal „weg“.
 - **Gesichter der anderen:** Jeder andere Gast erscheint als Gesicht (`face-ball.js`, mit Flagge und Name) **dort, wo seine freie Kamera ist**, mit seiner Blickrichtung, weich nachgeführt. Ist er in der Spielerkamera oder weg, ist sein Gesicht nicht zu sehen. Das eigene Gesicht schwebt weiter neben der Bar (nur zur Ansicht).
 - **Ohne Verbindung:** Im Multiplayer erscheint auf dem Welcome-Screen eine Meldung, und man kann es noch einmal versuchen oder allein spielen; ein Einzelspieler merkt nichts davon. Während des Spiels sind die Aufrufe abgesichert (ein Fehler beim Senden stört das Spiel nicht).
@@ -166,9 +166,9 @@ Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
 - **Hocker belegt:** Jeder sieht, wer sitzt (der Knopf zeigt „Klavier besetzt (Anna)“); eine Zeitgrenze für Stille gibt es nicht (nur die 10 Sekunden ohne Verbindung). Mit der Maus oder der Tastatur spielt im Mehrspieler nur, wer sitzt.
 - **Lautstärke:** dieselbe Kurve wie beim Radio (voll bis 2,5 m, danach leiser).
 
-## Aufräumliste (abdichten, noch offen)
+## Aufräumliste (abdichten)
 
-Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** behoben, solange es hier steht.
+Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Punkte 9, 14, 15, 17 und die Frist für den Stoß.
 
 **A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“) – behoben, siehe unten**
 1. *(behoben)* Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
@@ -183,33 +183,33 @@ Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** beh
 6. *(behoben)* `end_shot`: die Listen (`restIds`, `restX`, `restZ`, `pocketed`) haben keine Längen- oder Wertprüfung (Kugel 1 bis 15, gleich lange Listen, höchstens 16 Einträge, endliche Zahlen).
 7. *(behoben)* `set_kit`, `set_aim`, `set_presence`, `take_shot`: Texte (Getränk, Marke) und Zahlen (NaN, unendlich, riesig) werden nicht geprüft.
 8. *(behoben)* Aufrufhäufigkeit: nichts begrenzte `set_aim`, `set_presence`, `set_kit`, `play_keys`, `set_stake` (Dauerfeuer). Grenze je Gast und Sekunde.
-9. *(offen, bewusst)* `set_profile`: der Beitritt mit gleichem Namen ist möglich (zwei „Anna M. Meier“); Anzeige bleibt eindeutig durch die Flagge, aber prüfen, ob das reicht.
+9. *(offen, bewusst)* Der Beitritt mit gleichem Namen ist möglich (zwei „Anna M. Meier“); Anzeige bleibt eindeutig durch die Flagge, aber prüfen, ob das reicht.
 
 *Umsetzung von B:* Häppchen höchstens 32 kB und Nummer unter 1000. `end_shot` nimmt nur Listen an, die ein Tisch geben kann (eindeutige Kugelnummern 1 bis 15 versenkt, 0 bis 15 liegend, je ein Platz, endliche Zahlen); Zahlen aus `take_shot`, `set_aim` und `set_presence` müssen endlich und kleiner als 10 000 sein; das Kit nur mit Getränk aus Kleinbuchstaben, höchstens 10 Schlucken, Packung unter 10 und höchstens 30 Zigaretten. **Aufrufgrenze:** höchstens 100 Aufrufe je Gast und Sekunde (ein Gast braucht etwa 45); zu viele werden verworfen (in der privaten Tabelle `rate` gezählt, sie erscheint nicht im Client). Ungültige Zahlen in `set_aim`, `set_presence` und `set_kit` werden still verworfen, bei `take_shot` und `end_shot` kommt eine Fehlermeldung.
 
 *Bekannte Lücke:* Ein Schütze, der nach `take_shot` nie `end_shot` meldet, hält das Spiel an (die Verbindung bleibt ja da). Eine **Frist für den Stoß** (z. B. 60 Sekunden, dann verliert der Schütze) fehlt noch.
 
-**C. Geld**
-10. Das Geld liegt im Browser (`set_money`): jeder kann sich beliebig viel melden, und damit Einsatz und Gebote. Ein Konto auf dem Server wäre der richtige Weg; bis dahin: obere Grenze, und `set_money` nur in kleinen Schritten.
-11. Der **Einsatz wird beim Start abgezogen und dem Sieger beim Spielende gutgeschrieben, beides im Browser**. Lädt der Sieger zwischen Spielende und Meldung neu, ist der Gewinn weg; wer mitten im Spiel neu lädt, hat den Einsatz schon gezahlt. Auf den Server verlagern (Treuhand in der Datenbank) oder zumindest das Spielende mit der Auszahlung als „offener Gewinn“ merken.
-12. Während des Einsatz-Fensters kann man Geld ausgeben (Getränk, Zigaretten): der Einsatz wird beim Start auf das Geld begrenzt, aber der Browser zieht dann gegebenenfalls zu viel ab (`wallet.spend` schlägt fehl). Prüfen.
+**C. Geld – behoben, siehe „Geld im Mehrspieler“**
+10. *(behoben mit dem Konto auf dem Server)* Das Geld liegt im Browser (`set_money`): jeder kann sich beliebig viel melden, und damit Einsatz und Gebote. Ein Konto auf dem Server wäre der richtige Weg; bis dahin: obere Grenze, und `set_money` nur in kleinen Schritten.
+11. *(behoben: der Server hält die Treuhand)* Der **Einsatz wird beim Start abgezogen und dem Sieger beim Spielende gutgeschrieben, beides im Browser**. Lädt der Sieger zwischen Spielende und Meldung neu, ist der Gewinn weg; wer mitten im Spiel neu lädt, hat den Einsatz schon gezahlt. Auf den Server verlagern (Treuhand in der Datenbank) oder zumindest das Spielende mit der Auszahlung als „offener Gewinn“ merken.
+12. *(behoben: nur der Server rechnet)* Während des Einsatz-Fensters kann man Geld ausgeben (Getränk, Zigaretten): der Einsatz wird beim Start auf das Geld begrenzt, aber der Browser zieht dann gegebenenfalls zu viel ab (`wallet.spend` schlägt fehl). Prüfen.
 
 **D. Der Client**
-13. `onGameRow` ruft `tellTableNow()` ohne Prüfung auf: nach einem Verbindungsabbruch ist es `null`.
+13. *(behoben)* `onGameRow` ruft `tellTableNow()` ohne Prüfung auf: nach einem Verbindungsabbruch ist es `null`.
 14. Die Meldungen „X ist beigetreten / gegangen“ kommen auch für Geister (siehe A) und für jedes Neuladen eines Gastes in Folge; bündeln oder bei sehr schnellen Wechseln unterdrücken.
 15. Ein abgelehnter Aufruf (die Datenbank sagt Nein) steht nur in der Konsole. Für Einsatz, Tischwette und Hocker eine kurze Meldung im Spiel anzeigen.
-16. Stand nach einem Verbindungsabbruch mit automatischem Wiederverbinden: `roster`, Gesichter und Tabellen werden geleert, der Beitritt (`set_profile`) wird aber nicht neu gesendet; der Gast ist dann ein Geist aus seiner Sicht.
+16. *(behoben: der Client meldet sich mit dem Schlüssel neu an und betritt den Raum wieder)* Stand nach einem Verbindungsabbruch mit automatischem Wiederverbinden: `roster`, Gesichter und Tabellen werden geleert, der Beitritt (`set_profile`) wird aber nicht neu gesendet; der Gast ist dann ein Geist aus seiner Sicht.
 17. `leave_table` ist im Client nicht angeschlossen (kein Knopf zum Aufstehen vom Tisch).
 
 **E. Aufräumen**
-18. Docs: der Abschnitt „Vorbereitet: das Datenbank-Modul“ in diesem Dokument sagt noch, das Spiel benutze es nicht.
+18. *(behoben)* Docs: der Abschnitt über das Datenbank-Modul war veraltet.
 19. *(behoben)* `winnerSeat` wurde im selben Schritt zurückgesetzt, in dem ein Spiel durch Timeout oder Weggang endete: Der Client bekam **kein „Spielende“**, `mpGame.running` blieb hängen, das Rack ließ sich nicht neu aufbauen (auch nicht über die Einstellungen), und die Kugeln blieben liegen. Jetzt bleibt der Sieger in `game`, bis das nächste Spiel beginnt, und der Client meldet das Ende bei jedem Wechsel von „läuft“ zu „läuft nicht“.
 
-## Geld im Mehrspieler: ein Konto auf dem Server (Vorschlag, noch nicht umgesetzt)
+## Geld im Mehrspieler: ein Konto auf dem Server (umgesetzt)
 
 Einzelspiel und Mehrspieler haben **getrennte Börsen mit je 15.000 $ am Anfang**. Das Einzelspiel bleibt wie heute im Browser (offline). Im Mehrspieler führt der **Server das Geld**, der Browser zeigt es nur an.
 
-- **Konto:** Tabelle `account` (privat): Identität (der Token im Browser) und Geld. Die Zeile entsteht beim ersten Beitritt mit 15.000 $; der Client sagt **nie mehr**, wie viel Geld er hat (`set_money` und der Geld-Parameter von `set_profile` entfallen). `player.money` ist nur noch die Anzeige für die anderen und wird vom Server gesetzt. Das Konto bleibt, auch wenn der Gast den Raum verlässt.
+- **Konto:** Tabelle `account` (privat): Schlüssel, Geld, Name, Land, Gesicht. Die Zeile entsteht bei der Anlage (`create_account`) mit 15.000 $; die Verbindung gehört über `link` (privat) zu genau einem Konto. Der Client sagt **nie**, wie viel Geld er hat. `player.money` (und `lobby.money`) ist nur die Anzeige und wird vom Server gesetzt. Das Konto bleibt, auch wenn der Gast den Raum verlässt. Ein Konto hat höchstens **100 Millionen $** (`MAX_MONEY`).
 - **Kaufen:** Getränke an der Karte, die neue Packung und das erste Getränk und die erste Packung vom Welcome-Screen laufen über eine Aktion `buy` mit dem Namen der Ware; **die Preise stehen im Modul** (Bier 8 $ … Packung 75 $), der Server zieht ab und lehnt ab, wenn das Geld nicht reicht. Der Client zeigt das Getränk sofort (er kennt sein Geld aus der Anzeige) und korrigiert, wenn der Server Nein sagt.
 - **Einsatz (Treuhand):** Beim Spielstart zieht der **Server** den Einsatz bei beiden ab, am Spielende schreibt er dem Sieger beide Beträge gut (auch bei Timeout oder Aufgabe). Der Browser rechnet nichts mehr. Ein Neuladen mitten im Spiel oder nach dem Spielende kostet nichts mehr.
 - **Anzeige:** Das Geld in der Anzeige oben ist im Mehrspieler die Zahl des Servers; im Einzelspiel die des Browsers.
@@ -231,9 +231,9 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen sc
 3. Zufälliges und zeitabhängiges (Cue-Schwanken, `performance.now`) wird ohnehin **in den Stoßdaten** festgehalten, damit die Cue-Animation bei allen gleich läuft.
 4. Danach erst SpacetimeDB (Tabellen, `take_shot`, Zeitabgleich, Häppchen) und die Anzeige der anderen Spieler.
 
-## Vorbereitet: das Datenbank-Modul
+## Das Datenbank-Modul
 
-Das SpacetimeDB-Modul liegt in [`spacetime/`](../spacetime/README.md) (TypeScript, `spacetimedb` 2.14; prüft mit `npm run check`): die Tabellen (Spieler, Spiel, Kugeln, Stoß, Häppchen, Zielen, Einsatz, Gebote) und die Aktionen mit den hier festgelegten Regeln (Foul, schwarze 8, Spielerwechsel, Tischwette, 10-s-Frist). Die Datenbank auf Maincloud heißt **`backroom-billard-3000`** (Konto `liquid3logic`). Das Modul ist **auf Maincloud veröffentlicht** (nach jeder Änderung neu veröffentlichen) (Dashboard: <https://spacetimedb.com/backroom-billard-3000>; wer es ändert, veröffentlicht es mit den Schritten in `spacetime/README.md` neu), das Spiel benutzt es **noch nicht**.
+Das SpacetimeDB-Modul liegt in [`spacetime/`](../spacetime/README.md) (TypeScript, `spacetimedb` 2.14; prüft mit `npm run check`): die Tabellen und Aktionen (Konto, Gäste, Spiel, Kugeln, Stoß, Häppchen, Zielen, Einsatz, Gebote, Flügel, Rangliste) mit den hier festgelegten Regeln (Foul, schwarze 8, Spielerwechsel, Einsatz, Tischwette, 10-s-Frist). Die Datenbank auf Maincloud heißt **`backroom-billard-3000`** (Konto `liquid3logic`; Dashboard: <https://spacetimedb.com/backroom-billard-3000>). **Nach jeder Änderung des Moduls** wird es mit den Schritten in `spacetime/README.md` neu veröffentlicht und die Bindings (`src/module_bindings`) werden neu erzeugt (`spacetime generate`, Befehl dort).
 
 ## Offene Fragen
 
