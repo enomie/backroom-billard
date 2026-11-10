@@ -97,6 +97,7 @@ export default {
   "game.mp.black-early": "{loser} hat die schwarze 8 zu früh versenkt. {winner} gewinnt.",
   "game.mp.black-last": "{winner} hat die schwarze 8 zuletzt versenkt und gewinnt.",
   "game.mp.timeout": "{loser} hat 10 Sekunden lang nicht geantwortet. {winner} gewinnt.",
+  "game.mp.slow": "{loser} hat den Stoß nicht in 3 Minuten beendet. {winner} gewinnt.",
   "game.mp.left": "{loser} hat den Tisch verlassen. {winner} gewinnt.",
   "game.again": "Nochmal",
   "room.gameStart": "Das Spiel beginnt: {name} stößt zuerst",

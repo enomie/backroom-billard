@@ -45,7 +45,7 @@ Regeln im Modul: Foul oder zu früh versenkte schwarze 8 verliert der Schütze, 
 
 ## Aufräumen von selbst
 
-Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und freie Plätze gehen an die Gäste, die **wirklich da** sind (in der Reihenfolge des Kommens); wer sitzt, behält seinen Platz. Sitzen zwei, öffnet sich das Einsatz-Fenster (Zustand 2).
+Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); ein Schütze, der seinen Stoß **3 Minuten** lang nicht als beendet meldet, verliert ebenfalls (Grund `slow`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und freie Plätze gehen an die Gäste, die **wirklich da** sind (in der Reihenfolge des Kommens); wer sitzt, behält seinen Platz. Sitzen zwei, öffnet sich das Einsatz-Fenster (Zustand 2).
 
 ## Prüfen
 

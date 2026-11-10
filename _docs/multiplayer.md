@@ -168,7 +168,7 @@ Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
 
 ## Aufräumliste (abdichten)
 
-Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Punkte 9, 14, 15, 17 und die Frist für den Stoß.
+Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Punkte 9, 14, 15 und 17.
 
 **A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“) – behoben, siehe unten**
 1. *(behoben)* Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
@@ -187,7 +187,7 @@ Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Pun
 
 *Umsetzung von B:* Häppchen höchstens 32 kB und Nummer unter 1000. `end_shot` nimmt nur Listen an, die ein Tisch geben kann (eindeutige Kugelnummern 1 bis 15 versenkt, 0 bis 15 liegend, je ein Platz, endliche Zahlen); Zahlen aus `take_shot`, `set_aim` und `set_presence` müssen endlich und kleiner als 10 000 sein; das Kit nur mit Getränk aus Kleinbuchstaben, höchstens 10 Schlucken, Packung unter 10 und höchstens 30 Zigaretten. **Aufrufgrenze:** höchstens 100 Aufrufe je Gast und Sekunde (ein Gast braucht etwa 45); zu viele werden verworfen (in der privaten Tabelle `rate` gezählt, sie erscheint nicht im Client). Ungültige Zahlen in `set_aim`, `set_presence` und `set_kit` werden still verworfen, bei `take_shot` und `end_shot` kommt eine Fehlermeldung.
 
-*Bekannte Lücke:* Ein Schütze, der nach `take_shot` nie `end_shot` meldet, hält das Spiel an (die Verbindung bleibt ja da). Eine **Frist für den Stoß** (z. B. 60 Sekunden, dann verliert der Schütze) fehlt noch.
+*Frist für den Stoß (behoben):* Ein Schütze, der nach `take_shot` nie `end_shot` meldet, hielt das Spiel an (die Verbindung bleibt ja da). Jetzt verliert er nach **3 Minuten** (`SHOT_LIMIT_MICROS`, Grund `slow`, Meldung „hat den Stoß nicht in 3 Minuten beendet“); die Prüfung läuft im `sweep`, also alle 2 s von den Clients. Beide bleiben sitzen (wie nach einem Foul).
 
 **C. Geld – behoben, siehe „Geld im Mehrspieler“**
 10. *(behoben mit dem Konto auf dem Server)* Das Geld liegt im Browser (`set_money`): jeder kann sich beliebig viel melden, und damit Einsatz und Gebote. Ein Konto auf dem Server wäre der richtige Weg; bis dahin: obere Grenze, und `set_money` nur in kleinen Schritten.

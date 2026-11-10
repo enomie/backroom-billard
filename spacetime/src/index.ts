@@ -11,6 +11,7 @@ const SPECTATOR = 0;
 const MIN_STAKE = 100; // the least a stake or a table bet can be (whoever has less may put in all he has)
 const STAKE_STEP = 10;
 const TIMEOUT_MICROS = 10_000_000n; // a player without a sign of life for 10 s has lost
+const SHOT_LIMIT_MICROS = 180_000_000n; // a shot that is not reported finished after 3 minutes is lost by the shooter
 const GAME_WAITING = 0; // no (or one) player: nobody plays without a bid
 const GAME_PLAYING = 1;
 const GAME_STAKING = 2; // both seats are taken: the two set the stake and press Ready
@@ -57,7 +58,7 @@ const spacetimedb = schema({
       shotSeq: t.u32(), // the number of the last shot
       shotRunning: t.bool(),
       winnerSeat: t.u8(), // 0 = none yet
-      reason: t.string(), // 'foul' | 'black-early' | 'black-last' | 'timeout' | 'left' | ''
+      reason: t.string(), // 'foul' | 'black-early' | 'black-last' | 'timeout' | 'slow' | 'left' | ''
       stake: t.u32(), // what each of the two put in (the winner of the game takes both); of the last game until the next one begins
     }
   ),
@@ -806,6 +807,11 @@ function sweep(ctx: Ctx) {
   if (game.state === GAME_PLAYING) {
     const silent = [...ctx.db.player.iter()].find((p) => p.seat !== SPECTATOR && ctx.timestamp.microsSinceUnixEpoch - p.lastSeen.microsSinceUnixEpoch > TIMEOUT_MICROS);
     if (silent) finishGame(ctx, silent.seat === 1 ? 2 : 1, 'timeout');
+    else if (game.shotRunning) {
+      // the shooter is here but never says that his shot is over: after 3 minutes he has lost (the one who is up is the shooter)
+      const shot = ctx.db.shot.seq.find(game.shotSeq);
+      if (shot && ctx.timestamp.microsSinceUnixEpoch - shot.startedAt.microsSinceUnixEpoch > SHOT_LIMIT_MICROS) finishGame(ctx, game.turnSeat === 1 ? 2 : 1, 'slow');
+    }
     return;
   }
   seatTheFirstTwo(ctx);

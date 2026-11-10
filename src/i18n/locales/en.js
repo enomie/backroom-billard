@@ -97,6 +97,7 @@ export default {
   "game.mp.black-early": "{loser} pocketed the black 8 too early. {winner} wins.",
   "game.mp.black-last": "{winner} pocketed the black 8 last and wins.",
   "game.mp.timeout": "{loser} did not answer for 10 seconds. {winner} wins.",
+  "game.mp.slow": "{loser} did not finish the shot in 3 minutes. {winner} wins.",
   "game.mp.left": "{loser} left the table. {winner} wins.",
   "game.again": "Play again",
   "room.gameStart": "The game starts: {name} shoots first",
