@@ -108,6 +108,8 @@ export default {
   "settings.buyMoney": "Spielgeld kaufen",
   "settings.changeProfile": "Name oder Gesicht ändern",
   "settings.soon": "Kommt später.",
+  "ranking.title": "Weltrangliste",
+  "ranking.loading": "Lädt …",
   "settings.name": "Name",
   "settings.money": "Guthaben",
   "start.present": "PRÄSENTIERT",

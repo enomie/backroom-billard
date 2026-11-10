@@ -974,6 +974,74 @@ html {
   display: none;
 }
 
+/* The world ranking in the settings panel */
+.ranking {
+  margin-bottom: 0.8rem;
+}
+
+.ranking[hidden] {
+  display: none;
+}
+
+.ranking__list {
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.ranking__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.3rem;
+  color: #d4d4d8;
+}
+
+.ranking__row.is-me {
+  border-radius: 6px;
+  background: rgba(253, 230, 138, 0.12);
+  color: var(--amber-200);
+}
+
+.ranking__place {
+  flex: none;
+  width: 2.2rem;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+.ranking__flag {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+}
+
+.ranking__flag[hidden] {
+  display: none;
+}
+
+.ranking__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking__money {
+  flex: none;
+  font-weight: 700;
+}
+
+.ranking__gap {
+  padding: 0.1rem 0.3rem 0.1rem 2.9rem;
+  color: var(--text-muted);
+}
+
 /* The stake over the VS of the match panel, and the button of the spectators for the table bet */
 .match__stake {
   margin-bottom: 0.15rem;

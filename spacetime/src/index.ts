@@ -22,6 +22,8 @@ const MAX_MONEY = 100_000_000; // no account holds more than this
 const PRICES: Record<string, number> = { beer: 8, 'wine-red': 14, 'wine-white': 14, whiskey: 18, 'white-russian': 16, pack: 75 };
 /** The secret key of an account: 20 characters of a 32 letter alphabet (no I, O, 0, 1), in five groups of four. The browser makes it up. */
 const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
+const RANKING_SIZE = 100; // the world ranking shows the richest hundred
+const RANKING_EVERY_MICROS = 5_000_000n; // and is worked out at most every 5 s
 const RATE_WINDOW_MICROS = 1_000_000n; // a guest may call this many reducers per second (the busiest client sends about 45)
 const RATE_MAX = 100;
 const MAX_CHUNK_BYTES = 32_768; // a piece of a shot recording is about 7 kB
@@ -187,6 +189,36 @@ const spacetimedb = schema({
       country: t.string(),
       face: t.string(),
       money: t.u32(),
+    }
+  ),
+
+  /** The world ranking: the richest accounts, by money (the first hundred). Worked out by refresh_ranking. */
+  ranking: table(
+    { public: true },
+    {
+      place: t.u32().primaryKey(),
+      name: t.string(),
+      country: t.string(),
+      money: t.u32(),
+    }
+  ),
+
+  /** The place of each logged-in guest in the world ranking (his own line below the list when he is not among the first hundred). */
+  standing: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+      place: t.u32(),
+      money: t.u32(),
+    }
+  ),
+
+  /** When the ranking was worked out last (private, one row). */
+  rankingMeta: table(
+    {},
+    {
+      id: t.u8().primaryKey(),
+      at: t.timestamp(),
     }
   ),
 
@@ -366,6 +398,40 @@ function changeMoney(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identit
   const waiting = ctx.db.lobby.identity.find(identity);
   if (waiting) ctx.db.lobby.identity.update({ ...waiting, money });
 }
+
+/**
+ * Work out the world ranking (at most every 5 s, whoever asks): the accounts that a browser is logged in to (an abandoned one is not
+ * listed), by money, the older account first when equal. The first hundred go into `ranking`, every logged-in guest gets his place in `standing`.
+ */
+export const refresh_ranking = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
+  if (!ctx.db.link.identity.find(ctx.sender)) throw new SenderError('logged-in-elsewhere');
+  const meta = ctx.db.rankingMeta.id.find(1);
+  const now = ctx.timestamp.microsSinceUnixEpoch;
+  if (meta && now - meta.at.microsSinceUnixEpoch < RANKING_EVERY_MICROS) return;
+  if (meta) ctx.db.rankingMeta.id.update({ id: 1, at: ctx.timestamp });
+  else ctx.db.rankingMeta.insert({ id: 1, at: ctx.timestamp });
+  const links = [...ctx.db.link.iter()];
+  const owner = new Map(links.map((l) => [l.key, l.identity]));
+  const listed = [...ctx.db.account.iter()]
+    .filter((a) => owner.has(a.key))
+    .sort((a, b) => b.money - a.money || Number(a.createdAt.microsSinceUnixEpoch - b.createdAt.microsSinceUnixEpoch));
+  listed.forEach((a, i) => {
+    const place = i + 1;
+    const identity = owner.get(a.key)!;
+    const own = ctx.db.standing.identity.find(identity);
+    if (!own) ctx.db.standing.insert({ identity, place, money: a.money });
+    else if (own.place !== place || own.money !== a.money) ctx.db.standing.identity.update({ identity, place, money: a.money });
+    if (place > RANKING_SIZE) return;
+    const row = { place, name: a.name, country: a.country, money: a.money };
+    const old = ctx.db.ranking.place.find(place);
+    if (!old) ctx.db.ranking.insert(row);
+    else if (old.name !== row.name || old.country !== row.country || old.money !== row.money) ctx.db.ranking.place.update(row);
+  });
+  for (const row of [...ctx.db.ranking.iter()]) if (row.place > listed.length) ctx.db.ranking.place.delete(row.place);
+  const linked = new Set(links.map((l) => l.identity.toHexString()));
+  for (const own of [...ctx.db.standing.iter()]) if (!linked.has(own.identity.toHexString())) ctx.db.standing.identity.delete(own.identity);
+});
 
 /** Buy a drink or a pack of cigarettes at the bar: the price is the module's, the money is taken from the account or the call is refused. */
 export const buy = spacetimedb.reducer({ item: t.string() }, (ctx, { item }) => {

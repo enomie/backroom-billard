@@ -108,6 +108,8 @@ export default {
   "settings.buyMoney": "Buy play money",
   "settings.changeProfile": "Change name or face",
   "settings.soon": "Coming later.",
+  "ranking.title": "World ranking",
+  "ranking.loading": "Loading…",
   "settings.name": "Name",
   "settings.money": "Money",
   "start.present": "PRESENT",

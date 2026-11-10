@@ -98,6 +98,21 @@ export const Piano = __t.object("Piano", {
 });
 export type Piano = __Infer<typeof Piano>;
 
+export const Ranking = __t.object("Ranking", {
+  place: __t.u32(),
+  name: __t.string(),
+  country: __t.string(),
+  money: __t.u32(),
+});
+export type Ranking = __Infer<typeof Ranking>;
+
+export const Standing = __t.object("Standing", {
+  identity: __t.identity(),
+  place: __t.u32(),
+  money: __t.u32(),
+});
+export type Standing = __Infer<typeof Standing>;
+
 export const Presence = __t.object("Presence", {
   identity: __t.identity(),
   x: __t.f64(),

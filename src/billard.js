@@ -38,6 +38,7 @@ import { createPlayerState } from "./player-state.js";
 import { SWAY_PITCH_OFFSET } from "./player-constants.js";
 import { createWallet } from "./wallet.js";
 import { createStakeWindow } from "./stake-window.js";
+import { createRankingPanel } from "./ranking-panel.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
@@ -217,6 +218,7 @@ let packs = null; // the cigarette packs (cigarette-pack.js)
 let lighters = null; // the two lighters (lighter.js)
 let wallet = null; // the player's money (wallet.js)
 let stakeWindow = null; // the stake window and the table bet (stake-window.js)
+let rankingPanel = null; // the world ranking in the settings (ranking-panel.js)
 let drinkMenu = null; // the drinks popover (drink-menu.js)
 let settings = null; // the settings overlay (settings.js)
 let drinking = null; // sips from the player glasses with the R key (drinking.js)
@@ -446,6 +448,8 @@ function setupLightingAndRoom() {
     onMultiplayerGame
   );
   recorder = createShotRecorder((index, bytes) => multiplayer.pushChunk(index, bytes, mpShot?.seq));
+  rankingPanel = createRankingPanel(() => multiplayer.refreshRanking(), () => ({ name: settingsName, country: matchMe.country }));
+  document.getElementById("settings-ranking").addEventListener("click", () => rankingPanel.toggle());
   stakeWindow = createStakeWindow({
     onStake: (amount) => multiplayer.setStake(amount),
     onReady: (ready) => multiplayer.setReady(ready),
@@ -1565,6 +1569,7 @@ function renderDynamicTexts() {
   renderNote();
   renderMatch();
   renderGameOver();
+  rankingPanel?.render();
   document.querySelectorAll(".pocketed-ball").forEach((dot) => {
     dot.title = t("pocketed.ball", { n: dot.dataset.ballId });
   });
@@ -2173,6 +2178,10 @@ function onMultiplayerGame(e) {
   if (e.kind === "shotStart") {
     replay.begin();
     watchedShot = true; // I have seen a game being played (not only found its remains)
+    return;
+  }
+  if (e.kind === "ranking") {
+    rankingPanel.setData(e);
     return;
   }
   if (e.kind === "money") {

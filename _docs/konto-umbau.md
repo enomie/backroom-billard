@@ -62,7 +62,7 @@
 - Dummy-Knöpfe **„Spielgeld kaufen“** und **„Name oder Gesicht ändern“** (tun nichts, nur ein Hinweis „kommt später“).
 - **Prüfen:** Konto auf 50 $ setzen (Test im Modul oder per Verlust), Karte, Trinken, Setzen.
 
-### 6. Rangliste
+### 6. Rangliste – **umgesetzt** (Knopf im Einstellungs-Panel)
 
 - Modul: `refresh_ranking` berechnet die ersten 100 nach Geld (Gleichstand: wer zuerst Konto hatte) und die eigene Zeile jedes Gasts; frühestens alle paar Sekunden neu.
 - Client: Panel mit der Liste (Platz, Flagge, Name, Geld). Ist der Spieler nicht unter den ersten 100: eine Zeile „…“ und darunter seine Zeile „Platz 126“. Zu erreichen über einen Knopf (Ort noch festlegen).

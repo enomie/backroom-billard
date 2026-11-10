@@ -45,6 +45,7 @@ import LeavePianoReducer from "./leave_piano_reducer";
 import LeaveTableReducer from "./leave_table_reducer";
 import PlaceBidReducer from "./place_bid_reducer";
 import PlayKeysReducer from "./play_keys_reducer";
+import RefreshRankingReducer from "./refresh_ranking_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
@@ -70,8 +71,10 @@ import PianoRow from "./piano_table";
 import PlayerRow from "./player_table";
 import PocketRow from "./pocket_table";
 import PresenceRow from "./presence_table";
+import RankingRow from "./ranking_table";
 import ShotRow from "./shot_table";
 import ShotChunkRow from "./shot_chunk_table";
+import StandingRow from "./standing_table";
 import StakeRow from "./stake_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -199,6 +202,17 @@ const tablesSchema = __schema({
       { name: 'presence_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PresenceRow),
+  standing: __table({
+    name: 'standing',
+    indexes: [
+      { accessor: 'identity', name: 'standing_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'standing_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, StandingRow),
   stake: __table({
     name: 'stake',
     indexes: [
@@ -210,6 +224,17 @@ const tablesSchema = __schema({
       { name: 'stake_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, StakeRow),
+  ranking: __table({
+    name: 'ranking',
+    indexes: [
+      { accessor: 'place', name: 'ranking_place_idx_btree', algorithm: 'btree', columns: [
+        'place',
+      ] },
+    ],
+    constraints: [
+      { name: 'ranking_place_key', constraint: 'unique', columns: ['place'] },
+    ],
+  }, RankingRow),
   shot: __table({
     name: 'shot',
     indexes: [
@@ -250,6 +275,7 @@ const reducersSchema = __reducers(
   __reducerSchema("leave_table", LeaveTableReducer),
   __reducerSchema("place_bid", PlaceBidReducer),
   __reducerSchema("play_keys", PlayKeysReducer),
+  __reducerSchema("refresh_ranking", RefreshRankingReducer),
   __reducerSchema("push_chunk", PushChunkReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),

@@ -262,6 +262,26 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         };
         conn.db.lobby.onInsert((_ctx, row) => onLobby(row));
         conn.db.lobby.onUpdate((_ctx, _old, row) => onLobby(row));
+        // the world ranking: the whole list and my own place, told after the changes of one update have arrived
+        let rankingQueued = false;
+        const tellRanking = () => {
+          if (rankingQueued) return;
+          rankingQueued = true;
+          queueMicrotask(() => {
+            rankingQueued = false;
+            const own = [...conn.db.standing.iter()].find((s) => hex(s.identity) === myId);
+            onGame({
+              kind: "ranking",
+              rows: [...conn.db.ranking.iter()].map((r) => ({ place: r.place, name: r.name, country: r.country, money: r.money })).sort((a, b) => a.place - b.place),
+              mine: own ? { place: own.place, money: own.money } : null,
+            });
+          });
+        };
+        for (const table of [conn.db.ranking, conn.db.standing]) {
+          table.onInsert(tellRanking);
+          table.onUpdate(tellRanking);
+          table.onDelete(tellRanking);
+        }
         conn.db.presence.onInsert((_ctx, row) => onPresence(row));
         conn.db.presence.onUpdate((_ctx, _old, row) => onPresence(row));
         conn.db.presence.onDelete((_ctx, row) => {
@@ -375,7 +395,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby, tables.ranking, tables.standing]);
         runLogin(conn); // (also after a lost connection: log in again, and come back into the room if he was in it)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -412,6 +432,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       if (!joined || text === lastHand) return;
       lastHand = text;
       call(() => connection?.reducers.setHand({ drinking: hand.drinking, smoking: hand.smoking }));
+    },
+    /** Ask the database to work the world ranking out (it does at most every 5 s). */
+    refreshRanking() {
+      call(() => connection?.reducers.refreshRanking());
     },
     /** Buy a drink (its glass kind) or "pack" at the bar: the database takes the price from the account, or says no (then the money is shown as the database has it). */
     buy(item) {
