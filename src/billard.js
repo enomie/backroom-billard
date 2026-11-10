@@ -233,6 +233,8 @@ let candles = null; // candle holders on the tables (candle.js)
 let piano = null; // grand piano, can be played with the mouse and the keys (piano.js)
 /** "off", "entering" (the camera moves to the stool), "on" (seated, playing), "leaving" (back to where it was). */
 let pianoMode = "off";
+let pianoMine = false; // multiplayer: the database says that I sit at the piano
+let pianoSitter = null; // multiplayer: the name of the guest who sits there (not me), or null
 const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), toQuat: new THREE.Quaternion(), t: 0 };
 /** The flight of the camera to the other view after C: from where it was, to the new view (fixed for the free camera, followed each frame for the cue camera). */
 const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
@@ -426,7 +428,7 @@ function setupLightingAndRoom() {
   createWallLamps(scene);
   createDoor(scene); // the (dummy) door in the wall behind the player at the start
   createNeonSign(scene); // the neon sign on the wall opposite
-  piano = createPiano(scene); // the grand piano beside it
+  piano = createPiano(scene, (midis) => pianoMine && multiplayer.playKeys(midis)); // the grand piano beside it (the keys I hold go to the others)
   createFurniture(scene);
   candles = createCandles(scene);
   ashtrays = createAshtrays(scene);
@@ -1068,6 +1070,7 @@ function setupControls() {
   }
   /** A press on a piano key plays the note (true if a key was hit). */
   function tryPianoPress(e) {
+    if (mpMode && !pianoMine) return false; // multiplayer: only the one who sits there plays
     return !!piano && piano.pressAt(camera, pointerNdc(e));
   }
 
@@ -1327,6 +1330,8 @@ function togglePiano() {
 
 function enterPiano() {
   if (!piano || cameraMode !== "free" || pianoMode !== "off" || !piano.isNear(camera)) return;
+  if (mpMode && (pianoSitter || (mpGame.running && mpGame.myTurn))) return; // somebody sits there, or I am up at the table
+  if (mpMode) multiplayer.sitPiano();
   heldKeys.clear();
   pianoReturn.position.copy(camera.position);
   pianoReturn.yaw = freeYaw;
@@ -1341,6 +1346,7 @@ function enterPiano() {
 function leavePiano() {
   if (pianoMode !== "on" && pianoMode !== "entering") return;
   piano.releaseAll();
+  if (mpMode) multiplayer.leavePiano();
   startPianoMove(pianoReturn.position, new THREE.Quaternion().setFromEuler(new THREE.Euler(pianoReturn.pitch, pianoReturn.yaw, 0, "YXZ")), "leaving");
 }
 
@@ -1375,7 +1381,10 @@ function renderPianoButton() {
   const cap = seated ? "Esc" : "F"; // F sits down, Esc (or the button) gets up
   const capElement = document.getElementById("piano-cap");
   if (capElement.textContent !== cap) capElement.textContent = cap;
-  const label = t(seated ? "piano.leave" : "piano.play");
+  const taken = !seated && !!pianoSitter;
+  const label = taken ? t("piano.taken", { name: pianoSitter }) : t(seated ? "piano.leave" : "piano.play");
+  const button = document.getElementById("btn-piano");
+  if (button.disabled !== taken) button.disabled = taken; // (somebody else sits there)
   const labelElement = document.getElementById("piano-label");
   if (labelElement.textContent !== label) labelElement.textContent = label; // (called every frame: only touch the page on a change)
 }
@@ -2166,6 +2175,16 @@ function onMultiplayerGame(e) {
   if (e.kind === "shotStart") {
     replay.begin();
     watchedShot = true; // I have seen a game being played (not only found its remains)
+    return;
+  }
+  if (e.kind === "piano") {
+    // who sits at the grand piano and what he plays: it sounds from the piano for everybody; if the database stood me up (my turn), I get up
+    const wasMine = pianoMine;
+    pianoMine = e.mine;
+    pianoSitter = e.sitter && !e.mine ? e.sitter : null;
+    piano.setRemoteKeys(e.mine ? [] : e.midis);
+    if (!e.mine && (wasMine || e.sitter) && (pianoMode === "on" || pianoMode === "entering")) leavePiano();
+    renderPianoButton();
     return;
   }
   if (e.kind === "table") {

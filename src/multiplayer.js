@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { DbConnection, tables } from "./module_bindings/index.ts";
 import { createFaceBall } from "./face-ball.js";
 import { isFace } from "./face.js";
+import { encodeKeys, decodeKeys } from "./piano-keys.js";
 import { displayName } from "./name-rules.js";
 import { DEFAULT_COUNTRY } from "./country-list.js";
 import {
@@ -279,6 +280,11 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         };
         // who pocketed which ball (the two lists above the table): the whole list each time something changes
         const tellPockets = () => onGame({ kind: "pockets", rows: [...conn.db.pocket.iter()].map((p) => ({ ball: p.ballId, seat: p.seat })) });
+        // the grand piano: who sits there and which keys are down (a guest who comes later gets the state at once)
+        const tellPiano = (row) =>
+          onGame({ kind: "piano", sitter: row.sitter ? (roster.get(hex(row.sitter))?.name ?? "") : null, mine: !!row.sitter && hex(row.sitter) === myId, midis: decodeKeys(row.keys) });
+        conn.db.piano.onInsert((_ctx, row) => looked && tellPiano(row));
+        conn.db.piano.onUpdate((_ctx, _old, row) => looked && tellPiano(row));
         conn.db.pocket.onInsert(tellPockets);
         conn.db.pocket.onDelete(tellPockets);
         conn.db.kit.onInsert((_ctx, row) => onKit(row));
@@ -292,10 +298,12 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           .onApplied(() => {
             looked = true; // the guests that were there already are no news
             tellTableNow();
+            const piano = conn.db.piano.id.find(1);
+            if (piano) tellPiano(piano);
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -360,6 +368,19 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     /** A piece of the recording of my shot. */
     pushChunk(index, data, shotSeq) {
       call(() => connection?.reducers.pushChunk({ shotSeq, index, data }));
+    },
+    /** Sit down at the grand piano (the database lets only one sit there, and not the one who is up at the table). */
+    sitPiano() {
+      call(() => connection?.reducers.sitPiano());
+    },
+    /** Get up from the grand piano. */
+    leavePiano() {
+      call(() => connection?.reducers.leavePiano());
+    },
+    /** The keys of the grand piano I hold (midi numbers); sent when they change, the others hear them. */
+    playKeys(midis) {
+      const keys = encodeKeys(midis);
+      call(() => connection?.reducers.playKeys({ keys }));
     },
     /** The stake window: my offer (the stake is the smaller of the two offers). */
     setStake(amount) {

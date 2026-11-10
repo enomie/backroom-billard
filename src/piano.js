@@ -72,8 +72,11 @@ function slab(shape, from, to, material) {
   return mesh;
 }
 
-/** @param {THREE.Scene} scene */
-export function createPiano(scene) {
+/**
+ * @param {THREE.Scene} scene
+ * @param {(midis: number[]) => void} [onKeys] — the keys this guest holds changed (multiplayer sends them to the others)
+ */
+export function createPiano(scene, onKeys) {
   const root = new THREE.Group();
   root.name = "piano";
   root.position.set(PIANO_X, 0, -ROOM_LENGTH / 2 + PIANO_WALL_DISTANCE);
@@ -203,6 +206,9 @@ export function createPiano(scene) {
 
   const heldByCode = new Map(); // the computer keys held down: code → { key, id }
   const keyPosition = new THREE.Vector3();
+  const remote = new Map(); // the keys the guest at the piano holds (multiplayer): midi → { key, id }
+  /** The keys I hold now (computer keys and the mouse), told to the others. */
+  const changed = () => onKeys?.([...heldByCode.values(), ...(held ? [held] : [])].map((n) => n.key.midi));
 
   return {
     group: root,
@@ -228,6 +234,7 @@ export function createPiano(scene) {
       if (!key) return true;
       heldByCode.set(code, { key, id: sound.noteOn(key.midi, key.black ? 0.7 : 0.8) });
       setKey(key, true);
+      changed();
       return true;
     },
     /** A computer key goes up: the note ends (true if this key was playing). */
@@ -237,6 +244,7 @@ export function createPiano(scene) {
       sound.noteOff(note.id);
       setKey(note.key, false);
       heldByCode.delete(code);
+      changed();
       return true;
     },
     /** Let go of everything (the window lost the focus, the camera left). */
@@ -256,6 +264,7 @@ export function createPiano(scene) {
       this.release();
       held = { key, id: sound.noteOn(key.midi, key.black ? 0.7 : 0.8) };
       setKey(key, true);
+      changed();
       return true;
     },
     /** The button is let go: the held note ends. */
@@ -264,6 +273,23 @@ export function createPiano(scene) {
       sound.noteOff(held.id);
       setKey(held.key, false);
       held = null;
+      changed();
+    },
+    /** The guest at the piano (not me) holds these keys now: the new ones sound, the ones let go end (from the piano's place in the room). */
+    setRemoteKeys(midis) {
+      const down = new Set(midis);
+      for (const [midi, note] of [...remote]) {
+        if (down.has(midi)) continue;
+        sound.noteOff(note.id);
+        setKey(note.key, false);
+        remote.delete(midi);
+      }
+      for (const midi of down) {
+        const key = keys.find((k) => k.midi === midi);
+        if (!key || remote.has(midi)) continue;
+        remote.set(midi, { key, id: sound.noteOn(midi, key.black ? 0.7 : 0.8) });
+        setKey(key, true);
+      }
     },
   };
 }

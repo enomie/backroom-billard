@@ -20,6 +20,8 @@ Ein Konzertflügel in schwarzem Lack an der kurzen Wand **gegenüber der Tür**,
 - **Töne:** Alle 88 Tasten (A0 bis C8) mit den richtigen Tonhöhen (A4 = 440 Hz).
 - **Klang** (`src/piano-sound.js`, Werte `PIANO_*` in `piano-constants.js`): ohne Samples, **generativ**. Jede Note besteht aus einigen Sinusteiltönen (tiefe Noten bis 9, hohe 3), leicht gedehnt wie bei echten Saiten (Inharmonizität), die zwei tiefsten doppelt und minimal verstimmt (zwei Saiten pro Ton, das gibt das lebendige Schweben), dazu ein weicher Hammerklang (kurzes gefiltertes Rauschen). Tiefe Töne klingen bis 7 s nach, hohe etwa 1,2 s; höhere Teiltöne sterben früher; ein Tiefpass macht leise Anschläge dunkler. Der Klang kommt aus dem Raum vom Flügel (Richtung und Entfernung folgen der Kamera), bis 32 Töne gleichzeitig, ein Kompressor hält es sauber.
 
+- **Mehrspieler:** Es sitzt immer nur einer am Flügel, und alle hören und sehen, was er spielt (Regeln und Einzelheiten in [`multiplayer.md`](multiplayer.md)). Im Mehrspieler spielt die Maus nur noch im Sitzen.
+
 ## Offene Punkte (Ideen)
 
 - Mehrere Finger mit der Maus (Akkord geht nur mit der Computertastatur), Gleiten mit gedrückter Maus, Pedal, Anschlagstärke je nach Stelle auf der Taste, Handy (Touch).

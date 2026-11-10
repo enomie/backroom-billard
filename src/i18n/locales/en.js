@@ -112,6 +112,7 @@ export default {
   "help.piano": "Piano (free camera, close to it: F or the button sits you down, Esc or the button gets you up): the keys play it, Z S X D V … from C4 and Q 2 W 3 E R … from C5 (C5 is also , L . ; /). Or click the keys.",
   "piano.play": "Play piano",
   "piano.leave": "Leave piano",
+  "piano.taken": "Piano taken ({name})",
   "help.rerack": "N: new rack.",
   "boot.failed": "Start failed – check the console",
 };

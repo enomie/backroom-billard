@@ -18,6 +18,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `hand` | was die Hände tun: R (trinken) und T (rauchen) gedrückt; die anderen sehen es |
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
 | `pocket` | welche Kugel welcher Platz versenkt hat (die zwei Listen über dem Tisch) |
+| `piano` | der Flügel: wer am Hocker sitzt (nur einer) und welche Tasten gedrückt sind (88 Bits) |
 | `stake` | das Einsatz-Fenster der zwei Spieler, live: Angebot und Bereit je Spieler (Einsatz = das kleinere Angebot) |
 | `bid` | die Tischwetten der Zuschauer (ein Gebot je Zuschauer) |
 
@@ -31,6 +32,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `heartbeat`, `check_timeouts` | Lebenszeichen alle 2 s; wer als Spieler 10 s fehlt, hat verloren |
 | `place_bid`, `withdraw_bid` | Tischwette der Zuschauer: Vielfache von 10, mindestens 100, höchstens das Geld (wer weniger als 100 hat: alles); jederzeit änderbar oder zurückziehbar |
 | `set_aim`, `take_shot`, `push_chunk`, `end_shot` | Zielen, Schuss (nur wer dran ist und kein Stoß läuft), Häppchen der Aufnahme, Ende des Stoßes mit Ergebnis |
+| `sit_piano`, `leave_piano`, `play_keys` | Flügel: hinsetzen (nur einer, nicht wer am Tisch dran ist; wer dran kommt, steht auf), aufstehen, gedrückte Tasten senden; ohne Verbindung oder nach 10 s Stille wird der Hocker frei |
 | `set_stake`, `set_ready` | Einsatz-Fenster: das eigene Angebot (gleiche Grenzen wie die Wette); Bereit. Ändert sich der Einsatz, ist Bereit bei beiden zurückgesetzt; sind beide bereit, beginnt das Spiel (der Verlierer stößt zuerst) |
 | `leave_table` | vom Tisch aufstehen (im Spiel: verloren) |
 

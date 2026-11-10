@@ -15,6 +15,7 @@ const GAME_WAITING = 0; // no (or one) player: nobody plays without a bid
 const GAME_PLAYING = 1;
 const GAME_STAKING = 2; // both seats are taken: the two set the stake and press Ready
 const BLACK_BALL = 8;
+const PIANO_KEY_BYTES = 11; // the 88 keys of the grand piano as bits
 
 const spacetimedb = schema({
   /** Everybody who is in the room (players and spectators). `face` is the JSON of face.js. */
@@ -144,6 +145,16 @@ const spacetimedb = schema({
     }
   ),
 
+  /** The grand piano (row id 1): who sits at it (only one), and which keys are down (88 bits, A0 first), so that the others hear him. */
+  piano: table(
+    { public: true },
+    {
+      id: t.u8().primaryKey(),
+      sitter: t.identity().optional(),
+      keys: t.byteArray(),
+    }
+  ),
+
   /** The offers in the stake window of the two seated players, live: the stake is the smaller of the two, the game begins when both are ready. */
   stake: table(
     { public: true },
@@ -204,9 +215,52 @@ function resetBalls(ctx: Ctx) {
   for (const p of [...ctx.db.pocket.iter()]) ctx.db.pocket.ballId.delete(p.ballId);
 }
 
+/** The grand piano. Made on first use. */
+const thePiano = (ctx: Ctx) => ctx.db.piano.id.find(1) ?? ctx.db.piano.insert({ id: 1, sitter: undefined, keys: new Uint8Array(PIANO_KEY_BYTES) });
+
+/** Nobody sits at the piano any more (all keys up). */
+function freePiano(ctx: Ctx) {
+  const piano = thePiano(ctx);
+  if (piano.sitter) ctx.db.piano.id.update({ ...piano, sitter: undefined, keys: new Uint8Array(PIANO_KEY_BYTES) });
+}
+
+/** Whoever sits at the piano and is up at the table gets up: the shot comes first. */
+function standUpIfUp(ctx: Ctx) {
+  const game = theGame(ctx);
+  const sitter = thePiano(ctx).sitter;
+  const player = sitter && ctx.db.player.identity.find(sitter);
+  if (player && game.state === GAME_PLAYING && player.seat === game.turnSeat) freePiano(ctx);
+}
+
+/** Sit down at the piano: only one at a time, and not for the one who is up at the table. */
+export const sit_piano = spacetimedb.reducer((ctx) => {
+  const player = me(ctx);
+  const game = theGame(ctx);
+  if (game.state === GAME_PLAYING && player.seat === game.turnSeat) throw new SenderError('you are up: the table');
+  const piano = thePiano(ctx);
+  const sitter = piano.sitter && ctx.db.player.identity.find(piano.sitter);
+  if (piano.sitter && sitter?.connected && piano.sitter.toHexString() !== ctx.sender.toHexString()) throw new SenderError('somebody sits at the piano');
+  ctx.db.piano.id.update({ ...piano, sitter: ctx.sender, keys: new Uint8Array(PIANO_KEY_BYTES) });
+});
+
+/** Get up from the piano. */
+export const leave_piano = spacetimedb.reducer((ctx) => {
+  const piano = thePiano(ctx);
+  if (piano.sitter && piano.sitter.toHexString() === ctx.sender.toHexString()) freePiano(ctx);
+});
+
+/** The keys that are down now (only from the one who sits there; sent when something changes). */
+export const play_keys = spacetimedb.reducer({ keys: t.byteArray() }, (ctx, { keys }) => {
+  const piano = thePiano(ctx);
+  if (!piano.sitter || piano.sitter.toHexString() !== ctx.sender.toHexString() || keys.length !== PIANO_KEY_BYTES) throw new SenderError('not your piano');
+  ctx.db.piano.id.update({ ...piano, keys });
+});
+
 export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   const player = ctx.db.player.identity.find(ctx.sender);
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
+  const sitter = thePiano(ctx).sitter;
+  if (sitter && sitter.toHexString() === ctx.sender.toHexString()) freePiano(ctx);
   ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
   ctx.db.hand.identity.delete(ctx.sender);
   ctx.db.kit.identity.delete(ctx.sender);
@@ -365,6 +419,7 @@ export const set_ready = spacetimedb.reducer({ ready: t.bool() }, (ctx, { ready 
   // (the clients pay their stake when the game begins, and the winner's client takes both at the end)
   ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake: agreedStake(ctx) });
   for (const r of rows) ctx.db.stake.identity.update({ ...r, ready: false });
+  standUpIfUp(ctx);
 });
 
 /** A sign of life (the clients send it every 2 s). */
@@ -487,6 +542,7 @@ export const end_shot = spacetimedb.reducer(
     if (winnerSeat) return finishGame(ctx, winnerSeat, reason);
     const again = r.pocketed.length > 0 && !r.whiteGone;
     ctx.db.game.id.update({ ...game, shotRunning: false, turnSeat: again ? shooter.seat : others });
+    standUpIfUp(ctx);
   }
 );
 
@@ -510,8 +566,11 @@ function finishGame(ctx: Ctx, winnerSeat: number, reason: string) {
  */
 export const check_timeouts = spacetimedb.reducer((ctx) => {
   const game = theGame(ctx);
-  if (game.state === GAME_WAITING) return;
   const now = ctx.timestamp.microsSinceUnixEpoch;
+  const sitter = thePiano(ctx).sitter;
+  const sitting = sitter && ctx.db.player.identity.find(sitter);
+  if (sitter && (!sitting || now - sitting.lastSeen.microsSinceUnixEpoch > TIMEOUT_MICROS)) freePiano(ctx); // (silent at the piano: the stool is free)
+  if (game.state === GAME_WAITING) return;
   for (const p of ctx.db.player.iter()) {
     if (p.seat === SPECTATOR || now - p.lastSeen.microsSinceUnixEpoch <= TIMEOUT_MICROS) continue;
     if (game.state === GAME_PLAYING) finishGame(ctx, p.seat === 1 ? 2 : 1, 'timeout');

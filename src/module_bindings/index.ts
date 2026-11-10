@@ -37,8 +37,10 @@ import {
 import CheckTimeoutsReducer from "./check_timeouts_reducer";
 import EndShotReducer from "./end_shot_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
+import LeavePianoReducer from "./leave_piano_reducer";
 import LeaveTableReducer from "./leave_table_reducer";
 import PlaceBidReducer from "./place_bid_reducer";
+import PlayKeysReducer from "./play_keys_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
@@ -48,6 +50,7 @@ import SetPresenceReducer from "./set_presence_reducer";
 import SetProfileReducer from "./set_profile_reducer";
 import SetReadyReducer from "./set_ready_reducer";
 import SetStakeReducer from "./set_stake_reducer";
+import SitPianoReducer from "./sit_piano_reducer";
 import TakeShotReducer from "./take_shot_reducer";
 import WithdrawBidReducer from "./withdraw_bid_reducer";
 
@@ -60,6 +63,7 @@ import BidRow from "./bid_table";
 import GameRow from "./game_table";
 import HandRow from "./hand_table";
 import KitRow from "./kit_table";
+import PianoRow from "./piano_table";
 import PlayerRow from "./player_table";
 import PocketRow from "./pocket_table";
 import PresenceRow from "./presence_table";
@@ -137,6 +141,17 @@ const tablesSchema = __schema({
       { name: 'kit_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, KitRow),
+  piano: __table({
+    name: 'piano',
+    indexes: [
+      { accessor: 'id', name: 'piano_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'piano_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, PianoRow),
   player: __table({
     name: 'player',
     indexes: [
@@ -213,8 +228,10 @@ const reducersSchema = __reducers(
   __reducerSchema("check_timeouts", CheckTimeoutsReducer),
   __reducerSchema("end_shot", EndShotReducer),
   __reducerSchema("heartbeat", HeartbeatReducer),
+  __reducerSchema("leave_piano", LeavePianoReducer),
   __reducerSchema("leave_table", LeaveTableReducer),
   __reducerSchema("place_bid", PlaceBidReducer),
+  __reducerSchema("play_keys", PlayKeysReducer),
   __reducerSchema("push_chunk", PushChunkReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
@@ -224,6 +241,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_profile", SetProfileReducer),
   __reducerSchema("set_ready", SetReadyReducer),
   __reducerSchema("set_stake", SetStakeReducer),
+  __reducerSchema("sit_piano", SitPianoReducer),
   __reducerSchema("take_shot", TakeShotReducer),
   __reducerSchema("withdraw_bid", WithdrawBidReducer),
 );
