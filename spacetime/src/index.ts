@@ -231,7 +231,7 @@ function fillEmptySeat(ctx: Ctx) {
 }
 
 /** The aim of the shooter (about 15 times per second; the others see the cue move). */
-export const aim = spacetimedb.reducer(
+export const set_aim = spacetimedb.reducer(
   { angle: t.number(), elevation: t.number(), power: t.number(), nubX: t.number(), nubY: t.number() },
   (ctx, a) => {
     const player = me(ctx);
