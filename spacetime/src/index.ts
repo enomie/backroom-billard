@@ -123,6 +123,18 @@ const spacetimedb = schema({
     }
   ),
 
+  /** What stands at a guest's seat: the drink (kind and sips left) and the cigarettes (brand and number), so that the others see the same. */
+  kit: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+      drink: t.string(),
+      sips: t.u8(),
+      pack: t.u8(),
+      packCount: t.u8(),
+    }
+  ),
+
   /** The guests of a finished game who want to play again (when both seated players are in here, the next game begins). */
   rematch: table(
     { public: true },
@@ -185,7 +197,16 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
   ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
   ctx.db.hand.identity.delete(ctx.sender);
+  ctx.db.kit.identity.delete(ctx.sender);
   seatTheFirstTwo(ctx); // (does nothing while a game runs: the 10 s of check_timeouts decide then)
+});
+
+/** The drink and the cigarettes of the guest changed (a sip, a new order, a cigarette): only a change is sent. */
+export const set_kit = spacetimedb.reducer({ drink: t.string(), sips: t.u8(), pack: t.u8(), packCount: t.u8() }, (ctx, k) => {
+  me(ctx);
+  const row = { identity: ctx.sender, ...k };
+  if (ctx.db.kit.identity.find(ctx.sender)) ctx.db.kit.identity.update(row);
+  else ctx.db.kit.insert(row);
 });
 
 /** The R key and the T key of the guest went down or up (drinking, smoking). */

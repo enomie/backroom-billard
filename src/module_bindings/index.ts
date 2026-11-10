@@ -43,6 +43,7 @@ import PlayAgainReducer from "./play_again_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
+import SetKitReducer from "./set_kit_reducer";
 import SetPresenceReducer from "./set_presence_reducer";
 import SetProfileReducer from "./set_profile_reducer";
 import TakeShotReducer from "./take_shot_reducer";
@@ -56,6 +57,7 @@ import BallRow from "./ball_table";
 import BidRow from "./bid_table";
 import GameRow from "./game_table";
 import HandRow from "./hand_table";
+import KitRow from "./kit_table";
 import PlayerRow from "./player_table";
 import PresenceRow from "./presence_table";
 import RematchRow from "./rematch_table";
@@ -121,6 +123,17 @@ const tablesSchema = __schema({
       { name: 'hand_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, HandRow),
+  kit: __table({
+    name: 'kit',
+    indexes: [
+      { accessor: 'identity', name: 'kit_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'kit_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, KitRow),
   player: __table({
     name: 'player',
     indexes: [
@@ -192,6 +205,7 @@ const reducersSchema = __reducers(
   __reducerSchema("push_chunk", PushChunkReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
+  __reducerSchema("set_kit", SetKitReducer),
   __reducerSchema("set_presence", SetPresenceReducer),
   __reducerSchema("set_profile", SetProfileReducer),
   __reducerSchema("take_shot", TakeShotReducer),

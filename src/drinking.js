@@ -96,6 +96,10 @@ export function createDrinking(glasses, onSip, onEmpty) {
   }
 
   return {
+    /** True while a glass is on its way, at the mouth or on its way back. */
+    isBusy() {
+      return phase !== "idle";
+    },
     /** R let go: the current gulp is finished, then the glass flies back. */
     release() {
       held = false;

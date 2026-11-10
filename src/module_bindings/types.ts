@@ -55,6 +55,15 @@ export const Hand = __t.object("Hand", {
 });
 export type Hand = __Infer<typeof Hand>;
 
+export const Kit = __t.object("Kit", {
+  identity: __t.identity(),
+  drink: __t.string(),
+  sips: __t.u8(),
+  pack: __t.u8(),
+  packCount: __t.u8(),
+});
+export type Kit = __Infer<typeof Kit>;
+
 export const Player = __t.object("Player", {
   identity: __t.identity(),
   name: __t.string(),

@@ -65,6 +65,8 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
 
   let ready = null; // { resolve, reject, timer } while joining
   let lastHand = "false/false"; // what the database knows about my hands
+  let lastKit = ""; // and about my drink and cigarettes
+  const kits = new Map(); // identity (hex) → the last kit row of a guest
   const roster = new Map(); // identity (hex) → { name, seat, connected }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
@@ -118,6 +120,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     roster.set(id, { name: row.name, seat: row.seat, connected: row.connected });
     if (looked && id !== myId && (!before || before.connected !== row.connected)) onNote(row.connected ? "joined" : "left", row.name);
     if (joined || id === myId) tellRoom();
+    if (id !== myId && row.seat > 0 && row.seat !== before?.seat && kits.has(id)) {
+      const k = kits.get(id); // he sat down: what stands at his seat
+      onGame({ kind: "kit", seat: row.seat, drink: k.drink, sips: k.sips, pack: k.pack, packCount: k.packCount });
+    }
     if (id === myId) {
       joined = true; // the own row is there: the room is set up, signs of life and places may follow
       finishJoin();
@@ -224,6 +230,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           const seat = roster.get(id)?.seat ?? 0;
           if (id !== myId && seat > 0) onGame({ kind: "hand", seat, drinking: row.drinking, smoking: row.smoking });
         };
+        // what stands at the seats of the others (drink and cigarettes); a guest's seat may come after his kit: it is kept
+        const onKit = (row) => {
+          const id = hex(row.identity);
+          kits.set(id, row);
+          const seat = roster.get(id)?.seat ?? 0;
+          if (id !== myId && seat > 0) onGame({ kind: "kit", seat, drink: row.drink, sips: row.sips, pack: row.pack, packCount: row.packCount });
+        };
+        conn.db.kit.onInsert((_ctx, row) => onKit(row));
+        conn.db.kit.onUpdate((_ctx, _old, row) => onKit(row));
         conn.db.hand.onInsert((_ctx, row) => onHand(row));
         conn.db.hand.onUpdate((_ctx, _old, row) => onHand(row));
         conn.db.hand.onDelete((_ctx, row) => onHand({ ...row, drinking: false, smoking: false }));
@@ -235,7 +250,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat, turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk, tables.hand]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk, tables.hand, tables.kit]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -269,6 +284,13 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       if (!joined || text === lastHand) return;
       lastHand = text;
       call(() => connection?.reducers.setHand({ drinking: hand.drinking, smoking: hand.smoking }));
+    },
+    /** The drink and the cigarettes of this guest ({ drink, sips, pack, packCount }); only a change is sent. */
+    setKit(kit) {
+      const text = `${kit.drink}/${kit.sips}/${kit.pack}/${kit.packCount}`;
+      if (!joined || text === lastKit) return;
+      lastKit = text;
+      call(() => connection?.reducers.setKit(kit));
     },
     /** Where the head of the guest on a seat is now (smoothed), or null: { x, y, z, yaw, pitch }. */
     poseOf(seat) {

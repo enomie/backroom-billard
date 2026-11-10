@@ -99,7 +99,7 @@ Hält ein Gast **R** (trinken) oder **T** (rauchen) gedrückt oder lässt los, s
 
 - **Nur Spieler an den zwei Plätzen** (die Sätze am Tisch): Ein Zuschauer hat keinen Satz, seine Sachen „in der Hand“ sind noch nicht gebaut.
 - Die Geräusche (Schluck, Feuerzeug, Ausatmen) kommen **nicht aus dem Raum**, sie klingen beim Zuschauer wie beim Trinkenden selbst (noch ohne Ort).
-- Der Stand der Gläser und der Zigaretten der Gegenseite folgt nur den gesehenen Aktionen; ein neues Getränk, das der andere bestellt, wird noch nicht übertragen.
+- **Was am Platz steht (umgesetzt):** Jeder Gast schickt, was an seinem Platz steht (`set_kit`, nur bei einer Änderung, höchstens viermal pro Sekunde): das **Getränk** (Sorte) und **wie viele Schlucke noch drin sind**, die **Marke** der Zigaretten und **wie viele noch in der Packung** sind. Die anderen zeigen es so: Ihr Glas am Platz des Gastes wird zu **seiner Sorte** (ein neues Getränk, das er an der Karte bestellt, tauscht das Glas aus), der **Stand** folgt seinen Schlucken, die Packung hat seine Marke und seine Zahl. Trinkt oder raucht er gerade, wird die Änderung erst am Ende der Animation übernommen (sie zeigt sie selbst). Wer sich setzt, bekommt **sein** Getränk und **seine** Packung von der Wahl auf dem Welcome-Screen auf seinen Platz (auch als Zweiter, auf der −z-Seite), voll.
 
 ## Zufall und Spielzustand
 

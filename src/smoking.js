@@ -183,6 +183,10 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
   }
 
   return {
+    /** True while a cigarette is on its way, lit, drawn on or put back. */
+    isBusy() {
+      return phase !== "idle";
+    },
     /** T pressed: fetch the cigarette (a new one if there is no glowing one). */
     press(camera) {
       if (phase !== "idle") return;

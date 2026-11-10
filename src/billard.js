@@ -50,6 +50,8 @@ import { createMultiplayer } from "./multiplayer.js";
 import { showWaiting, roomNote, renderNote } from "./room-notices.js";
 import { createShotRecorder, createShotReplay } from "./shot-replay.js";
 import { AIM_SEND_SECONDS } from "./multiplayer-constants.js";
+import { DRINK_SIPS } from "./glasses-constants.js";
+import { PACK_SIZE } from "./cigarette-pack.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
@@ -1942,6 +1944,7 @@ function gameLoop(currentTime) {
   if (candles) candles.update(frameSeconds, camera);
   if (drinking) drinking.update(frameSeconds, camera);
   updateRemoteHands(frameSeconds);
+  if (multiplayer) sendMyKit(frameSeconds);
   if (glasses) glasses.update(frameSeconds);
   if (smoking) smoking.update(frameSeconds, camera); // before the cigarettes: the smoke follows the ember
   if (cigarettes) cigarettes.update(dt, camera);
@@ -2062,6 +2065,8 @@ function updateRemoteHands(dt) {
     if (!placeRemoteView(seat, hand)) continue;
     hand.drinking.update(dt, hand.view);
     hand.smoking.update(dt, hand.view);
+    const waiting = pendingKits.get(seat);
+    if (waiting && !hand.drinking.isBusy() && !hand.smoking.isBusy()) applyKit(seat, waiting);
   }
 }
 
@@ -2076,6 +2081,10 @@ function onMultiplayerGame(e) {
   }
   if (e.kind === "shotStart") {
     replay.begin();
+    return;
+  }
+  if (e.kind === "kit") {
+    applyKit(e.seat, e);
     return;
   }
   if (e.kind === "hand") {
@@ -2216,15 +2225,16 @@ function applyRestState(rows) {
  * @param {"single" | "multi"} mode
  */
 export async function applyProfile(profile, mode) {
+  myChoice = { drink: profile.firstDrink, pack: profile.firstPack }; // put on his seat as soon as he has one (applySeats)
   if (mode === "multi") await multiplayer.join(profile);
   wallet.setBalance(profile.money);
-  glasses.setPlayerDrink(profile.firstDrink);
-  packs.setPlayerDesign(profile.firstPack);
   faceBall.setProfile(profile);
   if (mode === "single") applySeats([false, true], 1); // one set at the table: the +z seat
 }
 
 /** Which seats of the table are taken: only their sets (glass, pack, lighter, ashtray with cigarettes) stand there; `mySide` is this guest's seat. */
+let myChoice = null; // what this guest chose at the welcome screen: { drink, pack }
+let mySideNow = null; // his seat (0 or 1), null: a spectator
 function applySeats(taken, mySide) {
   [0, 1].forEach((side) => {
     glasses.setSeat(side, taken[side]);
@@ -2234,6 +2244,37 @@ function applySeats(taken, mySide) {
     cigarettes.setSeat(side, taken[side]);
   });
   setMySide(mySide);
+  if (myChoice && mySide !== null && mySide !== mySideNow) {
+    // he sits (or sits elsewhere now): his drink and his cigarettes stand at his seat, full
+    glasses.setSeatGlass(mySide, myChoice.drink, DRINK_SIPS);
+    packs.setSeatPack(mySide, myChoice.pack, PACK_SIZE);
+  }
+  mySideNow = mySide;
+}
+
+/** What stands at my seat (drink with the sips left, the cigarettes) goes to the database when it changes (a sip, a new order, a cigarette). */
+let kitAge = 0;
+function sendMyKit(dt) {
+  kitAge += dt;
+  if (kitAge < 0.25 || mySideNow === null) return;
+  kitAge = 0;
+  const glass = glasses.seat(mySideNow);
+  const pack = packs.packs[mySideNow];
+  multiplayer.setKit({ drink: glass.kind, sips: glass.sipsLeft, pack: pack.design, packCount: pack.count });
+}
+
+/** The drink and cigarettes of the guest on another seat: as he has them (when his animation is over, else a moment later). */
+const pendingKits = new Map(); // seat → kit
+function applyKit(seat, kit) {
+  const side = seat === 1 ? 1 : 0;
+  const hand = remoteHands.get(seat);
+  if (hand && (hand.drinking.isBusy() || hand.smoking.isBusy())) {
+    pendingKits.set(seat, kit); // he drinks or smokes right now: his animation shows the change itself
+    return;
+  }
+  pendingKits.delete(seat);
+  glasses.setSeatGlass(side, kit.drink, kit.sips);
+  packs.setSeatPack(side, kit.pack, kit.packCount);
 }
 
 /** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */

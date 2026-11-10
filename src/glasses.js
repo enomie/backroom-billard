@@ -340,6 +340,7 @@ export function createGlasses(scene, taken) {
         const next = build(kind);
         next.group.position.copy(state.rest.position);
         next.group.quaternion.copy(state.rest.quaternion);
+        next.group.visible = state.group.visible; // (a seat that is not taken stays empty)
         group.remove(state.group);
         group.add(next.group);
         glass = next;
@@ -434,11 +435,16 @@ export function createGlasses(scene, taken) {
     makeGlass: build,
     /** The two players' glasses on the frame of the billard table. */
     player,
-    /** The first drink of the player (the glass on his side, z > 0): a full glass of `kind`; the other glass never holds the same. */
-    setPlayerDrink(kind) {
-      player.find((g) => g.side === 1)?.replace(kind);
-      const other = player.find((g) => g.side === 0);
-      if (other?.kind === kind) other.replace(["wine-red", "wine-white", "beer", "whiskey", "white-russian"].find((k) => k !== kind));
+    /** The glass of a seat (`side` 0 on the −z half, 1 on the +z half) as a state: kind, sipsLeft, … */
+    seat(side) {
+      return seats[side];
+    },
+    /** The glass of a seat shows what the guest on it has: this drink and this many sips left (of DRINK_SIPS). */
+    setSeatGlass(side, kind, sips) {
+      const g = seats[side];
+      if (g.kind !== kind) g.replace(kind);
+      g.sipsLeft = sips;
+      g.setShare(sips / DRINK_SIPS);
     },
     /** The glass of a seat (`side` 0 on the −z half, 1 on the +z half) stands on the table only while the seat is taken. */
     setSeat(side, present) {

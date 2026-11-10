@@ -289,10 +289,10 @@ export function createCigarettePacks(scene, taken) {
     setSeat(side, present) {
       packs[side].group.visible = present;
     },
-    /** The first pack of the player (the one on his side, z > 0) in the design he chose; the other player smokes the other brand. */
-    setPlayerDesign(design) {
-      redress(packs[1], design);
-      redress(packs[0], (design + 1) % PACK_DESIGNS.length);
+    /** The pack of a seat (`side` 0 on the −z half, 1 on the +z half) in a design, with this many cigarettes. */
+    setSeatPack(side, design, count) {
+      if (packs[side].design !== design) redress(packs[side], design);
+      packs[side].setCount(count);
     },
   };
 }
