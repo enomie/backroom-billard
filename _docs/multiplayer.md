@@ -52,6 +52,11 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
 - **Gewinnen:** Wer die **schwarze 8 einlocht, nachdem alle anderen Kugeln versenkt sind**, gewinnt. Die Kugeln gehören niemandem (keine Farben, keine Volle/Halbe): alle Kugeln spielen beide.
 - **Schwarze zu früh:** Wer die schwarze 8 versenkt, solange noch andere Kugeln auf dem Tisch liegen, verliert (wie im Einzelspiel); der andere gewinnt.
 - **Spielerwechsel:** Wer **mindestens eine Kugel versenkt**, stößt nochmal. Versenkt er **keine** Kugel, ist der andere dran. Das gilt für jeden Stoß.
+- **Weiße Kugel:** Wird die weiße im Stoß **auch versenkt** (oder vom Tisch geschossen), ist **immer Spielerwechsel**, auch wenn im selben Stoß eine farbige fällt. Die weiße wird erst neu aufgelegt, wenn alles ruht (wie heute).
+- **Wer beginnt:** Nach der **Reihenfolge des Beitretens**: Meist ist schon ein Spieler da, wenn der zweite kommt; der, der zuerst da war, stößt zuerst.
+- **Zuschauer kommen zu einem laufenden Spiel:** Sie legen eine **Tischwette** (Einsatz) an den Tisch. **Wer am meisten setzt, fordert den Sieger der letzten Runde** (der Sieger bleibt am Tisch, der Verlierer wird Zuschauer). Zuschauer ohne Wette bleiben Zuschauer.
+- **Verbindung weg:** Ein Spieler, dessen Verbindung abbricht, bekommt **10 Sekunden** (er kann zurückkommen und dort weiterspielen, wo er war). Danach hat er **verloren**. Nachrücken darf nur ein Zuschauer, der eine **Tischwette** platziert hat (der Höchstbietende).
+- **Zuschauer sind Gäste wie die Spieler:** Sie sehen die **Trink- und Rauchanimationen** der Spieler, und sie können selbst **trinken und rauchen**. Sie haben **dieselben zwei Zustandsbalken** (Thirsty ↔ Drunk, Nerves ↔ Desire), Geld und Getränke wie ein Spieler; nur stoßen dürfen sie nicht. Die Anzeige der anderen (Trinken, Rauchen) wird als kleine Zustandsdaten (Glas hoch, Zigarette im Mund, Rauch) an alle gemeldet und lokal gezeichnet, nicht als Bild.
 
 ## Vertrauen
 
@@ -66,7 +71,10 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hoch
 
 ## Offene Fragen
 
-- **Weiße Kugel versenkt (oder vom Tisch):** Versenkt der Schütze nur die weiße, ist das **keine** versenkte Kugel, also Spielerwechsel (der andere stößt, sobald alles ruht und die weiße neu aufgelegt ist). Und wenn er im selben Stoß auch eine farbige versenkt? Vorschlag: Die farbige zählt, er stößt nochmal.
-- Zeigt der Zuschauer die Trink- und Rauchanimationen der Spieler?
-- Wer beginnt (Los, Reihenfolge des Beitretens)?
-- Wann verlässt ein Spieler das Spiel (Verbindung weg: nach einer Frist verloren, Zuschauer rücken nach)?
+- **Tischwette** (steht auch in `game-concept.md`, dort noch die ältere Fassung „die zwei Höchstbietenden spielen“; **diese Seite gilt**):
+  - Was passiert mit dem Einsatz: bekommt der Sieger den Einsatz des Herausforderers (winner takes all), und was zahlt der Sieger der letzten Runde dagegen?
+  - Was passiert mit den Geboten der anderen Zuschauer (zurück oder verfallen)?
+  - Bis wann kann man bieten (bis das laufende Spiel zu Ende ist)?
+  - Gleich hohe Gebote: wer zuerst bot? Niemand bietet: Der Sieger wartet, bis jemand bietet?
+- Was ist, wenn der Gegner nach 10 Sekunden verloren hat und **kein** Zuschauer eine Wette hat: Spiel beendet, der Verbliebene gewinnt?
+- Wie viel Abstand müssen Zuschauer zum Tisch halten (bisher 2 m, siehe `game-concept.md`)?

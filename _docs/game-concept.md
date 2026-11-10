@@ -55,10 +55,11 @@ Das Geld steht oben links (`wallet.js`, Start **15.000 $**). Gekauft wird **Trin
 
 ### Tischwette (wer spielt als Nächstes)
 
-1. Wer als Nächstes spielen will, platziert eine **Tischwette**.
-2. Die **zwei Höchstbietenden** spielen das nächste Spiel.
+1. Wer als Nächstes spielen will, platziert eine **Tischwette** (auch während ein Spiel läuft).
+2. **Wer am meisten setzt, fordert den Sieger der letzten Runde**; der Sieger bleibt am Tisch, der Verlierer wird wieder Zuschauer.
 3. **Winner takes all:** Der Sieger bekommt den Einsatz.
-4. Die bisherigen Spieler werden wieder zu Zuschauern.
+
+Ablauf der Runden, Foul, Spielerwechsel und Verbindungsabbruch: [`multiplayer.md`](multiplayer.md).
 
 Später: Spielgeld gegen Echtgeld kaufen, sobald ein Payment eingebunden ist.
 
@@ -74,4 +75,4 @@ Wie in Shootern könnte das Fadenkreuz schwanken, sodass man den **richtigen Mom
 - Was passiert, wenn niemand bietet oder zwei Gebote gleich hoch sind?
 - Wie lange dauert ein Spiel höchstens (Zeitlimit pro Stoß, Abbruch bei Inaktivität)?
 - Wie nah dürfen Zuschauer an den Tisch (Radius)?
-- Wie wird ein Spiel im Mehrspieler fair synchronisiert (die Physik läuft bisher lokal)?
+- Wie wird ein Spiel im Mehrspieler synchronisiert? Entworfen in [`multiplayer.md`](multiplayer.md) (aufnehmen und abspielen).
