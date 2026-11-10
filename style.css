@@ -134,10 +134,12 @@ html {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
+/* The status at the top left: the dot, and the words one below the other ("Balls" / "rolling…") */
 .hud-status-row {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
   margin-top: 0.125rem;
 }
 
@@ -170,9 +172,11 @@ html {
 }
 
 .status-text {
+  width: min-content; /* as narrow as the longest word: each word on its own line */
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.04em;
+  line-height: 1.15;
 }
 
 .status-text--idle {
@@ -414,15 +418,6 @@ html {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.7);
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
-}
-
-.wallet {
-  margin-top: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #fde68a;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 /* The number of cigarettes left in the pack, on the smoke button */
@@ -751,9 +746,9 @@ html {
   box-shadow: inset -2px -2px 3px rgba(0, 0, 0, 0.35);
 }
 
-/* The match (multiplayer, two at the table): "flag Anna | VS | Ben flag" in the middle at the top, a line between the two (the
- * "VS" lies over it), below each name the pocketed balls of that player: the left one's towards the left, the right one's
- * towards the right, starting at the line */
+/* The panel in the middle at the top (single and multiplayer): flag and name, below it the money, below that the pocketed balls.
+ * Two at the table: both, a line between them with "VS" over it; the balls of the left one grow from the line to the left, those of
+ * the right one to the right. Alone in multiplayer: me, VS, "Waiting for another player". Single player: only me. */
 .match {
   position: absolute;
   top: 6.8rem; /* below the two bars */
@@ -762,9 +757,23 @@ html {
   width: min(26rem, 52vw);
   text-align: center;
   pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-.match::before {
+.match[hidden] {
+  display: none;
+}
+
+.match__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  column-gap: 0.7rem;
+  row-gap: 0.1rem;
+  align-items: center;
+}
+
+.match__grid::before {
   content: "";
   position: absolute;
   left: 50%;
@@ -774,31 +783,32 @@ html {
   background: rgba(253, 230, 138, 0.45);
 }
 
-.match[hidden] {
-  display: none;
+.match--single .match__grid {
+  grid-template-columns: 1fr;
 }
 
-.match__names {
-  position: relative; /* above the line */
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #d4d4d8;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+.match--single .match__grid::before,
+.match--single .match__second {
+  display: none; /* (single player: only me, no line, no VS) */
 }
 
 .match__who {
+  position: relative; /* above the line */
   display: flex;
   align-items: center;
   gap: 0.35rem;
   min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #d4d4d8;
 }
 
 .match__who--left {
   justify-content: flex-end; /* towards the VS */
+}
+
+.match--single .match__who--left {
+  justify-content: center;
 }
 
 .match__flag {
@@ -822,7 +832,14 @@ html {
   color: var(--amber-300); /* the one who is up */
 }
 
+.match__name.is-waiting {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 .match__vs {
+  position: relative;
   padding: 0.05rem 0.4rem;
   border-radius: 999px;
   background: rgba(20, 14, 10, 0.9); /* covers the line behind it */
@@ -833,22 +850,38 @@ html {
   color: rgba(253, 230, 138, 0.85);
 }
 
-.match__balls {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 0.7rem; /* clear of the line */
-  margin-top: 0.35rem;
+.match__money {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fde68a;
+}
+
+.match__money--left {
+  text-align: right;
+}
+
+.match__money--right {
+  text-align: left;
+}
+
+.match--single .match__money--left {
+  text-align: center;
 }
 
 .match__side {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  min-height: 14px;
+  min-height: 0;
+  margin-top: 0.15rem;
 }
 
-.match__side:first-child {
+.match__side:empty {
+  display: none;
+}
+
+#match-balls-1 {
   flex-direction: row-reverse; /* the left one's balls start at the line and go to the left */
 }
 
@@ -857,8 +890,14 @@ html {
   height: 14px;
 }
 
+.match .pocketed-balls {
+  justify-content: center; /* alone: the balls pocketed so far, under the panel */
+  max-width: none;
+  margin-top: 0.35rem;
+}
+
 .pocketed-balls[hidden] {
-  display: none; /* (the common list is for one player alone) */
+  display: none; /* (two at the table: each has his own list) */
 }
 
 /* Game over */
@@ -959,29 +998,18 @@ html {
     width: min(23rem, calc(100vw - 12rem));
   }
 
+  /* the status stays at the top left, the panel in the middle below the bars */
   .hud-info {
     position: absolute;
-    top: 6.4rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(23rem, calc(100vw - 12rem));
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    top: 0.5rem;
+    left: 0.6rem;
   }
 
-  .pocketed-balls {
-    justify-content: center;
-  }
-
-  /* the match sits below the status and the money */
   .match {
-    top: 10.2rem;
     width: min(26rem, calc(100vw - 7rem)); /* between the camera button and the power slider */
   }
 
-  .match__names {
+  .match__who {
     font-size: 0.78rem;
   }
 

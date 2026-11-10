@@ -1,5 +1,6 @@
 /**
- * The player's money and its display (top left), plus short messages ("toast") for purchases.
+ * The player's money (shown by the match panel at the top: `onChange` is called with every new balance), plus short
+ * messages ("toast") for purchases.
  */
 import { START_MONEY, TOAST_SECONDS } from "./shop-constants.js";
 import { t } from "./i18n/index.js";
@@ -7,14 +8,12 @@ import { loadProfile, saveMoney } from "./profile-store.js";
 
 const format = (amount) => "$ " + amount.toLocaleString("en-US");
 
-export function createWallet() {
+/** @param {(balance: number) => void} onChange */
+export function createWallet(onChange) {
   let balance = loadProfile()?.money ?? START_MONEY; // the money is kept between the visits
-  const display = document.getElementById("wallet-amount");
   const toast = document.getElementById("toast");
   let toastTimer = 0;
-  const render = () => {
-    display.textContent = format(balance);
-  };
+  const render = () => onChange(balance);
   render();
 
   return {

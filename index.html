@@ -118,8 +118,6 @@
                 >Ready to shoot</span
               >
             </div>
-            <div class="wallet" data-i18n-aria-label="wallet.aria" aria-label="Cash"><span id="wallet-amount">$ 0</span></div>
-            <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
             </div>
           </div>
 
@@ -134,15 +132,18 @@
 
       <!-- The match (multiplayer, two at the table): the names and what each one pocketed -->
       <div id="match" class="match" hidden>
-        <div class="match__names">
+        <div class="match__grid">
           <span class="match__who match__who--left"><img id="match-flag-1" class="match__flag" alt="" width="16" height="16" /><span id="match-name-1" class="match__name"></span></span>
-          <span class="match__vs" data-i18n="match.vs">vs</span>
-          <span class="match__who match__who--right"><img id="match-flag-2" class="match__flag" alt="" width="16" height="16" /><span id="match-name-2" class="match__name"></span></span>
-        </div>
-        <div class="match__balls">
+          <span class="match__vs match__second" data-i18n="match.vs">vs</span>
+          <span class="match__who match__who--right match__second"><img id="match-flag-2" class="match__flag" alt="" width="16" height="16" /><span id="match-name-2" class="match__name"></span></span>
+          <span id="match-money-1" class="match__money match__money--left"></span>
+          <span class="match__second"></span>
+          <span id="match-money-2" class="match__money match__money--right match__second"></span>
           <div id="match-balls-1" class="match__side"></div>
-          <div id="match-balls-2" class="match__side"></div>
+          <span class="match__second"></span>
+          <div id="match-balls-2" class="match__side match__second"></div>
         </div>
+        <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
       </div>
 
       <!-- Condition: two bars, calm in the middle (the keys R and T that move the markers: buttons at the bottom) -->
@@ -270,7 +271,6 @@
       <div id="toast" class="toast" role="status"></div>
       <!-- The room (multiplayer): a standing message while alone, and notes when somebody comes or goes -->
       <div id="room-messages" class="room-messages">
-        <div id="room-waiting" class="toast is-visible" data-i18n="room.waiting" hidden>Waiting for another player</div>
       </div>
 
       <!-- Drinks menu: a popover that appears when a glass is empty -->

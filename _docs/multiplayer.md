@@ -105,9 +105,17 @@ Hält ein Gast **R** (trinken) oder **T** (rauchen) gedrückt oder lässt los, s
 - Die Geräusche (Schluck, Feuerzeug, Ausatmen) kommen **nicht aus dem Raum**, sie klingen beim Zuschauer wie beim Trinkenden selbst (noch ohne Ort).
 - **Was am Platz steht (umgesetzt):** Jeder Gast schickt, was an seinem Platz steht (`set_kit`, nur bei einer Änderung, höchstens viermal pro Sekunde): das **Getränk** (Sorte) und **wie viele Schlucke noch drin sind**, die **Marke** der Zigaretten und **wie viele noch in der Packung** sind. Die anderen zeigen es so: Ihr Glas am Platz des Gastes wird zu **seiner Sorte** (ein neues Getränk, das er an der Karte bestellt, tauscht das Glas aus), der **Stand** folgt seinen Schlucken, die Packung hat seine Marke und seine Zahl. Trinkt oder raucht er gerade, wird die Änderung erst am Ende der Animation übernommen (sie zeigt sie selbst). Wer sich setzt, bekommt **sein** Getränk und **seine** Packung von der Wahl auf dem Welcome-Screen auf seinen Platz (auch als Zweiter, auf der −z-Seite), voll.
 
-## Das Spiel auf dem Bildschirm: „Anna gegen Ben“ (umgesetzt)
+## Name und Geld oben in der Mitte (umgesetzt, Einzelspieler und Mehrspieler)
 
-Sitzen **zwei** am Tisch, steht oben in der Mitte (unter den zwei Balken) **Flagge und Name, VS, Name und Flagge** („🇦🇹 Anna T. Meier | VS | Ben Huber 🇩🇪“, Platz 1 links, Platz 2 rechts; wer **dran** ist, ist gelb). Zwischen den beiden läuft eine **Trennlinie**, die das **VS** überdeckt. **Darunter hat jeder seine versenkten Kugeln**, einzeln als kleine Kreise in der Kugelfarbe: Die des linken wachsen **von der Linie nach links**, die des rechten **von der Linie nach rechts**. Die gemeinsame Liste der versenkten Kugeln links oben fehlt dann. Die Datenbank führt Buch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`), die Liste gilt also auch für den, der später dazukommt, und wird mit jedem neuen Aufbau geleert. Am Handy steht das Feld unter Status („Balls rolling …“) und Geld, damit nichts überdeckt wird.
+Oben in der Mitte (unter dem kleinen Titel und den zwei Balken) steht immer ein Feld, in dem **Name und Geld untereinander** stehen (mit der Flagge vor dem Namen):
+
+- **Einzelspieler:** nur ich: Flagge und Name, darunter das Geld, darunter die versenkten Kugeln (die gemeinsame Liste).
+- **Mehrspieler, allein:** links wie gehabt ich (Flagge, Name, Geld), dann **VS**, rechts „Warte auf einen weiteren Spieler“ (kursiv, ohne Geld).
+- **Mehrspieler, zwei am Tisch:** links der Gast auf Platz 1, rechts auf Platz 2, jeweils Flagge und Name, darunter sein **Geld**, darunter **seine** versenkten Kugeln; wer **dran** ist, ist gelb. Zwischen den beiden läuft eine **Trennlinie**, die das **VS** überdeckt. Die Kugeln des linken wachsen **von der Linie nach links**, die des rechten **von der Linie nach rechts**.
+
+Das Geld des anderen kommt von der Datenbank (`set_money`; mein Spiel schickt mein Geld bei jeder Änderung), die Kugeln auch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`). Das gilt auch für den, der später dazukommt, und die Kugeln werden mit jedem neuen Aufbau geleert. „Warte auf einen weiteren Spieler“ steht nur noch in diesem Feld (keine eigene Meldung mehr).
+
+**Links oben** steht nur noch der **Status** („Ready to shoot“, „Balls rolling …“): der Punkt, darunter jedes Wort in einer eigenen Zeile („Balls“ / „rolling …“).
 
 ## Zufall und Spielzustand
 

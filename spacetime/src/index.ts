@@ -211,6 +211,12 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   seatTheFirstTwo(ctx); // (does nothing while a game runs: the 10 s of check_timeouts decide then)
 });
 
+/** The money of the guest changed (a drink, a pack): the others see it under his name. */
+export const set_money = spacetimedb.reducer({ money: t.u32() }, (ctx, { money }) => {
+  const player = me(ctx);
+  ctx.db.player.identity.update({ ...player, money });
+});
+
 /** The drink and the cigarettes of the guest changed (a sip, a new order, a cigarette): only a change is sent. */
 export const set_kit = spacetimedb.reducer({ drink: t.string(), sips: t.u8(), pack: t.u8(), packCount: t.u8() }, (ctx, k) => {
   me(ctx);

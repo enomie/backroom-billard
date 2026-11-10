@@ -47,7 +47,7 @@ const euler = new THREE.Euler();
 
 /**
  * @param {THREE.Scene} scene
- * @param {(room: { players: { name: string, country: string }[], others: number, taken: boolean[], mySide: number | null }) => void} onRoom — called when somebody
+ * @param {(room: { players: { name: string, country: string, money: number }[], others: number, taken: boolean[], mySide: number | null }) => void} onRoom — called when somebody
  *   comes or goes: how many others are here, which seats of the table are taken (index 0 = the −z side, 1 = the +z
  *   side) and the seat of this guest (null: a spectator). The first two guests present take the seats: the one
  *   who came first sits on the +z side.
@@ -66,8 +66,9 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let ready = null; // { resolve, reject, timer } while joining
   let lastHand = "false/false"; // what the database knows about my hands
   let lastKit = ""; // and about my drink and cigarettes
+  let lastMoney = null; // and my money
   const kits = new Map(); // identity (hex) → the last kit row of a guest
-  const roster = new Map(); // identity (hex) → { name, country, seat, connected, joinedAt }: who is in the room
+  const roster = new Map(); // identity (hex) → { name, country, money, seat, connected, joinedAt }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
   const finishJoin = (error) => {
@@ -109,7 +110,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     const seat = roster.get(myId)?.seat ?? 0;
     const playerOfSeat = (seat) => {
       const p = guests.find(([, g]) => g.seat === seat)?.[1];
-      return { name: p?.name ?? "", country: p?.country ?? "" };
+      return { name: p?.name ?? "", country: p?.country ?? "", money: p?.money ?? 0 };
     };
     onRoom({
       players: [playerOfSeat(1), playerOfSeat(2)], // the two at the table (seat 1, seat 2): name and country
@@ -123,7 +124,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     const id = hex(row.identity);
     const before = roster.get(id);
     const joinedAt = row.joinedAt.microsSinceUnixEpoch;
-    roster.set(id, { name: row.name, country: row.country, seat: row.seat, connected: row.connected, joinedAt });
+    roster.set(id, { name: row.name, country: row.country, money: row.money, seat: row.seat, connected: row.connected, joinedAt });
     // news only about what happens after I am in the room: a guest who came after me, or who goes (not those who were here before me)
     if (joined && looked && id !== myId && (!before || before.connected !== row.connected)) {
       if (!row.connected) onNote("left", row.name);
@@ -298,6 +299,12 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       if (!joined || text === lastHand) return;
       lastHand = text;
       call(() => connection?.reducers.setHand({ drinking: hand.drinking, smoking: hand.smoking }));
+    },
+    /** The money of this guest changed (the others see it under his name); only a change is sent. */
+    setMoney(money) {
+      if (!joined || money === lastMoney) return;
+      lastMoney = money;
+      call(() => connection?.reducers.setMoney({ money }));
     },
     /** The drink and the cigarettes of this guest ({ drink, sips, pack, packCount }); only a change is sent. */
     setKit(kit) {

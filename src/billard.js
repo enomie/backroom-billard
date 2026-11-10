@@ -47,7 +47,7 @@ import { createBarLamps } from "./bar-lamps.js";
 import { createBackbar } from "./backbar.js";
 import { createFaceBall } from "./face-ball.js";
 import { createMultiplayer } from "./multiplayer.js";
-import { showWaiting, roomNote, renderNote } from "./room-notices.js";
+import { roomNote, renderNote } from "./room-notices.js";
 import { isCountry, flagUrl } from "./country-list.js";
 import { createShotRecorder, createShotReplay } from "./shot-replay.js";
 import { AIM_SEND_SECONDS } from "./multiplayer-constants.js";
@@ -348,7 +348,11 @@ function init() {
   exhale = createExhale(scene);
   atmosphere = createAtmosphere(scene); // after the capture, so the balls do not reflect the haze
   glasses.applyReflection(ballReflection);
-  wallet = createWallet();
+  wallet = createWallet((balance) => {
+    myBalance = balance;
+    renderMatch();
+    multiplayer?.setMoney(balance); // (the others see it under my name)
+  });
   smoking = createSmoking(cigarettes, exhale, lighters, packs, wallet, (dt) => playerState.drag(dt));
   let orderFor = null; // the empty glass the menu is for
   drinkMenu = createDrinkMenu(wallet, (item) => {
@@ -1546,6 +1550,7 @@ function renderDynamicTexts() {
   renderCameraLabel();
   renderPianoButton();
   renderNote();
+  renderMatch();
   renderGameOver();
   document.querySelectorAll(".pocketed-ball").forEach((dot) => {
     dot.title = t("pocketed.ball", { n: dot.dataset.ballId });
@@ -2088,27 +2093,43 @@ function updateRemoteHands(dt) {
   }
 }
 
-/** The match above the table (two at the table): the names and the balls each one pocketed. */
-let matchNames = [{ name: "", country: "" }, { name: "", country: "" }]; // the two at the table
+/**
+ * The panel at the top in the middle, for single and multiplayer: name and money one below the other (with the flag), and the
+ * pocketed balls. Single player: only me. Multiplayer alone: me, "VS", "Waiting for another player". Two at the table: both
+ * (the left one on seat 1, the right one on seat 2) with a line and "VS" between them, and below each his own pocketed balls.
+ */
+let matchMode = null; // "single" | "multi" (set when the game starts)
+let matchMe = { name: "", country: "" }; // this guest (from his profile)
+let myBalance = 0; // his money (the wallet tells)
+let matchNames = [{ name: "", country: "", money: 0 }, { name: "", country: "", money: 0 }]; // the two seats (from the database)
 let matchPockets = []; // [{ ball, seat }]
+const money = (amount) => "$ " + amount.toLocaleString("en-US");
 function renderMatch() {
-  const both = !!(matchNames[0].name && matchNames[1].name);
-  document.getElementById("match").hidden = !both;
-  document.getElementById("pocketed-balls").hidden = both; // (the common list is for one player alone)
-  if (!both) return;
-  [1, 2].forEach((seat) => {
-    const name = document.getElementById(`match-name-${seat}`);
-    name.textContent = matchNames[seat - 1].name;
-    const flag = document.getElementById(`match-flag-${seat}`);
-    const country = matchNames[seat - 1].country;
-    if (country && isCountry(country)) {
-      flag.src = flagUrl(country);
-      flag.hidden = false;
-    } else flag.hidden = true;
-    name.classList.toggle("is-up", mpGame.running && mpGame.turnSeat === seat);
-    document.getElementById(`match-balls-${seat}`).replaceChildren(
-      ...matchPockets
-        .filter((p) => p.seat === seat)
+  const panel = document.getElementById("match");
+  panel.hidden = matchMode === null;
+  if (matchMode === null) return;
+  const two = matchMode === "multi" && !!(matchNames[0].name && matchNames[1].name);
+  const alone = matchMode === "multi" && !two;
+  panel.classList.toggle("match--single", matchMode === "single");
+  panel.classList.toggle("match--two", two);
+  document.getElementById("pocketed-balls").hidden = two; // (the common list for one player; two have one each)
+  // who stands where: (name, country, money) of the left and of the right one
+  const mySeat = mySideNow === 1 ? 1 : mySideNow === 0 ? 2 : 0;
+  const entry = (seat) => ({ ...matchNames[seat - 1], money: seat === mySeat ? myBalance : matchNames[seat - 1].money });
+  const left = two ? entry(1) : { ...matchMe, money: myBalance };
+  const right = two ? entry(2) : alone ? { name: t("room.waiting"), country: "", money: null } : null;
+  [left, right].forEach((who, i) => {
+    const n = i + 1;
+    document.getElementById(`match-name-${n}`).textContent = who?.name ?? "";
+    const flag = document.getElementById(`match-flag-${n}`);
+    flag.hidden = !(who?.country && isCountry(who.country));
+    if (!flag.hidden) flag.src = flagUrl(who.country);
+    document.getElementById(`match-money-${n}`).textContent = who && who.money !== null ? money(who.money) : "";
+    document.getElementById(`match-name-${n}`).classList.toggle("is-up", two && mpGame.running && mpGame.turnSeat === n);
+    document.getElementById(`match-name-${n}`).classList.toggle("is-waiting", who === right && alone);
+    document.getElementById(`match-balls-${n}`).replaceChildren(
+      ...(two ? matchPockets : [])
+        .filter((p) => p.seat === n)
         .sort((a, b) => a.ball - b.ball)
         .map((p) => {
           const dot = document.createElement("span");
@@ -2288,6 +2309,9 @@ function applyRestState(rows) {
  */
 export async function applyProfile(profile, mode) {
   mpMode = mode === "multi";
+  matchMode = mode;
+  matchMe = { name: displayName(profile, "short"), country: profile.country };
+  renderMatch();
   myChoice = { drink: profile.firstDrink, pack: profile.firstPack }; // put on his seat as soon as he has one (applySeats)
   if (mode === "multi") await multiplayer.join(profile);
   wallet.setBalance(profile.money);
@@ -2344,9 +2368,8 @@ function applyKit(seat, kit) {
 /** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */
 function applyRoom(room) {
   matchNames = room.players;
-  renderMatch();
   applySeats(room.taken, room.mySide);
-  showWaiting(room.others === 0);
+  renderMatch();
   if (room.others === 0 && gameState !== "playing" && !mpGame.running) {
     // alone after a game: nobody to play again with, so the way to a practice rack is open
     document.getElementById("btn-restart").hidden = false;

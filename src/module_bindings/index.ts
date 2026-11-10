@@ -44,6 +44,7 @@ import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
 import SetKitReducer from "./set_kit_reducer";
+import SetMoneyReducer from "./set_money_reducer";
 import SetPresenceReducer from "./set_presence_reducer";
 import SetProfileReducer from "./set_profile_reducer";
 import TakeShotReducer from "./take_shot_reducer";
@@ -218,6 +219,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
   __reducerSchema("set_kit", SetKitReducer),
+  __reducerSchema("set_money", SetMoneyReducer),
   __reducerSchema("set_presence", SetPresenceReducer),
   __reducerSchema("set_profile", SetProfileReducer),
   __reducerSchema("take_shot", TakeShotReducer),

@@ -1,17 +1,12 @@
 /**
- * The messages about the room (multiplayer): a standing "Waiting for another player" while the guest is
- * alone, and short notes ("Anna joined", "The game starts: …") one below the other that go away by themselves.
+ * The messages about the room (multiplayer): short notes ("Anna joined", "The game starts: …") one below the
+ * other that go away by themselves (the "Waiting for another player" stands in the match panel).
  * Texts: src/i18n (room.*). See _docs/multiplayer.md.
  */
 import { t } from "./i18n/index.js";
 
 const NOTE_SECONDS = 5;
 const notes = []; // the notes on the screen: { key, name, element }
-
-/** Show or hide the standing message for a guest who is alone in the room. */
-export function showWaiting(visible) {
-  document.getElementById("room-waiting").hidden = !visible;
-}
 
 /** A short note: the text is the translation of `key` with the name; it goes away after a few seconds. */
 export function roomNote(key, name) {
