@@ -72,6 +72,11 @@ export const Presence = __t.object("Presence", {
 });
 export type Presence = __Infer<typeof Presence>;
 
+export const Rematch = __t.object("Rematch", {
+  identity: __t.identity(),
+});
+export type Rematch = __Infer<typeof Rematch>;
+
 export const Shot = __t.object("Shot", {
   seq: __t.u32(),
   shooter: __t.identity(),

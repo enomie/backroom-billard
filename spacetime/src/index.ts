@@ -113,6 +113,14 @@ const spacetimedb = schema({
     }
   ),
 
+  /** The guests of a finished game who want to play again (when both seated players are in here, the next game begins). */
+  rematch: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+    }
+  ),
+
   /** The table bets of the spectators: one bid each (the highest challenges the winner; equal: the first). */
   bid: table(
     { public: true },
@@ -201,13 +209,17 @@ export const set_profile = spacetimedb.reducer(
  * first one seat 1; when both seats are taken the game starts by itself. A running game keeps its players.
  */
 function seatTheFirstTwo(ctx: Ctx) {
-  if (theGame(ctx).state === GAME_PLAYING) return;
+  const game = theGame(ctx);
+  if (game.state === GAME_PLAYING) return;
+  const seatedBefore = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR && p.connected).length;
   const present = [...ctx.db.player.iter()].filter((p) => p.connected).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
   const seats = new Map(present.map((p, i) => [p.identity.toHexString(), i < 2 ? i + 1 : SPECTATOR]));
   for (const p of ctx.db.player.iter()) {
     const seat = seats.get(p.identity.toHexString()) ?? SPECTATOR;
     if (p.seat !== seat) ctx.db.player.identity.update({ ...p, seat });
   }
+  // fewer than two were sitting: whoever comes now is a new pairing, no "play again" is awaited
+  if (seatedBefore < 2 && game.winnerSeat !== 0) ctx.db.game.id.update({ ...game, winnerSeat: 0, reason: '' });
   startIfReady(ctx);
 }
 
@@ -215,7 +227,7 @@ function seatTheFirstTwo(ctx: Ctx) {
 function startIfReady(ctx: Ctx) {
   const game = theGame(ctx);
   const seated = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR);
-  if (game.state === GAME_PLAYING || seated.length < 2) return;
+  if (game.state === GAME_PLAYING || seated.length < 2 || game.winnerSeat !== 0) return; // (winnerSeat: a finished game waits for "play again")
   resetBalls(ctx);
   ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: 1, shotRunning: false, winnerSeat: 0, reason: '' });
 }
@@ -353,10 +365,25 @@ function finishGame(ctx: Ctx, winnerSeat: number, reason: string) {
   const loser = players.find((p) => p.seat !== SPECTATOR && p.seat !== winnerSeat);
   // the stake goes to the winner: the champion wins it from the challenger, a winning challenger gets his own back
   if (winner) ctx.db.player.identity.update({ ...winner, money: winner.money + game.stake });
-  if (loser) ctx.db.player.identity.update({ ...loser, seat: SPECTATOR });
+  // a loser who is still here (foul, black ball) stays and may play again; one who left or was silent gives up his seat
+  if (loser && (reason === 'timeout' || reason === 'left')) ctx.db.player.identity.update({ ...loser, seat: SPECTATOR });
+  for (const r of [...ctx.db.rematch.iter()]) ctx.db.rematch.identity.delete(r.identity);
   ctx.db.game.id.update({ ...game, state: GAME_WAITING, shotRunning: false, turnSeat: 0, winnerSeat, reason, stake: 0, challenger: undefined });
   fillEmptySeat(ctx);
 }
+
+/** "Play again" (the button after a game): when both seated players have pressed it, the next game begins, the loser shoots first. */
+export const play_again = spacetimedb.reducer((ctx) => {
+  const player = me(ctx);
+  const game = theGame(ctx);
+  if (game.state !== GAME_WAITING || game.winnerSeat === 0 || player.seat === SPECTATOR) throw new SenderError('no finished game to play again');
+  if (!ctx.db.rematch.identity.find(ctx.sender)) ctx.db.rematch.insert({ identity: ctx.sender });
+  const seated = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR && p.connected);
+  if (seated.length < 2 || !seated.every((p) => ctx.db.rematch.identity.find(p.identity))) return; // the other one has not pressed yet
+  for (const r of [...ctx.db.rematch.iter()]) ctx.db.rematch.identity.delete(r.identity);
+  resetBalls(ctx);
+  ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake: 0, challenger: undefined });
+});
 
 /**
  * Anyone can call it (the clients every 2 s): a seated player without a sign of life for 10 s has lost

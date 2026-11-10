@@ -201,6 +201,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           }
           before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning };
         };
+        // somebody of the finished game wants to play again
+        conn.db.rematch.onInsert((_ctx, row) => {
+          if (looked && hex(row.identity) !== myId) onGame({ kind: "again", name: roster.get(hex(row.identity))?.name ?? "" });
+        });
         conn.db.game.onInsert((_ctx, row) => onGameRow(row));
         conn.db.game.onUpdate((_ctx, _old, row) => onGameRow(row));
         conn.subscriptionBuilder()
@@ -209,7 +213,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
@@ -231,6 +235,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     /** The shooter says that his shot begins (the database checks that he is up). */
     takeShot(shot) {
       call(() => connection?.reducers.takeShot(shot));
+    },
+    /** "Play again": the next game begins when both players have pressed it. */
+    playAgain() {
+      call(() => connection?.reducers.playAgain());
     },
     /** The shot is over: what happened and where the balls lie (the database applies the rules and says who is up next). */
     endShot(result) {

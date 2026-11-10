@@ -1186,6 +1186,12 @@ function setupControls() {
   };
   smokeButton.addEventListener("pointerup", releaseSmoke);
   smokeButton.addEventListener("pointercancel", releaseSmoke);
+  const againButton = document.getElementById("game-over-again");
+  againButton.addEventListener("click", () => {
+    multiplayer.playAgain();
+    againButton.disabled = true;
+    againButton.textContent = t("game.again.waiting");
+  });
   document.getElementById("btn-restart").addEventListener("click", () => {
     if (mpGame.running) return;
     setupBalls();
@@ -1454,6 +1460,8 @@ function renderDynamicTexts() {
 onLanguageChange(renderDynamicTexts);
 
 function hideGameOver() {
+  document.getElementById("btn-restart").hidden = false;
+  document.getElementById("game-over-again").hidden = true;
   gameState = "playing";
   const overlay = document.getElementById("game-over");
   if (overlay) overlay.hidden = true;
@@ -1905,6 +1913,8 @@ function onMultiplayerGame(e) {
     mpGame.myTurn = e.myTurn;
     mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
     if (e.kind === "turn" && !e.first) roomNote(e.myTurn ? "room.yourTurn" : "room.turnOf", e.turnName);
+  } else if (e.kind === "again") {
+    roomNote("room.wantsAgain", e.name);
   } else if (e.kind === "sync") {
     applyRestState(e.balls);
   } else if (e.kind === "over") {
@@ -1913,6 +1923,12 @@ function onMultiplayerGame(e) {
     mpShot = null;
     mpWantCamera = null;
     endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
+    // multiplayer: no re-rack here; the players can play again (both must press it)
+    document.getElementById("btn-restart").hidden = true;
+    const again = document.getElementById("game-over-again");
+    again.hidden = !e.isPlayer || e.reason === "timeout" || e.reason === "left"; // (the other one is gone: nobody to play with)
+    again.disabled = false;
+    again.textContent = t("game.again");
   }
 }
 

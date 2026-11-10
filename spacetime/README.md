@@ -15,6 +15,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `shotChunk` | die Aufnahme des laufenden Stoßes in Häppchen (nach dem Zug nicht mehr nötig) |
 | `aim` | das Zielen des Schützen (etwa 15-mal pro Sekunde, die anderen sehen den Cue) |
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
+| `rematch` | wer nach einem Spielende nochmal spielen will (beide Spieler müssen drücken) |
 | `bid` | die Tischwetten der Zuschauer (ein Gebot je Zuschauer) |
 
 | Reducer | Zweck |
@@ -24,6 +25,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `heartbeat`, `check_timeouts` | Lebenszeichen alle 2 s; wer als Spieler 10 s fehlt, hat verloren |
 | `place_bid`, `withdraw_bid` | Tischwette: Vielfache von 10, mindestens 10, höchstens das Geld; nur erhöhen oder zurückziehen (nicht als Herausforderer im laufenden Spiel) |
 | `set_aim`, `take_shot`, `push_chunk`, `end_shot` | Zielen, Schuss (nur wer dran ist und kein Stoß läuft), Häppchen der Aufnahme, Ende des Stoßes mit Ergebnis |
+| `play_again` | „Nochmal“: wenn beide Spieler gedrückt haben, beginnt das nächste Spiel (der Verlierer stößt zuerst) |
 | `leave_table` | vom Tisch aufstehen (im Spiel: verloren) |
 
 Regeln im Modul: Foul oder zu früh versenkte schwarze 8 verliert der Schütze, die schwarze 8 als letzte Kugel gewinnt; wer eine Kugel versenkt (und die weiße nicht), stößt nochmal, sonst der andere; der Einsatz des Herausforderers gehört dem Sieger (gewinnt der Herausforderer, bekommt er ihn zurück); der Verlierer wird Zuschauer, der Sieger bleibt, der Höchstbietende (bei Gleichstand der erste) rückt nach.

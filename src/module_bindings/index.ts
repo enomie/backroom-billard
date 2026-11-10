@@ -39,6 +39,7 @@ import EndShotReducer from "./end_shot_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
 import LeaveTableReducer from "./leave_table_reducer";
 import PlaceBidReducer from "./place_bid_reducer";
+import PlayAgainReducer from "./play_again_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetPresenceReducer from "./set_presence_reducer";
@@ -55,6 +56,7 @@ import BidRow from "./bid_table";
 import GameRow from "./game_table";
 import PlayerRow from "./player_table";
 import PresenceRow from "./presence_table";
+import RematchRow from "./rematch_table";
 import ShotRow from "./shot_table";
 import ShotChunkRow from "./shot_chunk_table";
 
@@ -128,6 +130,17 @@ const tablesSchema = __schema({
       { name: 'presence_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PresenceRow),
+  rematch: __table({
+    name: 'rematch',
+    indexes: [
+      { accessor: 'identity', name: 'rematch_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'rematch_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, RematchRow),
   shot: __table({
     name: 'shot',
     indexes: [
@@ -162,6 +175,7 @@ const reducersSchema = __reducers(
   __reducerSchema("heartbeat", HeartbeatReducer),
   __reducerSchema("leave_table", LeaveTableReducer),
   __reducerSchema("place_bid", PlaceBidReducer),
+  __reducerSchema("play_again", PlayAgainReducer),
   __reducerSchema("push_chunk", PushChunkReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_presence", SetPresenceReducer),
