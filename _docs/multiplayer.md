@@ -97,6 +97,10 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen sc
 3. Zufälliges und zeitabhängiges (Cue-Schwanken, `performance.now`) wird ohnehin **in den Stoßdaten** festgehalten, damit die Cue-Animation bei allen gleich läuft.
 4. Danach erst SpacetimeDB (Tabellen, `take_shot`, Zeitabgleich, Häppchen) und die Anzeige der anderen Spieler.
 
+## Vorbereitet: das Datenbank-Modul
+
+Das SpacetimeDB-Modul liegt als Entwurf in [`spacetime/`](../spacetime/README.md) (TypeScript, `spacetimedb` 2.14; prüft mit `npm run check`): die Tabellen (Spieler, Spiel, Kugeln, Stoß, Häppchen, Zielen, Gebote) und die Aktionen mit den hier festgelegten Regeln (Foul, schwarze 8, Spielerwechsel, Tischwette, 10-s-Frist). Es ist **noch nicht veröffentlicht** und **vom Spiel noch nicht benutzt**.
+
 ## Offene Fragen
 
 Keine zum Regelwerk. Für den Bau stehen noch die Schritte unter „Was dafür im Spiel zuerst nötig wäre“ an (Rekorder, Abspieler, dann SpacetimeDB).

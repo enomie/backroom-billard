@@ -1,0 +1,16 @@
+{
+  "name": "backroom-billard-module",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The SpacetimeDB module (tables and reducers) of Backroom Billard. See _docs/multiplayer.md and spacetime/README.md.",
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "spacetimedb": "^2.14.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

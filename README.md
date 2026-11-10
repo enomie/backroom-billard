@@ -72,6 +72,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `physics-world.js` | Rapier-Welt, Collider aus der gerenderten Geometrie |
 | `physics-rapier.js` | Kugel-Körper, Trimesh-Helfer |
 | `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
+| `spacetime/` | Das SpacetimeDB-Modul (Entwurf für den Multiplayer, nicht veröffentlicht), siehe `spacetime/README.md` |
 | `radio.js`, `radio-audio.js`, `radio-metadata.js`, `radio-constants.js` | Sideboard mit Radio, Stream, Titelanzeige und Raumklang über zwei Lautsprecher |
 | `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
