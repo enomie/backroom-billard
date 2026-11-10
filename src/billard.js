@@ -2129,10 +2129,12 @@ function onMultiplayerGame(e) {
     mpShot = null;
     mpWantCamera = null;
     endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
-    // multiplayer: no re-rack here; the players can play again (both must press it)
-    document.getElementById("btn-restart").hidden = true;
+    // multiplayer: the two players can play again (both must press it); a spectator, or a player whose partner is gone,
+    // can only start a practice rack (Re-rack: he plays alone until somebody comes)
+    const together = e.isPlayer && e.reason !== "timeout" && e.reason !== "left";
+    document.getElementById("btn-restart").hidden = together;
     const again = document.getElementById("game-over-again");
-    again.hidden = !e.isPlayer || e.reason === "timeout" || e.reason === "left"; // (the other one is gone: nobody to play with)
+    again.hidden = !together;
     again.disabled = false;
     again.textContent = t("game.again");
   }
@@ -2281,6 +2283,11 @@ function applyKit(seat, kit) {
 function applyRoom(room) {
   applySeats(room.taken, room.mySide);
   showWaiting(room.others === 0);
+  if (room.others === 0 && gameState !== "playing" && !mpGame.running) {
+    // alone after a game: nobody to play again with, so the way to a practice rack is open
+    document.getElementById("btn-restart").hidden = false;
+    document.getElementById("game-over-again").hidden = true;
+  }
 }
 
 function scheduleInit() {
