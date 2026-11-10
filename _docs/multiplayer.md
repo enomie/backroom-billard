@@ -58,6 +58,13 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
 - **Verbindung weg:** Ein Spieler, dessen Verbindung abbricht, bekommt **10 Sekunden** (er kann zurückkommen und dort weiterspielen, wo er war). Danach hat er **verloren**. Nachrücken darf nur ein Zuschauer, der eine **Tischwette** platziert hat (der Höchstbietende).
 - **Zuschauer sind Gäste wie die Spieler:** Sie sehen die **Trink- und Rauchanimationen** der Spieler, und sie können selbst **trinken und rauchen**. Sie haben **dieselben zwei Zustandsbalken** (Thirsty ↔ Drunk, Nerves ↔ Desire), Geld und Getränke wie ein Spieler; nur stoßen dürfen sie nicht. Die Anzeige der anderen (Trinken, Rauchen) wird als kleine Zustandsdaten (Glas hoch, Zigarette im Mund, Rauch) an alle gemeldet und lokal gezeichnet, nicht als Bild.
 
+- **Tischwette (Einsatz):**
+  - Der **Sieger bekommt nur den Einsatz des Herausforderers**; der Sieger der letzten Runde setzt nichts dagegen.
+  - Man kann **jederzeit** bieten, auch während ein Spiel läuft, und so viel, wie man Geld hat. Der Einsatz wächst über die Knöpfe **+10** und **+100** (Schritte von 10 und 100), **Mindesteinsatz 10**.
+  - **Gleich hohe Gebote:** Wer zuerst geboten hat, gewinnt (first come).
+  - **Ohne Gebot kein Spiel:** Ohne Tischwette setzt sich niemand an den Tisch; der Sieger wartet, bis jemand bietet.
+  - **Ein Spieler fehlt nach 10 Sekunden und kein Zuschauer hat eine Wette:** Das Spiel ist beendet, der Verbliebene gewinnt.
+
 ## Vertrauen
 
 Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hochladen). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Aufnahmen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um. Das ist ein späterer Schritt.
@@ -71,10 +78,7 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hoch
 
 ## Offene Fragen
 
-- **Tischwette** (steht auch in `game-concept.md`, dort noch die ältere Fassung „die zwei Höchstbietenden spielen“; **diese Seite gilt**):
-  - Was passiert mit dem Einsatz: bekommt der Sieger den Einsatz des Herausforderers (winner takes all), und was zahlt der Sieger der letzten Runde dagegen?
-  - Was passiert mit den Geboten der anderen Zuschauer (zurück oder verfallen)?
-  - Bis wann kann man bieten (bis das laufende Spiel zu Ende ist)?
-  - Gleich hohe Gebote: wer zuerst bot? Niemand bietet: Der Sieger wartet, bis jemand bietet?
-- Was ist, wenn der Gegner nach 10 Sekunden verloren hat und **kein** Zuschauer eine Wette hat: Spiel beendet, der Verbliebene gewinnt?
+- **Gewinnt der Herausforderer:** Der Einsatz ist der einzige Betrag im Spiel (der Sieger der letzten Runde setzt nichts dagegen). Gewinnt der Herausforderer, bekäme er also nur seinen **eigenen Einsatz zurück** und hätte nichts gewonnen. Soll er dann etwas obendrauf bekommen (etwa legt die Bank den Einsatz noch einmal drauf), damit sich das Herausfordern lohnt? Und was wird aus dem Platz am Tisch: Bleibt der Sieger der Runde am Tisch, egal wer es ist?
+- Was passiert mit den **Geboten der anderen** Zuschauer, die nicht Herausforderer werden: gehen sie zurück (Vorschlag), oder bleiben sie für die nächste Runde stehen?
+- Kann man ein Gebot **zurückziehen** oder nur erhöhen (Vorschlag: nur erhöhen)?
 - Wie viel Abstand müssen Zuschauer zum Tisch halten (bisher 2 m, siehe `game-concept.md`)?
