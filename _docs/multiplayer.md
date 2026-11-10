@@ -44,6 +44,15 @@ Alles, was wirkt, kommt **vom Schützen mit in die Aufnahme**: das zufällige Sc
 
 Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (später eigene Tabelle); für den Stoß zählt nur das, was der Schütze in die Stoßdaten schreibt.
 
+## Entschieden
+
+- **Vertrauen:** Der Schütze rechnet selbst, das genügt (siehe unten).
+- **Teilnehmer:** zwei Spieler am Tisch, dazu beliebig viele Zuschauer (nur schauen, freie Kamera).
+- **Foul:** Wer das Foul macht (heute: die Cue-Spitze berührt zuerst eine farbige Kugel), **verliert** das Spiel sofort; der andere gewinnt.
+- **Gewinnen:** Wer die **schwarze 8 einlocht, nachdem alle anderen Kugeln versenkt sind**, gewinnt. Die Kugeln gehören niemandem (keine Farben, keine Volle/Halbe): alle Kugeln spielen beide.
+- **Schwarze zu früh:** Wer die schwarze 8 versenkt, solange noch andere Kugeln auf dem Tisch liegen, verliert (wie im Einzelspiel); der andere gewinnt.
+- **Spielerwechsel:** Wer **mindestens eine Kugel versenkt**, stößt nochmal. Versenkt er **keine** Kugel, ist der andere dran. Das gilt für jeden Stoß.
+
 ## Vertrauen
 
 Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hochladen). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Aufnahmen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um. Das ist ein späterer Schritt.
@@ -57,7 +66,7 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hoch
 
 ## Offene Fragen
 
-- Wie viele Spieler am Tisch (zwei, abwechselnd) und wie viele Zuschauer?
-- Bei einem Foul oder Spielende: gilt es für beide (Spiel verloren heißt: wer verliert, wer gewinnt?).
-- Vertrauensfrage: reicht der Schütze als Rechner, oder gleich der Server?
-- Zeigt der Zuschauer die Trink- und Rauchanimationen der anderen?
+- **Weiße Kugel versenkt (oder vom Tisch):** Versenkt der Schütze nur die weiße, ist das **keine** versenkte Kugel, also Spielerwechsel (der andere stößt, sobald alles ruht und die weiße neu aufgelegt ist). Und wenn er im selben Stoß auch eine farbige versenkt? Vorschlag: Die farbige zählt, er stößt nochmal.
+- Zeigt der Zuschauer die Trink- und Rauchanimationen der Spieler?
+- Wer beginnt (Los, Reihenfolge des Beitretens)?
+- Wann verlässt ein Spieler das Spiel (Verbindung weg: nach einer Frist verloren, Zuschauer rücken nach)?
