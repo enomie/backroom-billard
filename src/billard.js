@@ -228,10 +228,11 @@ const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fr
 const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
 const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
 /** The multiplayer game (null fields in single player): is one running, and is it this guest's turn. */
-const mpGame = { running: false, myTurn: false };
+const mpGame = { running: false, myTurn: false, turnSeat: 0 };
 let mpWantCamera = null; // "fps" / "free": the camera follows the turn (to the cue view when it is my turn, else free) until it is there
 /** The cue of the one who is up, as the others see it: moved by his aim, and during his shot by the replay. */
-const remoteCue = { active: false, angle: 0, pitch: 0, x: 0, y: 0, gap: CUE_AIM_GAP };
+const remoteCue = { active: false, angle: 0, pitch: 0, x: 0, y: 0, gap: CUE_AIM_GAP, relax: 0, place: null }; // place: where it struck (null: at the ball)
+const remoteView = new THREE.Object3D(); // the head of the one who is up (where his camera is): his cue is carried relative to it
 const remoteAim = { angle: 0, pitch: 0, x: 0, y: 0 }; // where the aim is going (the cue follows smoothly)
 const replay = createShotReplay(); // the shot of the other one, played back a little later
 let queuedEvents = []; // events (shot result, turn, end) that wait until the replay of the last shot is over
@@ -587,6 +588,11 @@ function updateCueRelax(dt) {
     if (strokeContacted) cueShotTime += dt; // the follow-through starts at the contact
     if (strokeContacted && cueShotTime > CUE_FOLLOW_THROUGH_TIME) {
       cueRelax = Math.min(1, cueRelax + dt / CUE_RELAX_TIME);
+      if (mpShot && !mpShot.freed) {
+        // multiplayer: after the stroke the shooter's head and cue go to the free camera (the others see his head there, he watches the balls)
+        mpShot.freed = true;
+        mpWantCamera = "free";
+      }
     }
   } else {
     cueRelax = Math.max(0, cueRelax - dt / CUE_RETURN_TIME);
@@ -599,8 +605,8 @@ function updateCueRelax(dt) {
  * Relaxed hold: the cue is carried in the lower right of the camera view, tip pointing diagonally
  * into the scene; the two poses are blended smoothly (position lerp, rotation slerp).
  */
-function poseCue(gap) {
-  const eased = cueRelax * cueRelax * (3 - 2 * cueRelax);
+function poseCue(gap, relax = cueRelax, view = camera) {
+  const eased = relax * relax * (3 - 2 * relax);
 
   // Aiming/strike pose in the pivot's local space (cue origin = tip, +z towards the player).
   // The cue axis passes through the ball center: the tip sits `gap` away from the ball surface.
@@ -622,11 +628,11 @@ function poseCue(gap) {
 
   // Carried pose: defined in camera space, converted into the pivot's local space
   const sway = Math.sin((performance.now() / 1000) * CUE_SWAY_SPEED) * CUE_SWAY_AMPLITUDE;
-  camera.updateMatrixWorld(true);
+  view.updateMatrixWorld(true);
   cueStickPivot.updateMatrixWorld(true);
-  _cueCarryPos.set(...CUE_CARRY_TIP).applyMatrix4(camera.matrixWorld);
+  _cueCarryPos.set(...CUE_CARRY_TIP).applyMatrix4(view.matrixWorld);
   _cueCarryDir.set(CUE_CARRY_DIRECTION[0] + sway, CUE_CARRY_DIRECTION[1] + sway * 0.5, CUE_CARRY_DIRECTION[2]).normalize();
-  _cueCarryDir.transformDirection(camera.matrixWorld);
+  _cueCarryDir.transformDirection(view.matrixWorld);
   _cueQuatCarry.setFromUnitVectors(_cueForward, _cueCarryDir);
   cueStickPivot.worldToLocal(_cueCarryPos);
   _pivotInverse.copy(cueStickPivot.quaternion).invert(); // pivot: rotates around y only, no parent
@@ -1865,7 +1871,8 @@ function gameLoop(currentTime) {
     // After the shot the cue stays where it struck; it returns once the table is still
     if (remoteCue.active) {
       // the one who is up: his cue at the ball (the ball of the replay, if one is running)
-      cueStickPivot.position.copy(cueBall.mesh.position);
+      if (remoteCue.place) cueStickPivot.position.set(remoteCue.place.x, remoteCue.place.y, remoteCue.place.z); // where he struck: it stays there
+      else cueStickPivot.position.copy(cueBall.mesh.position);
       cueStickPivot.rotation.y = remoteCue.angle;
     } else if (!shotInProgress) {
       cueStickPivot.position.set(cueBall.pos.x, cueBall.pos.y, cueBall.pos.z);
@@ -1879,7 +1886,7 @@ function gameLoop(currentTime) {
       // my shot is written down for the others: the cue and where the balls are
       recorder.frame(
         performance.now(),
-        { angle: cueStickPivot.rotation.y, pitch: stroke ? stroke.pitch : aimCuePitch(), x: (stroke ?? strikeNub).x, y: (stroke ?? strikeNub).y, gap: cueGap },
+        { angle: cueStickPivot.rotation.y, pitch: stroke ? stroke.pitch : aimCuePitch(), x: (stroke ?? strikeNub).x, y: (stroke ?? strikeNub).y, gap: cueGap, relax: cueRelax, place: cueStickPivot.position },
         balls
       );
     }
@@ -1942,7 +1949,15 @@ function gameLoop(currentTime) {
   // The cue is placed after the camera so a carried cue never lags behind it
   if (cueBall && cueStickPivot) {
     updateCueRelax(dt);
-    poseCue(cueGap);
+    if (remoteCue.active) {
+      // the cue of the one who is up: at his head (where his camera is) as soon as he lets go of it, else at the ball
+      const head = multiplayer?.poseOf(mpGame.turnSeat);
+      if (head) {
+        remoteView.position.set(head.x, head.y, head.z);
+        remoteView.rotation.set(head.pitch, head.yaw, 0, "YXZ");
+      }
+      poseCue(cueGap, head ? remoteCue.relax : 0, remoteView);
+    } else poseCue(cueGap);
   }
 
   updateShadows(frameSeconds);
@@ -1994,7 +2009,7 @@ function onMultiplayerGame(e) {
   if (e.kind === "aim") {
     // the one who is up aims: his cue follows (the shot of his that is replayed drives the cue itself)
     Object.assign(remoteAim, { angle: e.angle, pitch: e.pitch, x: e.x, y: e.y });
-    if (!remoteCue.active && !replay.active) Object.assign(remoteCue, remoteAim, { gap: CUE_AIM_GAP });
+    if (!remoteCue.active && !replay.active) Object.assign(remoteCue, remoteAim, { gap: CUE_AIM_GAP, relax: 0, place: null });
     remoteCue.active = true;
     return;
   }
@@ -2019,9 +2034,11 @@ function onMultiplayerGame(e) {
   } else if (e.kind === "turn" || e.kind === "init") {
     mpGame.running = true;
     mpGame.myTurn = e.myTurn;
+    mpGame.turnSeat = e.turnSeat;
     if (e.myTurn) remoteCue.active = false; // my cue now
+    else Object.assign(remoteCue, { relax: 0, place: null }); // his cue is at the ball again (his aim comes next)
     mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
-    if (e.kind === "turn" && !e.first) roomNote(e.myTurn ? "room.yourTurn" : "room.turnOf", e.turnName);
+    if (e.kind === "turn" && e.changed && !e.first) roomNote(e.myTurn ? "room.yourTurn" : "room.turnOf", e.turnName);
   } else if (e.kind === "again") {
     roomNote("room.wantsAgain", e.name);
   } else if (e.kind === "sync") {

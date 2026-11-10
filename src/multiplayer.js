@@ -1,7 +1,7 @@
 /**
  * The connection to the others (SpacetimeDB on Maincloud): the guest joins the room with his name,
  * country and face after the welcome screen, sends a sign of life and where his camera is, and sees the
- * faces of the others at the places of their free cameras. Only used in multiplayer (the welcome screen
+ * faces of the others where their cameras are (free camera or behind the cue). Only used in multiplayer (the welcome screen
  * asks): single player has no connection at all. See _docs/multiplayer.md.
  */
 import * as THREE from "three";
@@ -59,10 +59,9 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let connection = null;
   let myId = ""; // the identity of this guest (hex)
   let joined = false;
-  const faces = new Map(); // identity (hex) → { ball, pose: { x, y, z, yaw, pitch } | null, free, connected }
+  const faces = new Map(); // identity (hex) → { ball, pose: { x, y, z, yaw, pitch } | null, connected }
   let heartbeatAge = 0;
   let presenceAge = 0;
-  let sentFree = null; // what the database knows about the free camera of this guest
 
   let ready = null; // { resolve, reject, timer } while joining
   const roster = new Map(); // identity (hex) → { name, seat, connected }: who is in the room
@@ -88,7 +87,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   const entry = (id) => {
     let e = faces.get(id);
     if (!e) {
-      e = { ball: createFaceBall(scene, { placed: false }), pose: null, current: null, free: false, connected: true, shown: false };
+      e = { ball: createFaceBall(scene, { placed: false }), pose: null, current: null, connected: true, shown: false };
       scene.add(e.ball.group);
       faces.set(id, e);
     }
@@ -142,7 +141,6 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     if (id === myId) return;
     const e = entry(id);
     e.pose = { x: row.x, y: row.y, z: row.z, yaw: row.yaw, pitch: row.pitch };
-    e.free = row.free;
     e.current ??= { ...e.pose };
   };
 
@@ -175,7 +173,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         conn.db.presence.onUpdate((_ctx, _old, row) => onPresence(row));
         conn.db.presence.onDelete((_ctx, row) => {
           const e = faces.get(hex(row.identity));
-          if (e) e.free = false; // away: no face (the guest stays in the list)
+          if (e) e.pose = null; // away: the face stays where it was until the guest is gone from the list
         });
         // The game: what the row says is turned into events for the game (after the first look; a guest who comes into a running game gets "init")
         let before = { state: 0, turnSeat: 0, shotRunning: false };
@@ -186,8 +184,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           const running = row.state === 1;
           if (looked) {
             if (running && before.state !== 1) onGame({ kind: "start", firstName: nameOf(row.turnSeat) });
-            if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat)) {
-              onGame({ kind: "turn", myTurn: row.turnSeat === mySeat(), turnName: nameOf(row.turnSeat), first: before.state !== 1 });
+            const shotJustEnded = before.shotRunning && !row.shotRunning;
+            if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat || shotJustEnded)) {
+              // (also when the same one shoots again: his camera has to come back to the cue)
+              onGame({ kind: "turn", myTurn: row.turnSeat === mySeat(), turnSeat: row.turnSeat, turnName: nameOf(row.turnSeat), first: before.state !== 1, changed: row.turnSeat !== before.turnSeat });
             }
             if (row.shotRunning && !before.shotRunning) {
               shooterSeat = row.turnSeat;
@@ -223,11 +223,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           .onApplied(() => {
             looked = true; // the guests that were there already are no news
             const game = conn.db.game.id.find(1);
-            if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnName: nameOf(game.turnSeat) });
+            if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat, turnName: nameOf(game.turnSeat) });
           })
           .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
-        sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
       .onConnectError((_ctx, error) => {
@@ -253,6 +252,11 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       const seq = (connection?.db.game.id.find(1)?.shotSeq ?? 0) + 1;
       call(() => connection?.reducers.takeShot(shot));
       return seq;
+    },
+    /** Where the head of the guest on a seat is now (smoothed), or null: { x, y, z, yaw, pitch }. */
+    poseOf(seat) {
+      const id = [...roster.entries()].find(([, p]) => p.seat === seat)?.[0];
+      return (id && faces.get(id)?.current) || null;
     },
     /** The aim of the one who is up (about 15 times per second): angle, pitch, where the tip meets the ball, power. */
     setAim(aim) {
@@ -301,7 +305,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         c.yaw += wrap(e.pose.yaw - c.yaw) * k;
         c.pitch += (e.pose.pitch - c.pitch) * k;
         e.ball.setPose(c.x, c.y, c.z, c.yaw, c.pitch);
-        e.ball.setVisible(e.free && e.connected && e.shown);
+        e.ball.setVisible(e.connected && e.shown); // (also in the cue view: his head is behind the cue then)
       }
       if (!connection || !joined) return;
       try {
@@ -312,12 +316,11 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           call(() => connection.reducers.checkTimeouts()); // a player who is gone for 10 s has lost (anybody may ask)
         }
         presenceAge += dt;
-        // the free camera: its place about 10 times per second; otherwise only the change ("away") once
-        if (presenceAge >= MULTIPLAYER_PRESENCE_SECONDS && (free || sentFree !== false)) {
+        // the place of the camera about 10 times per second (free camera or cue view: the head is where the camera is)
+        if (presenceAge >= MULTIPLAYER_PRESENCE_SECONDS) {
           presenceAge = 0;
           euler.setFromQuaternion(camera.quaternion, "YXZ");
           call(() => connection.reducers.setPresence({ x: camera.position.x, y: camera.position.y, z: camera.position.z, yaw: euler.y, pitch: euler.x, free }));
-          sentFree = free;
         }
       } catch (error) {
         console.warn("[Backroom Billard] multiplayer: sending failed:", error);

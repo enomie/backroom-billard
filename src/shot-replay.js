@@ -3,17 +3,18 @@
  * and how the cue moves, and sends it in small pieces; the other guests collect the pieces and play them
  * back a little later (a buffer), smoothly. Frames are plain numbers in a Float32Array. See _docs/multiplayer.md.
  *
- * One frame: [time (ms since the shot began), cue angle, cue pitch, cue nub x, cue nub y, cue gap, number of balls,
- * then per ball: id, x, y, z, qx, qy, qz, qw].
- * One sound event (the clack of two balls, a cushion, a pocket, the cue): [time, kind, p1, x, y, z, −1, p2]; the −1 in
- * the place of the number of balls tells it from a frame.
+ * One frame: [time (ms since the shot began), cue angle, cue pitch, cue nub x, cue nub y, cue gap, cue relax (0 = at the ball,
+ * 1 = carried at the shooter's head), the place of the cue (x, y, z), number of balls, then per ball: id, x, y, z, qx, qy, qz, qw].
+ * One sound event (the clack of two balls, a cushion, a pocket, the cue): [time, kind, p1, x, y, z, p2, 0, 0, 0, −1]; the −1
+ * in the place of the number of balls tells it from a frame.
  */
 import { REPLAY_CHUNK_MS, REPLAY_DELAY_MS } from "./multiplayer-constants.js";
 import { TABLE_H } from "./table-constants.js";
 
-const HEAD = 7;
+const COUNT_AT = 10; // where the number of balls (or the −1 of a sound event) stands
+const HEAD = 11;
 const PER_BALL = 8;
-const EVENT_SIZE = 8;
+const EVENT_SIZE = HEAD;
 
 /**
  * The recorder of the shooter.
@@ -47,12 +48,12 @@ export function createShotRecorder(send) {
     /**
      * One frame.
      * @param {number} now — ms
-     * @param {{ angle: number, pitch: number, x: number, y: number, gap: number }} cue
+     * @param {{ angle: number, pitch: number, x: number, y: number, gap: number, relax: number, place: { x: number, y: number, z: number } }} cue
      * @param {{ id: number, mesh: { position: { x: number, y: number, z: number }, quaternion: { x: number, y: number, z: number, w: number } } }[]} balls
      */
     frame(now, cue, balls) {
       const f = new Float32Array(HEAD + balls.length * PER_BALL);
-      f.set([now - startedAt, cue.angle, cue.pitch, cue.x, cue.y, cue.gap, balls.length]);
+      f.set([now - startedAt, cue.angle, cue.pitch, cue.x, cue.y, cue.gap, cue.relax, cue.place.x, cue.place.y, cue.place.z, balls.length]);
       balls.forEach((b, i) => {
         const p = b.mesh.position;
         const q = b.mesh.quaternion;
@@ -67,7 +68,7 @@ export function createShotRecorder(send) {
     /** A sound of the shot (see EVENT_SIZE): what kind, two numbers and where it was heard. */
     event(now, kind, p1, p2, position) {
       const f = new Float32Array(EVENT_SIZE);
-      f.set([now - startedAt, kind, p1, position[0], position[1], position[2], -1, p2]);
+      f.set([now - startedAt, kind, p1, position[0], position[1], position[2], p2, 0, 0, 0, -1]);
       frames.push(f);
     },
     /** The shot is over: the last piece. */
@@ -85,12 +86,12 @@ function decode(bytes) {
   const events = [];
   let at = 0;
   while (at < floats.length) {
-    if (floats[at + 6] < 0) {
-      events.push({ t: floats[at], kind: floats[at + 1], p1: floats[at + 2], p2: floats[at + 7], position: [floats[at + 3], floats[at + 4], floats[at + 5]] });
+    if (floats[at + COUNT_AT] < 0) {
+      events.push({ t: floats[at], kind: floats[at + 1], p1: floats[at + 2], p2: floats[at + 6], position: [floats[at + 3], floats[at + 4], floats[at + 5]] });
       at += EVENT_SIZE;
       continue;
     }
-    const size = HEAD + floats[at + 6] * PER_BALL;
+    const size = HEAD + floats[at + COUNT_AT] * PER_BALL;
     frames.push(floats.subarray(at, at + size));
     at += size;
   }
@@ -158,10 +159,18 @@ export function createShotReplay() {
       const b = frames[Math.min(i + 1, frames.length - 1)];
       const done = i + 1 >= frames.length && t >= a[0];
       const k = a === b ? 0 : Math.min(1, Math.max(0, (t - a[0]) / (b[0] - a[0] || 1)));
-      const cue = { angle: lerpAngle(a[1], b[1], k), pitch: lerp(a[2], b[2], k), x: lerp(a[3], b[3], k), y: lerp(a[4], b[4], k), gap: lerp(a[5], b[5], k) };
+      const cue = {
+        angle: lerpAngle(a[1], b[1], k),
+        pitch: lerp(a[2], b[2], k),
+        x: lerp(a[3], b[3], k),
+        y: lerp(a[4], b[4], k),
+        gap: lerp(a[5], b[5], k),
+        relax: lerp(a[6], b[6], k),
+        place: { x: lerp(a[7], b[7], k), y: lerp(a[8], b[8], k), z: lerp(a[9], b[9], k) },
+      };
       const read = (f) => {
         const map = new Map();
-        for (let n = 0; n < f[6]; n++) {
+        for (let n = 0; n < f[COUNT_AT]; n++) {
           const o = HEAD + n * PER_BALL;
           map.set(f[o], f.subarray(o + 1, o + PER_BALL));
         }
