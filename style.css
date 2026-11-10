@@ -118,20 +118,20 @@ html {
   gap: 1rem;
 }
 
+/* The title: small, always at the top in the middle (the two bars are below it) */
 .hud-title {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   margin: 0;
   font-family: "Limelight", serif;
-  font-size: 1.125rem;
+  font-size: 0.8rem;
   font-weight: 400;
   letter-spacing: 0.08em;
+  white-space: nowrap;
   color: var(--amber-100);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
-}
-
-@media (min-width: 768px) {
-  .hud-title {
-    font-size: 1.35rem;
-  }
 }
 
 .hud-status-row {
@@ -353,7 +353,7 @@ html {
 /* Condition bars at the top, in the middle */
 .meters {
   position: absolute;
-  top: 0.75rem;
+  top: 1.9rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -756,7 +756,7 @@ html {
  * towards the right, starting at the line */
 .match {
   position: absolute;
-  top: 5.6rem;
+  top: 6.8rem; /* below the two bars */
   left: 50%;
   transform: translateX(-50%);
   width: min(26rem, 52vw);
@@ -955,17 +955,7 @@ html {
     display: contents; /* the title and the info are positioned by themselves */
   }
 
-  .hud-title {
-    position: absolute;
-    top: 0.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.8rem;
-    white-space: nowrap;
-  }
-
   .meters {
-    top: 1.9rem;
     width: min(23rem, calc(100vw - 12rem));
   }
 
