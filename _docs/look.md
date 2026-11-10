@@ -53,7 +53,7 @@ Mit `C` **fliegt** die Kamera zur anderen Ansicht (weich, `CAMERA_FLIGHT_SECONDS
 ## Tische und Sessel (umgesetzt)
 
 - **8 runde Tische** (80 cm, Mahagoni mit Klarlack, Messing-Säule) in zwei Reihen links und rechts vom Billardtisch, jeweils mit 2–3 **Clubsesseln** in weinrotem Leder; die Sessel sind leicht verdreht und teils zurückgeschoben. Lage und Zahl stehen in `furniture-constants.js`, der Bau in `furniture.js` (Sessel als Instanzen).
-- **Sperrkreis:** Die freie Kamera hält 1,5 m Abstand zur Tischmitte jeder Gruppe (`FURNITURE_KEEP_OUT_RADIUS`). Die Möbel haben sonst keine Kollision.
+- **Kein Sperrbereich:** Die Möbel haben keine Kollision und keinen Sperrkreis. Die freie Kamera fliegt zwischen 1,5 m und 2,3 m Höhe und damit über Tischen und Sesseln (entschieden).
 - Die Beleuchtung bleibt wie sie ist; im dunklen Raum erscheinen die Möbel nur als gedämpfte Formen.
 
 ## Spiegelungen in den Kugeln (umgesetzt)

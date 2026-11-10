@@ -19,7 +19,6 @@ import {
   CHAIR_BACK_HEIGHT,
   CHAIR_COLOR_LEATHER,
   CHAIR_RING_RADIUS,
-  FURNITURE_KEEP_OUT_RADIUS,
   FURNITURE_TABLES,
 } from "./furniture-constants.js";
 
@@ -94,8 +93,7 @@ function leatherBump() {
 
 /**
  * @param {THREE.Scene} scene
- * @returns {{ group: THREE.Group, keepOut: { x: number, z: number, r: number }[] }}
- *   keepOut: circles (center + radius) the free camera must stay out of
+ * @returns {{ group: THREE.Group }}
  */
 export function createFurniture(scene) {
   const group = new THREE.Group();
@@ -133,7 +131,6 @@ export function createFurniture(scene) {
     m.receiveShadow = true;
   }
 
-  const keepOut = [];
   const matrix = new THREE.Matrix4();
   let index = 0;
   // The parts of the tables are the same everywhere: one instanced mesh each
@@ -159,9 +156,8 @@ export function createFurniture(scene) {
       footChairs.setMatrixAt(index, matrix);
       index++;
     }
-    keepOut.push({ x: table.x, z: table.z, r: FURNITURE_KEEP_OUT_RADIUS });
   }
   group.add(leatherChairs, footChairs);
   scene.add(group);
-  return { group, keepOut };
+  return { group };
 }

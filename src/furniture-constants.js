@@ -18,9 +18,6 @@ export const CHAIR_COLOR_LEATHER = 0x6b1420; // wine red
 /** Distance of a chair's center from the table center. */
 export const CHAIR_RING_RADIUS = 0.78;
 
-/** The free camera stays this far (m) from a table's center: tables with their chairs are closed off. */
-export const FURNITURE_KEEP_OUT_RADIUS = 1.5;
-
 /**
  * The tables: position and the chairs around them as [angle in degrees around the table (0 = +z),
  * extra distance from the table (a chair pulled back)]. The chairs face the table center.

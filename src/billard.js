@@ -216,7 +216,6 @@ let bottles = null; // wine and beer bottles (bottles.js)
 let glasses = null; // wine and beer glasses (glasses.js)
 let ashtrays = null; // glass ashtrays (ashtray.js)
 let candles = null; // candle holders on the tables (candle.js)
-let furnitureKeepOut = []; // circles the free camera stays out of (furniture.js)
 let piano = null; // grand piano, can be played with the mouse and the keys (piano.js)
 /** "off", "entering" (the camera moves to the stool), "on" (seated, playing), "leaving" (back to where it was). */
 let pianoMode = "off";
@@ -395,7 +394,7 @@ function setupLightingAndRoom() {
   createDoor(scene); // the (dummy) door in the wall behind the player at the start
   createNeonSign(scene); // the neon sign on the wall opposite
   piano = createPiano(scene); // the grand piano beside it
-  furnitureKeepOut = createFurniture(scene).keepOut;
+  createFurniture(scene);
   candles = createCandles(scene);
   ashtrays = createAshtrays(scene);
   glasses = createGlasses(scene, [...candles.taken, ...ashtrays.taken]);
@@ -1352,23 +1351,12 @@ function updateFreeCamera(dt) {
   }
 }
 
-/** The free camera stays inside the room and out of the tables with their chairs. */
+/** The free camera stays inside the room and between its heights (it flies above the chairs, 1.5 m up, so tables need no keep-out area). */
 function confineFreeCamera() {
   const m = FREE_CAM_ROOM_MARGIN;
   camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
   camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
   camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
-  // Tables with their chairs are closed off: push the camera out of the circle
-  for (const c of furnitureKeepOut) {
-    const dx = camera.position.x - c.x;
-    const dz = camera.position.z - c.z;
-    const dist = Math.hypot(dx, dz);
-    if (dist < c.r) {
-      const k = dist > 1e-6 ? c.r / dist : 0;
-      camera.position.x = c.x + (k ? dx * k : c.r);
-      camera.position.z = c.z + (k ? dz * k : 0);
-    }
-  }
 }
 
 /* ====================================================

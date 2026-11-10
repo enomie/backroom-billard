@@ -75,7 +75,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `radio.js`, `radio-audio.js`, `radio-metadata.js`, `radio-constants.js` | Sideboard mit Radio, Stream, Titelanzeige und Raumklang über zwei Lautsprecher |
 | `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
-| `furniture.js`, `furniture-constants.js` | Runde Tische mit Clubsesseln, Sperrkreise für die freie Kamera |
+| `furniture.js`, `furniture-constants.js` | Runde Tische mit Clubsesseln |
 | `candle.js`, `candle-constants.js` | Kerzenhalter mit Kerze, Flamme und flackerndem Schein auf jedem Tisch |
 | `ashtray.js`, `ashtray-constants.js` | Glas-Aschenbecher auf Tischen und am Billardtisch |
 | `glasses.js`, `glasses-constants.js` | Wein-, Bier- und Whiskeyglas mit Getränk auf Tischen und am Billardtisch |
