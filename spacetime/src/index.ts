@@ -17,6 +17,9 @@ const GAME_STAKING = 2; // both seats are taken: the two set the stake and press
 const BLACK_BALL = 8;
 const PIANO_KEY_BYTES = 11; // the 88 keys of the grand piano as bits
 const START_MONEY = 15_000; // a new account
+const MAX_MONEY = 100_000_000; // no account holds more than this
+/** What the bar sells ($). The same numbers stand in src/shop-constants.js (for the display): change both. */
+const PRICES: Record<string, number> = { beer: 8, 'wine-red': 14, 'wine-white': 14, whiskey: 18, 'white-russian': 16, pack: 75 };
 /** The secret key of an account: 20 characters of a 32 letter alphabet (no I, O, 0, 1), in five groups of four. The browser makes it up. */
 const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
 const RATE_WINDOW_MICROS = 1_000_000n; // a guest may call this many reducers per second (the busiest client sends about 45)
@@ -221,7 +224,8 @@ type Ctx = Parameters<Parameters<typeof spacetimedb.reducer>[1]>[0];
 
 const me = (ctx: Ctx) => {
   const player = ctx.db.player.identity.find(ctx.sender);
-  if (!player) throw new SenderError('not in the room: set_profile first');
+  if (!player) throw new SenderError('not in the room: enter first');
+  if (!ctx.db.link.identity.find(ctx.sender)) throw new SenderError('logged-in-elsewhere'); // (the account was logged in on another device)
   return player;
 };
 
@@ -334,11 +338,28 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   seatTheFirstTwo(ctx); // (does nothing while a game runs: the 10 s of check_timeouts decide then)
 });
 
-/** The money of the guest changed (a drink, a pack): the others see it under his name. */
-export const set_money = spacetimedb.reducer({ money: t.u32() }, (ctx, { money }) => {
+/**
+ * The money of an account changes (the server is the only one who counts it): never below 0, never above MAX_MONEY. The guest in the
+ * room shows it to the others (`player.money` is only that display).
+ */
+function changeMoney(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identity.find>[0], delta: number) {
+  const link = ctx.db.link.identity.find(identity);
+  const account = link && ctx.db.account.key.find(link.key);
+  if (!account) return;
+  const money = Math.max(0, Math.min(MAX_MONEY, account.money + delta));
+  ctx.db.account.key.update({ ...account, money });
+  const guest = ctx.db.player.identity.find(identity);
+  if (guest) ctx.db.player.identity.update({ ...guest, money });
+}
+
+/** Buy a drink or a pack of cigarettes at the bar: the price is the module's, the money is taken from the account or the call is refused. */
+export const buy = spacetimedb.reducer({ item: t.string() }, (ctx, { item }) => {
   if (limited(ctx)) return;
   const player = me(ctx);
-  ctx.db.player.identity.update({ ...player, money });
+  const price = PRICES[item];
+  if (price === undefined) throw new SenderError('unknown item');
+  if (player.money < price) throw new SenderError('not enough money');
+  changeMoney(ctx, ctx.sender, -price);
 });
 
 /** The drink and the cigarettes of the guest changed (a sip, a new order, a cigarette): only a change is sent. */
@@ -416,7 +437,7 @@ function joinAccount(ctx: Ctx, key: string) {
   sweep(ctx);
 }
 
-/** A new account: the browser makes up the key; name, country and face are checked like in set_profile. Starts with 15,000 $ and logs in. */
+/** A new account: the browser makes up the key; name, country and face are checked by checkProfile. Starts with 15,000 $ and logs in. */
 export const create_account = spacetimedb.reducer({ key: t.string(), name: t.string(), country: t.string(), face: t.string() }, (ctx, { key, name, country, face }) => {
   if (limited(ctx)) return;
   checkProfile(name, country, face);
@@ -432,23 +453,6 @@ export const enter = spacetimedb.reducer({ key: t.string() }, (ctx, { key }) => 
   if (!KEY_PATTERN.test(key)) throw new SenderError('bad key');
   joinAccount(ctx, key);
 });
-
-/** Come into the room (or change the name, the country, the face): there is one room, everybody joins it, as a spectator. */
-export const set_profile = spacetimedb.reducer(
-  { name: t.string(), country: t.string(), face: t.string(), money: t.u32() },
-  (ctx, { name, country, face, money }) => {
-    if (limited(ctx)) return;
-    checkProfile(name, country, face);
-    const old = ctx.db.player.identity.find(ctx.sender);
-    if (old) {
-      ctx.db.player.identity.update({ ...old, name, country, face, connected: true, lastSeen: ctx.timestamp });
-    } else {
-      // everybody comes in as a spectator (one room for all)
-      ctx.db.player.insert({ identity: ctx.sender, name, country, face, money, seat: SPECTATOR, connected: true, lastSeen: ctx.timestamp, joinedAt: ctx.timestamp });
-    }
-    sweep(ctx); // (ghosts of earlier visits go at once, not after their 10 s)
-  }
-);
 
 /** A guest who is gone: the connection is closed, or no sign of life for 10 s (a closed tab, a crash, a module that was published anew). */
 const isGone = (ctx: Ctx, p: { connected: boolean; lastSeen: { microsSinceUnixEpoch: bigint } }) =>
@@ -539,8 +543,10 @@ export const set_ready = spacetimedb.reducer({ ready: t.bool() }, (ctx, { ready 
   if (rows.length < 2 || !rows.every((r) => r.ready)) return;
   const game = theGame(ctx);
   resetBalls(ctx);
-  // (the clients pay their stake when the game begins, and the winner's client takes both at the end)
-  ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake: agreedStake(ctx) });
+  // both stakes are taken from the accounts now; the winner gets both at the end (finishGame)
+  const stake = agreedStake(ctx);
+  for (const p of [...ctx.db.player.iter()]) if (p.seat !== SPECTATOR) changeMoney(ctx, p.identity, -stake);
+  ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake });
   for (const r of rows) ctx.db.stake.identity.update({ ...r, ready: false });
   standUpIfUp(ctx);
 });
@@ -680,15 +686,17 @@ export const end_shot = spacetimedb.reducer(
 );
 
 /**
- * The game is over (the winner's client takes the stakes). The winner stays; the loser gives up his seat when a spectator has
+ * The game is over: the winner's account gets both stakes. The winner stays; the loser gives up his seat when a spectator has
  * bet on the table, or when he left or fell silent. Otherwise both stay and the stake window opens again.
  */
 function finishGame(ctx: Ctx, winnerSeat: number, reason: string) {
   const game = theGame(ctx);
   const players = [...ctx.db.player.iter()];
   const loser = players.find((p) => p.seat !== SPECTATOR && p.seat !== winnerSeat);
+  const winner = players.find((p) => p.seat === winnerSeat);
+  if (winner && game.stake > 0) changeMoney(ctx, winner.identity, 2 * game.stake);
   if (loser && (reason === 'timeout' || reason === 'left' || topBid(ctx))) ctx.db.player.identity.update({ ...loser, seat: SPECTATOR });
-  ctx.db.game.id.update({ ...game, state: GAME_WAITING, shotRunning: false, turnSeat: 0, winnerSeat, reason });
+  ctx.db.game.id.update({ ...game, state: GAME_WAITING, shotRunning: false, turnSeat: 0, winnerSeat, reason, stake: 0 });
   fillEmptySeat(ctx); // the highest bidder challenges the winner
   seatTheFirstTwo(ctx); // anybody else present takes a free seat; two at the table open the stake window
 }

@@ -32,7 +32,7 @@
 - **Noch offen für Schritt 2:** `me()` muss prüfen, dass die Verbindung zu einem Konto gehört (`link`); wer ausgeloggt wurde, bekommt `logged-in-elsewhere`, sonst legt der Wiederbeitritt des Clients ihn neu an.
 - **Prüfen:** Typcheck (`npm run check`), Veröffentlichen **ohne** `--delete-data` (nur neue Tabellen und Aktionen), das Spiel läuft unverändert.
 
-### 2. Modul: Geld nur noch auf dem Server (kleinere Umstellung, danach Client im selben Zug)
+### 2. Modul: Geld nur noch auf dem Server – **Modul umgesetzt, Client folgt in Schritt 3** (bis dahin nicht veröffentlichen)
 
 - `buy(item)`: Getränk (fünf Arten) oder Packung; Preis aus `PRICES`, zieht ab, lehnt bei zu wenig Geld ab, setzt `player.money`.
 - **Treuhand:** `set_ready` zieht bei Spielstart den Einsatz bei beiden vom Konto ab (`agreedStake`, schon vorhanden); `finishGame` schreibt dem Sieger beide Beträge gut (Timeout und Aufgabe eingeschlossen), gedeckelt mit `MAX_MONEY`.

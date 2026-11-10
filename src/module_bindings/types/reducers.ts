@@ -6,6 +6,7 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import BuyReducer from "../buy_reducer";
 import CheckTimeoutsReducer from "../check_timeouts_reducer";
 import CreateAccountReducer from "../create_account_reducer";
 import EnterReducer from "../enter_reducer";
@@ -19,15 +20,14 @@ import PushChunkReducer from "../push_chunk_reducer";
 import SetAimReducer from "../set_aim_reducer";
 import SetHandReducer from "../set_hand_reducer";
 import SetKitReducer from "../set_kit_reducer";
-import SetMoneyReducer from "../set_money_reducer";
 import SetPresenceReducer from "../set_presence_reducer";
-import SetProfileReducer from "../set_profile_reducer";
 import SetReadyReducer from "../set_ready_reducer";
 import SetStakeReducer from "../set_stake_reducer";
 import SitPianoReducer from "../sit_piano_reducer";
 import TakeShotReducer from "../take_shot_reducer";
 import WithdrawBidReducer from "../withdraw_bid_reducer";
 
+export type BuyParams = __Infer<typeof BuyReducer>;
 export type CheckTimeoutsParams = __Infer<typeof CheckTimeoutsReducer>;
 export type CreateAccountParams = __Infer<typeof CreateAccountReducer>;
 export type EnterParams = __Infer<typeof EnterReducer>;
@@ -41,9 +41,7 @@ export type PushChunkParams = __Infer<typeof PushChunkReducer>;
 export type SetAimParams = __Infer<typeof SetAimReducer>;
 export type SetHandParams = __Infer<typeof SetHandReducer>;
 export type SetKitParams = __Infer<typeof SetKitReducer>;
-export type SetMoneyParams = __Infer<typeof SetMoneyReducer>;
 export type SetPresenceParams = __Infer<typeof SetPresenceReducer>;
-export type SetProfileParams = __Infer<typeof SetProfileReducer>;
 export type SetReadyParams = __Infer<typeof SetReadyReducer>;
 export type SetStakeParams = __Infer<typeof SetStakeReducer>;
 export type SitPianoParams = __Infer<typeof SitPianoReducer>;

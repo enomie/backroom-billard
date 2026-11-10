@@ -34,6 +34,7 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import BuyReducer from "./buy_reducer";
 import CheckTimeoutsReducer from "./check_timeouts_reducer";
 import CreateAccountReducer from "./create_account_reducer";
 import EnterReducer from "./enter_reducer";
@@ -47,9 +48,7 @@ import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
 import SetKitReducer from "./set_kit_reducer";
-import SetMoneyReducer from "./set_money_reducer";
 import SetPresenceReducer from "./set_presence_reducer";
-import SetProfileReducer from "./set_profile_reducer";
 import SetReadyReducer from "./set_ready_reducer";
 import SetStakeReducer from "./set_stake_reducer";
 import SitPianoReducer from "./sit_piano_reducer";
@@ -227,6 +226,7 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("buy", BuyReducer),
   __reducerSchema("check_timeouts", CheckTimeoutsReducer),
   __reducerSchema("create_account", CreateAccountReducer),
   __reducerSchema("enter", EnterReducer),
@@ -240,9 +240,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
   __reducerSchema("set_kit", SetKitReducer),
-  __reducerSchema("set_money", SetMoneyReducer),
   __reducerSchema("set_presence", SetPresenceReducer),
-  __reducerSchema("set_profile", SetProfileReducer),
   __reducerSchema("set_ready", SetReadyReducer),
   __reducerSchema("set_stake", SetStakeReducer),
   __reducerSchema("sit_piano", SitPianoReducer),

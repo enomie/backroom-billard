@@ -11,5 +11,5 @@ import {
 } from "spacetimedb";
 
 export default {
-  money: __t.u32(),
+  item: __t.string(),
 };
