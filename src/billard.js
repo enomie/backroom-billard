@@ -50,7 +50,7 @@ import { createMultiplayer } from "./multiplayer.js";
 import { roomNote, renderNote } from "./room-notices.js";
 import { isCountry, flagUrl } from "./country-list.js";
 import { createShotRecorder, createShotReplay } from "./shot-replay.js";
-import { AIM_SEND_SECONDS } from "./multiplayer-constants.js";
+import { AIM_SEND_SECONDS, TURN_LIMIT_SECONDS } from "./multiplayer-constants.js";
 import { DRINK_SIPS } from "./glasses-constants.js";
 import { PACK_SIZE } from "./cigarette-pack.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
@@ -448,6 +448,7 @@ function setupLightingAndRoom() {
     onMultiplayerGame
   );
   recorder = createShotRecorder((index, bytes) => multiplayer.pushChunk(index, bytes, mpShot?.seq));
+  window.setInterval(updateTurnClock, 250);
   rankingPanel = createRankingPanel(() => multiplayer.refreshRanking(), () => ({ name: settingsName, country: matchMe.country }));
   document.getElementById("settings-ranking").addEventListener("click", () => rankingPanel.toggle());
   stakeWindow = createStakeWindow({
@@ -2166,6 +2167,26 @@ function renderMatch() {
   });
 }
 
+/**
+ * The countdown next to the name of the one who is up: 3 minutes from the start of his turn (the database's time, as far as this browser can
+ * tell); not while his shot is on its way. Red and blinking in the last 30 seconds. At zero the database ends the game.
+ */
+let turnClock = null; // { startedAt (ms), running }
+function updateTurnClock() {
+  const two = matchMode === "multi" && !!(matchNames[0].name && matchNames[1].name);
+  const left = turnClock && two && mpGame.running && !turnClock.running ? Math.max(0, TURN_LIMIT_SECONDS - (multiplayer.serverNow() - turnClock.startedAt) / 1000) : null;
+  [1, 2].forEach((seat) => {
+    const el = document.getElementById(`match-clock-${seat}`);
+    const show = left !== null && mpGame.turnSeat === seat;
+    el.hidden = !show;
+    if (!show) return;
+    const seconds = Math.ceil(left);
+    const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+    if (el.textContent !== text) el.textContent = text;
+    el.classList.toggle("is-low", seconds <= 30);
+  });
+}
+
 /** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */
 function onMultiplayerGame(e) {
   if (e.kind === "aim") {
@@ -2178,6 +2199,11 @@ function onMultiplayerGame(e) {
   if (e.kind === "shotStart") {
     replay.begin();
     watchedShot = true; // I have seen a game being played (not only found its remains)
+    return;
+  }
+  if (e.kind === "clock") {
+    turnClock = { startedAt: e.startedAt, running: e.running }; // (the database's time)
+    updateTurnClock();
     return;
   }
   if (e.kind === "ranking") {

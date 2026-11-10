@@ -1042,6 +1042,30 @@ html {
   color: var(--text-muted);
 }
 
+/* The countdown of the one who is up (3 minutes to shoot), next to his name */
+.match__clock {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--amber-300);
+}
+
+.match__clock[hidden] {
+  display: none;
+}
+
+.match__clock.is-low {
+  color: #f87171;
+  animation: clock-pulse 1s ease-in-out infinite;
+}
+
+@keyframes clock-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
 /* The stake over the VS of the match panel, and the button of the spectators for the table bet */
 .match__stake {
   margin-bottom: 0.15rem;

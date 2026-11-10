@@ -84,6 +84,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   const roster = new Map(); // identity (hex) → { name, country, money, seat, connected, joinedAt }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
+  let clockOffset = 0; // the database's clock minus this browser's (ms), worked out from the sign of life the database stamps on my row
   let tellTableNow = null; // set when the connection is there: sends the stake window and the bids to the game
   const closeConnection = () => {
     try {
@@ -161,6 +162,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       onGame({ kind: "kit", seat: row.seat, drink: k.drink, sips: k.sips, pack: k.pack, packCount: k.packCount });
     }
     if (id === myId) {
+      clockOffset = Number(row.lastSeen.microsSinceUnixEpoch / 1000n) - Date.now();
       onGame({ kind: "money", money: row.money }); // (the server counts my money)
       joined = true; // the own row is there: the room is set up, signs of life and places may follow
       finishJoin();
@@ -372,6 +374,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         };
         // who pocketed which ball (the two lists above the table): the whole list each time something changes
         const tellPockets = () => onGame({ kind: "pockets", rows: [...conn.db.pocket.iter()].map((p) => ({ ball: p.ballId, seat: p.seat })) });
+        // the countdown of the one who is up: when his turn began (the database's time) and whether his shot is on its way
+        const tellClock = (row) => onGame({ kind: "clock", startedAt: Number(row.startedAt.microsSinceUnixEpoch / 1000n), running: row.running });
+        conn.db.turn.onInsert((_ctx, row) => tellClock(row));
+        conn.db.turn.onUpdate((_ctx, _old, row) => tellClock(row));
         // the grand piano: who sits there and which keys are down (a guest who comes later gets the state at once)
         const tellPiano = (row) =>
           onGame({ kind: "piano", sitter: row.sitter ? (roster.get(hex(row.sitter))?.name ?? "") : null, mine: !!row.sitter && hex(row.sitter) === myId, midis: decodeKeys(row.keys) });
@@ -392,10 +398,12 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             tellTableNow();
             const piano = conn.db.piano.id.find(1);
             if (piano) tellPiano(piano);
+            const turn = conn.db.turn.id.find(1);
+            if (turn) tellClock(turn);
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby, tables.ranking, tables.standing]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby, tables.ranking, tables.standing, tables.turn]);
         runLogin(conn); // (also after a lost connection: log in again, and come back into the room if he was in it)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -432,6 +440,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       if (!joined || text === lastHand) return;
       lastHand = text;
       call(() => connection?.reducers.setHand({ drinking: hand.drinking, smoking: hand.smoking }));
+    },
+    /** The database's clock now (ms since 1970), as far as this browser can tell: for the countdown. */
+    serverNow() {
+      return Date.now() + clockOffset;
     },
     /** Ask the database to work the world ranking out (it does at most every 5 s). */
     refreshRanking() {

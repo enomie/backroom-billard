@@ -113,6 +113,13 @@ export const Standing = __t.object("Standing", {
 });
 export type Standing = __Infer<typeof Standing>;
 
+export const Turn = __t.object("Turn", {
+  id: __t.u8(),
+  startedAt: __t.timestamp(),
+  running: __t.bool(),
+});
+export type Turn = __Infer<typeof Turn>;
+
 export const Presence = __t.object("Presence", {
   identity: __t.identity(),
   x: __t.f64(),

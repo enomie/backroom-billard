@@ -22,6 +22,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `lobby` | (öffentlich) wer angemeldet ist, aber noch nicht im Raum (Wahl an der Bar): Name, Land, Gesicht, Geld; verschwindet mit `join_room` |
 | `account`, `link` | (privat) das Konto je Schlüssel (Geld, Name, Land, Gesicht) und welche Verbindung gerade angemeldet ist |
 | `rate` | (privat) Aufrufe je Gast in der laufenden Sekunde, höchstens 100 |
+| `turn` | wann der Zug des Spielers, der dran ist, begann (der Countdown, 3 Minuten) und ob sein Stoß läuft |
 | `piano` | der Flügel: wer am Hocker sitzt (nur einer) und welche Tasten gedrückt sind (88 Bits) |
 | `stake` | das Einsatz-Fenster der zwei Spieler, live: Angebot und Bereit je Spieler (Einsatz = das kleinere Angebot) |
 | `bid` | die Tischwetten der Zuschauer (ein Gebot je Zuschauer) |
@@ -45,7 +46,7 @@ Regeln im Modul: Foul oder zu früh versenkte schwarze 8 verliert der Schütze, 
 
 ## Aufräumen von selbst
 
-Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); ein Schütze, der seinen Stoß **3 Minuten** lang nicht als beendet meldet, verliert ebenfalls (Grund `slow`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und freie Plätze gehen an die Gäste, die **wirklich da** sind (in der Reihenfolge des Kommens); wer sitzt, behält seinen Platz. Sitzen zwei, öffnet sich das Einsatz-Fenster (Zustand 2).
+Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); ein Schütze, der seinen Stoß **3 Minuten** lang nicht als beendet meldet, verliert ebenfalls (Grund `slow`); wer am Zug ist und **3 Minuten** lang nicht stößt, verliert auch (Grund `idle`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und freie Plätze gehen an die Gäste, die **wirklich da** sind (in der Reihenfolge des Kommens); wer sitzt, behält seinen Platz. Sitzen zwei, öffnet sich das Einsatz-Fenster (Zustand 2).
 
 ## Prüfen
 

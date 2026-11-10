@@ -14,5 +14,7 @@ export const MULTIPLAYER_JOIN_SECONDS = 15;
 /** The recording of a shot is sent in pieces of this many ms; the others play it back this much later (a buffer for the network). */
 export const REPLAY_CHUNK_MS = 100;
 export const REPLAY_DELAY_MS = 700;
+/** Whoever is up must shoot within this many seconds, or he loses (the database counts the same: TURN_LIMIT_MICROS in spacetime/src/index.ts). */
+export const TURN_LIMIT_SECONDS = 180;
 /** The aim of the shooter is sent this often (seconds); the others see his cue move. */
 export const AIM_SEND_SECONDS = 1 / 15;

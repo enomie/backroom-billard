@@ -12,6 +12,7 @@ const MIN_STAKE = 100; // the least a stake or a table bet can be (whoever has l
 const STAKE_STEP = 10;
 const TIMEOUT_MICROS = 10_000_000n; // a player without a sign of life for 10 s has lost
 const SHOT_LIMIT_MICROS = 180_000_000n; // a shot that is not reported finished after 3 minutes is lost by the shooter
+const TURN_LIMIT_MICROS = 180_000_000n; // whoever is up and does not shoot within 3 minutes loses (the clients show the countdown: TURN_LIMIT_SECONDS in multiplayer-constants.js)
 const GAME_WAITING = 0; // no (or one) player: nobody plays without a bid
 const GAME_PLAYING = 1;
 const GAME_STAKING = 2; // both seats are taken: the two set the stake and press Ready
@@ -58,8 +59,18 @@ const spacetimedb = schema({
       shotSeq: t.u32(), // the number of the last shot
       shotRunning: t.bool(),
       winnerSeat: t.u8(), // 0 = none yet
-      reason: t.string(), // 'foul' | 'black-early' | 'black-last' | 'timeout' | 'slow' | 'left' | ''
+      reason: t.string(), // 'foul' | 'black-early' | 'black-last' | 'timeout' | 'slow' | 'idle' | 'left' | ''
       stake: t.u32(), // what each of the two put in (the winner of the game takes both); of the last game until the next one begins
+    }
+  ),
+
+  /** When the turn of the one who is up began (one row, id 1): the clients count down the 3 minutes. `running`: his shot is on its way (no countdown then). */
+  turn: table(
+    { public: true },
+    {
+      id: t.u8().primaryKey(),
+      startedAt: t.timestamp(),
+      running: t.bool(),
     }
   ),
 
@@ -336,6 +347,13 @@ const thePiano = (ctx: Ctx) => ctx.db.piano.id.find(1) ?? ctx.db.piano.insert({ 
 function freePiano(ctx: Ctx) {
   const piano = thePiano(ctx);
   if (piano.sitter) ctx.db.piano.id.update({ ...piano, sitter: undefined, keys: new Uint8Array(PIANO_KEY_BYTES) });
+}
+
+/** A turn begins (a game starts, a shot ended and somebody is up): the countdown starts again. */
+function markTurn(ctx: Ctx, running = false) {
+  const row = { id: 1, startedAt: ctx.timestamp, running };
+  if (ctx.db.turn.id.find(1)) ctx.db.turn.id.update(row);
+  else ctx.db.turn.insert(row);
 }
 
 /** Whoever sits at the piano and is up at the table gets up: the shot comes first. */
@@ -643,6 +661,7 @@ export const set_ready = spacetimedb.reducer({ ready: t.bool() }, (ctx, { ready 
   for (const p of [...ctx.db.player.iter()]) if (p.seat !== SPECTATOR) changeMoney(ctx, p.identity, -stake);
   ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake });
   for (const r of rows) ctx.db.stake.identity.update({ ...r, ready: false });
+  markTurn(ctx);
   standUpIfUp(ctx);
 });
 
@@ -719,6 +738,7 @@ export const take_shot = spacetimedb.reducer(
     for (const chunk of [...ctx.db.shotChunk.iter()]) ctx.db.shotChunk.id.delete(chunk.id); // the pieces of the last shot are not needed any more
     ctx.db.shot.insert({ seq, shooter: ctx.sender, startedAt: ctx.timestamp, ...s });
     ctx.db.game.id.update({ ...game, shotSeq: seq, shotRunning: true });
+    markTurn(ctx, true); // (no countdown while the shot rolls)
   }
 );
 
@@ -776,6 +796,7 @@ export const end_shot = spacetimedb.reducer(
     if (winnerSeat) return finishGame(ctx, winnerSeat, reason);
     const again = r.pocketed.length > 0 && !r.whiteGone;
     ctx.db.game.id.update({ ...game, shotRunning: false, turnSeat: again ? shooter.seat : others });
+    markTurn(ctx);
     standUpIfUp(ctx);
   }
 );
@@ -811,6 +832,10 @@ function sweep(ctx: Ctx) {
       // the shooter is here but never says that his shot is over: after 3 minutes he has lost (the one who is up is the shooter)
       const shot = ctx.db.shot.seq.find(game.shotSeq);
       if (shot && ctx.timestamp.microsSinceUnixEpoch - shot.startedAt.microsSinceUnixEpoch > SHOT_LIMIT_MICROS) finishGame(ctx, game.turnSeat === 1 ? 2 : 1, 'slow');
+    } else {
+      // the one who is up does not shoot: after 3 minutes he has lost
+      const turn = ctx.db.turn.id.find(1);
+      if (turn && ctx.timestamp.microsSinceUnixEpoch - turn.startedAt.microsSinceUnixEpoch > TURN_LIMIT_MICROS) finishGame(ctx, game.turnSeat === 1 ? 2 : 1, 'idle');
     }
     return;
   }

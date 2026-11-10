@@ -76,6 +76,7 @@ import ShotRow from "./shot_table";
 import ShotChunkRow from "./shot_chunk_table";
 import StandingRow from "./standing_table";
 import StakeRow from "./stake_table";
+import TurnRow from "./turn_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -213,6 +214,17 @@ const tablesSchema = __schema({
       { name: 'standing_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, StandingRow),
+  turn: __table({
+    name: 'turn',
+    indexes: [
+      { accessor: 'id', name: 'turn_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'turn_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, TurnRow),
   stake: __table({
     name: 'stake',
     indexes: [
