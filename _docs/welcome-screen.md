@@ -139,15 +139,21 @@ Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil ge
 - **Land (umgesetzt):** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste hat **nur die Länder, zu denen es eine (runde) Flagge gibt**: 42 Länder (`src/country-list.js`, Flaggen in `public/flags/{iso}.svg`, kopiert aus [`countries/`](countries/README.md), das nur Info bleibt). Mehr Länder: Flaggendatei und eine Zeile in `country-list.js`. Gesucht wird ohne Akzente und Groß-/Kleinschreibung („osterreich“ findet „Österreich“); Pfeiltasten und Enter wählen, Esc und ein Klick daneben schließen die Liste. Über dem Kopf des Spielers stehen später ein kleines Flaggen-Icon und sein Name, kompakt (siehe `multiplayer.md`).
 - Profil: `country` (Länderkürzel) und `face` (Hautfarbe, Augenfarbe, Haarfarbe, Breite, Frisur, Bart, Nase, Augenbrauen), beides umgesetzt. Die `version` bleibt 1 (sonst wären die alten Profile samt Geld weg): fehlende Felder bekommen beim Lesen Österreich beziehungsweise ein Zufallsgesicht.
 
-## Zwei Schritte statt einem (Vorschlag, noch nicht umgesetzt)
+## Neuer Ablauf: Spielart zuerst (Vorschlag, noch nicht umgesetzt)
 
-Wegen der getrennten Börsen (Einzelspiel im Browser, Mehrspieler auf dem Server, siehe [`multiplayer.md`](multiplayer.md)) wird der Screen geteilt:
+Wegen der getrennten Börsen (Einzelspiel im Browser, Mehrspieler auf dem Server, siehe [`multiplayer.md`](multiplayer.md)) wird nach dem Startscreen **zuerst die Spielart** gefragt; die Abschnitte oben beschreiben bis zur Umsetzung den heutigen Stand.
 
-1. **Willkommen:** Name, Land und Gesicht (hängen am Gast, nicht am Modus), darunter die Knöpfe **Singleplayer** und **Multiplayer**.
-2. **Getränk und Zigaretten** (nach der Wahl des Modus), mit dem **Geld dieses Modus** oben: im Einzelspiel das aus dem Browser, im Mehrspieler das Konto vom Server (dafür wird beim Klick auf Multiplayer zuerst verbunden, mit dem Spinner; klappt das nicht, bleibt man auf Schritt 1 mit der roten Meldung). Ein Link **Zurück** führt zu Schritt 1. Der Start-Knopf heißt **Los** (de) / **Start** (en).
-- **Profil:** Name, Land, Gesicht und `moneySingle` (das bisherige `money`, bleibt gültig) im Browser; das Mehrspieler-Geld gibt es dort nicht.
-- **Neu anfangen** löscht Name, Gesicht und das **Einzelspiel-Geld** (15.000 $) und beginnt im Mehrspieler ein **neues Konto** mit neuem Schlüssel (siehe [`multiplayer.md`](multiplayer.md)); wer ein Konto behalten will, speichert seinen Schlüssel.
-- **Schlüssel eingeben (nur Mehrspieler):** Auf Schritt 1 gibt es einen Link „Ich habe einen Schlüssel“: Das Konto eines anderen Geräts wird geladen (Geld und Rang), und dort wird der Spieler **ausgeloggt** (eine Verbindung je Konto). Hat das Gerät schon ein eigenes Konto, kommt vorher eine **Warnung**: Es wird aufgegeben, das Geld ist weg, wenn dessen Schlüssel nicht gespeichert ist.
+1. **Startscreen** (Alter bestätigen), wie bisher.
+2. **Spielart:** zwei große Knöpfe, **Einzelspiel** (offline) und **Mehrspieler**.
+3. **Nur Mehrspieler: das Konto.** Zwei Wege: **„Neu hier“** (Name in drei Feldern, Land, Gesicht; die Regeln von oben) oder **„Ich habe einen Schlüssel“** (das Konto kommt samt Name, Land und Gesicht vom Server, auf dem zweiten Gerät tippt man nichts noch einmal). Beim ersten Beitritt wird der neue Schlüssel einmal groß angezeigt (Kopieren-Knopf). Ist die Verbindung nicht möglich, bleibt man auf diesem Schritt (Spinner, rote Meldung wie bisher).
+4. **„Was darf es sein?“** (en: **„What'll it be?“**), die Karte der Bar, mit dem **Geld der gewählten Spielart** oben: ein **Getränk** aus den fünf und eine **Packung Zigaretten** aus den zwei. **Vorausgewählt** sind beim ersten Mal **Bier** und **Premium Blend**; danach das, was zuletzt gewählt war. Der Start-Knopf heißt **Los** (de) / **Start** (en), dazu ein Link **Zurück**.
+
+**Einzelspiel:** keine Namen, keine Flagge, kein Gesicht, kein Schlüssel. In der Anzeige und im Einstellungs-Panel steht fest „Einzelspiel“ (de) / „Single player“ (en). Das Profil im Browser besteht nur aus dem **Einzelspiel-Geld** (15.000 $ am Anfang), dem letzten Getränk und der letzten Packung. Das bisherige Profil mit Namen wird nur noch einmal gelesen: sein Geld wird das Einzelspiel-Geld, Name, Land und Gesicht füllen den „Neu hier“-Dialog des Mehrspielers vor.
+
+**Mehrspieler:** Name, Land und Gesicht gehören zum **Konto auf dem Server** und sind danach **nicht mehr änderbar** (auch nicht in den Einstellungen); ändern kann man sie später nur gegen **echtes Geld** (bis dahin ein Dummy-Knopf ohne Wirkung, wie „Spielgeld kaufen“).
+
+- **Neu anfangen** gibt es für jede Spielart getrennt: im Einzelspiel setzt es das Geld auf 15.000 $, im Mehrspieler beginnt es ein **neues Konto** mit neuem Schlüssel (der alte bleibt nur mit gespeichertem Schlüssel erreichbar).
+- **Schlüssel eingeben:** Das Konto eines anderen Geräts wird geladen (Geld, Rang, Name, Land, Gesicht), und dort wird der Spieler **ausgeloggt** (eine Verbindung je Konto). Hat das Gerät schon ein eigenes Konto, kommt vorher eine **Warnung**: Es wird aufgegeben, das Geld ist weg, wenn dessen Schlüssel nicht gespeichert ist.
 
 ## Offene Fragen
 
