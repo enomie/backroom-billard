@@ -2102,11 +2102,12 @@ function placeRemoteView(seat, hand) {
 }
 function updateRemoteHands(dt) {
   for (const [seat, hand] of remoteHands) {
-    if (!placeRemoteView(seat, hand)) continue;
-    hand.drinking.update(dt, hand.view);
-    hand.smoking.update(dt, hand.view);
+    if (placeRemoteView(seat, hand)) {
+      hand.drinking.update(dt, hand.view);
+      hand.smoking.update(dt, hand.view);
+    }
     const waiting = pendingKits.get(seat);
-    if (waiting && !hand.drinking.isBusy() && !hand.smoking.isBusy()) applyKit(seat, waiting);
+    if (waiting && !hand.drinking.isBusy() && !hand.smoking.isBusy()) applyKit(seat, waiting); // (also without his head pose)
   }
 }
 
@@ -2393,7 +2394,8 @@ const pendingKits = new Map(); // seat → kit
 function applyKit(seat, kit) {
   const side = seat === 1 ? 1 : 0;
   const hand = remoteHands.get(seat);
-  if (hand && (hand.drinking.isBusy() || hand.smoking.isBusy())) {
+  const bought = kit.drink !== glasses.seat(side).kind || kit.sips > glasses.seat(side).sipsLeft; // (sips only fall while drinking: more means a new glass)
+  if (hand && !bought && (hand.drinking.isBusy() || hand.smoking.isBusy())) {
     pendingKits.set(seat, kit); // he drinks or smokes right now: his animation shows the change itself
     return;
   }
