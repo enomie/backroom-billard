@@ -35,6 +35,8 @@ Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: *
 
 ## Regeln
 
+Die wichtigsten Regeln stehen auch im Spiel im Einstellungs-Panel (Abschnitt „Regeln“, `rules.*` in `src/i18n`); beim Ändern einer Regel beide Stellen pflegen.
+
 - **Zustand:** Zwei Balken oben in der Mitte (Thirsty ↔ Drunk, Nerves ↔ Desire). Mit der Zeit wird man durstig und will rauchen; trinken und rauchen schieben die Marker. In der Mitte ist man ruhig, sonst schwankt der Cue (und wer betrunken ist, trifft ungenauer). Siehe `_docs/game-concept.md`.
 - Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
