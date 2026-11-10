@@ -1933,13 +1933,13 @@ function gameLoop(currentTime) {
 
     // Align the aim line with the ball
     if (aimLine) {
-      aimLine.visible = remoteCue.active ? !replay.active : cameraMode === "fps" && !shotInProgress;
+      aimLine.visible = remoteCue.active ? false : cameraMode === "fps" && !shotInProgress; // (the aim line of the one who is up is not shown to the others)
       aimLine.position.set(
         cueBall.pos.x,
         cueBall.pos.y - BALL_R + 0.002,
         cueBall.pos.z
       );
-      aimLine.rotation.y = remoteCue.active ? remoteCue.angle : aimAngle + aimSway;
+      aimLine.rotation.y = aimAngle + aimSway;
     }
   }
 
