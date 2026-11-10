@@ -94,6 +94,7 @@ export function showWelcome(game) {
     $("welcome-money").textContent = format(money - spent());
     $("welcome-broke").hidden = money >= CHEAPEST_DRINK + PACK_PRICE;
     renderOptions();
+    $("welcome-go").classList.toggle("is-busy", busy); // (a spinner while the room is being set up)
     $("welcome-go").disabled = !complete() || busy;
   };
   const openMenu = () => {
@@ -121,7 +122,8 @@ export function showWelcome(game) {
     $("welcome-new").hidden = !isNew;
     $("welcome-keyin").hidden = isNew;
     $("welcome-key-warn").hidden = isNew || !warned;
-    $("welcome-account-go").textContent = isNew ? t("welcome.accountGo") : warned ? t("welcome.keyWarnYes") : t("welcome.keyLogin");
+    $("welcome-account-go-label").textContent = isNew ? t("welcome.accountGo") : warned ? t("welcome.keyWarnYes") : t("welcome.keyLogin");
+    $("welcome-account-go").classList.toggle("is-busy", busy); // (a spinner while the account is being set up)
     $("welcome-account-go").disabled = busy || (isNew ? !validNames() : !$("welcome-key").value.trim());
   };
   const openAccount = (which) => {

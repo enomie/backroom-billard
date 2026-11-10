@@ -96,7 +96,10 @@
 
           <div class="welcome__actions">
             <button id="welcome-account-back" type="button" class="welcome__link" data-i18n="welcome.back">Back</button>
-            <button id="welcome-account-go" type="button" class="start__confirm" disabled>Continue</button>
+            <button id="welcome-account-go" type="button" class="start__confirm" disabled>
+              <span id="welcome-account-go-label">Continue</span>
+              <span class="welcome__spinner" aria-hidden="true"></span>
+            </button>
           </div>
         </section>
 
@@ -138,7 +141,10 @@
                 <button id="welcome-restart-no" type="button" class="welcome__link" data-i18n="welcome.restartNo">Cancel</button>
               </span>
             </div>
-            <button id="welcome-go" type="button" class="start__confirm" data-i18n="welcome.go">Start</button>
+            <button id="welcome-go" type="button" class="start__confirm">
+              <span data-i18n="welcome.go">Start</span>
+              <span class="welcome__spinner" aria-hidden="true"></span>
+            </button>
           </div>
         </section>
       </div>
