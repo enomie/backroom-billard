@@ -1,6 +1,6 @@
 # SpacetimeDB-Modul (Vorbereitung)
 
-> **Status: vorbereitet, nicht veröffentlicht, vom Spiel noch nicht benutzt.** Das Modul (TypeScript, `spacetimedb` 2.14) enthält die Tabellen und Aktionen (Reducer) nach [`_docs/multiplayer.md`](../_docs/multiplayer.md). Es rechnet **keine Physik**: Der Schütze rechnet im Browser und schickt die Aufnahme in Häppchen.
+> **Status: auf Maincloud veröffentlicht (Datenbank `backroom-billard-3000`, Dashboard <https://spacetimedb.com/backroom-billard-3000>), vom Spiel noch nicht benutzt.** Das Modul (TypeScript, `spacetimedb` 2.14) enthält die Tabellen und Aktionen (Reducer) nach [`_docs/multiplayer.md`](../_docs/multiplayer.md). Es rechnet **keine Physik**: Der Schütze rechnet im Browser und schickt die Aufnahme in Häppchen.
 
 Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000`** (Konto `liquid3logic`: <https://spacetimedb.com/@liquid3logic/backroom-billard-3000>); der eigene Server (nur HTML und PHP) liefert nur das Spiel. Der Browser verbindet sich direkt mit der Datenbank.
 
