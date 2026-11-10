@@ -170,11 +170,13 @@ Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
 
 Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** behoben, solange es hier steht.
 
-**A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“)**
-1. Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
-2. Das Aufräumen (`seatTheFirstTwo`) entfernt nur Gäste mit `connected = false`. **Vorschlag:** jeder Gast, der länger als 10 Sekunden nichts von sich hören ließ, gilt als weg (in `seatTheFirstTwo` und `check_timeouts`, für alle, nicht nur für Spieler).
-3. Beim Beitritt mit **derselben Identität** (Token im Browser) kommt man mit altem Platz und altem Spielzustand zurück; ein laufendes Spiel mit einem Geist als Gegner dauert bis zu 10 Sekunden, dann folgen Meldungen („hat nicht geantwortet“) und das Spielende. Beim Beitritt sollte ein Geist **sofort** erkannt und entfernt werden.
+**A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“) – behoben, siehe unten**
+1. *(behoben)* Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
+2. *(behoben)* Das Aufräumen (`seatTheFirstTwo`) entfernt nur Gäste mit `connected = false`. **Vorschlag:** jeder Gast, der länger als 10 Sekunden nichts von sich hören ließ, gilt als weg (in `seatTheFirstTwo` und `check_timeouts`, für alle, nicht nur für Spieler).
+3. *(behoben)* Beim Beitritt mit **derselben Identität** (Token im Browser) kommt man mit altem Platz und altem Spielzustand zurück; ein laufendes Spiel mit einem Geist als Gegner dauert bis zu 10 Sekunden, dann folgen Meldungen („hat nicht geantwortet“) und das Spielende. Beim Beitritt sollte ein Geist **sofort** erkannt und entfernt werden.
 4. Nach einem Neuveröffentlichen mit alten Zeilen: einmal `--delete-data` (siehe `spacetime/README.md`).
+
+*Umsetzung von A (`sweep` im Modul):* Ein Gast gilt als **weg**, wenn die Verbindung zu ist oder er **10 Sekunden** nichts von sich hören ließ (`isGone`); das gilt für Zuschauer und Spieler. `sweep` läuft bei **jedem Beitritt** und alle 2 s von den Clients (`check_timeouts`): weggegangene Zuschauer werden entfernt (mit allen Zeilen: Gebot, Angebot, Kit, Kopf, Flügel-Hocker), ein stiller Spieler im laufenden Spiel verliert, sonst räumt `seatTheFirstTwo` auf und füllt freie Plätze. Hat der Server einen Gast entfernt (Pause, gedrosselter Tab), meldet sich der Client von selbst neu an.
 
 **B. Eingaben prüfen (die Datenbank vertraut dem Browser)**
 5. `push_chunk`: keine Größengrenze (eine riesige Zeile füllt die Datenbank); Grenze je Häppchen und je Stoß setzen.

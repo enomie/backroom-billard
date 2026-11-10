@@ -331,9 +331,25 @@ export const set_profile = spacetimedb.reducer(
       // everybody comes in as a spectator (one room for all)
       ctx.db.player.insert({ identity: ctx.sender, name, country, face, money, seat: SPECTATOR, connected: true, lastSeen: ctx.timestamp, joinedAt: ctx.timestamp });
     }
-    seatTheFirstTwo(ctx);
+    sweep(ctx); // (ghosts of earlier visits go at once, not after their 10 s)
   }
 );
+
+/** A guest who is gone: the connection is closed, or no sign of life for 10 s (a closed tab, a crash, a module that was published anew). */
+const isGone = (ctx: Ctx, p: { connected: boolean; lastSeen: { microsSinceUnixEpoch: bigint } }) =>
+  !p.connected || ctx.timestamp.microsSinceUnixEpoch - p.lastSeen.microsSinceUnixEpoch > TIMEOUT_MICROS;
+
+/** A guest leaves the room for good: all his rows go (his seat, bid, offer, keys held at the piano). */
+function dropGuest(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identity.delete>[0]) {
+  ctx.db.player.identity.delete(identity);
+  ctx.db.bid.bidder.delete(identity);
+  ctx.db.stake.identity.delete(identity);
+  ctx.db.hand.identity.delete(identity);
+  ctx.db.kit.identity.delete(identity);
+  ctx.db.presence.identity.delete(identity);
+  const piano = thePiano(ctx);
+  if (piano.sitter && piano.sitter.toHexString() === identity.toHexString()) freePiano(ctx);
+}
 
 /**
  * While no game is running: guests who are gone are taken out of the list, and free seats go to the guests present in the
@@ -343,15 +359,7 @@ export const set_profile = spacetimedb.reducer(
 function seatTheFirstTwo(ctx: Ctx) {
   const game = theGame(ctx);
   if (game.state === GAME_PLAYING) return;
-  for (const p of [...ctx.db.player.iter()]) {
-    if (p.connected) continue;
-    ctx.db.player.identity.delete(p.identity);
-    ctx.db.bid.bidder.delete(p.identity);
-    ctx.db.stake.identity.delete(p.identity);
-    ctx.db.hand.identity.delete(p.identity);
-    ctx.db.kit.identity.delete(p.identity);
-    ctx.db.presence.identity.delete(p.identity);
-  }
+  for (const p of [...ctx.db.player.iter()]) if (isGone(ctx, p)) dropGuest(ctx, p.identity);
   const seatedBefore = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR).length;
   const free = [1, 2].filter((seat) => ![...ctx.db.player.iter()].some((p) => p.seat === seat));
   const waiting = [...ctx.db.player.iter()].filter((p) => p.seat === SPECTATOR).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
@@ -561,26 +569,21 @@ function finishGame(ctx: Ctx, winnerSeat: number, reason: string) {
 }
 
 /**
- * Anyone can call it (the clients every 2 s): a seated player without a sign of life for 10 s has lost (the other one takes both
- * stakes). In the stake window he is just taken out of the room.
+ * Clears out the room: a guest without a sign of life for 10 s is gone (spectators and players, a closed connection counts at once for
+ * spectators). A player of a running game who is silent has lost (the other one takes both stakes); otherwise the gone ones are taken
+ * out and free seats are filled (seatTheFirstTwo). Runs with every join and from the clients every 2 s (anybody may ask).
  */
-export const check_timeouts = spacetimedb.reducer((ctx) => {
+function sweep(ctx: Ctx) {
   const game = theGame(ctx);
-  const now = ctx.timestamp.microsSinceUnixEpoch;
-  const sitter = thePiano(ctx).sitter;
-  const sitting = sitter && ctx.db.player.identity.find(sitter);
-  if (sitter && (!sitting || now - sitting.lastSeen.microsSinceUnixEpoch > TIMEOUT_MICROS)) freePiano(ctx); // (silent at the piano: the stool is free)
-  if (game.state === GAME_WAITING) return;
-  for (const p of ctx.db.player.iter()) {
-    if (p.seat === SPECTATOR || now - p.lastSeen.microsSinceUnixEpoch <= TIMEOUT_MICROS) continue;
-    if (game.state === GAME_PLAYING) finishGame(ctx, p.seat === 1 ? 2 : 1, 'timeout');
-    else {
-      ctx.db.player.identity.update({ ...p, connected: false });
-      seatTheFirstTwo(ctx);
-    }
+  for (const p of [...ctx.db.player.iter()]) if (p.seat === SPECTATOR && isGone(ctx, p)) dropGuest(ctx, p.identity);
+  if (game.state === GAME_PLAYING) {
+    const silent = [...ctx.db.player.iter()].find((p) => p.seat !== SPECTATOR && ctx.timestamp.microsSinceUnixEpoch - p.lastSeen.microsSinceUnixEpoch > TIMEOUT_MICROS);
+    if (silent) finishGame(ctx, silent.seat === 1 ? 2 : 1, 'timeout');
     return;
   }
-});
+  seatTheFirstTwo(ctx);
+}
+export const check_timeouts = spacetimedb.reducer((ctx) => sweep(ctx));
 
 /** A player gets up from the table: a lost game while it runs, otherwise his seat is simply free. */
 export const leave_table = spacetimedb.reducer((ctx) => {

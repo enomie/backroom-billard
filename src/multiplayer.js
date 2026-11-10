@@ -184,6 +184,12 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         conn.db.player.onUpdate((_ctx, _old, row) => onPlayer(row));
         conn.db.player.onDelete((_ctx, row) => {
           const id = hex(row.identity);
+          if (id === myId) {
+            // the database took me out (a long pause, a throttled tab): come back into the room
+            joined = false;
+            call(() => conn.reducers.setProfile({ ...args, money: lastMoney ?? args.money }));
+            return;
+          }
           const gone = roster.get(id);
           roster.delete(id);
           drop(id);
