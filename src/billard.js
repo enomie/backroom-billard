@@ -2231,10 +2231,11 @@ function onMultiplayerGame(e) {
     mpShot = null;
     mpWantCamera = null;
     if (!e.isPlayer && !watchedShot) return; // a game I never saw (found at my arrival, ended by the cleaning up): no news
-    endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
     // multiplayer: the two players go on to the stake window for the next game; a spectator, or a player whose partner is gone,
-    // can only start a practice rack (Re-rack: he plays alone until somebody comes)
+    // plays alone on a practice rack until somebody comes (racked at once; the message stands over it)
     const together = e.isPlayer && e.reason !== "timeout" && e.reason !== "left";
+    if (e.isPlayer && !together) setupBalls();
+    endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
     document.getElementById("btn-restart").hidden = together;
     const again = document.getElementById("game-over-again");
     again.hidden = !together;
