@@ -44,6 +44,8 @@ export default {
   "welcome.country": "Dein Land",
   "welcome.countrySearch": "Suchen…",
   "welcome.countryNone": "Kein Land gefunden",
+  "welcome.face": "Dein Gesicht",
+  "welcome.faceRandom": "Zufall",
   "welcome.drink": "Dein erstes Getränk",
   "welcome.cigarettes": "Deine Zigaretten",
   "welcome.broke": "Das Geld reicht nicht für ein Getränk und Zigaretten. Fang neu an, dann hast du wieder 15.000 $.",

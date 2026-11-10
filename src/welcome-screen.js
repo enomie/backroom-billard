@@ -7,6 +7,7 @@ import { DRINK_MENU, PACK_PRICE, START_MONEY } from "./shop-constants.js";
 import { PACK_DESIGNS } from "./cigarette-constants.js";
 import { t, onLanguageChange, getLanguage } from "./i18n/index.js";
 import { filterName, normalizeName, isValidName, middleInitial } from "./name-rules.js";
+import { randomFace, isFace, faceSvg } from "./face.js";
 import { COUNTRIES, DEFAULT_COUNTRY, isCountry, countryName, flagUrl } from "./country-list.js";
 import { loadProfile, saveProfile, clearProfile, PROFILE_VERSION } from "./profile-store.js";
 
@@ -27,6 +28,7 @@ export function showWelcome() {
   let money = previous?.money ?? START_MONEY; // what he has before buying
   let drink = previous?.firstDrink ?? DEFAULT_DRINK; // a new player starts with a beer chosen (can be changed)
   let pack = previous?.firstPack ?? null;
+  let face = isFace(previous?.face) ? previous.face : randomFace();
   let country = isCountry(previous?.country) ? previous.country : DEFAULT_COUNTRY;
 
   const priceOfDrink = (kind) => DRINK_MENU.find((d) => d.kind === kind)?.price ?? 0;
@@ -105,6 +107,14 @@ export function showWelcome() {
       else if (!$("welcome-continue").disabled) $("welcome-continue").click();
     })
   );
+
+  // the face: what is shown counts; the button throws the dice again
+  const renderFace = () => ($("welcome-face").innerHTML = faceSvg(face));
+  $("welcome-face-random").addEventListener("click", () => {
+    face = randomFace();
+    renderFace();
+  });
+  renderFace();
 
   // the country: a drop-down list with a search (typing filters; names in the language of the page)
   const countryButton = $("welcome-country");
@@ -197,6 +207,8 @@ export function showWelcome() {
     pack = null;
     country = DEFAULT_COUNTRY;
     renderCountry();
+    face = randomFace();
+    renderFace();
     for (const field of Object.values(fields)) field.value = "";
     ask(false);
     update();
@@ -223,6 +235,7 @@ export function showWelcome() {
         middleInitial: middleInitial(middleName),
         lastName,
         country,
+        face,
         firstDrink: drink,
         firstPack: pack,
         money: money - spent(),

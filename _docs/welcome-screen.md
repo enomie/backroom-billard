@@ -86,6 +86,7 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
   "firstDrink": "whiskey",
   "firstPack": 0,
   "country": "at",
+  "face": { "skin": "#e0a77c", "eyes": "#3b78c9", "hair": "#6b4226", "width": 0.95, "hairStyle": 2, "beard": 0, "nose": 1, "brows": 1 },
   "money": 14907,
   "createdAt": "2026-11-08T20:00:00.000Z"
 }
@@ -103,6 +104,7 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 |-------|--------|
 | `src/name-rules.js` | Reine Funktionen: Filtern beim Tippen (`filterName`), Fertigstellen (`normalizeName`), Prüfen (`isValidName`), `middleInitial`, `displayName` (voll, mit Initiale, nur Initialen); Beispiele in `_Scripts/test-name-rules.mjs` (`npm test`) |
 | `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Speicher im Arbeitsspeicher als Ersatz), `saveMoney`, `clearProfile` |
+| `src/face.js` | Das Zufallsgesicht: Paletten, `randomFace`, `isFace` (prüft ein gespeichertes Gesicht), `faceSvg` (die Vorschau) |
 | `src/country-list.js`, `public/flags/` | Die Länder mit runder Flagge (Kürzel, deutscher und englischer Name), `countryName`, `flagUrl`, Standard Österreich |
 | `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Neu anfangen, Continue |
 | `src/wallet.js` | Liest das Geld beim Start aus dem Profil und speichert jede Änderung; `setBalance` |
@@ -125,13 +127,13 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 - **Pleite:** Unter 83 $ hilft nur „Neu anfangen“ (löscht das Profil, 15.000 $).
 - **Name und Guthaben** stehen im Einstellungs-Panel; dieses scrollt innen.
 
-## Gesicht und Land (Land umgesetzt, Gesicht beschlossen, noch nicht gebaut)
+## Gesicht und Land (umgesetzt)
 
 Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil gespeichert.
 
-- **Gesicht (Facegenerator):** Eine Vorschau des Gesichts (Kugel mit Nase und zwei Augen, dazu Haar, Bart und Augenbrauen) mit **einem** Knopf **Zufall**, der ein neues Gesicht würfelt. Es gibt **keinen** Bestätigungsknopf: **Das gezeigte Gesicht gilt**, **Continue** geht auch ohne zu würfeln. Beim ersten Besuch steht schon ein Zufallsgesicht da. **Alles wird gewürfelt**: Hautfarbe, **Augenfarbe**, **Haarfarbe** (eine Farbe für **Haar, Bart und Augenbrauen** zusammen) und die **Formen** (Frisur, Bartform, Nase, Augenbrauen). Das Gesicht ist **starr** (keine Mimik). So sehen es die anderen, siehe [`multiplayer.md`](multiplayer.md).
+- **Gesicht (Facegenerator, umgesetzt, bewusst einfach):** Eine Vorschau (kleines flaches SVG, `src/face.js`) mit **einem** Knopf **Zufall**, der ein neues Gesicht würfelt. Es gibt **keinen** Bestätigungsknopf: **Das gezeigte Gesicht gilt**, **Continue** geht auch ohne zu würfeln. Beim ersten Besuch steht schon ein Zufallsgesicht da. Gewürfelt wird **aus kleinen Paletten**, nicht aus allen Farben: 8 **Hauttöne** (hell bis dunkel), 8 natürliche **Haarfarben** (schwarz, braun, rotbraun, blond, grau, weiß …) und mit 20 % Chance eine **lustige** (blau, grün, orange, pink, lila), 6 **Augenfarben**. Die **Haarfarbe gilt für Haar, Bart und Augenbrauen** zusammen. **Formen:** die **Breite** (schmal bis breit, aber nicht extrem), 6 Frisuren (von kahl bis lang), 3 Nasen, 3 Augenbrauen und der **Bart** (in 55 % der Fälle **keiner**, sonst Stoppeln, Kinnbart oder Vollbart): Die Gesichter sind für alle. Das Gesicht ist **starr** (keine Mimik). Später soll es als Kugel mit Nase und Augen im Raum schweben (siehe [`multiplayer.md`](multiplayer.md)); die Daten (`face`) bleiben dieselben.
 - **Land (umgesetzt):** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste hat **nur die Länder, zu denen es eine (runde) Flagge gibt**: 42 Länder (`src/country-list.js`, Flaggen in `public/flags/{iso}.svg`, kopiert aus [`countries/`](countries/README.md), das nur Info bleibt). Mehr Länder: Flaggendatei und eine Zeile in `country-list.js`. Gesucht wird ohne Akzente und Groß-/Kleinschreibung („osterreich“ findet „Österreich“); Pfeiltasten und Enter wählen, Esc und ein Klick daneben schließen die Liste. Über dem Kopf des Spielers stehen später ein kleines Flaggen-Icon und sein Name, kompakt (siehe `multiplayer.md`).
-- Profil: `country` (Länderkürzel, umgesetzt) und später `face` (Hautfarbe, Augenfarbe, Haarfarbe, Formen). Die `version` bleibt 1 (sonst wären die alten Profile samt Geld weg): fehlende Felder bekommen beim Lesen Österreich beziehungsweise ein Zufallsgesicht.
+- Profil: `country` (Länderkürzel) und `face` (Hautfarbe, Augenfarbe, Haarfarbe, Breite, Frisur, Bart, Nase, Augenbrauen), beides umgesetzt. Die `version` bleibt 1 (sonst wären die alten Profile samt Geld weg): fehlende Felder bekommen beim Lesen Österreich beziehungsweise ein Zufallsgesicht.
 
 ## Offene Fragen
 

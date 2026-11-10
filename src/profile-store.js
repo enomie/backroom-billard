@@ -12,8 +12,8 @@ let memory = null;
 
 /**
  * @typedef {{ version: number, firstName: string, middleName: string, middleInitial: string,
- *   lastName: string, country: string, firstDrink: string, firstPack: number, money: number, createdAt: string }} Profile
- * `country` (ISO code, see country-list.js) is missing in older profiles: Austria then.
+ *   lastName: string, country: string, face: import("./face.js").Face, firstDrink: string, firstPack: number, money: number, createdAt: string }} Profile
+ * `country` (ISO code, see country-list.js) and `face` (face.js) are missing in older profiles: Austria and a random face then.
  */
 
 const isProfile = (p) =>

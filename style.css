@@ -1136,6 +1136,27 @@ html {
   border-bottom-color: var(--amber-300);
 }
 
+/* The face: the preview and the dice button */
+.welcome__face {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.welcome__face-preview {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  background: rgba(252, 211, 77, 0.08);
+  overflow: hidden;
+}
+
+.welcome__face-preview svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* The country: a button that opens a list with a search field */
 .welcome__country {
   position: relative;
