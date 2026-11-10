@@ -244,27 +244,31 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   }
 
   return {
-    /** The shooter says that his shot begins (the database checks that he is up). */
+    /**
+     * The shooter says that his shot begins (the database checks that he is up). Returns the number of the shot: the
+     * database counts one up, and the pieces of the recording must carry that number (the news of the database
+     * is not here yet when the first piece goes out).
+     */
     takeShot(shot) {
+      const seq = (connection?.db.game.id.find(1)?.shotSeq ?? 0) + 1;
       call(() => connection?.reducers.takeShot(shot));
+      return seq;
     },
     /** The aim of the one who is up (about 15 times per second): angle, pitch, where the tip meets the ball, power. */
     setAim(aim) {
       call(() => connection?.reducers.setAim(aim));
     },
     /** A piece of the recording of my shot. */
-    pushChunk(index, data) {
-      const game = connection?.db.game.id.find(1);
-      if (game) call(() => connection.reducers.pushChunk({ shotSeq: game.shotSeq, index, data }));
+    pushChunk(index, data, shotSeq) {
+      call(() => connection?.reducers.pushChunk({ shotSeq, index, data }));
     },
     /** "Play again": the next game begins when both players have pressed it. */
     playAgain() {
       call(() => connection?.reducers.playAgain());
     },
     /** The shot is over: what happened and where the balls lie (the database applies the rules and says who is up next). */
-    endShot(result) {
-      const game = connection?.db.game.id.find(1);
-      if (game) call(() => connection.reducers.endShot({ shotSeq: game.shotSeq, ...result }));
+    endShot(result, shotSeq) {
+      call(() => connection?.reducers.endShot({ shotSeq, ...result }));
     },
     /**
      * Join the room with the profile of the welcome screen. Resolves when the room is set up (connected, the

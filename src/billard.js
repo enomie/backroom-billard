@@ -429,7 +429,7 @@ function setupLightingAndRoom() {
     (kind, name) => roomNote(kind === "joined" ? "room.joined" : "room.left", name),
     onMultiplayerGame
   );
-  recorder = createShotRecorder((index, bytes) => multiplayer.pushChunk(index, bytes));
+  recorder = createShotRecorder((index, bytes) => multiplayer.pushChunk(index, bytes, mpShot?.seq));
 }
 
 /* ====================================================
@@ -654,7 +654,7 @@ function fireCueStrike() {
   }
   startCueStroke();
   if (mpGame.running) {
-    multiplayer.takeShot({ aimAngle: stroke.aimAngle, power: selectedPower, nubX: strikeNub.x, nubY: strikeNub.y, elevation: stroke.pitch, error: 0 });
+    mpShot.seq = multiplayer.takeShot({ aimAngle: stroke.aimAngle, power: selectedPower, nubX: strikeNub.x, nubY: strikeNub.y, elevation: stroke.pitch, error: 0 });
   }
 
   // The orbit center stays at the shot position until everything has come to rest (the player can still turn the camera)
@@ -2003,6 +2003,7 @@ function onMultiplayerGame(e) {
     return;
   }
   if (e.kind === "chunk") {
+    if (e.index === 0) console.info("[Backroom Billard] multiplayer: the recording of the shot of the other one arrives");
     replay.add(e.index, e.data, performance.now());
     return;
   }
@@ -2061,6 +2062,7 @@ function applyReplay(dt) {
     }
     const ended = queuedEvents.some((e) => e.kind === "sync"); // the shooter has said that the shot is over
     if (ended && (!picture || picture.done)) {
+      if (!picture) console.warn("[Backroom Billard] multiplayer: the shot is over, but no recording of it arrived");
       replay.end();
       for (const b of balls) b.mesh.visible = true;
       remoteCue.active = false;
@@ -2094,7 +2096,7 @@ function reportShot() {
     restIds: lying.map((b) => b.id),
     restX: lying.map((b) => b.pos.x),
     restZ: lying.map((b) => b.pos.z),
-  });
+  }, mpShot.seq);
   mpShot = null;
 }
 
