@@ -164,6 +164,7 @@ let shotRestTimer = 0;
 let cueGap = CUE_AIM_GAP; // gap between the cue tip and the ball surface for this frame
 /** Running cue stroke (draw back → hold → forward → follow → done), or null. */
 let stroke = null;
+let tipTouchedCueBall = false; // this stroke: the physical tip has touched the white ball (a coloured ball first is a foul)
 let strokeContacted = false; // the tip has hit the ball; the follow-through timer may start
 let cueShotTime = 0; // seconds since the shot
 let cueRelax = 0; // 0 = aiming/strike pose, 1 = relaxed hold (linear; eased when applied)
@@ -625,6 +626,7 @@ function fireCueStrike() {
   shotInProgress = true;
   shotRestTimer = 0;
   strokeContacted = false;
+  tipTouchedCueBall = false;
 }
 
 /* Cue stroke: the cue is drawn back, pauses, snaps forward and HITS the ball physically
@@ -1403,9 +1405,13 @@ function clearPocketedHud() {
   if (host) host.replaceChildren();
 }
 
+/** The text key of why the game ended (see endGame). */
+let gameOverReason = "game.lost.reason";
+
 /** Show the end of the game; shots are blocked until the balls are racked again. */
-function endGame(won) {
+function endGame(won, lostReason = "game.lost.reason") {
   gameState = won ? "won" : "lost";
+  gameOverReason = won ? "game.won.reason" : lostReason;
   const overlay = document.getElementById("game-over");
   if (!overlay) return;
   overlay.classList.toggle("game-over--won", won);
@@ -1418,7 +1424,7 @@ function renderGameOver() {
   if (gameState === "playing") return;
   const key = gameState === "won" ? "game.won" : "game.lost";
   document.getElementById("game-over-title").textContent = t(`${key}.title`);
-  document.getElementById("game-over-text").textContent = t(`${key}.reason`);
+  document.getElementById("game-over-text").textContent = t(gameOverReason);
 }
 
 /** Re-render all dynamic (JS-generated) texts after a language change. */
@@ -1583,10 +1589,17 @@ function stepPhysics(frameDt) {
       physics.world.step(physics.eventQueue);
       detectBallImpacts();
       if (!stroke || stroke.phase === "done") applySwerve(physics.world.timestep);
+      let foulBall = null; // the cue tip touched a coloured ball (see below)
       physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
         if (!started) return;
         const ball1 = ballByCollider.get(h1);
         const ball2 = ballByCollider.get(h2);
+        if (h1 === physics.cue.collider.handle || h2 === physics.cue.collider.handle) {
+          const touched = ball1 ?? ball2;
+          if (touched === cueBall) tipTouchedCueBall = true;
+          else if (touched) foulBall = touched;
+          return;
+        }
         const pocketId = physics.cupFloors.get(h1) ?? physics.cupFloors.get(h2);
         if (pocketId) {
           const ball = ball1 ?? ball2;
@@ -1610,6 +1623,8 @@ function stepPhysics(frameDt) {
           playCushionHitSound(velocityChange(ball) / (1 + CUSHION_RESTITUTION), `c${ball.id}`, ball.pos.toArray());
         }
       });
+      // The tip hit a coloured ball before it touched the white one (both in one step: the white counts): lost at once
+      if (foulBall && !tipTouchedCueBall && gameState === "playing") endGame(false, "game.foul.reason");
     }
     physicsAcc -= PHYSICS_STEP;
     steps++;

@@ -29,6 +29,7 @@ export default {
   "pocketed.ball": "Ball {n}",
   "game.lost.title": "GAME LOST",
   "game.lost.reason": "The black 8 was pocketed while other balls were still on the table.",
+  "game.foul.reason": "Foul: the cue hit a coloured ball instead of the white one.",
   "game.won.title": "YOU WIN",
   "game.won.reason": "All balls pocketed — the black 8 came last.",
   "radio.start": "CLICK TO START",

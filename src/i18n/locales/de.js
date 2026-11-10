@@ -29,6 +29,7 @@ export default {
   "pocketed.ball": "Kugel {n}",
   "game.lost.title": "GAME LOST",
   "game.lost.reason": "Die schwarze 8 wurde versenkt, obwohl noch Kugeln auf dem Tisch liegen.",
+  "game.foul.reason": "Foul: Der Cue hat eine farbige Kugel statt der weißen getroffen.",
   "game.won.title": "GEWONNEN",
   "game.won.reason": "Alle Kugeln versenkt — die schwarze 8 kam zuletzt.",
   "radio.start": "KLICK ZUM STARTEN",

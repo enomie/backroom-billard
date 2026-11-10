@@ -38,6 +38,7 @@ Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: *
 - **Zustand:** Zwei Balken oben in der Mitte (Thirsty ↔ Drunk, Nerves ↔ Desire). Mit der Zeit wird man durstig und will rauchen; trinken und rauchen schieben die Marker. In der Mitte ist man ruhig, sonst schwankt der Cue (und wer betrunken ist, trifft ungenauer). Siehe `_docs/game-concept.md`.
 - Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
+- **Foul:** Berührt die Cue-Spitze beim Stoß **zuerst eine farbige Kugel** statt der weißen (etwa weil sie dicht hinter der weißen liegt), ist das Spiel **sofort verloren** (Game Lost, Meldung „Foul: Der Cue hat eine farbige Kugel statt der weißen getroffen.“). Berührt die Spitze die weiße Kugel zuerst oder gleichzeitig, gilt der Stoß.
 - Ein Stoß ist eine Animation: Der Cue wird zurückgezogen und schnalzt nach vorn; die Kugel bekommt ihre Geschwindigkeit durch die echte Kollision der Cue-Spitze.
 - Nach dem Stoß bleibt die Kamera auf der Schussposition (sie folgt den Kugeln nicht), lässt sich aber weiter um sie drehen. Erst wenn alle Kugeln (nahezu) stillstehen, gleitet sie zur neuen Schussposition; bis dahin ist kein neuer Stoß möglich.
 - Während die Kugeln rollen **und** mit der freien Kamera hält der Spieler den Queue entspannt vor sich: Griff unten im Bild, Spitze oberhalb rechts; nach dem Stillstand schwingt er sanft zurück an die Kugel. Die Pose steht in `src/cue-constants.js`.

@@ -32,6 +32,10 @@ Die Cue-Spitze ist ein eigener Körper in Rapier (kinematisch, `physics-world.js
 - **Neigung:** Die Cue-Achse geht durch die Kugelmitte. Ein geneigter Cue drückt die Kugel leicht auf den Tisch; deshalb ist die Neigung begrenzt.
 - **Sicherheitsnetz:** Falls der Stoß die Kugel nicht bewegt, bekommt sie den vorgesehenen Impuls und es gibt eine Konsolen-Warnung.
 
+## Foul: farbige Kugel statt der weißen
+
+Weil die Spitze ein echter Körper ist, meldet Rapier jede Berührung (`started`-Ereignis zwischen Spitze und Kugel). Berührt sie im Stoß **zuerst eine andere Kugel als die weiße** (die farbige liegt im Weg, etwa dicht hinter der weißen), ist das Spiel **sofort verloren** (`endGame(false, "game.foul.reason")`, Meldung auf dem Game-Lost-Bildschirm, Deutsch und Englisch). Berührt die Spitze die weiße Kugel vorher oder im selben Physikschritt, zählt der Stoß normal; danach berührte Kugeln (Nachschwung) zählen nie. Nur der Stoß zählt, das Zurückziehen nicht (dort ist der Cue ohne Körper). Merker: `tipTouchedCueBall` in `billard.js`.
+
 ## Haltepose nach dem Stoß
 
 Während die Kugeln rollen und mit der freien Kamera hält der Spieler den Cue fast senkrecht im Bild (Griff unten, Spitze oben rechts). Die Pose steht in `cue-constants.js` (`CUE_CARRY_*`).
