@@ -127,11 +127,9 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 
 Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil gespeichert.
 
-- **Gesicht (Facegenerator):** Eine Vorschau des Gesichts (Kugel mit Nase und zwei Augen, dazu Haar, Bart und Augenbrauen) mit zwei Knöpfen: **Zufall** würfelt ein neues Gesicht, **OK, nehm ich** übernimmt es. Gewürfelt werden die **Hautfarbe** und die **Haarfarbe** (für Haar, Bart und Augenbrauen). Das Gesicht ist **starr** (keine Mimik). So sehen es die anderen, siehe [`multiplayer.md`](multiplayer.md).
-- **Land:** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache. **Standard: Österreich** (`at`). Die Liste und die Flaggen kommen aus [`countries/`](countries/README.md); im Spiel werden **runde Flaggen** (runde SVGs, die Daten dazu kommen noch) gezeigt. Land und Name stehen später über dem Kopf (siehe `multiplayer.md`).
-- Profil: neue Felder (z. B. `face` mit Hautfarbe und Haarfarbe, `country` als Länderkürzel); `version` im Profil erhöhen, ältere Profile bekommen ein Zufallsgesicht und Österreich.
-
-Offen dabei: Gibt es Formen zum Würfeln (Frisur, Bartform) oder nur Farben? Ist die Haarfarbe für Haar, Bart und Augenbrauen **eine** oder wählt jeder Teil seine? Muss man **OK, nehm ich** drücken, bevor **Continue** geht (oder gilt das gezeigte Gesicht auch ohne)? Wie wird das Land gewählt (Liste mit Suche, Flaggen-Raster)?
+- **Gesicht (Facegenerator):** Eine Vorschau des Gesichts (Kugel mit Nase und zwei Augen, dazu Haar, Bart und Augenbrauen) mit **einem** Knopf **Zufall**, der ein neues Gesicht würfelt. Es gibt **keinen** Bestätigungsknopf: **Das gezeigte Gesicht gilt**, **Continue** geht auch ohne zu würfeln. Beim ersten Besuch steht schon ein Zufallsgesicht da. **Alles wird gewürfelt**: Hautfarbe, **Haarfarbe** (eine Farbe für **Haar, Bart und Augenbrauen** zusammen) und die **Formen** (Frisur, Bartform, Nase, Augenbrauen). Das Gesicht ist **starr** (keine Mimik). So sehen es die anderen, siehe [`multiplayer.md`](multiplayer.md).
+- **Land:** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste und die Flaggen kommen aus [`countries/`](countries/README.md); im Spiel werden **runde Flaggen** (runde SVGs, die Daten dazu kommen noch) gezeigt. Land und Name stehen später über dem Kopf (siehe `multiplayer.md`).
+- Profil: neue Felder (z. B. `face` mit Hautfarbe, Haarfarbe und den Formen, `country` als Länderkürzel); `version` im Profil erhöhen, ältere Profile bekommen ein Zufallsgesicht und Österreich.
 
 ## Offene Fragen
 
