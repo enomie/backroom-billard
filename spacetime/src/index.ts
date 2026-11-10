@@ -16,6 +16,11 @@ const GAME_PLAYING = 1;
 const GAME_STAKING = 2; // both seats are taken: the two set the stake and press Ready
 const BLACK_BALL = 8;
 const PIANO_KEY_BYTES = 11; // the 88 keys of the grand piano as bits
+const RATE_WINDOW_MICROS = 1_000_000n; // a guest may call this many reducers per second (the busiest client sends about 45)
+const RATE_MAX = 100;
+const MAX_CHUNK_BYTES = 32_768; // a piece of a shot recording is about 7 kB
+const MAX_CHUNK_INDEX = 1_000; // at 10 pieces per second that is more than a minute of one shot
+const BALLS = 16; // the white ball (0) and the 15 coloured ones
 
 const spacetimedb = schema({
   /** Everybody who is in the room (players and spectators). `face` is the JSON of face.js. */
@@ -145,6 +150,16 @@ const spacetimedb = schema({
     }
   ),
 
+  /** How many calls a guest made in the current second (private: only the module sees it). */
+  rate: table(
+    {},
+    {
+      identity: t.identity().primaryKey(),
+      windowStart: t.timestamp(),
+      calls: t.u32(),
+    }
+  ),
+
   /** The grand piano (row id 1): who sits at it (only one), and which keys are down (88 bits, A0 first), so that the others hear him. */
   piano: table(
     { public: true },
@@ -215,6 +230,31 @@ function resetBalls(ctx: Ctx) {
   for (const p of [...ctx.db.pocket.iter()]) ctx.db.pocket.ballId.delete(p.ballId);
 }
 
+/**
+ * True if the guest has called too often in this second (then the call is dropped: return, do not throw, because a throw
+ * would undo the count). Every reducer of a guest begins with it.
+ */
+function limited(ctx: Ctx) {
+  const now = ctx.timestamp.microsSinceUnixEpoch;
+  const row = ctx.db.rate.identity.find(ctx.sender);
+  if (!row) {
+    ctx.db.rate.insert({ identity: ctx.sender, windowStart: ctx.timestamp, calls: 1 });
+    return false;
+  }
+  if (now - row.windowStart.microsSinceUnixEpoch >= RATE_WINDOW_MICROS) {
+    ctx.db.rate.identity.update({ ...row, windowStart: ctx.timestamp, calls: 1 });
+    return false;
+  }
+  if (row.calls >= RATE_MAX) return true;
+  ctx.db.rate.identity.update({ ...row, calls: row.calls + 1 });
+  return false;
+}
+
+/** Numbers from a browser: finite and not absurdly big (a table, a room, an angle that has turned many times). */
+const sane = (...numbers: number[]) => numbers.every((n) => Number.isFinite(n) && Math.abs(n) <= 10_000);
+/** A list of different ball ids, from `lowest` to 15. */
+const ballList = (ids: ArrayLike<number>, lowest: number) => ids.length <= BALLS && new Set(Array.from(ids)).size === ids.length && Array.from(ids).every((id) => Number.isInteger(id) && id >= lowest && id < BALLS);
+
 /** The grand piano. Made on first use. */
 const thePiano = (ctx: Ctx) => ctx.db.piano.id.find(1) ?? ctx.db.piano.insert({ id: 1, sitter: undefined, keys: new Uint8Array(PIANO_KEY_BYTES) });
 
@@ -234,6 +274,7 @@ function standUpIfUp(ctx: Ctx) {
 
 /** Sit down at the piano: only one at a time, and not for the one who is up at the table. */
 export const sit_piano = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
   const player = me(ctx);
   const game = theGame(ctx);
   if (game.state === GAME_PLAYING && player.seat === game.turnSeat) throw new SenderError('you are up: the table');
@@ -251,6 +292,7 @@ export const leave_piano = spacetimedb.reducer((ctx) => {
 
 /** The keys that are down now (only from the one who sits there; sent when something changes). */
 export const play_keys = spacetimedb.reducer({ keys: t.byteArray() }, (ctx, { keys }) => {
+  if (limited(ctx)) return;
   const piano = thePiano(ctx);
   if (!piano.sitter || piano.sitter.toHexString() !== ctx.sender.toHexString() || keys.length !== PIANO_KEY_BYTES) throw new SenderError('not your piano');
   ctx.db.piano.id.update({ ...piano, keys });
@@ -269,13 +311,16 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
 
 /** The money of the guest changed (a drink, a pack): the others see it under his name. */
 export const set_money = spacetimedb.reducer({ money: t.u32() }, (ctx, { money }) => {
+  if (limited(ctx)) return;
   const player = me(ctx);
   ctx.db.player.identity.update({ ...player, money });
 });
 
 /** The drink and the cigarettes of the guest changed (a sip, a new order, a cigarette): only a change is sent. */
 export const set_kit = spacetimedb.reducer({ drink: t.string(), sips: t.u8(), pack: t.u8(), packCount: t.u8() }, (ctx, k) => {
+  if (limited(ctx)) return;
   me(ctx);
+  if (!/^[a-z-]{1,20}$/.test(k.drink) || k.sips > 10 || k.pack > 9 || k.packCount > 30) return; // (only what the game can have on the table)
   const row = { identity: ctx.sender, ...k };
   if (ctx.db.kit.identity.find(ctx.sender)) ctx.db.kit.identity.update(row);
   else ctx.db.kit.insert(row);
@@ -283,6 +328,7 @@ export const set_kit = spacetimedb.reducer({ drink: t.string(), sips: t.u8(), pa
 
 /** The R key and the T key of the guest went down or up (drinking, smoking). */
 export const set_hand = spacetimedb.reducer({ drinking: t.bool(), smoking: t.bool() }, (ctx, h) => {
+  if (limited(ctx)) return;
   me(ctx);
   const row = { identity: ctx.sender, ...h };
   if (ctx.db.hand.identity.find(ctx.sender)) ctx.db.hand.identity.update(row);
@@ -293,7 +339,9 @@ export const set_hand = spacetimedb.reducer({ drinking: t.bool(), smoking: t.boo
 export const set_presence = spacetimedb.reducer(
   { x: t.number(), y: t.number(), z: t.number(), yaw: t.number(), pitch: t.number(), free: t.bool() },
   (ctx, p) => {
+    if (limited(ctx)) return;
     me(ctx);
+    if (!sane(p.x, p.y, p.z, p.yaw, p.pitch)) return;
     const row = { identity: ctx.sender, ...p };
     if (ctx.db.presence.identity.find(ctx.sender)) ctx.db.presence.identity.update(row);
     else ctx.db.presence.insert(row);
@@ -323,6 +371,7 @@ function checkProfile(name: string, country: string, face: string) {
 export const set_profile = spacetimedb.reducer(
   { name: t.string(), country: t.string(), face: t.string(), money: t.u32() },
   (ctx, { name, country, face, money }) => {
+    if (limited(ctx)) return;
     checkProfile(name, country, face);
     const old = ctx.db.player.identity.find(ctx.sender);
     if (old) {
@@ -347,6 +396,7 @@ function dropGuest(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identity.
   ctx.db.hand.identity.delete(identity);
   ctx.db.kit.identity.delete(identity);
   ctx.db.presence.identity.delete(identity);
+  ctx.db.rate.identity.delete(identity);
   const piano = thePiano(ctx);
   if (piano.sitter && piano.sitter.toHexString() === identity.toHexString()) freePiano(ctx);
 }
@@ -405,6 +455,7 @@ const validAmount = (amount: number, money: number) => amount <= money && amount
 
 /** The stake window: the own offer changes (live for the other one). When the agreed stake changes, both have to press Ready again. */
 export const set_stake = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount }) => {
+  if (limited(ctx)) return;
   const player = me(ctx);
   const row = ctx.db.stake.identity.find(ctx.sender);
   if (theGame(ctx).state !== GAME_STAKING || !row) throw new SenderError('no stake window open for you');
@@ -417,6 +468,7 @@ export const set_stake = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount
 
 /** Ready (or not any more): when both are ready the game begins, both stakes are in. */
 export const set_ready = spacetimedb.reducer({ ready: t.bool() }, (ctx, { ready }) => {
+  if (limited(ctx)) return;
   const row = ctx.db.stake.identity.find(ctx.sender);
   if (theGame(ctx).state !== GAME_STAKING || !row) throw new SenderError('no stake window open for you');
   ctx.db.stake.identity.update({ ...row, ready });
@@ -432,6 +484,7 @@ export const set_ready = spacetimedb.reducer({ ready: t.bool() }, (ctx, { ready 
 
 /** A sign of life (the clients send it every 2 s). */
 export const heartbeat = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
   const player = me(ctx);
   ctx.db.player.identity.update({ ...player, connected: true, lastSeen: ctx.timestamp });
   seatTheFirstTwo(ctx); // (does nothing while a game runs) heals a room that was left in a strange state
@@ -439,6 +492,7 @@ export const heartbeat = spacetimedb.reducer((ctx) => {
 
 /** Table bet (spectators): the own bid is set (a multiple of 10, at least 100, at most the money; all the money if that is less than 100). */
 export const place_bid = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount }) => {
+  if (limited(ctx)) return;
   const player = me(ctx);
   if (player.seat !== SPECTATOR) throw new SenderError('only spectators bid');
   if (!validAmount(amount, player.money)) throw new SenderError(`a bid is a multiple of ${STAKE_STEP}, at least ${MIN_STAKE}, at most your money`);
@@ -479,8 +533,9 @@ function fillEmptySeat(ctx: Ctx) {
 export const set_aim = spacetimedb.reducer(
   { angle: t.number(), elevation: t.number(), power: t.number(), nubX: t.number(), nubY: t.number() },
   (ctx, a) => {
+    if (limited(ctx)) return;
     const player = me(ctx);
-    if (player.seat === SPECTATOR) return;
+    if (player.seat === SPECTATOR || !sane(a.angle, a.elevation, a.power, a.nubX, a.nubY)) return;
     const row = { seat: player.seat, ...a };
     if (ctx.db.aim.seat.find(player.seat)) ctx.db.aim.seat.update(row);
     else ctx.db.aim.insert(row);
@@ -491,8 +546,10 @@ export const set_aim = spacetimedb.reducer(
 export const take_shot = spacetimedb.reducer(
   { aimAngle: t.number(), power: t.number(), nubX: t.number(), nubY: t.number(), elevation: t.number(), error: t.number() },
   (ctx, s) => {
+    if (limited(ctx)) return;
     const player = me(ctx);
     const game = theGame(ctx);
+    if (!sane(s.aimAngle, s.power, s.nubX, s.nubY, s.elevation, s.error)) throw new SenderError('bad shot');
     if (game.state !== GAME_PLAYING || game.shotRunning || player.seat !== game.turnSeat) throw new SenderError('not your shot');
     const seq = game.shotSeq + 1;
     for (const chunk of [...ctx.db.shotChunk.iter()]) ctx.db.shotChunk.id.delete(chunk.id); // the pieces of the last shot are not needed any more
@@ -503,6 +560,8 @@ export const take_shot = spacetimedb.reducer(
 
 /** A piece of the recording of the running shot (from the shooter only). */
 export const push_chunk = spacetimedb.reducer({ shotSeq: t.u32(), index: t.u32(), data: t.byteArray() }, (ctx, { shotSeq, index, data }) => {
+  if (limited(ctx)) return;
+  if (data.length > MAX_CHUNK_BYTES || index >= MAX_CHUNK_INDEX) throw new SenderError('piece too big');
   const game = theGame(ctx);
   const shot = ctx.db.shot.seq.find(shotSeq);
   if (!shot || shot.shooter.toHexString() !== ctx.sender.toHexString() || shotSeq !== game.shotSeq) throw new SenderError('not the running shot of yours');
@@ -525,6 +584,9 @@ export const end_shot = spacetimedb.reducer(
     restZ: t.array(t.number()),
   },
   (ctx, r) => {
+    if (limited(ctx)) return;
+    // the report must be one a table can give: ball ids 1 to 15 pocketed, ids 0 to 15 lying, a place for each, on the table
+    if (!ballList(r.pocketed, 1) || !ballList(r.restIds, 0) || r.restX.length !== r.restIds.length || r.restZ.length !== r.restIds.length || !sane(...r.restX, ...r.restZ)) throw new SenderError('bad report');
     const game = theGame(ctx);
     const shot = ctx.db.shot.seq.find(r.shotSeq);
     if (!shot || shot.shooter.toHexString() !== ctx.sender.toHexString() || !game.shotRunning || r.shotSeq !== game.shotSeq) throw new SenderError('not the running shot of yours');
@@ -583,7 +645,9 @@ function sweep(ctx: Ctx) {
   }
   seatTheFirstTwo(ctx);
 }
-export const check_timeouts = spacetimedb.reducer((ctx) => sweep(ctx));
+export const check_timeouts = spacetimedb.reducer((ctx) => {
+  if (!limited(ctx)) sweep(ctx);
+});
 
 /** A player gets up from the table: a lost game while it runs, otherwise his seat is simply free. */
 export const leave_table = spacetimedb.reducer((ctx) => {

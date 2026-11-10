@@ -18,6 +18,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `hand` | was die Hände tun: R (trinken) und T (rauchen) gedrückt; die anderen sehen es |
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
 | `pocket` | welche Kugel welcher Platz versenkt hat (die zwei Listen über dem Tisch) |
+| `rate` | (privat) Aufrufe je Gast in der laufenden Sekunde, höchstens 100 |
 | `piano` | der Flügel: wer am Hocker sitzt (nur einer) und welche Tasten gedrückt sind (88 Bits) |
 | `stake` | das Einsatz-Fenster der zwei Spieler, live: Angebot und Bereit je Spieler (Einsatz = das kleinere Angebot) |
 | `bid` | die Tischwetten der Zuschauer (ein Gebot je Zuschauer) |

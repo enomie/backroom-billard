@@ -178,12 +178,16 @@ Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** beh
 
 *Umsetzung von A (`sweep` im Modul):* Ein Gast gilt als **weg**, wenn die Verbindung zu ist oder er **10 Sekunden** nichts von sich hören ließ (`isGone`); das gilt für Zuschauer und Spieler. `sweep` läuft bei **jedem Beitritt** und alle 2 s von den Clients (`check_timeouts`): weggegangene Zuschauer werden entfernt (mit allen Zeilen: Gebot, Angebot, Kit, Kopf, Flügel-Hocker), ein stiller Spieler im laufenden Spiel verliert, sonst räumt `seatTheFirstTwo` auf und füllt freie Plätze. Hat der Server einen Gast entfernt (Pause, gedrosselter Tab), meldet sich der Client von selbst neu an.
 
-**B. Eingaben prüfen (die Datenbank vertraut dem Browser)**
-5. `push_chunk`: keine Größengrenze (eine riesige Zeile füllt die Datenbank); Grenze je Häppchen und je Stoß setzen.
-6. `end_shot`: die Listen (`restIds`, `restX`, `restZ`, `pocketed`) haben keine Längen- oder Wertprüfung (Kugel 1 bis 15, gleich lange Listen, höchstens 16 Einträge, endliche Zahlen).
-7. `set_kit`, `set_aim`, `set_presence`, `take_shot`: Texte (Getränk, Marke) und Zahlen (NaN, unendlich, riesig) werden nicht geprüft.
-8. Aufrufhäufigkeit: nichts begrenzt `set_aim`, `set_presence`, `set_kit`, `play_keys`, `set_stake` (Dauerfeuer). Grenze je Gast und Sekunde.
-9. `set_profile`: der Beitritt mit gleichem Namen ist möglich (zwei „Anna M. Meier“); Anzeige bleibt eindeutig durch die Flagge, aber prüfen, ob das reicht.
+**B. Eingaben prüfen (die Datenbank vertraut dem Browser) – behoben, siehe unten**
+5. *(behoben)* `push_chunk`: keine Größengrenze (eine riesige Zeile füllt die Datenbank); Grenze je Häppchen und je Stoß setzen.
+6. *(behoben)* `end_shot`: die Listen (`restIds`, `restX`, `restZ`, `pocketed`) haben keine Längen- oder Wertprüfung (Kugel 1 bis 15, gleich lange Listen, höchstens 16 Einträge, endliche Zahlen).
+7. *(behoben)* `set_kit`, `set_aim`, `set_presence`, `take_shot`: Texte (Getränk, Marke) und Zahlen (NaN, unendlich, riesig) werden nicht geprüft.
+8. *(behoben)* Aufrufhäufigkeit: nichts begrenzte `set_aim`, `set_presence`, `set_kit`, `play_keys`, `set_stake` (Dauerfeuer). Grenze je Gast und Sekunde.
+9. *(offen, bewusst)* `set_profile`: der Beitritt mit gleichem Namen ist möglich (zwei „Anna M. Meier“); Anzeige bleibt eindeutig durch die Flagge, aber prüfen, ob das reicht.
+
+*Umsetzung von B:* Häppchen höchstens 32 kB und Nummer unter 1000. `end_shot` nimmt nur Listen an, die ein Tisch geben kann (eindeutige Kugelnummern 1 bis 15 versenkt, 0 bis 15 liegend, je ein Platz, endliche Zahlen); Zahlen aus `take_shot`, `set_aim` und `set_presence` müssen endlich und kleiner als 10 000 sein; das Kit nur mit Getränk aus Kleinbuchstaben, höchstens 10 Schlucken, Packung unter 10 und höchstens 30 Zigaretten. **Aufrufgrenze:** höchstens 100 Aufrufe je Gast und Sekunde (ein Gast braucht etwa 45); zu viele werden verworfen (in der privaten Tabelle `rate` gezählt, sie erscheint nicht im Client). Ungültige Zahlen in `set_aim`, `set_presence` und `set_kit` werden still verworfen, bei `take_shot` und `end_shot` kommt eine Fehlermeldung.
+
+*Bekannte Lücke:* Ein Schütze, der nach `take_shot` nie `end_shot` meldet, hält das Spiel an (die Verbindung bleibt ja da). Eine **Frist für den Stoß** (z. B. 60 Sekunden, dann verliert der Schütze) fehlt noch.
 
 **C. Geld**
 10. Das Geld liegt im Browser (`set_money`): jeder kann sich beliebig viel melden, und damit Einsatz und Gebote. Ein Konto auf dem Server wäre der richtige Weg; bis dahin: obere Grenze, und `set_money` nur in kleinen Schritten.
