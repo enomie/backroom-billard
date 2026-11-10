@@ -74,7 +74,7 @@ Danach die Anbindung für das Spiel erzeugen (Typen für den Browser, im Spiel-O
 spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetime
 ```
 
-Die Aufrufe sind die der Schnellstart-Seite und der Dokumentation (`spacetime publish` ist der Befehl für ein vorhandenes Modul); die genauen Schalter bitte dort gegenprüfen, sie ändern sich. Das Spiel verbindet sich dann mit `DbConnection.builder().withUri('wss://maincloud.spacetimedb.com').withDatabaseName('backroom-billard-3000')` (Paket `spacetimedb`, noch nicht im Spiel).
+Die Aufrufe sind die der Schnellstart-Seite und der Dokumentation (`spacetime publish` ist der Befehl für ein vorhandenes Modul); die genauen Schalter bitte dort gegenprüfen, sie ändern sich. Das Spiel verbindet sich dann mit `DbConnection.builder().withUri('wss://maincloud.spacetimedb.com').withDatabaseName('backroom-billard-3000')` (Paket `spacetimedb`).
 
 ## Noch offen
 
