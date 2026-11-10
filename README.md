@@ -123,6 +123,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbo
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
 - [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen
 - [`_docs/welcome-screen.md`](_docs/welcome-screen.md) — Welcome-Screen nach dem Startscreen: Name in drei Feldern, erstes Getränk und erste Zigaretten kaufen, Speichern im Browser
+- [`_docs/konto-umbau.md`](_docs/konto-umbau.md) — Plan (nicht umgesetzt): Spielart zuerst, Konto und Geld auf dem Server, Rangliste; die Schritte mit Prüfungen
 - [`_docs/countries/`](_docs/countries/README.md) — Länderdaten aus einem anderen Projekt (71 ISO-Codes mit deutschen und englischen Namen, 42 Flaggen als SVG); nur Material, noch nicht im Spiel verwendet. Die Flaggen stammen von der VDMFK-Seite, die Nutzungsrechte sind nicht geklärt.
 
 ## Backup
