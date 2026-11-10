@@ -154,6 +154,21 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
   - **Der Sieger will aufhören oder loggt sich aus:** Der **Höchstbietende** setzt sich auf den Platz, der **zweithöchste** fordert ihn; die übrigen Gebote bleiben stehen. Gibt es nur ein Gebot oder keines, wartet der Tisch.
   - **Ein Spieler fehlt nach 10 Sekunden und kein Zuschauer hat eine Wette:** Das Spiel ist beendet, der Verbliebene gewinnt.
 
+## Klavier im Mehrspieler (Vorschlag, noch nicht umgesetzt)
+
+Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
+
+- **Hocker belegen:** Eine kleine Tabelle `piano` (eine Zeile) hält, **wer** am Flügel sitzt. `F` oder der Knopf fragt die Datenbank (`sit_piano`); ist der Hocker belegt, wird abgelehnt, und der Knopf zeigt „Klavier besetzt (Anna)“ und tut nichts. Aufstehen (`Esc`, Knopf) gibt ihn frei (`leave_piano`). Verlässt der Gast den Raum oder ist 10 Sekunden stumm, wird der Hocker von selbst frei (wie beim Tisch).
+- **Töne senden:** Gesendet wird **nicht jede Note als eigene Zeile**, sondern der **Zustand der Tasten**: eine Zeile mit den 88 gedrückten Tasten als kleine Bitmaske (11 Byte), nur bei einer Änderung (`set_keys`). Die anderen vergleichen mit dem letzten Stand: neu gedrückt = Ton an, losgelassen = Ton ab. Das braucht **keinen Verlauf**, ein neu Hinzukommender bekommt gleich den Stand, und Akkorde gehen mit.
+- **Hören:** Der Spieler hört seine Töne sofort selbst (ohne Umweg). Bei den anderen klingen die Töne **aus dem Flügel** (Ort des Flügels, Lautstärke und Panorama nach Abstand und Richtung wie beim Radio), mit etwa 50 bis 100 ms Verzögerung. Gespielt wird mit demselben Klang (`piano-sound.js`).
+- **Sehen:** Bei allen senken sich die **Tasten**, die der Spieler drückt; sein **Kopf** (das Gesicht) schwebt am Hocker, weil dort seine Kamera ist.
+- **Vorschlag zum Zug:** Wer am Tisch dran ist, wird **automatisch vom Hocker aufgestanden** (seine Kamera geht in die Spielerkamera), damit der andere nicht wartet. Hocker und Klavierspiel bleiben sonst von den Tischregeln unberührt (Zuschauer und Spieler dürfen sich setzen).
+
+**Offen:**
+1. Das Aufstehen beim eigenen Zug (siehe oben): so, oder darf er sitzen bleiben, und der andere wartet?
+2. Soll der Hocker nach langer Stille (z. B. 5 Minuten ohne Taste) frei werden?
+3. Wie weit soll man das Klavier hören (Radio: voll bis 2,5 m, danach leiser): dieselbe Kurve, oder lauter?
+
 ## Vertrauen
 
 Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen schicken). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Häppchen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um (das bräuchte dann doch den Stoß als reine Funktion). Das ist ein späterer Schritt.
