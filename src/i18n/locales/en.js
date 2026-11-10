@@ -71,8 +71,6 @@ export default {
   "room.waiting": "Waiting for another player",
   "room.joined": "{name} joined",
   "room.left": "{name} left",
-  "room.yourTurn": "Your turn, {name}",
-  "room.turnOf": "{name} is up",
   "game.over.title": "GAME OVER",
   "game.mp.foul": "Foul: {loser} touched a coloured ball with the cue. {winner} wins.",
   "game.mp.black-early": "{loser} pocketed the black 8 too early. {winner} wins.",

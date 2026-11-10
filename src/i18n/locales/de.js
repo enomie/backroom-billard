@@ -71,8 +71,6 @@ export default {
   "room.waiting": "Warte auf einen weiteren Spieler",
   "room.joined": "{name} ist beigetreten",
   "room.left": "{name} ist gegangen",
-  "room.yourTurn": "Du bist dran, {name}",
-  "room.turnOf": "{name} ist dran",
   "game.over.title": "SPIEL VORBEI",
   "game.mp.foul": "Foul: {loser} hat eine farbige Kugel mit dem Cue getroffen. {winner} gewinnt.",
   "game.mp.black-early": "{loser} hat die schwarze 8 zu früh versenkt. {winner} gewinnt.",

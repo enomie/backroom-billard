@@ -798,6 +798,9 @@ html {
   align-items: center;
   gap: 0.35rem;
   min-width: 0;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid transparent; /* (room for the border of the one who is up) */
+  border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 700;
   color: #d4d4d8;
@@ -828,8 +831,9 @@ html {
   text-overflow: ellipsis;
 }
 
-.match__name.is-up {
-  color: var(--amber-300); /* the one who is up */
+.match__who.is-up {
+  border-color: var(--amber-300); /* the one who is up */
+  color: var(--amber-300);
 }
 
 .match__name.is-waiting {

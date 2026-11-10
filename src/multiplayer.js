@@ -207,7 +207,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const shotJustEnded = before.shotRunning && !row.shotRunning;
             if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat || shotJustEnded)) {
               // (also when the same one shoots again: his camera has to come back to the cue)
-              onGame({ kind: "turn", myTurn: row.turnSeat === mySeat(), turnSeat: row.turnSeat, turnName: nameOf(row.turnSeat), first: before.state !== 1, changed: row.turnSeat !== before.turnSeat });
+              onGame({ kind: "turn", myTurn: row.turnSeat === mySeat(), turnSeat: row.turnSeat });
             }
             if (row.shotRunning && !before.shotRunning) {
               shooterSeat = row.turnSeat;
@@ -293,7 +293,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             looked = true; // the guests that were there already are no news
             tellTableNow();
             const game = conn.db.game.id.find(1);
-            if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat, turnName: nameOf(game.turnSeat) });
+            if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
           .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)

@@ -2140,7 +2140,7 @@ function renderMatch() {
     flag.hidden = !(who?.country && isCountry(who.country));
     if (!flag.hidden) flag.src = flagUrl(who.country);
     document.getElementById(`match-money-${n}`).textContent = who && who.money !== null ? money(who.money) : "";
-    document.getElementById(`match-name-${n}`).classList.toggle("is-up", two && mpGame.running && mpGame.turnSeat === n);
+    document.getElementById(`match-name-${n}`).parentElement.classList.toggle("is-up", two && mpGame.running && mpGame.turnSeat === n); // (a rounded border: his turn)
     document.getElementById(`match-name-${n}`).classList.toggle("is-waiting", who === right && alone);
     document.getElementById(`match-balls-${n}`).replaceChildren(
       ...(two ? matchPockets : [])
@@ -2221,7 +2221,6 @@ function onMultiplayerGame(e) {
     if (e.myTurn) remoteCue.active = false; // my cue now
     else Object.assign(remoteCue, { relax: 0, place: null }); // his cue is at the ball again (his aim comes next)
     mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
-    if (e.kind === "turn" && e.changed && !e.first) roomNote(e.myTurn ? "room.yourTurn" : "room.turnOf", e.turnName);
   } else if (e.kind === "sync") {
     applyRestState(e.balls);
   } else if (e.kind === "over") {
