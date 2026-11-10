@@ -93,6 +93,14 @@ Dafür fehlen im Modul noch Aktionen wie `sit_down` (Platz nehmen) und `stand_up
 - **Noch nicht verbunden:** die Tischwette, der Spielzustand, die Plätze, Zielen und der Stoß (Rekorder, Abspieler).
 - **Ausprobieren:** Das Spiel in zwei Fenstern öffnen (eines privat), jeweils den Welcome-Screen mit **Multiplayer** durchlaufen, mit `C` in die freie Kamera und aufeinander zufliegen: Man sieht das Gesicht des anderen.
 
+## Trinken und Rauchen der anderen (umgesetzt)
+
+Hält ein Gast **R** (trinken) oder **T** (rauchen) gedrückt oder lässt los, sagt sein Spiel das der Datenbank (`set_hand`, nur bei einer Änderung). Bei den anderen läuft dann **dieselbe Animation** wie bei ihm (`drinking.js`, `smoking.js`), gesteuert von seinen Tasten und von der Lage seines Kopfes: das **Glas seines Platzes** fliegt zu seinem Mund, kippt, der Stand sinkt, er schluckt; die **Zigarette** kommt aus der Packung oder dem Aschenbecher, das Feuerzeug brennt, er zieht, die Glut glüht, der Rauch steigt, er atmet aus. Es ist bewusst keine Übertragung von Bildern: Beide Seiten rechnen aus denselben Eingaben (R und T gedrückt, Kopf). Ohne Geld und ohne Körper-Balken beim Zuschauer (die gehören dem, der trinkt).
+
+- **Nur Spieler an den zwei Plätzen** (die Sätze am Tisch): Ein Zuschauer hat keinen Satz, seine Sachen „in der Hand“ sind noch nicht gebaut.
+- Die Geräusche (Schluck, Feuerzeug, Ausatmen) kommen **nicht aus dem Raum**, sie klingen beim Zuschauer wie beim Trinkenden selbst (noch ohne Ort).
+- Der Stand der Gläser und der Zigaretten der Gegenseite folgt nur den gesehenen Aktionen; ein neues Getränk, das der andere bestellt, wird noch nicht übertragen.
+
 ## Zufall und Spielzustand
 
 Alles, was wirkt, kommt **vom Schützen mit in die Aufnahme**: das zufällige Schwanken beim Stoß (Cue-Fehler bis 0,04 rad), Squirt und Swerve, das Neuauflegen der weißen Kugel. Die anderen würfeln nie selbst.

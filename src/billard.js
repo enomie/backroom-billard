@@ -1132,11 +1132,11 @@ function setupControls() {
     }
     if (drinkMenu.isOpen()) return; // the menu is open: the other keys do nothing
     if (e.code === "KeyT" && !e.repeat) {
-      smoking.press(camera); // hold T: draw on the cigarette, release: exhale
+      smokeDown(); // hold T: draw on the cigarette, release: exhale
       return;
     }
     if (e.code === "KeyR" && !e.repeat) {
-      drinking.press(camera); // hold R: drink gulp after gulp, release: put the glass back
+      drinkDown(); // hold R: drink gulp after gulp, release: put the glass back
       return;
     }
     if (e.code === "KeyE" && !e.repeat) {
@@ -1160,14 +1160,14 @@ function setupControls() {
   });
   window.addEventListener("keyup", (e) => {
     heldKeys.delete(e.code);
-    if (e.code === "KeyT") smoking.release(camera);
-    if (e.code === "KeyR") drinking.release();
+    if (e.code === "KeyT") smokeUp();
+    if (e.code === "KeyR") drinkUp();
   });
   window.addEventListener("blur", () => {
     piano?.releaseAll();
     heldKeys.clear();
-    smoking.release(camera);
-    drinking.release();
+    smokeUp();
+    drinkUp();
   });
 
   // Touch control for mobile
@@ -1237,11 +1237,11 @@ function setupControls() {
     e.preventDefault();
     drinkButton.setPointerCapture(e.pointerId);
     drinkButton.classList.add("is-held");
-    drinking.press(camera);
+    drinkDown();
   });
   const releaseDrink = () => {
     drinkButton.classList.remove("is-held");
-    drinking.release();
+    drinkUp();
   };
   drinkButton.addEventListener("pointerup", releaseDrink);
   drinkButton.addEventListener("pointercancel", releaseDrink);
@@ -1252,11 +1252,11 @@ function setupControls() {
     e.preventDefault();
     smokeButton.setPointerCapture(e.pointerId);
     smokeButton.classList.add("is-held");
-    smoking.press(camera);
+    smokeDown();
   });
   const releaseSmoke = () => {
     smokeButton.classList.remove("is-held");
-    smoking.release(camera);
+    smokeUp();
   };
   smokeButton.addEventListener("pointerup", releaseSmoke);
   smokeButton.addEventListener("pointercancel", releaseSmoke);
@@ -1941,6 +1941,7 @@ function gameLoop(currentTime) {
   if (exhale) exhale.update(frameSeconds, camera);
   if (candles) candles.update(frameSeconds, camera);
   if (drinking) drinking.update(frameSeconds, camera);
+  updateRemoteHands(frameSeconds);
   if (glasses) glasses.update(frameSeconds);
   if (smoking) smoking.update(frameSeconds, camera); // before the cigarettes: the smoke follows the ember
   if (cigarettes) cigarettes.update(dt, camera);
@@ -2004,6 +2005,66 @@ function updateShadows(dt) {
   }
 }
 
+/** What my hands do (R: drink, T: smoke, held down): the others see it too (multiplayer). */
+const myHand = { drinking: false, smoking: false };
+const drinkDown = () => {
+  drinking.press(camera);
+  myHand.drinking = true;
+  multiplayer?.setHand(myHand);
+};
+const drinkUp = () => {
+  drinking.release();
+  myHand.drinking = false;
+  multiplayer?.setHand(myHand);
+};
+const smokeDown = () => {
+  smoking.press(camera);
+  myHand.smoking = true;
+  multiplayer?.setHand(myHand);
+};
+const smokeUp = () => {
+  smoking.release(camera);
+  myHand.smoking = false;
+  multiplayer?.setHand(myHand);
+};
+
+/**
+ * The others drink and smoke at their seats: for each other seat the same animations run as for me (drinking.js,
+ * smoking.js), driven by his R and T keys (as the database tells) and by where his head is. No money, no body marker.
+ */
+const remoteHands = new Map(); // seat → { side, view, drinking, smoking, held }
+const silentWallet = { spend: () => true, say: () => {}, format: String };
+function remoteHandOf(seat) {
+  let hand = remoteHands.get(seat);
+  if (hand) return hand;
+  const side = seat === 1 ? 1 : 0; // seat 1 is the +z side of the table, seat 2 the −z side
+  hand = {
+    side,
+    view: new THREE.PerspectiveCamera(), // (a camera: the animations look along its −z)
+    drinking: createDrinking({ get player() { return glasses.player.filter((g) => g.side === side); } }, () => {}, () => {}),
+    smoking: createSmoking(cigarettes, exhale, lighters, packs, silentWallet, () => {}, () => side),
+    held: { drinking: false, smoking: false },
+  };
+  remoteHands.set(seat, hand);
+  return hand;
+}
+/** Put the view of a remote hand where the head of its guest is. */
+function placeRemoteView(seat, hand) {
+  const head = multiplayer?.poseOf(seat);
+  if (!head) return false;
+  hand.view.position.set(head.x, head.y, head.z);
+  hand.view.rotation.set(head.pitch, head.yaw, 0, "YXZ");
+  hand.view.updateMatrixWorld(true);
+  return true;
+}
+function updateRemoteHands(dt) {
+  for (const [seat, hand] of remoteHands) {
+    if (!placeRemoteView(seat, hand)) continue;
+    hand.drinking.update(dt, hand.view);
+    hand.smoking.update(dt, hand.view);
+  }
+}
+
 /** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */
 function onMultiplayerGame(e) {
   if (e.kind === "aim") {
@@ -2015,6 +2076,15 @@ function onMultiplayerGame(e) {
   }
   if (e.kind === "shotStart") {
     replay.begin();
+    return;
+  }
+  if (e.kind === "hand") {
+    // the guest on that seat holds R or T (or let go)
+    const hand = remoteHandOf(e.seat);
+    placeRemoteView(e.seat, hand);
+    if (e.drinking !== hand.held.drinking) (e.drinking ? hand.drinking.press(hand.view) : hand.drinking.release());
+    if (e.smoking !== hand.held.smoking) (e.smoking ? hand.smoking.press(hand.view) : hand.smoking.release(hand.view));
+    hand.held = { drinking: e.drinking, smoking: e.smoking };
     return;
   }
   if (e.kind === "chunk") {

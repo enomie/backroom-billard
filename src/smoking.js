@@ -51,8 +51,9 @@ export const setMySide = (side) => {
  * @param {{ packs: any[] }} packSet
  * @param {{ spend: Function, say: Function, format: Function }} wallet
  * @param {(dt: number) => void} onDraw — called every frame while the player draws (the nicotine marker moves)
+ * @param {(camera: THREE.Camera) => number} [pickSide] — whose set he uses (0 or 1); by default his own seat (the others use theirs)
  */
-export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, onDraw) {
+export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, onDraw, pickSide = sideOf) {
   /** @type {"idle" | "fetch" | "light" | "in" | "drawing" | "out"} */
   let phase = "idle";
   let cigarette = null;
@@ -185,7 +186,7 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
     /** T pressed: fetch the cigarette (a new one if there is no glowing one). */
     press(camera) {
       if (phase !== "idle") return;
-      side = sideOf(camera);
+      side = pickSide(camera);
       released = false;
       drawTime = 0;
       ignited = false;

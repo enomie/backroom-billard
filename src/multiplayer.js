@@ -64,6 +64,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let presenceAge = 0;
 
   let ready = null; // { resolve, reject, timer } while joining
+  let lastHand = "false/false"; // what the database knows about my hands
   const roster = new Map(); // identity (hex) → { name, seat, connected }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
@@ -217,6 +218,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         conn.db.shotChunk.onInsert((_ctx, row) => {
           if (looked && before.shotRunning && shooterSeat !== mySeat()) onGame({ kind: "chunk", index: row.index, data: row.data });
         });
+        // what the others do with their hands: drinking (R) and smoking (T)
+        const onHand = (row) => {
+          const id = hex(row.identity);
+          const seat = roster.get(id)?.seat ?? 0;
+          if (id !== myId && seat > 0) onGame({ kind: "hand", seat, drinking: row.drinking, smoking: row.smoking });
+        };
+        conn.db.hand.onInsert((_ctx, row) => onHand(row));
+        conn.db.hand.onUpdate((_ctx, _old, row) => onHand(row));
+        conn.db.hand.onDelete((_ctx, row) => onHand({ ...row, drinking: false, smoking: false }));
         conn.db.game.onInsert((_ctx, row) => onGameRow(row));
         conn.db.game.onUpdate((_ctx, _old, row) => onGameRow(row));
         conn.subscriptionBuilder()
@@ -225,7 +235,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat, turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk, tables.hand]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -252,6 +262,13 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       const seq = (connection?.db.game.id.find(1)?.shotSeq ?? 0) + 1;
       call(() => connection?.reducers.takeShot(shot));
       return seq;
+    },
+    /** The R key (drinking) and the T key (smoking) of this guest went down or up; only a change is sent. */
+    setHand(hand) {
+      const text = `${hand.drinking}/${hand.smoking}`;
+      if (!joined || text === lastHand) return;
+      lastHand = text;
+      call(() => connection?.reducers.setHand({ drinking: hand.drinking, smoking: hand.smoking }));
     },
     /** Where the head of the guest on a seat is now (smoothed), or null: { x, y, z, yaw, pitch }. */
     poseOf(seat) {

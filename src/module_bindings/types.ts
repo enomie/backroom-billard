@@ -48,6 +48,13 @@ export const Game = __t.object("Game", {
 });
 export type Game = __Infer<typeof Game>;
 
+export const Hand = __t.object("Hand", {
+  identity: __t.identity(),
+  drinking: __t.bool(),
+  smoking: __t.bool(),
+});
+export type Hand = __Infer<typeof Hand>;
+
 export const Player = __t.object("Player", {
   identity: __t.identity(),
   name: __t.string(),

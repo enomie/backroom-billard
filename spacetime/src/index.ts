@@ -113,6 +113,16 @@ const spacetimedb = schema({
     }
   ),
 
+  /** What a guest does with his hands: the R key (drinking) and the T key (smoking) held down, so that the others see it. */
+  hand: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+      drinking: t.bool(),
+      smoking: t.bool(),
+    }
+  ),
+
   /** The guests of a finished game who want to play again (when both seated players are in here, the next game begins). */
   rematch: table(
     { public: true },
@@ -174,7 +184,16 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   const player = ctx.db.player.identity.find(ctx.sender);
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
   ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
+  ctx.db.hand.identity.delete(ctx.sender);
   seatTheFirstTwo(ctx); // (does nothing while a game runs: the 10 s of check_timeouts decide then)
+});
+
+/** The R key and the T key of the guest went down or up (drinking, smoking). */
+export const set_hand = spacetimedb.reducer({ drinking: t.bool(), smoking: t.bool() }, (ctx, h) => {
+  me(ctx);
+  const row = { identity: ctx.sender, ...h };
+  if (ctx.db.hand.identity.find(ctx.sender)) ctx.db.hand.identity.update(row);
+  else ctx.db.hand.insert(row);
 });
 
 /** Where the guest is (position and view of the camera), about 10 times per second. */
