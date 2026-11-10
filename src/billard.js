@@ -26,7 +26,7 @@ import { createCigarettePacks } from "./cigarette-pack.js";
 import { createLighters } from "./lighter.js";
 import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
-import { createSmoking, sideOf, setSoloSide } from "./smoking.js";
+import { createSmoking, sideOf, setMySide } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
 import { ballTexture } from "./ball-texture.js";
@@ -47,6 +47,7 @@ import { createBarLamps } from "./bar-lamps.js";
 import { createBackbar } from "./backbar.js";
 import { createFaceBall } from "./face-ball.js";
 import { createMultiplayer } from "./multiplayer.js";
+import { showWaiting, roomNote, renderNote } from "./room-notices.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
@@ -409,7 +410,7 @@ function setupLightingAndRoom() {
   createBarLamps(scene);
   createBackbar(scene, bottles);
   faceBall = createFaceBall(scene);
-  multiplayer = createMultiplayer(scene);
+  multiplayer = createMultiplayer(scene, applyRoom, (kind, name) => roomNote(kind === "joined" ? "room.joined" : "room.left", name));
 }
 
 /* ====================================================
@@ -1424,6 +1425,7 @@ function renderDynamicTexts() {
   updateStatusDisplay(isCueMoving);
   renderCameraLabel();
   renderPianoButton();
+  renderNote();
   renderGameOver();
   document.querySelectorAll(".pocketed-ball").forEach((dot) => {
     dot.title = t("pocketed.ball", { n: dot.dataset.ballId });
@@ -1874,14 +1876,25 @@ export async function applyProfile(profile, mode) {
   glasses.setPlayerDrink(profile.firstDrink);
   packs.setPlayerDesign(profile.firstPack);
   faceBall.setProfile(profile);
-  if (mode === "single") {
-    glasses.removePlayer(0);
-    packs.remove(0);
-    lighters.remove(0);
-    ashtrays.removeFrame(0);
-    cigarettes.removeSide(0);
-    setSoloSide(1);
-  }
+  if (mode === "single") applySeats([false, true], 1); // one set at the table: the +z seat
+}
+
+/** Which seats of the table are taken: only their sets (glass, pack, lighter, ashtray with cigarettes) stand there; `mySide` is this guest's seat. */
+function applySeats(taken, mySide) {
+  [0, 1].forEach((side) => {
+    glasses.setSeat(side, taken[side]);
+    packs.setSeat(side, taken[side]);
+    lighters.setSeat(side, taken[side]);
+    ashtrays.setSeat(side, taken[side]);
+    cigarettes.setSeat(side, taken[side]);
+  });
+  setMySide(mySide);
+}
+
+/** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */
+function applyRoom(room) {
+  applySeats(room.taken, room.mySide);
+  showWaiting(room.others === 0);
 }
 
 function scheduleInit() {

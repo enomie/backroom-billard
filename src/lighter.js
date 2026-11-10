@@ -151,9 +151,9 @@ export function createLighters(scene) {
   scene.add(group);
   return {
     lighters,
-    /** Single player: the lighter of the other seat (`side` 0 or 1) leaves the table. */
-    remove(side) {
-      group.remove(lighters[side].group);
+    /** The lighter of a seat lies on the table only while the seat is taken. */
+    setSeat(side, present) {
+      lighters[side].group.visible = present;
     },
     applyReflection(reflection) {
       for (const m of [...materials, steel]) {

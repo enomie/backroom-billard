@@ -415,7 +415,7 @@ export function createGlasses(scene, taken) {
   const frameTop = TABLE_H + CUSHION_NOSE_TO_BED + 0.01;
   const drinks = ["wine-red", "wine-white", "beer", "whiskey", "white-russian"].sort(() => Math.random() - 0.5).slice(0, 2);
   /** The players' glasses: they can be drunk from (the level falls) and their foam falls apart. */
-  const player = [-1, 1].map((sz, i) => {
+  const seats = [-1, 1].map((sz, i) => {
     const glass = build(drinks[i]);
     glass.group.position.set(frameX, frameTop, sz * GLASSES_FRAME_Z);
     group.add(glass.group);
@@ -423,6 +423,7 @@ export function createGlasses(scene, taken) {
     state.side = i; // 0 on the −z half, 1 on the +z half of the frame
     return state;
   });
+  const player = [...seats]; // the glasses of the seats that are taken
 
   scene.add(group);
   return {
@@ -439,12 +440,11 @@ export function createGlasses(scene, taken) {
       const other = player.find((g) => g.side === 0);
       if (other?.kind === kind) other.replace(["wine-red", "wine-white", "beer", "whiskey", "white-russian"].find((k) => k !== kind));
     },
-    /** Single player: the glass of the other seat (`side` 0 or 1) leaves the table. */
-    removePlayer(side) {
-      const i = player.findIndex((g) => g.side === side);
-      if (i < 0) return;
-      group.remove(player[i].group);
-      player.splice(i, 1);
+    /** The glass of a seat (`side` 0 on the −z half, 1 on the +z half) stands on the table only while the seat is taken. */
+    setSeat(side, present) {
+      seats[side].group.visible = present;
+      player.length = 0;
+      player.push(...seats.filter((g) => g.group.visible));
     },
     update(dt) {
       liquidTime.value += dt;

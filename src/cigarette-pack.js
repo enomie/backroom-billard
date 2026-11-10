@@ -285,9 +285,9 @@ export function createCigarettePacks(scene, taken) {
   return {
     group,
     packs,
-    /** Single player: the pack of the other seat (`side` 0 or 1) leaves the table. */
-    remove(side) {
-      group.remove(packs[side].group);
+    /** The pack of a seat stands on the table only while the seat is taken. */
+    setSeat(side, present) {
+      packs[side].group.visible = present;
     },
     /** The first pack of the player (the one on his side, z > 0) in the design he chose; the other player smokes the other brand. */
     setPlayerDesign(design) {

@@ -45,8 +45,15 @@ const call = (fn) => {
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const euler = new THREE.Euler();
 
-/** @param {THREE.Scene} scene */
-export function createMultiplayer(scene) {
+/**
+ * @param {THREE.Scene} scene
+ * @param {(room: { others: number, taken: boolean[], mySide: number | null }) => void} onRoom — called when somebody
+ *   comes or goes: how many others are here, which seats of the table are taken (index 0 = the −z side, 1 = the +z
+ *   side) and the seat of this guest (null: a spectator). The first two guests present take the seats: the one
+ *   who came first sits on the +z side.
+ * @param {(kind: "joined" | "left", name: string) => void} onNote — somebody joined or left (after the first look into the room)
+ */
+export function createMultiplayer(scene, onRoom, onNote) {
   let connection = null;
   let myId = ""; // the identity of this guest (hex)
   let joined = false;
@@ -56,6 +63,8 @@ export function createMultiplayer(scene) {
   let sentFree = null; // what the database knows about the free camera of this guest
 
   let ready = null; // { resolve, reject, timer } while joining
+  const roster = new Map(); // identity (hex) → { name, joinedAt, connected }: who is in the room
+  let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
   const finishJoin = (error) => {
     if (!ready) return;
@@ -90,9 +99,23 @@ export function createMultiplayer(scene) {
     faces.delete(id);
   };
 
+  /** Who sits at the table and who is here: the guests present in the order they came. */
+  const tellRoom = () => {
+    const present = [...roster.entries()].filter(([, p]) => p.connected).sort((a, b) => Number(a[1].joinedAt - b[1].joinedAt));
+    const index = present.findIndex(([id]) => id === myId);
+    onRoom({
+      others: present.filter(([id]) => id !== myId).length,
+      taken: [present.length >= 2, present.length >= 1],
+      mySide: index === 0 ? 1 : index === 1 ? 0 : null,
+    });
+  };
   /** A guest (the row of `player`): face, name, country. */
   const onPlayer = (row) => {
     const id = hex(row.identity);
+    const before = roster.get(id);
+    roster.set(id, { name: row.name, joinedAt: row.joinedAt.microsSinceUnixEpoch, connected: row.connected });
+    if (looked && id !== myId && (!before || before.connected !== row.connected)) onNote(row.connected ? "joined" : "left", row.name);
+    if (joined || id === myId) tellRoom();
     if (id === myId) {
       joined = true; // the own row is there: the room is set up, signs of life and places may follow
       finishJoin();
@@ -138,14 +161,25 @@ export function createMultiplayer(scene) {
         myId = hex(identity);
         conn.db.player.onInsert((_ctx, row) => onPlayer(row));
         conn.db.player.onUpdate((_ctx, _old, row) => onPlayer(row));
-        conn.db.player.onDelete((_ctx, row) => drop(hex(row.identity)));
+        conn.db.player.onDelete((_ctx, row) => {
+          const id = hex(row.identity);
+          const gone = roster.get(id);
+          roster.delete(id);
+          drop(id);
+          if (looked && gone?.connected) onNote("left", gone.name);
+          tellRoom();
+        });
         conn.db.presence.onInsert((_ctx, row) => onPresence(row));
         conn.db.presence.onUpdate((_ctx, _old, row) => onPresence(row));
         conn.db.presence.onDelete((_ctx, row) => {
           const e = faces.get(hex(row.identity));
           if (e) e.free = false; // away: no face (the guest stays in the list)
         });
-        conn.subscriptionBuilder().subscribe([tables.player, tables.presence]);
+        conn.subscriptionBuilder()
+          .onApplied(() => {
+            looked = true; // the guests that were there already are no news
+          })
+          .subscribe([tables.player, tables.presence]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
@@ -156,6 +190,8 @@ export function createMultiplayer(scene) {
       })
       .onDisconnect(() => {
         joined = false;
+        looked = false;
+        roster.clear();
         for (const id of [...faces.keys()]) drop(id);
       })
       .build();

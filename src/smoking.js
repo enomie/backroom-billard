@@ -36,12 +36,12 @@ import {
 const ease = (k) => k * k * (3 - 2 * k);
 const LIGHTING_TOTAL = LIGHTING_FLY + LIGHTING_OPEN + LIGHTING_HOLD + LIGHTING_CLOSE;
 
-/** The player's side at the billard table: 0 on the −z half, 1 on the +z half; in single player the one seat that is left. */
-let soloSide = null;
-export const sideOf = (camera) => soloSide ?? (camera.position.z < 0 ? 0 : 1);
-/** Single player: only this seat (0 or 1) is at the table. */
-export const setSoloSide = (side) => {
-  soloSide = side;
+/** The player's side at the billard table: 0 on the −z half, 1 on the +z half; his own seat if he has one. */
+let mySide = null;
+export const sideOf = (camera) => mySide ?? (camera.position.z < 0 ? 0 : 1);
+/** The seat of this player (0 or 1), or null for a spectator (then the side of the camera counts). */
+export const setMySide = (side) => {
+  mySide = side;
 };
 
 /**

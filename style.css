@@ -460,6 +460,16 @@ html {
   opacity: 1;
 }
 
+/* The room messages sit under the money toast */
+.room-waiting,
+.room-note {
+  top: 9rem;
+}
+
+.room-waiting[hidden] {
+  display: none;
+}
+
 /* Drinks menu */
 .menu {
   position: absolute;

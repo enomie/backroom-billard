@@ -277,20 +277,30 @@ export function createCigarettes(scene, ashtraySlots) {
 
   let time = 0;
   const frameSlots = ashtraySlots.filter((slot) => slot.onFrame);
+  const putAside = [[], []]; // the cigarettes of a seat that is not taken
   return {
     group,
     /** Total burn progress of all cigarettes in whole steps of `step` (a share of the length): changes when one has visibly got shorter. */
     burnSteps(step) {
       return cigarettes.reduce((n, c) => n + Math.floor(c.burn / step), 0);
     },
-    /** Single player: the cigarettes in the ashtray of the other seat (`side` 0 or 1) leave the table. */
-    removeSide(side) {
+    /** The cigarettes in the ashtray of a seat are there only while the seat is taken (they are put aside and come back). */
+    setSeat(side, present) {
+      if (present) {
+        for (const c of putAside[side].splice(0)) {
+          group.add(c.root);
+          if (c.smoke) group.add(c.smoke);
+          cigarettes.push(c);
+        }
+        return;
+      }
       for (let i = cigarettes.length - 1; i >= 0; i--) {
         const c = cigarettes[i];
         if (!c.slot.onFrame || c.slot.side !== side) continue;
         group.remove(c.root);
         if (c.smoke) group.remove(c.smoke);
         cigarettes.splice(i, 1);
+        putAside[side].push(c);
       }
     },
     /** The glowing cigarette in the ashtray of player `side` (0 or 1), or null. */

@@ -112,10 +112,10 @@ export function createAshtrays(scene) {
     group,
     taken,
     slots,
-    /** Single player: the ashtray of the other seat (`side` 0 or 1) leaves the table. */
-    removeFrame(side) {
+    /** The ashtray of a seat stands on the table only while the seat is taken. */
+    setSeat(side, present) {
       const slot = slots.find((s) => s.onFrame && s.side === side);
-      if (slot) group.remove(slot.mesh);
+      if (slot) slot.mesh.visible = present;
     },
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
