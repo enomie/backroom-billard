@@ -38,5 +38,4 @@ Hinter der Bar, an der Wand (`src/backbar.js`):
 
 ## Offene Punkte (Ideen, noch nicht gebaut)
 
-- Weitere Module, Barkeeper. Spirituosenflaschen sind bewusst **nicht** geplant (entschieden).
-- Kollision/Sperrbereich für die freie Kamera um die Bar.
+- Weitere Module, Barkeeper. Spirituosenflaschen und ein Sperrbereich für die freie Kamera um die Bar sind bewusst **nicht** geplant (entschieden).
