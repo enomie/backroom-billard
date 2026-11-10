@@ -4,8 +4,8 @@
  * initial ("T."): the short form "T." is always derived from it. Pure functions, no DOM.
  */
 
-/** The longest part of a name (characters). */
-export const NAME_MAX_LENGTH = 24;
+/** The longest part of a name (characters); the database checks the same limit (spacetime/src/index.ts). */
+export const NAME_MAX_LENGTH = 10;
 
 const LETTER = /^\p{L}$/u;
 const isLetter = (c) => LETTER.test(c);

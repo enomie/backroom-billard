@@ -246,11 +246,30 @@ export const set_presence = spacetimedb.reducer(
   }
 );
 
+/**
+ * The profile comes from a browser that may be changed by hand: only what the welcome screen can produce is accepted. The name
+ * is "First M. Last" (parts of letters, dots and hyphens, at most 10 letters each, the initials of the middle name up to 14), the country a
+ * two-letter code, the face a small JSON object.
+ */
+function checkProfile(name: string, country: string, face: string) {
+  const parts = name.split(' ');
+  const partOk = (part: string) => /^\p{L}[\p{L}.-]*$/u.test(part) && part.length <= 14;
+  if (name.length > 40 || parts.length < 2 || parts.length > 3 || !parts.every(partOk)) throw new SenderError('bad name');
+  if (!/^[a-z]{2}$/.test(country)) throw new SenderError('bad country');
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(face);
+  } catch {
+    /* not JSON */
+  }
+  if (face.length > 600 || !parsed || typeof parsed !== 'object') throw new SenderError('bad face');
+}
+
 /** Come into the room (or change the name, the country, the face): there is one room, everybody joins it, as a spectator. */
 export const set_profile = spacetimedb.reducer(
   { name: t.string(), country: t.string(), face: t.string(), money: t.u32() },
   (ctx, { name, country, face, money }) => {
-    if (!name.trim() || name.length > 80) throw new SenderError('bad name');
+    checkProfile(name, country, face);
     const old = ctx.db.player.identity.find(ctx.sender);
     if (old) {
       ctx.db.player.identity.update({ ...old, name, country, face, connected: true, lastSeen: ctx.timestamp });

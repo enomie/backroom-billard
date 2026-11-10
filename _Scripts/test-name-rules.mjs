@@ -14,7 +14,7 @@ const cases = [
   [filterName(".T"), "T"],
   [filterName("Anna Lena"), "AnnaLena"],
   [filterName("Zoë Ñandú"), "ZoëÑandú"],
-  [filterName("Å".repeat(40)).length, 24],
+  [filterName("Å".repeat(40)).length, 10],
   // normalize
   [normalizeName("mario"), "Mario"],
   [normalizeName("jean-luc"), "Jean-Luc"],

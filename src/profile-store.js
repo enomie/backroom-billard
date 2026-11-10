@@ -3,6 +3,7 @@
  * is no database. If the browser does not allow it (private mode), the profile lives in memory for
  * this visit. See _docs/welcome-screen.md.
  */
+import { normalizeName, isValidName } from "./name-rules.js";
 
 const KEY = "backroom-billard.profile";
 const VERSION = 1;
@@ -19,18 +20,25 @@ let memory = null;
 const isProfile = (p) =>
   p && p.version === VERSION && typeof p.firstName === "string" && typeof p.lastName === "string" && Number.isFinite(p.money);
 
+/** A saved profile can be old or changed by hand: the name parts are brought into the rules again (letters, at most 10 each). */
+function cleaned(profile) {
+  const middleName = normalizeName(typeof profile.middleName === "string" ? profile.middleName : "");
+  const clean = { ...profile, firstName: normalizeName(profile.firstName), middleName, lastName: normalizeName(profile.lastName) };
+  return isValidName(clean.firstName, true) && isValidName(clean.lastName, true) && isValidName(middleName, false) ? clean : null;
+}
+
 /** @returns {Profile | null} the saved profile, or null for a new player */
 export function loadProfile() {
   try {
     const text = localStorage.getItem(KEY);
     if (text) {
       const profile = JSON.parse(text);
-      if (isProfile(profile)) return profile;
+      if (isProfile(profile)) return cleaned(profile);
     }
   } catch {
     return memory;
   }
-  return memory && isProfile(memory) ? memory : null;
+  return memory && isProfile(memory) ? cleaned(memory) : null;
 }
 
 /** @param {Profile} profile */
