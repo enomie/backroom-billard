@@ -224,7 +224,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
               // the shot of another guest is over: the balls lie where his table has them
               onGame({ kind: "sync", balls: [...conn.db.ball.iter()].map((b) => ({ id: b.id, x: b.x, z: b.z, pocketed: b.pocketed })) });
             }
-            if (before.state === 1 && !running && row.winnerSeat > 0) {
+            if (before.state === 1 && !running) {
               const loserSeat = row.winnerSeat === 1 ? 2 : 1;
               onGame({ kind: "over", iWon: row.winnerSeat === mySeat(), isPlayer: mySeat() > 0, winnerName: nameOf(row.winnerSeat), loserName: nameOf(loserSeat), reason: row.reason, stake: before.stake });
             }

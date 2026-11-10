@@ -203,7 +203,7 @@ Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** beh
 
 **E. Aufräumen**
 18. Docs: der Abschnitt „Vorbereitet: das Datenbank-Modul“ in diesem Dokument sagt noch, das Spiel benutze es nicht.
-19. Prüfen, ob `winnerSeat` und `reason` nach mehreren Spielen sauber zurückgesetzt werden (Verlierer stößt zuerst).
+19. *(behoben)* `winnerSeat` wurde im selben Schritt zurückgesetzt, in dem ein Spiel durch Timeout oder Weggang endete: Der Client bekam **kein „Spielende“**, `mpGame.running` blieb hängen, das Rack ließ sich nicht neu aufbauen (auch nicht über die Einstellungen), und die Kugeln blieben liegen. Jetzt bleibt der Sieger in `game`, bis das nächste Spiel beginnt, und der Client meldet das Ende bei jedem Wechsel von „läuft“ zu „läuft nicht“.
 
 ## Geld im Mehrspieler: ein Konto auf dem Server (Vorschlag, noch nicht umgesetzt)
 

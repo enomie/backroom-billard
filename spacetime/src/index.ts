@@ -410,15 +410,12 @@ function seatTheFirstTwo(ctx: Ctx) {
   const game = theGame(ctx);
   if (game.state === GAME_PLAYING) return;
   for (const p of [...ctx.db.player.iter()]) if (isGone(ctx, p)) dropGuest(ctx, p.identity);
-  const seatedBefore = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR).length;
   const free = [1, 2].filter((seat) => ![...ctx.db.player.iter()].some((p) => p.seat === seat));
   const waiting = [...ctx.db.player.iter()].filter((p) => p.seat === SPECTATOR).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
   free.forEach((seat, i) => {
     if (waiting[i]) ctx.db.player.identity.update({ ...waiting[i], seat });
   });
-  // fewer than two were sitting: whoever comes now is a new pairing, the first one to join shoots first
-  if (seatedBefore < 2 && game.winnerSeat !== 0) ctx.db.game.id.update({ ...game, winnerSeat: 0, reason: '' });
-  syncStaking(ctx);
+  syncStaking(ctx); // (the winner of the last game stays in `game` until the next one begins: the clients need it for the end message)
 }
 
 /** Nobody plays: with two at the table the stake window is open (their offers in `stake`), otherwise the table waits. */
