@@ -61,6 +61,17 @@ export const Player = __t.object("Player", {
 });
 export type Player = __Infer<typeof Player>;
 
+export const Presence = __t.object("Presence", {
+  identity: __t.identity(),
+  x: __t.f64(),
+  y: __t.f64(),
+  z: __t.f64(),
+  yaw: __t.f64(),
+  pitch: __t.f64(),
+  free: __t.bool(),
+});
+export type Presence = __Infer<typeof Presence>;
+
 export const Shot = __t.object("Shot", {
   seq: __t.u32(),
   shooter: __t.identity(),
