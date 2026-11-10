@@ -51,18 +51,14 @@ Folgen:
 
 Es gibt **einen** Raum für alle Besucher und **einen** Tisch. **Jeder kommt zuerst als Zuschauer** (geht herum, sieht die Gesichter der anderen, kann trinken, rauchen, Klavier spielen, Radio hören); niemand wird automatisch an den Tisch gesetzt (so ist es im Modul umgesetzt: `set_profile` setzt keinen Platz).
 
-> **Vorschlag, noch zu bestätigen:** Die Tischwette ist **die Herausforderung**: Wer spielen will, fragt den Sitzenden und legt dabei seinen Einsatz.
+**Der Ablauf (entschieden, bis auf die offenen Fragen unten):**
 
-**Der Tisch hat drei Zustände:** leer, **einer sitzt allein** (er übt), **Spiel läuft** (zwei sitzen).
-
-1. **Erster Besucher:** Er ist allein im Raum, Zuschauer, der Tisch ist leer. Er kann sich **an den Tisch setzen** („Platz nehmen“) und **allein üben**: Seine Stöße sehen alle, die später kommen. Er ist der **Platzhalter**.
-2. **Zweiter Besucher:** Er kommt als Zuschauer, sieht das Gesicht des ersten und am Tisch, dass einer sitzt. Will er spielen, drückt er **Herausfordern** und wählt den **Einsatz** (+10 / +100, mindestens 10; das ist seine Tischwette). Der Platzhalter bekommt eine **Anfrage**: „Anna fordert dich heraus, Einsatz 50 $: Annehmen / Ablehnen“.
-   - **Annehmen:** Das Spiel beginnt (der Platzhalter stößt zuerst). Der Einsatz des Herausforderers liegt im Spiel.
-   - **Ablehnen** oder **keine Antwort in 15 s:** kein Spiel, das Gebot geht zurück; der Herausforderer bleibt Zuschauer (und kann es erneut versuchen).
-3. **Läuft schon ein Spiel:** Zuschauer **bieten** (ihre Gebote bleiben stehen). Nach dem Spiel bleibt der Sieger sitzen, und der **Höchstbietende** wird sein Herausforderer (Anfrage wie in 2; lehnt der Sieger ab oder steht auf, ist der Tisch frei).
-4. **Ist der Tisch leer**, und zwei Zuschauer wollen spielen: wer sich zuerst setzt, ist der Platzhalter, der andere fordert ihn heraus (wie in 2).
-
-**Satz am Tisch (Getränk, Zigaretten, Feuerzeug, Aschenbecher):** Ein Satz gehört zu einem Platz und steht nur da, **solange der Platz besetzt ist** (heute stehen im Multiplayer immer beide Sätze: das wird so geändert). Offen: Wo sind Getränk und Zigaretten eines **Zuschauers**? (siehe Offene Fragen)
+1. **Der erste Besucher** im Multiplayer ist allein. Auf dem Bildschirm steht **„Waiting for another player“** (de: „Warte auf einen weiteren Spieler“). Wer allein spielen will, wählt auf dem Welcome-Screen **Singleplayer**; im Multiplayer wartet man auf jemanden.
+2. **Kommt ein Besucher dazu,** sieht der erste die Meldung **„Anna joined“** (de: „Anna ist beigetreten“), und beim Gehen „… left“. Die Meldung erscheint bei jedem Beitritt, auch wenn schon andere da sind.
+3. **Sind genau zwei online,** spielen die beiden: **kein Ablehnen, keine Anfrage**, das Spiel beginnt von selbst; wer zuerst da war, stößt zuerst. Eine Tischwette gibt es dabei nicht.
+4. **Der dritte und jeder weitere Besucher** ist **Zuschauer**: Er kann **bieten** (Tischwette, +10 / +100, mindestens 10). Nach einem Spiel bleibt der Sieger am Tisch, und der **Höchstbietende** wird sein Herausforderer (automatisch, ohne Anfrage); der Sieger kann jederzeit aufhören (siehe „Entschieden“).
+5. **Sachen der Zuschauer:** Ein Zuschauer hat **keine Sachen am Tisch**. Sein Glas, seine Zigarette und sein Feuerzeug **sieht man nur, solange er trinkt, raucht oder anzündet** (sie erscheinen in der Hand und lösen sich danach auf).
+6. **Satz am Tisch** (Getränk, Zigaretten, Feuerzeug, Aschenbecher): gehört zu einem Platz und steht nur da, **solange der Platz besetzt ist** (heute stehen im Multiplayer immer beide Sätze: das wird so geändert).
 
 Dafür fehlen im Modul noch Aktionen wie `sit_down` (Platz nehmen) und `stand_up` (aufstehen) und die Anzeige im Spiel (Knöpfe, Liste, Hinweis).
 
@@ -133,8 +129,5 @@ Das SpacetimeDB-Modul liegt in [`spacetime/`](../spacetime/README.md) (TypeScrip
 
 ## Offene Fragen
 
-- **Zuschauer und ihre Sachen:** Die ersten Getränke und Zigaretten werden auf dem Welcome-Screen gekauft. Steht der Satz nur am Platz, hat ein Zuschauer nichts zum Trinken und Rauchen. Vorschlag: Jeder Gast hat **seinen eigenen Satz in der Hand** (das Glas erscheint beim Trinken in der Hand und löst sich danach auf, die Zigarette ebenso), am Tisch stehen die Sachen der Sitzenden. Oder: Zuschauer bekommen einen kleinen **Beistelltisch** (an der Bar?).
-- **Die Anfrage:** Muss der Platzhalter immer annehmen können (Vorschlag: ja), oder nimmt der Höchstbietende automatisch den Platz (wie bisher beschlossen)?
-
-Keine zum Regelwerk. Für den Bau stehen noch die Schritte unter „Was dafür im Spiel zuerst nötig wäre“ an (Rekorder, Abspieler, dann SpacetimeDB).
-
+- **Nach einem Spiel mit nur zwei Online:** Der Verlierer wäre Zuschauer, und ohne Gebot gibt es kein Spiel. Vorschlag: Bei nur zwei Online bleiben **beide sitzen**, und eine neue Runde beginnt, wenn beide **„Nochmal“** drücken (der Verlierer stößt zuerst); den Einsatz (die Tischwette) gibt es erst ab drei Online.
+- Wie sieht der Zuschauer-Satz in der Hand aus (dieselben Glas-, Zigaretten- und Feuerzeugmodelle wie am Tisch, nur ohne Tisch)? Und sieht man das Trinken und Rauchen der anderen aus der Ferne (kleine Modelle an ihrem Gesicht)?
