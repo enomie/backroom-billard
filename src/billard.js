@@ -45,6 +45,7 @@ import { createRadio } from "./radio.js";
 import { createBar } from "./bar.js";
 import { createBarLamps } from "./bar-lamps.js";
 import { createBackbar } from "./backbar.js";
+import { createFaceBall } from "./face-ball.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
@@ -223,6 +224,7 @@ const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fr
 /** The flight of the camera to the other view after C: from where it was, to the new view (fixed for the free camera, followed each frame for the cue camera). */
 const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
 const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
+let faceBall = null; // a face as a ball in the room: a click throws the dice (face-ball.js)
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 /** Physics steps still to run after something was put on the table (new rack, re-spotted ball); everything at rest needs no steps. */
@@ -405,6 +407,7 @@ function setupLightingAndRoom() {
   createBar(scene, glasses, bottles);
   createBarLamps(scene);
   createBackbar(scene, bottles);
+  faceBall = createFaceBall(scene);
 }
 
 /* ====================================================
@@ -935,7 +938,7 @@ function setupControls() {
 
   /** A click on the radio's power knob toggles the radio (true if the knob was hit). */
   function tryRadioClick(e) {
-    if (!radio) return false;
+    if (!radio && !faceBall) return false;
     const rect = renderer.domElement.getBoundingClientRect();
     // With the mouse captured (free camera) the crosshair in the screen center is the pointer
     const ndc = document.pointerLockElement
@@ -944,7 +947,7 @@ function setupControls() {
           x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
           y: -(((e.clientY - rect.top) / rect.height) * 2 - 1),
         };
-    return radio.handleClick(camera, ndc);
+    return !!radio?.handleClick(camera, ndc) || !!faceBall?.handleClick(camera, ndc);
   }
 
   /** The pointer in normalized device coordinates (with the mouse captured in the free camera, the crosshair in the middle). */
@@ -1870,6 +1873,7 @@ export function applyProfile(profile) {
   wallet.setBalance(profile.money);
   glasses.setPlayerDrink(profile.firstDrink);
   packs.setPlayerDesign(profile.firstPack);
+  faceBall.setProfile(profile);
 }
 
 function scheduleInit() {

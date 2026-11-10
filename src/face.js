@@ -60,7 +60,7 @@ export function isFace(face) {
 }
 
 /** A colour a bit darker (for the nose, the ears' shade and the mouth). */
-function darker(hex, amount = 0.18) {
+export function darker(hex, amount = 0.18) {
   const n = parseInt(hex.slice(1), 16);
   const part = (shift) => Math.round(((n >> shift) & 255) * (1 - amount));
   return `rgb(${part(16)},${part(8)},${part(0)})`;
