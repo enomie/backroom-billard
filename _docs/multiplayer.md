@@ -66,7 +66,8 @@ Getränk, Zigaretten, Zustandsbalken und Geld gehören dem jeweiligen Spieler (s
   - **Die Bank legt nichts drauf:** Gewinnt der Herausforderer, bekommt er nur **seinen eigenen Einsatz zurück** (kein Gewinn, kein Verlust); gewinnt der Sieger der letzten Runde, bekommt er den Einsatz des Herausforderers.
   - **Der Sieger der letzten Runde bleibt immer am Tisch.** Er kann aber freiwillig aufhören oder sich ausloggen (siehe Offene Fragen).
   - **Gebote der anderen Zuschauer** (die nicht Herausforderer wurden) **bleiben für die nächste Runde stehen**.
-  - **Zurückziehen:** Ein Gebot kann jederzeit **zurückgezogen** werden (das Geld ist sofort wieder frei), solange der Bieter nicht der Herausforderer des laufenden Spiels ist; sonst gibt es dort kein Zurück.
+  - **Zurückziehen:** Ein Gebot kann jederzeit **zurückgezogen** werden (das Geld ist sofort wieder frei), solange der Bieter nicht der Herausforderer des laufenden Spiels ist. **Hört der Herausforderer mitten im Spiel auf** (aussteigen, ausloggen, Verbindung länger als 10 Sekunden weg), hat er verloren und **sein Einsatz gehört dem anderen**.
+  - **Der Sieger will aufhören oder loggt sich aus:** Dann ist ein Platz frei. Der **Höchstbietende** setzt sich **ohne Einsatz** auf den Platz, der **zweithöchste** fordert ihn mit seinem Gebot, die übrigen Gebote bleiben stehen. Gibt es nur ein Gebot oder keines, wartet der Tisch (ohne Gebot kein Spiel).
   - **Ein Spieler fehlt nach 10 Sekunden und kein Zuschauer hat eine Wette:** Das Spiel ist beendet, der Verbliebene gewinnt.
 
 ## Vertrauen
@@ -82,5 +83,4 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (andere Aufnahme hoch
 
 ## Offene Fragen
 
-- **Der Sieger will aufhören oder loggt sich aus:** Dann ist ein Platz frei. Vorschlag: Der **Höchstbietende** setzt sich ohne Einsatz auf den Platz, der **zweithöchste** fordert ihn (mit seinem Gebot); die übrigen Gebote bleiben stehen. Gibt es nur ein Gebot oder keines, wartet der Tisch (ohne Gebot kein Spiel).
 - Wie viel Abstand müssen Zuschauer zum Tisch halten (bisher 2 m, siehe `game-concept.md`)?
