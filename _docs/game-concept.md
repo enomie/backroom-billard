@@ -48,7 +48,7 @@ Das Geld steht oben links (`wallet.js`, Start **15.000 $**). Gekauft wird **Trin
 | **Spieler** | Genau 2 gleichzeitig am Tisch. |
 | **Zuschauer / Anwärter** | Alle anderen betreten den Raum, ohne Limit. |
 
-- Zuschauer erscheinen als **Gesicht**: eine Kugel mit Nase und zwei Augen (à la Pinocchio).
+- Zuschauer erscheinen als **Gesicht**: eine Kugel mit Nase und zwei Augen (à la Pinocchio); das gilt für alle (auch Spieler). Gesicht (Facegenerator auf dem Welcome-Screen), Land, Name über dem Kopf: [`multiplayer.md`](multiplayer.md), [`welcome-screen.md`](welcome-screen.md).
 - Zuschauer haben eine **freie Kamera**, kommen aber **nicht nah an den Tisch**: **mindestens 2 m Abstand zur Tischkante**.
 - **Spieler** dürfen mit ihrer freien Kamera (`C`) dicht an den Tisch. Den Kamera-Knopf sehen nur Spieler.
 - Heute gibt es keine Rollen: Der Kamera-Knopf ist für alle da, und die zwei Plätze am Billardtisch (Aschenbecher, Glas, Packung, Feuerzeug links, Seite nach Kamera-z) sind fest.

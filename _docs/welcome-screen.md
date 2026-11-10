@@ -123,6 +123,16 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 - **Pleite:** Unter 83 $ hilft nur „Neu anfangen“ (löscht das Profil, 15.000 $).
 - **Name und Guthaben** stehen im Einstellungs-Panel; dieses scrollt innen.
 
+## Gesicht und Land (beschlossen, noch nicht gebaut)
+
+Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil gespeichert.
+
+- **Gesicht (Facegenerator):** Eine Vorschau des Gesichts (Kugel mit Nase und zwei Augen, dazu Haar, Bart und Augenbrauen) mit zwei Knöpfen: **Zufall** würfelt ein neues Gesicht, **OK, nehm ich** übernimmt es. Gewürfelt werden die **Hautfarbe** und die **Haarfarbe** (für Haar, Bart und Augenbrauen). Das Gesicht ist **starr** (keine Mimik). So sehen es die anderen, siehe [`multiplayer.md`](multiplayer.md).
+- **Land:** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache. **Standard: Österreich** (`at`). Die Liste und die Flaggen kommen aus [`countries/`](countries/README.md); im Spiel werden **runde Flaggen** (runde SVGs, die Daten dazu kommen noch) gezeigt. Land und Name stehen später über dem Kopf (siehe `multiplayer.md`).
+- Profil: neue Felder (z. B. `face` mit Hautfarbe und Haarfarbe, `country` als Länderkürzel); `version` im Profil erhöhen, ältere Profile bekommen ein Zufallsgesicht und Österreich.
+
+Offen dabei: Gibt es Formen zum Würfeln (Frisur, Bartform) oder nur Farben? Ist die Haarfarbe für Haar, Bart und Augenbrauen **eine** oder wählt jeder Teil seine? Muss man **OK, nehm ich** drücken, bevor **Continue** geht (oder gilt das gezeigte Gesicht auch ohne)? Wie wird das Land gewählt (Liste mit Suche, Flaggen-Raster)?
+
 ## Offene Fragen
 
 - **Wo erscheint der Name sonst im Spiel?** Heute nur im Einstellungs-Panel (voll, mit Guthaben). HUD, später Mehrspieler, Wette, Rangliste: wird mit dem Spielkonzept (`game-concept.md`, Ideen) entschieden; die kurzen Formen (`displayName`) liegen bereit.
