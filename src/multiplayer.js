@@ -292,6 +292,10 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       lastKit = text;
       call(() => connection?.reducers.setKit(kit));
     },
+    /** Where the heads of the others are now: [{ x, y, z }]. */
+    heads() {
+      return [...faces.values()].filter((e) => e.current && e.connected && e.shown).map((e) => e.current);
+    },
     /** Where the head of the guest on a seat is now (smoothed), or null: { x, y, z, yaw, pitch }. */
     poseOf(seat) {
       const id = [...roster.entries()].find(([, p]) => p.seat === seat)?.[0];

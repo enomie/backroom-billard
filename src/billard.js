@@ -93,6 +93,11 @@ import {
   FREE_CAM_START_TARGET,
   FREE_CAM_ROOM_MARGIN,
   CAMERA_FLIGHT_SECONDS,
+  FREE_CAM_BACK,
+  FREE_CAM_SIDE,
+  FREE_CAM_UP,
+  FREE_CAM_PITCH,
+  FREE_CAM_HEAD_DISTANCE,
   FP_CAM_DISTANCE,
   FP_CAM_MIN_ELEVATION,
   FP_CAM_MAX_ELEVATION,
@@ -1386,8 +1391,11 @@ function toggleCamera() {
   cameraFlight.fromQuat.copy(camera.quaternion);
 
   if (free) {
-    // First time: the default observer pose; afterwards: where the free camera was left
-    if (!freePoseSaved) {
+    // Multiplayer: from the cue camera back and up (and to the side of the seat); else the first time the default
+    // observer pose, afterwards where the free camera was left
+    if (mpMode) {
+      placeFreeCameraBehindCue();
+    } else if (!freePoseSaved) {
       camera.position.set(...FREE_CAM_START_POSITION);
       camera.lookAt(...FREE_CAM_START_TARGET);
       const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
@@ -1430,6 +1438,22 @@ function applyCameraFlight(dt) {
   if (cameraFlight.t >= 1) cameraFlight.active = false;
 }
 
+/** Multiplayer: the free camera starts behind and above the cue camera, to the side of the seat, looking down at the table. */
+function placeFreeCameraBehindCue() {
+  camera.getWorldDirection(_freeForward);
+  _freeForward.y = 0;
+  if (_freeForward.lengthSq() < 1e-6) _freeForward.set(0, 0, -1);
+  _freeForward.normalize();
+  const sign = mySideNow === 1 ? 1 : -1; // the two seats go to different sides (not through the head of the other one)
+  _freeRight.set(-_freeForward.z, 0, _freeForward.x);
+  camera.position.addScaledVector(_freeForward, -FREE_CAM_BACK).addScaledVector(_freeRight, sign * FREE_CAM_SIDE);
+  camera.position.y = THREE.MathUtils.clamp(camera.position.y + FREE_CAM_UP, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
+  freeYaw = Math.atan2(-_freeForward.x, -_freeForward.z);
+  freePitch = FREE_CAM_PITCH;
+  camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
+  confineFreeCamera();
+}
+
 /** Move and rotate the free camera: WASD, space = up, shift = down, mouse look. */
 const _freeForward = new THREE.Vector3();
 const _freeRight = new THREE.Vector3();
@@ -1461,6 +1485,14 @@ function confineFreeCamera() {
   camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
   camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
   camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
+  // not into the head of another guest: pushed out (two heads never take the same place, and nobody sees through a head)
+  for (const head of multiplayer?.heads() ?? []) {
+    _freeMove.set(camera.position.x - head.x, camera.position.y - head.y, camera.position.z - head.z);
+    const distance = _freeMove.length();
+    if (distance >= FREE_CAM_HEAD_DISTANCE) continue;
+    if (distance < 1e-4) _freeMove.set(1, 0, 0);
+    camera.position.set(head.x, head.y, head.z).addScaledVector(_freeMove.normalize(), FREE_CAM_HEAD_DISTANCE);
+  }
 }
 
 /* ====================================================
@@ -2227,6 +2259,7 @@ function applyRestState(rows) {
  * @param {"single" | "multi"} mode
  */
 export async function applyProfile(profile, mode) {
+  mpMode = mode === "multi";
   myChoice = { drink: profile.firstDrink, pack: profile.firstPack }; // put on his seat as soon as he has one (applySeats)
   if (mode === "multi") await multiplayer.join(profile);
   wallet.setBalance(profile.money);
@@ -2235,6 +2268,7 @@ export async function applyProfile(profile, mode) {
 }
 
 /** Which seats of the table are taken: only their sets (glass, pack, lighter, ashtray with cigarettes) stand there; `mySide` is this guest's seat. */
+let mpMode = false; // this guest is in the multiplayer room (not single player)
 let myChoice = null; // what this guest chose at the welcome screen: { drink, pack }
 let mySideNow = null; // his seat (0 or 1), null: a spectator
 function applySeats(taken, mySide) {

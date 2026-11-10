@@ -153,6 +153,16 @@ export const ROOM_AMBIENT_INTENSITY = 0.9;
 
 /** The free camera keeps this distance (m) from the walls and the ceiling. */
 export const FREE_CAM_ROOM_MARGIN = 1;
+/**
+ * Multiplayer: from the cue camera the free camera goes back this far (m) along the view, up a little, to the side of
+ * the seat (the two players do not end up at the same place), and looks down at the table (the pitch, rad).
+ * Another head is never closer to the free camera than FREE_CAM_HEAD_DISTANCE (m).
+ */
+export const FREE_CAM_BACK = 1.4;
+export const FREE_CAM_SIDE = 0.8;
+export const FREE_CAM_UP = 0.5;
+export const FREE_CAM_PITCH = -0.35;
+export const FREE_CAM_HEAD_DISTANCE = 0.55;
 /** Switching the camera (C) flies to the other view; the flight takes this long (s). */
 export const CAMERA_FLIGHT_SECONDS = 1.1;
 
