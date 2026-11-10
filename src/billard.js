@@ -2411,8 +2411,15 @@ function tellStakeWindow() {
 }
 
 /** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */
+let partnerHere = false; // two sat at the table at the last look
 function applyRoom(room) {
   matchNames = room.players;
+  const two = !!(room.players[0].name && room.players[1].name);
+  // The partner left (no game running): the one who stays gets a fresh rack to play on alone, until somebody comes.
+  // (A game that ended because he left keeps its message; its rack is ready already.)
+  const endedByLeaving = gameState !== "playing" && /timeout|left/.test(gameOverReason);
+  if (partnerHere && !two && room.mySide !== null && !mpGame.running && !endedByLeaving) setupBalls();
+  partnerHere = two;
   applySeats(room.taken, room.mySide);
   renderMatch();
   tellStakeWindow();
