@@ -647,11 +647,13 @@ function fireCueStrike() {
   if (now - lastShotTime < 300) return;
   lastShotTime = now;
 
-  startCueStroke();
   if (mpGame.running) {
-    // the database is told that the shot begins; what happens is noted and reported when the balls lie still
+    // what happens in the shot is noted (and the sounds written down) and reported when the balls lie still
     mpShot = { pocketed: [], foul: false, whiteGone: false };
     recorder.start(performance.now());
+  }
+  startCueStroke();
+  if (mpGame.running) {
     multiplayer.takeShot({ aimAngle: stroke.aimAngle, power: selectedPower, nubX: strikeNub.x, nubY: strikeNub.y, elevation: stroke.pitch, error: 0 });
   }
 
@@ -695,7 +697,7 @@ function startCueStroke() {
     strength: f,
   };
   cueStickPivot.rotation.y = stroke.aimAngle; // the cue points where the shot goes
-  playDrawBackSound(f, stroke.tBack, shotSoundPositions(stroke.aimAngle)); // hand sliding on the shaft + inhale
+  shotSound(SOUND_DRAW_BACK, f, stroke.tBack, [stroke.aimAngle, 0, 0]); // hand sliding on the shaft + inhale
 }
 
 /** Cue elevation for the current camera elevation: slightly below the line of sight. */
@@ -704,6 +706,58 @@ function aimCuePitch() {
 }
 
 /** Where the shot sounds come from: the cue behind the ball and the player's head further back. */
+/** The sounds of a shot: made here, and written down for the others when it is my shot in a multiplayer game. */
+const SOUND_DRAW_BACK = 1;
+const SOUND_FORWARD = 2;
+const SOUND_STRIKE = 3;
+const SOUND_POCKET_ENTRY = 4;
+const SOUND_CUP_LANDING = 5;
+const SOUND_CUP_WALL = 6;
+const SOUND_CUSHION_HIT = 7;
+const SOUND_BALL_HIT = 8;
+
+/**
+ * Play a sound of the shot and, in my shot in a multiplayer game, note it for the others.
+ * @param {number} kind — SOUND_*
+ * @param {number} p1 — the strength or speed
+ * @param {number} p2 — the seconds (cue sounds), the ball (the numbers of both for a clack: a × 100 + b)
+ * @param {number[]} position — where it is heard (for the cue sounds: the angle of the shot in the first place)
+ */
+function shotSound(kind, p1, p2, position) {
+  playShotSound(kind, p1, p2, position);
+  if (mpShot) recorder.event(performance.now(), kind, p1, p2, position);
+}
+
+/** The sound itself (also for the replay of the shot of another guest). */
+function playShotSound(kind, p1, p2, position) {
+  switch (kind) {
+    case SOUND_DRAW_BACK:
+      playDrawBackSound(p1, p2, shotSoundPositions(position[0]));
+      break;
+    case SOUND_FORWARD:
+      playForwardSound(p1, p2, shotSoundPositions(position[0]));
+      break;
+    case SOUND_STRIKE:
+      playStrikeSound(p1, position);
+      break;
+    case SOUND_POCKET_ENTRY:
+      playPocketEntrySound(p1, `r${p2}`, position);
+      break;
+    case SOUND_CUP_LANDING:
+      playCupLandingSound(p1, `f${p2}`, position);
+      break;
+    case SOUND_CUP_WALL:
+      playCupWallSound(p1, `w${p2}`, position);
+      break;
+    case SOUND_CUSHION_HIT:
+      playCushionHitSound(p1, `c${p2}`, position);
+      break;
+    case SOUND_BALL_HIT:
+      playBallHitSound(p1, `b${Math.floor(p2 / 100)}-${p2 % 100}`, position);
+      break;
+  }
+}
+
 function shotSoundPositions(angle) {
   const back = [Math.sin(angle), 0, Math.cos(angle)];
   const at = (distance, up) => [
@@ -729,7 +783,7 @@ function advanceCueStroke(dt) {
     if (s.t >= s.tHold) {
       [s.phase, s.t] = ["forward", 0];
       physics.cue.collider.setEnabled(true);
-      playForwardSound(s.strength, s.tForward, shotSoundPositions(s.aimAngle)); // air swish peaking at the contact + exhale
+      shotSound(SOUND_FORWARD, s.strength, s.tForward, [s.aimAngle, 0, 0]); // air swish peaking at the contact + exhale
     }
   } else if (s.phase === "forward") {
     const k = Math.min(1, s.t / s.tForward);
@@ -773,7 +827,7 @@ function advanceCueStroke(dt) {
 /** The tip reaches the ball: sound, status, and the follow-through timer starts. */
 function onCueContact() {
   swerveTime = 0;
-  playStrikeSound(stroke.strength, cueBall.pos.toArray()); // the "tock" of the tip hitting the ball
+  shotSound(SOUND_STRIKE, stroke.strength, 0, cueBall.pos.toArray()); // the "tock" of the tip hitting the ball
   updateStatusDisplay(true);
   strokeContacted = true;
   cueShotTime = 0;
@@ -1545,7 +1599,7 @@ function checkPocketEntry(b, horizontalSpeed) {
   }
   if (overHole && dropping && !b.inHole) {
     b.inHole = true;
-    playPocketEntrySound(horizontalSpeed, `r${b.id}`, b.pos.toArray());
+    shotSound(SOUND_POCKET_ENTRY, horizontalSpeed, b.id, b.pos.toArray());
   } else if (!overHole) {
     b.inHole = false;
   }
@@ -1590,7 +1644,7 @@ function detectBallImpacts() {
       const closingBefore = (a.preVel.x - b.preVel.x) * nx + (a.preVel.z - b.preVel.z) * nz;
       const closingAfter = (va.x - vb.x) * nx + (va.z - vb.z) * nz;
       if (closingBefore > 0 && closingAfter < closingBefore * 0.5) {
-        playBallHitSound(closingBefore, `b${a.id}-${b.id}`, [
+        shotSound(SOUND_BALL_HIT, closingBefore, a.id * 100 + b.id, [
           (pos[3 * i] + pos[3 * j]) / 2,
           (pos[3 * i + 1] + pos[3 * j + 1]) / 2,
           (pos[3 * i + 2] + pos[3 * j + 2]) / 2,
@@ -1652,7 +1706,7 @@ function stepPhysics(frameDt) {
           const ball = ball1 ?? ball2;
           if (ball) {
             // Landing on the cup floor: Δv = (1 + restitution) × impact speed
-            playCupLandingSound(velocityChange(ball) / 1.5, `f${ball.id}`, ball.pos.toArray());
+            shotSound(SOUND_CUP_LANDING, velocityChange(ball) / 1.5, ball.id, ball.pos.toArray());
             onBallPocketed(ball, pocketId);
           }
         } else if (
@@ -1660,14 +1714,14 @@ function stepPhysics(frameDt) {
           (ball2 && physics.cupWalls.has(h1))
         ) {
           const ball = ball1 ?? ball2;
-          playCupWallSound(velocityChange(ball) / 1.5, `w${ball.id}`, ball.pos.toArray());
+          shotSound(SOUND_CUP_WALL, velocityChange(ball) / 1.5, ball.id, ball.pos.toArray());
         } else if (
           (ball1 && physics.cushionColliders.has(h2)) ||
           (ball2 && physics.cushionColliders.has(h1))
         ) {
           // Ball–cushion: Δv = (1 + restitution) × impact speed
           const ball = ball1 ?? ball2;
-          playCushionHitSound(velocityChange(ball) / (1 + CUSHION_RESTITUTION), `c${ball.id}`, ball.pos.toArray());
+          shotSound(SOUND_CUSHION_HIT, velocityChange(ball) / (1 + CUSHION_RESTITUTION), ball.id, ball.pos.toArray());
         }
       });
       // The tip hit a coloured ball before it touched the white one (both in one step: the white counts): lost at once
@@ -1993,6 +2047,8 @@ function applyReplay(dt) {
     const picture = replay.sample(performance.now());
     if (picture) {
       Object.assign(remoteCue, picture.cue, { active: true });
+      for (const s of picture.sounds) playShotSound(s.kind, s.p1, s.p2, s.position); // the clacks and the cue as they were heard
+      updateRollingSound(picture.rolling);
       for (const b of balls) {
         const p = picture.balls.get(b.id);
         b.mesh.visible = !!p;

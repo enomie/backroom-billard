@@ -5,11 +5,15 @@
  *
  * One frame: [time (ms since the shot began), cue angle, cue pitch, cue nub x, cue nub y, cue gap, number of balls,
  * then per ball: id, x, y, z, qx, qy, qz, qw].
+ * One sound event (the clack of two balls, a cushion, a pocket, the cue): [time, kind, p1, x, y, z, −1, p2]; the −1 in
+ * the place of the number of balls tells it from a frame.
  */
 import { REPLAY_CHUNK_MS, REPLAY_DELAY_MS } from "./multiplayer-constants.js";
+import { TABLE_H } from "./table-constants.js";
 
 const HEAD = 7;
 const PER_BALL = 8;
+const EVENT_SIZE = 8;
 
 /**
  * The recorder of the shooter.
@@ -60,6 +64,12 @@ export function createShotRecorder(send) {
         flush();
       }
     },
+    /** A sound of the shot (see EVENT_SIZE): what kind, two numbers and where it was heard. */
+    event(now, kind, p1, p2, position) {
+      const f = new Float32Array(EVENT_SIZE);
+      f.set([now - startedAt, kind, p1, position[0], position[1], position[2], -1, p2]);
+      frames.push(f);
+    },
     /** The shot is over: the last piece. */
     finish() {
       flush();
@@ -67,18 +77,24 @@ export function createShotRecorder(send) {
   };
 }
 
-/** The pieces of a recording → frames. */
+/** The pieces of a recording → frames and sound events. */
 function decode(bytes) {
   // (a copy: the bytes may sit at an odd offset of a larger buffer)
   const floats = new Float32Array(bytes.slice().buffer);
   const frames = [];
+  const events = [];
   let at = 0;
   while (at < floats.length) {
+    if (floats[at + 6] < 0) {
+      events.push({ t: floats[at], kind: floats[at + 1], p1: floats[at + 2], p2: floats[at + 7], position: [floats[at + 3], floats[at + 4], floats[at + 5]] });
+      at += EVENT_SIZE;
+      continue;
+    }
     const size = HEAD + floats[at + 6] * PER_BALL;
     frames.push(floats.subarray(at, at + size));
     at += size;
   }
-  return frames;
+  return { frames, events };
 }
 
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -86,8 +102,10 @@ const lerpAngle = (a, b, k) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) 
 
 /** The playback of the others: collects the pieces, plays them back `REPLAY_DELAY_MS` after the first arrived. */
 export function createShotReplay() {
-  let chunks = new Map(); // index → frames
+  let chunks = new Map(); // index → { frames, events }
   let frames = []; // all frames in order
+  let events = []; // all sound events in order
+  let eventIndex = 0; // the next sound event to be played
   let nextIndex = 0; // the next piece that is appended
   let wall0 = 0; // when the first frame is shown (ms, performance.now)
   let t0 = 0; // the time of the first frame
@@ -95,7 +113,9 @@ export function createShotReplay() {
 
   const append = () => {
     while (chunks.has(nextIndex)) {
-      frames.push(...chunks.get(nextIndex));
+      const piece = chunks.get(nextIndex);
+      frames.push(...piece.frames);
+      events.push(...piece.events);
       chunks.delete(nextIndex++);
     }
   };
@@ -108,6 +128,8 @@ export function createShotReplay() {
     begin() {
       chunks = new Map();
       frames = [];
+      events = [];
+      eventIndex = 0;
       nextIndex = 0;
       active = true;
       wall0 = 0;
@@ -124,7 +146,8 @@ export function createShotReplay() {
     },
     /**
      * The picture for `now`: the cue and the balls (interpolated), `done` when the end of what has arrived is reached.
-     * @returns {{ cue: object, balls: Map<number, object>, done: boolean } | null} null while nothing has arrived
+     * `sounds` are the sound events whose time has come (once each); `rolling` the balls that roll on the table (speed, place).
+     * @returns {{ cue: object, balls: Map<number, object>, sounds: object[], rolling: object[], done: boolean } | null} null while nothing has arrived
      */
     sample(now) {
       if (!active || !frames.length) return null;
@@ -147,17 +170,25 @@ export function createShotReplay() {
       const ballsA = read(a);
       const ballsB = a === b ? ballsA : read(b);
       const balls = new Map();
+      const rolling = [];
+      const seconds = (b[0] - a[0]) / 1000;
       for (const [id, pa] of ballsA) {
         const pb = ballsB.get(id) ?? pa; // gone in the next frame: it stays where it was until then
-        balls.set(id, { x: lerp(pa[0], pb[0], k), y: lerp(pa[1], pb[1], k), z: lerp(pa[2], pb[2], k), q: [pa.slice(3, 7), pb.slice(3, 7), k] });
+        const ball = { x: lerp(pa[0], pb[0], k), y: lerp(pa[1], pb[1], k), z: lerp(pa[2], pb[2], k), q: [pa.slice(3, 7), pb.slice(3, 7), k] };
+        balls.set(id, ball);
+        const speed = seconds > 0 ? Math.hypot(pb[0] - pa[0], pb[2] - pa[2]) / seconds : 0; // the speed of the replay's ball (for the rolling sound)
+        if (ball.y > TABLE_H - 0.01 && speed > 0.03) rolling.push({ speed, position: [ball.x, ball.y, ball.z] });
       }
-      return { cue, balls, done };
+      const sounds = [];
+      while (eventIndex < events.length && events[eventIndex].t <= t) sounds.push(events[eventIndex++]);
+      return { cue, balls, sounds, rolling, done };
     },
     /** The playback is over (or the shot was not shown): nothing is kept. */
     end() {
       active = false;
       chunks = new Map();
       frames = [];
+      events = [];
     },
   };
 }
