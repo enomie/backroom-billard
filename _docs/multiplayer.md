@@ -162,12 +162,9 @@ Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
 - **Töne senden:** Gesendet wird **nicht jede Note als eigene Zeile**, sondern der **Zustand der Tasten**: eine Zeile mit den 88 gedrückten Tasten als kleine Bitmaske (11 Byte), nur bei einer Änderung (`set_keys`). Die anderen vergleichen mit dem letzten Stand: neu gedrückt = Ton an, losgelassen = Ton ab. Das braucht **keinen Verlauf**, ein neu Hinzukommender bekommt gleich den Stand, und Akkorde gehen mit.
 - **Hören:** Der Spieler hört seine Töne sofort selbst (ohne Umweg). Bei den anderen klingen die Töne **aus dem Flügel** (Ort des Flügels, Lautstärke und Panorama nach Abstand und Richtung wie beim Radio), mit etwa 50 bis 100 ms Verzögerung. Gespielt wird mit demselben Klang (`piano-sound.js`).
 - **Sehen:** Bei allen senken sich die **Tasten**, die der Spieler drückt; sein **Kopf** (das Gesicht) schwebt am Hocker, weil dort seine Kamera ist.
-- **Vorschlag zum Zug:** Wer am Tisch dran ist, wird **automatisch vom Hocker aufgestanden** (seine Kamera geht in die Spielerkamera), damit der andere nicht wartet. Hocker und Klavierspiel bleiben sonst von den Tischregeln unberührt (Zuschauer und Spieler dürfen sich setzen).
-
-**Offen:**
-1. Das Aufstehen beim eigenen Zug (siehe oben): so, oder darf er sitzen bleiben, und der andere wartet?
-2. Soll der Hocker nach langer Stille (z. B. 5 Minuten ohne Taste) frei werden?
-3. Wie weit soll man das Klavier hören (Radio: voll bis 2,5 m, danach leiser): dieselbe Kurve, oder lauter?
+- **Wer dran ist, setzt sich nicht:** Wer am Tisch **gerade dran ist**, kann sich nicht an den Flügel setzen (`F` und Knopf tun nichts). Der andere Spieler (nicht dran) und alle Zuschauer dürfen **klimpern**, solange der Hocker frei ist. **Kommt ein Spieler dran, während er am Flügel sitzt, steht er sofort auf** und seine Kamera geht in die Spielerkamera („schwups zum Tisch“); der Hocker wird frei.
+- **Hocker belegt:** Jeder sieht, wer sitzt (der Knopf zeigt „Klavier besetzt (Anna)“); eine Zeitgrenze für Stille gibt es nicht (nur die 10 Sekunden ohne Verbindung).
+- **Lautstärke:** dieselbe Kurve wie beim Radio (voll bis 2,5 m, danach leiser).
 
 ## Vertrauen
 
