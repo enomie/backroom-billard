@@ -953,6 +953,27 @@ html {
   color: #facc15;
 }
 
+/* Settings: the account buttons of multiplayer (real money comes later) */
+.settings__account {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin-bottom: 0.8rem;
+}
+
+.settings__soon {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.settings__account[hidden],
+.settings__soon[hidden] {
+  display: none;
+}
+
 /* The stake over the VS of the match panel, and the button of the spectators for the table bet */
 .match__stake {
   margin-bottom: 0.15rem;

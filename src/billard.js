@@ -1292,7 +1292,7 @@ function setupControls() {
       setupBalls();
       updateStatusDisplay(false);
     },
-    () => ({ name: matchMode === "multi" ? settingsName : t("mode.single"), money: wallet.format(wallet.balance) })
+    () => ({ name: matchMode === "multi" ? settingsName : t("mode.single"), money: wallet.format(wallet.balance), multi: matchMode === "multi" })
   );
 
   window.addEventListener("resize", () => {

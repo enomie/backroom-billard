@@ -58,7 +58,7 @@ Ein **Getränk** aus den fünf und eine **Packung Zigaretten** aus den zwei (**P
 
 ## Einstellungs-Panel
 
-Zeigt oben den Namen (Mehrspieler: der Name des Kontos, Einzelspiel: „Einzelspiel“) und das Guthaben; es scrollt innen, wenn es länger ist als der Bildschirm (der Kopf mit Titel und Kreuz bleibt stehen).
+Zeigt oben den Namen (Mehrspieler: der Name des Kontos, Einzelspiel: „Einzelspiel“) und das Guthaben; im Mehrspieler darunter die Knöpfe **Spielgeld kaufen** und **Name oder Gesicht ändern** (sie tun noch nichts und sagen nur „Kommt später“, das soll später echtes Geld kosten); es scrollt innen, wenn es länger ist als der Bildschirm (der Kopf mit Titel und Kreuz bleibt stehen).
 
 ## Umsetzung
 

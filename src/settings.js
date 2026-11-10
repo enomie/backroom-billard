@@ -6,7 +6,7 @@
 
 /**
  * @param {() => void} onRerack — the player asked for a new rack
- * @param {() => { name: string, money: string }} getInfo — what the top of the panel shows
+ * @param {() => { name: string, money: string, multi: boolean }} getInfo — what the top of the panel shows (`multi`: the account buttons)
  */
 export function createSettings(onRerack, getInfo) {
   const root = document.getElementById("settings");
@@ -17,6 +17,8 @@ export function createSettings(onRerack, getInfo) {
     const info = getInfo();
     document.getElementById("settings-name").textContent = info.name;
     document.getElementById("settings-money").textContent = info.money;
+    document.getElementById("settings-account").hidden = !info.multi;
+    document.getElementById("settings-soon").hidden = true;
     open = true;
     root.hidden = false;
     document.getElementById("settings-close").focus();
@@ -44,6 +46,12 @@ export function createSettings(onRerack, getInfo) {
   window.addEventListener("keydown", (e) => {
     if (open && e.code === "Escape") hide();
   });
+  // buying play money and changing name or face will be paid with real money later: for now they only say so
+  for (const id of ["settings-buy", "settings-change"]) {
+    document.getElementById(id).addEventListener("click", () => {
+      document.getElementById("settings-soon").hidden = false;
+    });
+  }
   document.getElementById("btn-reset").addEventListener("click", () => {
     hide();
     onRerack();

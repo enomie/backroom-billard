@@ -298,6 +298,12 @@
             <dt data-i18n="settings.money">Money</dt>
             <dd id="settings-money"></dd>
           </dl>
+          <!-- Multiplayer: later paid with real money (for now they do nothing) -->
+          <div id="settings-account" class="settings__account" hidden>
+            <button id="settings-buy" type="button" class="welcome__link" data-i18n="settings.buyMoney">Buy play money</button>
+            <button id="settings-change" type="button" class="welcome__link" data-i18n="settings.changeProfile">Change name or face</button>
+            <p id="settings-soon" class="settings__soon" data-i18n="settings.soon" hidden>Coming later.</p>
+          </div>
           <button id="btn-reset" type="button" class="btn-key settings__rerack">
             <svg class="btn__icon btn__icon--big" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 12a9 9 0 1 0 3-6.7" />

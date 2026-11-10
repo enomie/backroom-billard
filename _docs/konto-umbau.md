@@ -56,7 +56,7 @@
 - Gebaut, abweichend vom Plan: Damit der Gast während der Wahl **nicht schon im Raum steht** (und am Tisch sitzt), meldet `enter`/`create_account` nur an und legt eine Zeile in der öffentlichen Tabelle `lobby` an (Name, Land, Gesicht, Geld; so sieht der Client sein Konto für die Karte); **`join_room`** betritt den Raum, erst mit **Los**. Neu im Modul: `lobby`, `join_room`; im Client `multiplayer.login()` und `multiplayer.join()`, in `billard.js` `loginMulti` und `startGame` statt `applyProfile`. Die Übergangslücke aus Schritt 3 (doppelte Abbuchung) ist weg.
 - **Prüfen:** Build; alle Wege: Einzelspiel ohne Verbindung, neues Mehrspielerkonto, Schlüssel auf zweitem Gerät (Ausloggen am ersten, Warnung), Verbindung klappt nicht, Zurück, alte Profile.
 
-### 5. Pleite – **zum Teil schon in Schritt 4** (die Karte und leere Plätze)
+### 5. Pleite und Dummy-Knöpfe – **umgesetzt** (die Karte und leere Plätze in Schritt 4, die Knöpfe im Einstellungs-Panel)
 
 - Karte: Wer sich Getränk und Packung nicht leisten kann, kommt trotzdem herein (mit dem, was er hat), kann aber nichts mehr kaufen; die Trink- und Rauchtasten tun dann nichts. Setzen mit „alles, was er hat“ geht weiter.
 - Dummy-Knöpfe **„Spielgeld kaufen“** und **„Name oder Gesicht ändern“** (tun nichts, nur ein Hinweis „kommt später“).
