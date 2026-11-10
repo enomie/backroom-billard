@@ -99,7 +99,7 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen sc
 
 ## Vorbereitet: das Datenbank-Modul
 
-Das SpacetimeDB-Modul liegt als Entwurf in [`spacetime/`](../spacetime/README.md) (TypeScript, `spacetimedb` 2.14; prüft mit `npm run check`): die Tabellen (Spieler, Spiel, Kugeln, Stoß, Häppchen, Zielen, Gebote) und die Aktionen mit den hier festgelegten Regeln (Foul, schwarze 8, Spielerwechsel, Tischwette, 10-s-Frist). Es ist **noch nicht veröffentlicht** und **vom Spiel noch nicht benutzt**.
+Das SpacetimeDB-Modul liegt als Entwurf in [`spacetime/`](../spacetime/README.md) (TypeScript, `spacetimedb` 2.14; prüft mit `npm run check`): die Tabellen (Spieler, Spiel, Kugeln, Stoß, Häppchen, Zielen, Gebote) und die Aktionen mit den hier festgelegten Regeln (Foul, schwarze 8, Spielerwechsel, Tischwette, 10-s-Frist). Die Datenbank auf Maincloud heißt **`backroom-billard-3000`** (Konto `liquid3logic`). Das Modul ist **noch nicht veröffentlicht** und **vom Spiel noch nicht benutzt**.
 
 ## Offene Fragen
 

@@ -2,7 +2,7 @@
 
 > **Status: vorbereitet, nicht veröffentlicht, vom Spiel noch nicht benutzt.** Das Modul (TypeScript, `spacetimedb` 2.14) enthält die Tabellen und Aktionen (Reducer) nach [`_docs/multiplayer.md`](../_docs/multiplayer.md). Es rechnet **keine Physik**: Der Schütze rechnet im Browser und schickt die Aufnahme in Häppchen.
 
-Läuft auf **Maincloud** (extern); der eigene Server (nur HTML und PHP) liefert nur das Spiel. Der Browser verbindet sich direkt mit der Datenbank.
+Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000`** (Konto `liquid3logic`: <https://spacetimedb.com/@liquid3logic/backroom-billard-3000>); der eigene Server (nur HTML und PHP) liefert nur das Spiel. Der Browser verbindet sich direkt mit der Datenbank.
 
 ## Inhalt (`src/index.ts`)
 
@@ -39,10 +39,13 @@ npm run check   # TypeScript, ohne Ausgabe
 Die genauen Aufrufe stehen in der SpacetimeDB-Dokumentation (die Befehle ändern sich); sinngemäß:
 
 ```bash
+spacetime install   # falls noch nicht: curl -sSf https://install.spacetimedb.com | sh
 spacetime login
-spacetime publish --module-path spacetime backroom-billard
+spacetime publish --server maincloud --module-path spacetime backroom-billard-3000
 spacetime generate --lang typescript --out-dir src/module_bindings --module-path spacetime
 ```
+
+**Nicht** `spacetime dev … --template chat-react-ts` ausführen: Das legt ein Beispielprojekt (Chat) an; wir haben ein eigenes Modul in diesem Ordner.
 
 `generate` erzeugt die Anbindung für das Spiel (`module_bindings`), mit dem Paket `spacetimedb` im Browser (`DbConnection.builder()…`). Das Spiel selbst hat diese Abhängigkeit noch nicht.
 
