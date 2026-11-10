@@ -751,15 +751,27 @@ html {
   box-shadow: inset -2px -2px 3px rgba(0, 0, 0, 0.35);
 }
 
-/* The match (multiplayer, two at the table): "Anna vs Ben" in the middle at the top, the pocketed balls of each below his name */
+/* The match (multiplayer, two at the table): "flag Anna | VS | Ben flag" in the middle at the top, a line between the two (the
+ * "VS" lies over it), below each name the pocketed balls of that player: the left one's towards the left, the right one's
+ * towards the right, starting at the line */
 .match {
   position: absolute;
   top: 5.6rem;
   left: 50%;
   transform: translateX(-50%);
-  width: min(23rem, 46vw);
+  width: min(26rem, 52vw);
   text-align: center;
   pointer-events: none;
+}
+
+.match::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.1rem;
+  bottom: 0;
+  width: 1px;
+  background: rgba(253, 230, 138, 0.45);
 }
 
 .match[hidden] {
@@ -767,14 +779,37 @@ html {
 }
 
 .match__names {
+  position: relative; /* above the line */
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: baseline;
-  gap: 0.6rem;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.85rem;
   font-weight: 700;
   color: #d4d4d8;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.match__who {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.match__who--left {
+  justify-content: flex-end; /* towards the VS */
+}
+
+.match__flag {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+}
+
+.match__flag[hidden] {
+  display: none;
 }
 
 .match__name {
@@ -788,18 +823,22 @@ html {
 }
 
 .match__vs {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(20, 14, 10, 0.9); /* covers the line behind it */
   font-size: 0.65rem;
-  font-weight: 400;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(253, 230, 138, 0.6);
+  color: rgba(253, 230, 138, 0.85);
 }
 
 .match__balls {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-  margin-top: 0.3rem;
+  column-gap: 0.7rem; /* clear of the line */
+  margin-top: 0.35rem;
 }
 
 .match__side {
@@ -810,12 +849,16 @@ html {
 }
 
 .match__side:first-child {
-  justify-content: flex-end; /* the balls of the left one lie towards the middle */
+  flex-direction: row-reverse; /* the left one's balls start at the line and go to the left */
 }
 
 .match .pocketed-ball {
   width: 14px;
   height: 14px;
+}
+
+.pocketed-balls[hidden] {
+  display: none; /* (the common list is for one player alone) */
 }
 
 /* Game over */
@@ -945,7 +988,11 @@ html {
   /* the match sits below the status and the money */
   .match {
     top: 10.2rem;
-    width: min(23rem, calc(100vw - 12rem));
+    width: min(26rem, calc(100vw - 7rem)); /* between the camera button and the power slider */
+  }
+
+  .match__names {
+    font-size: 0.78rem;
   }
 
   /* no keys on a phone: the buttons show only their names */

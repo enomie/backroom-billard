@@ -107,7 +107,7 @@ Hält ein Gast **R** (trinken) oder **T** (rauchen) gedrückt oder lässt los, s
 
 ## Das Spiel auf dem Bildschirm: „Anna gegen Ben“ (umgesetzt)
 
-Sitzen **zwei** am Tisch, steht oben in der Mitte (unter den zwei Balken) **Name gegen Name** („Anna T. Meier gegen Ben Huber“, Platz 1 links, Platz 2 rechts; wer **dran** ist, ist gelb) und **darunter bei jedem die Kugeln, die er versenkt hat**, einzeln, als kleine Kreise in der Kugelfarbe (nach Nummern geordnet; die Kugeln des linken liegen zur Mitte hin). Die gemeinsame Liste der versenkten Kugeln links oben fehlt dann. Die Datenbank führt Buch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`), die Liste gilt also auch für den, der später dazukommt, und wird mit jedem neuen Aufbau geleert. Am Handy steht das Feld unter Status und Geld.
+Sitzen **zwei** am Tisch, steht oben in der Mitte (unter den zwei Balken) **Flagge und Name, VS, Name und Flagge** („🇦🇹 Anna T. Meier | VS | Ben Huber 🇩🇪“, Platz 1 links, Platz 2 rechts; wer **dran** ist, ist gelb). Zwischen den beiden läuft eine **Trennlinie**, die das **VS** überdeckt. **Darunter hat jeder seine versenkten Kugeln**, einzeln als kleine Kreise in der Kugelfarbe: Die des linken wachsen **von der Linie nach links**, die des rechten **von der Linie nach rechts**. Die gemeinsame Liste der versenkten Kugeln links oben fehlt dann. Die Datenbank führt Buch (`pocket`: welche Kugel, welcher Platz; der Schütze meldet seine versenkten Kugeln mit `end_shot`), die Liste gilt also auch für den, der später dazukommt, und wird mit jedem neuen Aufbau geleert. Am Handy steht das Feld unter Status („Balls rolling …“) und Geld, damit nichts überdeckt wird.
 
 ## Zufall und Spielzustand
 

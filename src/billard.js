@@ -48,6 +48,7 @@ import { createBackbar } from "./backbar.js";
 import { createFaceBall } from "./face-ball.js";
 import { createMultiplayer } from "./multiplayer.js";
 import { showWaiting, roomNote, renderNote } from "./room-notices.js";
+import { isCountry, flagUrl } from "./country-list.js";
 import { createShotRecorder, createShotReplay } from "./shot-replay.js";
 import { AIM_SEND_SECONDS } from "./multiplayer-constants.js";
 import { DRINK_SIPS } from "./glasses-constants.js";
@@ -2088,16 +2089,22 @@ function updateRemoteHands(dt) {
 }
 
 /** The match above the table (two at the table): the names and the balls each one pocketed. */
-let matchNames = ["", ""];
+let matchNames = [{ name: "", country: "" }, { name: "", country: "" }]; // the two at the table
 let matchPockets = []; // [{ ball, seat }]
 function renderMatch() {
-  const both = !!(matchNames[0] && matchNames[1]);
+  const both = !!(matchNames[0].name && matchNames[1].name);
   document.getElementById("match").hidden = !both;
   document.getElementById("pocketed-balls").hidden = both; // (the common list is for one player alone)
   if (!both) return;
   [1, 2].forEach((seat) => {
     const name = document.getElementById(`match-name-${seat}`);
-    name.textContent = matchNames[seat - 1];
+    name.textContent = matchNames[seat - 1].name;
+    const flag = document.getElementById(`match-flag-${seat}`);
+    const country = matchNames[seat - 1].country;
+    if (country && isCountry(country)) {
+      flag.src = flagUrl(country);
+      flag.hidden = false;
+    } else flag.hidden = true;
     name.classList.toggle("is-up", mpGame.running && mpGame.turnSeat === seat);
     document.getElementById(`match-balls-${seat}`).replaceChildren(
       ...matchPockets
