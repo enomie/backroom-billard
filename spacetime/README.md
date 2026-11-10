@@ -34,6 +34,10 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 
 Regeln im Modul: Foul oder zu früh versenkte schwarze 8 verliert der Schütze, die schwarze 8 als letzte Kugel gewinnt; wer eine Kugel versenkt (und die weiße nicht), stößt nochmal, sonst der andere; der Einsatz des Herausforderers gehört dem Sieger (gewinnt der Herausforderer, bekommt er ihn zurück); der Verlierer wird Zuschauer, der Sieger bleibt, der Höchstbietende (bei Gleichstand der erste) rückt nach.
 
+## Aufräumen von selbst
+
+Bleibt der Raum in einem seltsamen Zustand (ein Spiel läuft mit Spielern, die längst weg sind), räumt das Modul auf: Wer **10 Sekunden** nichts von sich hören lässt, verliert (`check_timeouts`); danach (und bei jedem Lebenszeichen, solange kein Spiel läuft, `seatTheFirstTwo`) werden Gäste, die **weg** sind, aus der Liste genommen (mit ihren Plätzen, Geboten und Zeilen), und die ersten zwei Gäste, die **wirklich da** sind, setzen sich; sind es zwei, beginnt das Spiel. Ein beendetes Spiel, das auf „Nochmal“ wartet, hält die Plätze nur, solange **beide** Spieler da sind.
+
 ## Prüfen
 
 ```bash

@@ -251,6 +251,16 @@ export const set_profile = spacetimedb.reducer(
 function seatTheFirstTwo(ctx: Ctx) {
   const game = theGame(ctx);
   if (game.state === GAME_PLAYING) return;
+  // guests who are gone are taken out of the list while no game runs (their seats, bids and rows go with them)
+  for (const p of [...ctx.db.player.iter()]) {
+    if (p.connected) continue;
+    ctx.db.player.identity.delete(p.identity);
+    ctx.db.bid.bidder.delete(p.identity);
+    ctx.db.rematch.identity.delete(p.identity);
+    ctx.db.hand.identity.delete(p.identity);
+    ctx.db.kit.identity.delete(p.identity);
+    ctx.db.presence.identity.delete(p.identity);
+  }
   const seatedBefore = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR && p.connected).length;
   const present = [...ctx.db.player.iter()].filter((p) => p.connected).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
   const seats = new Map(present.map((p, i) => [p.identity.toHexString(), i < 2 ? i + 1 : SPECTATOR]));
@@ -276,6 +286,7 @@ function startIfReady(ctx: Ctx) {
 export const heartbeat = spacetimedb.reducer((ctx) => {
   const player = me(ctx);
   ctx.db.player.identity.update({ ...player, connected: true, lastSeen: ctx.timestamp });
+  seatTheFirstTwo(ctx); // (does nothing while a game runs) heals a room that was left in a strange state
 });
 
 /** Table bet: raise the own bid (+10, +100 in the client; any multiple of 10, at least 10, at most the money). */
@@ -409,6 +420,7 @@ function finishGame(ctx: Ctx, winnerSeat: number, reason: string) {
   if (loser && (reason === 'timeout' || reason === 'left')) ctx.db.player.identity.update({ ...loser, seat: SPECTATOR });
   for (const r of [...ctx.db.rematch.iter()]) ctx.db.rematch.identity.delete(r.identity);
   ctx.db.game.id.update({ ...game, state: GAME_WAITING, shotRunning: false, turnSeat: 0, winnerSeat, reason, stake: 0, challenger: undefined });
+  seatTheFirstTwo(ctx); // those who are really here take the seats (a gone player's seat is free); two of them start a game at once if none awaits "play again"
   fillEmptySeat(ctx);
 }
 
