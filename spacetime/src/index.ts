@@ -99,6 +99,20 @@ const spacetimedb = schema({
     }
   ),
 
+  /** Where each guest is in the room: the face of the others hangs there (while the free camera is on). About 10 times per second. */
+  presence: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+      x: t.number(),
+      y: t.number(),
+      z: t.number(),
+      yaw: t.number(),
+      pitch: t.number(),
+      free: t.bool(), // the free camera is on (otherwise the guest looks along the cue and shows no face)
+    }
+  ),
+
   /** The table bets of the spectators: one bid each (the highest challenges the winner; equal: the first). */
   bid: table(
     { public: true },
@@ -153,7 +167,19 @@ export const init = spacetimedb.init((ctx) => {
 export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   const player = ctx.db.player.identity.find(ctx.sender);
   if (player) ctx.db.player.identity.update({ ...player, connected: false });
+  ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
 });
+
+/** Where the guest is (position and view of the camera), about 10 times per second. */
+export const set_presence = spacetimedb.reducer(
+  { x: t.number(), y: t.number(), z: t.number(), yaw: t.number(), pitch: t.number(), free: t.bool() },
+  (ctx, p) => {
+    me(ctx);
+    const row = { identity: ctx.sender, ...p };
+    if (ctx.db.presence.identity.find(ctx.sender)) ctx.db.presence.identity.update(row);
+    else ctx.db.presence.insert(row);
+  }
+);
 
 /** Come into the room (or change the name, the country, the face). The money of a new guest is the start money. */
 export const set_profile = spacetimedb.reducer(
