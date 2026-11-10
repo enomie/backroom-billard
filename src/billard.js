@@ -46,6 +46,7 @@ import { createBar } from "./bar.js";
 import { createBarLamps } from "./bar-lamps.js";
 import { createBackbar } from "./backbar.js";
 import { createFaceBall } from "./face-ball.js";
+import { createMultiplayer } from "./multiplayer.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
 import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
 import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
@@ -223,6 +224,7 @@ const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fr
 /** The flight of the camera to the other view after C: from where it was, to the new view (fixed for the free camera, followed each frame for the cue camera). */
 const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
 const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
+let multiplayer = null; // the others: faces at their cameras (multiplayer.js)
 let faceBall = null; // a face as a ball in the room: a click throws the dice (face-ball.js)
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
@@ -407,6 +409,7 @@ function setupLightingAndRoom() {
   createBarLamps(scene);
   createBackbar(scene, bottles);
   faceBall = createFaceBall(scene);
+  multiplayer = createMultiplayer(scene);
 }
 
 /* ====================================================
@@ -1795,6 +1798,7 @@ function gameLoop(currentTime) {
     renderPianoButton();
   }
   if (cameraFlight.active) applyCameraFlight(frameSeconds);
+  multiplayer?.update(frameSeconds, camera, cameraMode === "free");
 
   updateAudioListener(camera); // the ears follow the camera
   if (atmosphere) atmosphere.update(frameSeconds);
@@ -1862,6 +1866,7 @@ export function applyProfile(profile) {
   glasses.setPlayerDrink(profile.firstDrink);
   packs.setPlayerDesign(profile.firstPack);
   faceBall.setProfile(profile);
+  multiplayer.join(profile); // the others see this guest (and he them); alone if there is no connection
 }
 
 function scheduleInit() {

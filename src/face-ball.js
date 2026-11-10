@@ -58,12 +58,21 @@ function makeSign() {
   };
 }
 
-/** @param {THREE.Scene} scene */
-export function createFaceBall(scene) {
+/**
+ * @param {THREE.Scene} scene
+ * @param {{ placed?: boolean }} [options] — `placed: false` for the face of another player: it has no place of its
+ *   own (multiplayer.js moves it with `setPose`) and stays hidden until it gets a face with `show`.
+ */
+export function createFaceBall(scene, { placed = true } = {}) {
   const root = new THREE.Group();
   root.name = "face-ball";
-  root.position.set(...FACE_BALL_POSITION);
-  root.rotation.y = FACE_BALL_TURN;
+  if (placed) {
+    root.position.set(...FACE_BALL_POSITION);
+    root.rotation.y = FACE_BALL_TURN;
+  } else {
+    root.rotation.order = "YXZ";
+    root.visible = false;
+  }
   const sign = makeSign();
   root.add(sign.sprite);
   scene.add(root);
@@ -154,8 +163,10 @@ export function createFaceBall(scene) {
     root.add(head);
   }
 
-  setFace(randomFace());
-  sign.set("", DEFAULT_COUNTRY);
+  if (placed) {
+    setFace(randomFace());
+    sign.set("", DEFAULT_COUNTRY);
+  }
 
   return {
     group: root,
@@ -163,6 +174,24 @@ export function createFaceBall(scene) {
     setProfile(profile) {
       if (profile.face) setFace(profile.face);
       sign.set(displayName(profile, "short"), profile.country ?? DEFAULT_COUNTRY);
+    },
+    /** The face, name and country of another player (the name as it is to be shown). */
+    show(face, name, country) {
+      setFace(face);
+      sign.set(name, country);
+    },
+    /** Hang the face at a place; it looks the way the camera of that player looks (yaw about the vertical axis, pitch up). */
+    setPose(x, y, z, yaw, pitch) {
+      root.position.set(x, y, z);
+      root.rotation.set(-pitch, yaw + Math.PI, 0); // the face looks along +z, a camera along −z
+    },
+    setVisible(visible) {
+      root.visible = visible && !!head;
+    },
+    /** Take the face out of the room. */
+    remove() {
+      scene.remove(root);
+      dispose(root);
     },
     /** A click on the face throws the dice for a new face (true if it was hit). */
     handleClick(camera, ndc) {

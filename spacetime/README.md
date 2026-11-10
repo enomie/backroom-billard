@@ -1,6 +1,6 @@
 # SpacetimeDB-Modul (Vorbereitung)
 
-> **Status: auf Maincloud veröffentlicht (Datenbank `backroom-billard-3000`, Dashboard <https://spacetimedb.com/backroom-billard-3000>), vom Spiel noch nicht benutzt.** Das Modul (TypeScript, `spacetimedb` 2.14) enthält die Tabellen und Aktionen (Reducer) nach [`_docs/multiplayer.md`](../_docs/multiplayer.md). Es rechnet **keine Physik**: Der Schütze rechnet im Browser und schickt die Aufnahme in Häppchen.
+> **Status: auf Maincloud veröffentlicht (Datenbank `backroom-billard-3000`, Dashboard <https://spacetimedb.com/backroom-billard-3000>), vom Spiel benutzt (Anmeldung und Gesichter der anderen, siehe `_docs/multiplayer.md`).** Das Modul (TypeScript, `spacetimedb` 2.14) enthält die Tabellen und Aktionen (Reducer) nach [`_docs/multiplayer.md`](../_docs/multiplayer.md). Es rechnet **keine Physik**: Der Schütze rechnet im Browser und schickt die Aufnahme in Häppchen.
 
 Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000`** (Konto `liquid3logic`: <https://spacetimedb.com/@liquid3logic/backroom-billard-3000>); der eigene Server (nur HTML und PHP) liefert nur das Spiel. Der Browser verbindet sich direkt mit der Datenbank.
 
@@ -59,6 +59,6 @@ Die Aufrufe sind die der Schnellstart-Seite und der Dokumentation (`spacetime pu
 
 ## Noch offen
 
-- Das Spiel wird noch nicht verbunden (Rekorder, Abspieler, Anmeldung): siehe „Was dafür im Spiel zuerst nötig wäre“ in `multiplayer.md`.
+- Verbunden sind erst die Anmeldung und die Gesichter; Rekorder, Abspieler, Plätze und Tischwette fehlen noch, siehe „Was dafür im Spiel zuerst nötig wäre“ in `multiplayer.md`.
 - Die Startlage der Kugeln: `ball` hat zu Beginn alle Kugeln auf (0, 0); die echten Lagen kommen vom Client beim ersten Stoß (oder werden dort geschickt).
 - Ob die Reducer-Namen und Argumente in dieser Form bleiben, zeigt der erste Anschluss.
