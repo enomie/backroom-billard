@@ -59,3 +59,6 @@ export const SWERVE_SECONDS = 1;
 export const GROUP_BALL = 0x0001ffff;
 export const GROUP_STATIC = 0x0004ffff;
 export const GROUP_CUE = 0x00020001;
+
+/** The white ball (pocketed or shot off the table) is put back after this many seconds at the earliest, and only when all other balls lie still. */
+export const CUE_RESPAWN_DELAY = 0.6;

@@ -61,7 +61,7 @@ export default {
   "settings.rules": "Regeln",
   "rules.order": "Versenke alle Kugeln; die schwarze 8 muss zuletzt kommen. Geht sie früher ins Loch, ist das Spiel verloren.",
   "rules.foul": "Foul: Berührt der Cue zuerst eine farbige Kugel statt der weißen, ist das Spiel sofort verloren.",
-  "rules.white": "Die weiße Kugel wird nach dem Versenken neu aufgelegt.",
+  "rules.white": "Die weiße Kugel wird neu aufgelegt, wenn alle anderen Kugeln stillstehen: nach dem Versenken oder wenn sie vom Tisch geschossen wurde.",
   "rules.wait": "Kein neuer Stoß, solange die Kugeln rollen.",
   "rules.state": "Du wirst durstig und willst rauchen; der Cue schwankt, wenn du nicht ruhig bist (Trinken und Rauchen schieben die Balken). Wer betrunken ist, zielt ungenauer.",
   "radio.listening": "Du hörst gerade",

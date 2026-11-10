@@ -114,6 +114,7 @@ import {
   SWERVE_SECONDS,
   TABLE_FRICTION,
   BALL_FRICTION,
+  CUE_RESPAWN_DELAY,
 } from "./physics-constants.js";
 
 /** @type {typeof import("three")} */
@@ -168,7 +169,7 @@ let tipTouchedCueBall = false; // this stroke: the physical tip has touched the 
 let strokeContacted = false; // the tip has hit the ball; the follow-through timer may start
 let cueShotTime = 0; // seconds since the shot
 let cueRelax = 0; // 0 = aiming/strike pose, 1 = relaxed hold (linear; eased when applied)
-let cueRespawnTimer = null; // timer for re-spotting the cue ball
+let cueRespawnWait = null; // seconds since the white ball is gone (pocketed or off the table); null = it is on the table
 let lastShotTime = 0; // guard against double-triggered shots
 /** 15 object balls, all different; no. 8 stays black. The HUD uses the same colors. */
 const BALL_COLORS = [
@@ -411,10 +412,7 @@ function setupLightingAndRoom() {
 ==================================================== */
 function setupBalls() {
   physicsAwake = PHYSICS_AWAKE_STEPS; // the new balls settle on the cloth
-  if (cueRespawnTimer) {
-    clearTimeout(cueRespawnTimer);
-    cueRespawnTimer = null;
-  }
+  cueRespawnWait = null;
   balls.forEach((b) => {
     scene.remove(b.mesh);
     if (physics && b.body) physics.removeBall(b.body);
@@ -1476,16 +1474,20 @@ function onBallPocketed(b, pocketId) {
     return;
   }
 
-  // Cue ball: re-spot on a free spot after a short pause
-  cueRespawnTimer = setTimeout(() => {
-    cueRespawnTimer = null;
-    const spot = findFreeCueSpot();
-    b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
-    b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-    b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-    b.inPocket = false;
-    physicsAwake = PHYSICS_AWAKE_STEPS; // the ball settles on the cloth
-  }, 600);
+  cueRespawnWait = 0; // the white ball comes back once the other balls lie still (see stepPhysics)
+}
+
+/** The white ball is put back on a free spot (it was pocketed or shot off the table). */
+function respawnCueBall() {
+  cueRespawnWait = null;
+  const b = cueBall;
+  const spot = findFreeCueSpot();
+  b.body.setEnabled(true);
+  b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
+  b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+  b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  b.inPocket = false;
+  physicsAwake = PHYSICS_AWAKE_STEPS; // the ball settles on the cloth
 }
 
 /** A ball that starts to drop into a pocket makes the rim tick and the slide into the cup. */
@@ -1569,6 +1571,11 @@ function velocityChange(b) {
  * @param {number} frameDt — frame time in seconds
  */
 function stepPhysics(frameDt) {
+  // The white ball is gone: it returns when the other balls lie still (and the stroke is over)
+  if (cueRespawnWait !== null) {
+    cueRespawnWait += frameDt;
+    if (cueRespawnWait >= CUE_RESPAWN_DELAY && !isCueMoving && (!stroke || stroke.phase === "done") && pendingRemoval.length === 0) respawnCueBall();
+  }
   // Everything lies still: nothing can change, so the physics world is not stepped at all
   if (!stroke && !isCueMoving && pendingRemoval.length === 0 && physicsAwake <= 0) {
     physicsAcc = 0;
@@ -1645,6 +1652,16 @@ function stepPhysics(frameDt) {
     // Stray ball (jumped off the table): put it back on the table
     if (!b.inPocket && (Math.abs(b.pos.x) > 1.2 || Math.abs(b.pos.z) > 1.8 || b.pos.y < 0.5)) {
       console.warn("[Backroom Billard] ball outside the table, resetting it", b.id);
+      if (b.isCue) {
+        // The white ball left the table: it counts like a pocketed one (it comes back when the others lie still)
+        b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        b.body.setTranslation({ x: 0, y: -2, z: 0 }, true); // out of sight, below the floor
+        b.body.setEnabled(false);
+        b.inPocket = true;
+        cueRespawnWait = 0;
+        continue;
+      }
       const spot = findFreeCueSpot();
       b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
       b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);

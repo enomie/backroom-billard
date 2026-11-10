@@ -61,7 +61,7 @@ export default {
   "settings.rules": "Rules",
   "rules.order": "Pocket all the balls; the black 8 must come last. If it goes in earlier, the game is lost.",
   "rules.foul": "Foul: if the cue touches a coloured ball before the white one, the game is lost at once.",
-  "rules.white": "The white ball is put back after it is pocketed.",
+  "rules.white": "The white ball is put back when all other balls lie still, after it is pocketed or shot off the table.",
   "rules.wait": "No new shot while the balls are rolling.",
   "rules.state": "You get thirsty and want to smoke; the cue sways unless you are calm (drinking and smoking move the bars). Drunk players aim less well.",
   "radio.listening": "You are listening to",

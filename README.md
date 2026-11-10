@@ -38,7 +38,7 @@ Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: *
 Die wichtigsten Regeln stehen auch im Spiel im Einstellungs-Panel (Abschnitt „Regeln“, `rules.*` in `src/i18n`); beim Ändern einer Regel beide Stellen pflegen.
 
 - **Zustand:** Zwei Balken oben in der Mitte (Thirsty ↔ Drunk, Nerves ↔ Desire). Mit der Zeit wird man durstig und will rauchen; trinken und rauchen schieben die Marker. In der Mitte ist man ruhig, sonst schwankt der Cue (und wer betrunken ist, trifft ungenauer). Siehe `_docs/game-concept.md`.
-- Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt.
+- Versenkte Kugeln erscheinen als farbige Kreise im HUD, die weiße Kugel wird neu aufgelegt, **sobald alle anderen Kugeln stillstehen** (frühestens 0,6 s nach dem Versenken, `CUE_RESPAWN_DELAY`). Das gilt auch, wenn sie **vom Tisch geschossen** wird: Sie zählt wie versenkt und kommt erst bei Ruhe zurück (eine farbige Kugel, die vom Tisch springt, wird dagegen sofort auf einen freien Platz zurückgelegt).
 - Die **schwarze 8 muss als letzte Kugel** versenkt werden. Sonst: **Game Lost**. Danach: **Gewonnen**.
 - **Foul:** Berührt die Cue-Spitze beim Stoß **zuerst eine farbige Kugel** statt der weißen (etwa weil sie dicht hinter der weißen liegt), ist das Spiel **sofort verloren** (Game Lost, Meldung „Foul: Der Cue hat eine farbige Kugel statt der weißen getroffen.“). Berührt die Spitze die weiße Kugel zuerst oder gleichzeitig, gilt der Stoß.
 - Ein Stoß ist eine Animation: Der Cue wird zurückgezogen und schnalzt nach vorn; die Kugel bekommt ihre Geschwindigkeit durch die echte Kollision der Cue-Spitze.
