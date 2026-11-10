@@ -166,6 +166,39 @@ Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
 - **Hocker belegt:** Jeder sieht, wer sitzt (der Knopf zeigt „Klavier besetzt (Anna)“); eine Zeitgrenze für Stille gibt es nicht (nur die 10 Sekunden ohne Verbindung). Mit der Maus oder der Tastatur spielt im Mehrspieler nur, wer sitzt.
 - **Lautstärke:** dieselbe Kurve wie beim Radio (voll bis 2,5 m, danach leiser).
 
+## Aufräumliste (abdichten, noch offen)
+
+Beim Durchgehen des Moduls und des Clients gefunden. Der Stand ist **nicht** behoben, solange es hier steht.
+
+**A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“)**
+1. Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
+2. Das Aufräumen (`seatTheFirstTwo`) entfernt nur Gäste mit `connected = false`. **Vorschlag:** jeder Gast, der länger als 10 Sekunden nichts von sich hören ließ, gilt als weg (in `seatTheFirstTwo` und `check_timeouts`, für alle, nicht nur für Spieler).
+3. Beim Beitritt mit **derselben Identität** (Token im Browser) kommt man mit altem Platz und altem Spielzustand zurück; ein laufendes Spiel mit einem Geist als Gegner dauert bis zu 10 Sekunden, dann folgen Meldungen („hat nicht geantwortet“) und das Spielende. Beim Beitritt sollte ein Geist **sofort** erkannt und entfernt werden.
+4. Nach einem Neuveröffentlichen mit alten Zeilen: einmal `--delete-data` (siehe `spacetime/README.md`).
+
+**B. Eingaben prüfen (die Datenbank vertraut dem Browser)**
+5. `push_chunk`: keine Größengrenze (eine riesige Zeile füllt die Datenbank); Grenze je Häppchen und je Stoß setzen.
+6. `end_shot`: die Listen (`restIds`, `restX`, `restZ`, `pocketed`) haben keine Längen- oder Wertprüfung (Kugel 1 bis 15, gleich lange Listen, höchstens 16 Einträge, endliche Zahlen).
+7. `set_kit`, `set_aim`, `set_presence`, `take_shot`: Texte (Getränk, Marke) und Zahlen (NaN, unendlich, riesig) werden nicht geprüft.
+8. Aufrufhäufigkeit: nichts begrenzt `set_aim`, `set_presence`, `set_kit`, `play_keys`, `set_stake` (Dauerfeuer). Grenze je Gast und Sekunde.
+9. `set_profile`: der Beitritt mit gleichem Namen ist möglich (zwei „Anna M. Meier“); Anzeige bleibt eindeutig durch die Flagge, aber prüfen, ob das reicht.
+
+**C. Geld**
+10. Das Geld liegt im Browser (`set_money`): jeder kann sich beliebig viel melden, und damit Einsatz und Gebote. Ein Konto auf dem Server wäre der richtige Weg; bis dahin: obere Grenze, und `set_money` nur in kleinen Schritten.
+11. Der **Einsatz wird beim Start abgezogen und dem Sieger beim Spielende gutgeschrieben, beides im Browser**. Lädt der Sieger zwischen Spielende und Meldung neu, ist der Gewinn weg; wer mitten im Spiel neu lädt, hat den Einsatz schon gezahlt. Auf den Server verlagern (Treuhand in der Datenbank) oder zumindest das Spielende mit der Auszahlung als „offener Gewinn“ merken.
+12. Während des Einsatz-Fensters kann man Geld ausgeben (Getränk, Zigaretten): der Einsatz wird beim Start auf das Geld begrenzt, aber der Browser zieht dann gegebenenfalls zu viel ab (`wallet.spend` schlägt fehl). Prüfen.
+
+**D. Der Client**
+13. `onGameRow` ruft `tellTableNow()` ohne Prüfung auf: nach einem Verbindungsabbruch ist es `null`.
+14. Die Meldungen „X ist beigetreten / gegangen“ kommen auch für Geister (siehe A) und für jedes Neuladen eines Gastes in Folge; bündeln oder bei sehr schnellen Wechseln unterdrücken.
+15. Ein abgelehnter Aufruf (die Datenbank sagt Nein) steht nur in der Konsole. Für Einsatz, Tischwette und Hocker eine kurze Meldung im Spiel anzeigen.
+16. Stand nach einem Verbindungsabbruch mit automatischem Wiederverbinden: `roster`, Gesichter und Tabellen werden geleert, der Beitritt (`set_profile`) wird aber nicht neu gesendet; der Gast ist dann ein Geist aus seiner Sicht.
+17. `leave_table` ist im Client nicht angeschlossen (kein Knopf zum Aufstehen vom Tisch).
+
+**E. Aufräumen**
+18. Docs: der Abschnitt „Vorbereitet: das Datenbank-Modul“ in diesem Dokument sagt noch, das Spiel benutze es nicht.
+19. Prüfen, ob `winnerSeat` und `reason` nach mehreren Spielen sauber zurückgesetzt werden (Verlierer stößt zuerst).
+
 ## Vertrauen
 
 Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen schicken). Für eine Kneipenrunde unter Freunden genügt Vertrauen; die Datenbank prüft nur grob (Kugeln im Tisch, Anzahl stimmt, Ergebnis passt zur Aufnahme). Echte Absicherung wäre eine **Rechnung auf dem Server** mit derselben Physik, also dieselbe Rapier-Logik ein zweites Mal (z. B. in Rust im Modul oder in einem eigenen Node-Dienst), mit den Häppchen als Ergebnis: **gleiches Protokoll**, nur die Rechnung zieht um (das bräuchte dann doch den Stoß als reine Funktion). Das ist ein späterer Schritt.
