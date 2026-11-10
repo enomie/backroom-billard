@@ -225,6 +225,10 @@ const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fr
 /** The flight of the camera to the other view after C: from where it was, to the new view (fixed for the free camera, followed each frame for the cue camera). */
 const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
 const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
+/** The multiplayer game (null fields in single player): is one running, and is it this guest's turn. */
+const mpGame = { running: false, myTurn: false };
+let mpWantCamera = null; // "fps" / "free": the camera follows the turn (to the cue view when it is my turn, else free) until it is there
+let mpShot = null; // my shot in a multiplayer game: what happens until the balls lie still, to be reported
 let multiplayer = null; // the others: faces at their cameras (multiplayer.js)
 let faceBall = null; // a face as a ball in the room: a click throws the dice (face-ball.js)
 let radio = null; // radio on the sideboard (radio.js)
@@ -414,10 +418,7 @@ function setupLightingAndRoom() {
     scene,
     applyRoom,
     (kind, name) => roomNote(kind === "joined" ? "room.joined" : "room.left", name),
-    (firstName) => {
-      setupBalls(); // a new rack for both
-      roomNote("room.gameStart", firstName);
-    }
+    onMultiplayerGame
   );
 }
 
@@ -624,6 +625,7 @@ function poseCue(gap) {
 
 function fireCueStrike() {
   if (gameState !== "playing" || cameraMode !== "fps") return; // the free camera only observes
+  if (mpGame.running && !mpGame.myTurn) return; // the other one is up
   if (shotInProgress) return; // wait until the table is still
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
@@ -633,6 +635,11 @@ function fireCueStrike() {
   lastShotTime = now;
 
   startCueStroke();
+  if (mpGame.running) {
+    // the database is told that the shot begins; what happens is noted and reported when the balls lie still
+    mpShot = { pocketed: [], foul: false, whiteGone: false };
+    multiplayer.takeShot({ aimAngle: stroke.aimAngle, power: selectedPower, nubX: strikeNub.x, nubY: strikeNub.y, elevation: stroke.pitch, error: 0 });
+  }
 
   // The orbit center stays at the shot position until everything has come to rest (the player can still turn the camera)
   shotInProgress = true;
@@ -1063,7 +1070,7 @@ function setupControls() {
       return;
     }
     if (e.code === "KeyN" && !e.repeat) {
-      setupBalls(); // N = new rack (R is for drinking)
+      if (!mpGame.running) setupBalls(); // N = new rack (R is for drinking); in a multiplayer game the database starts the racks
       return;
     }
     if (cameraMode === "free") {
@@ -1180,11 +1187,13 @@ function setupControls() {
   smokeButton.addEventListener("pointerup", releaseSmoke);
   smokeButton.addEventListener("pointercancel", releaseSmoke);
   document.getElementById("btn-restart").addEventListener("click", () => {
+    if (mpGame.running) return;
     setupBalls();
     updateStatusDisplay(false);
   });
   settings = createSettings(
     () => {
+      if (mpGame.running) return;
       setupBalls();
       updateStatusDisplay(false);
     },
@@ -1288,6 +1297,7 @@ function renderPianoButton() {
 
 function toggleCamera() {
   if (pianoMode !== "off") return; // sitting at the piano: first get up
+  if (mpGame.running && !mpGame.myTurn && cameraMode === "free") return; // the other one is up: stay in the free camera and watch
   cameraMode = cameraMode === "fps" ? "free" : "fps";
   const free = cameraMode === "free";
   cameraFlight.from.copy(camera.position);
@@ -1408,11 +1418,13 @@ function clearPocketedHud() {
 
 /** The text key of why the game ended (see endGame). */
 let gameOverReason = "game.lost.reason";
+let gameOverParams = {};
 
 /** Show the end of the game; shots are blocked until the balls are racked again. */
-function endGame(won, lostReason = "game.lost.reason") {
-  gameState = won ? "won" : "lost";
-  gameOverReason = won ? "game.won.reason" : lostReason;
+function endGame(won, reasonKey = won ? "game.won.reason" : "game.lost.reason", params = {}, neutral = false) {
+  gameState = neutral ? "over" : won ? "won" : "lost";
+  gameOverReason = reasonKey;
+  gameOverParams = params;
   const overlay = document.getElementById("game-over");
   if (!overlay) return;
   overlay.classList.toggle("game-over--won", won);
@@ -1423,9 +1435,9 @@ function endGame(won, lostReason = "game.lost.reason") {
 /** (Re-)render the game-over texts in the current language. */
 function renderGameOver() {
   if (gameState === "playing") return;
-  const key = gameState === "won" ? "game.won" : "game.lost";
+  const key = gameState === "won" ? "game.won" : gameState === "over" ? "game.over" : "game.lost";
   document.getElementById("game-over-title").textContent = t(`${key}.title`);
-  document.getElementById("game-over-text").textContent = t(gameOverReason);
+  document.getElementById("game-over-text").textContent = t(gameOverReason, gameOverParams);
 }
 
 /** Re-render all dynamic (JS-generated) texts after a language change. */
@@ -1468,7 +1480,8 @@ function onBallPocketed(b, pocketId) {
   if (!b.isCue) {
     addPocketedToHud(b);
     pendingRemoval.push(b); // remove only after the physics step
-    if (b.id === BLACK_BALL_ID && gameState === "playing") {
+    mpShot?.pocketed.push(b.id);
+    if (b.id === BLACK_BALL_ID && gameState === "playing" && !mpGame.running) { // (in multiplayer the database decides)
       // Black 8: only allowed as the LAST ball, otherwise the game is lost
       const othersLeft = balls.some(
         (o) => !o.isCue && o.id !== BLACK_BALL_ID && !o.inPocket
@@ -1479,6 +1492,7 @@ function onBallPocketed(b, pocketId) {
   }
 
   cueRespawnWait = 0; // the white ball comes back once the other balls lie still (see stepPhysics)
+  if (mpShot) mpShot.whiteGone = true;
 }
 
 /** The white ball is put back on a free spot (it was pocketed or shot off the table). */
@@ -1635,7 +1649,11 @@ function stepPhysics(frameDt) {
         }
       });
       // The tip hit a coloured ball before it touched the white one (both in one step: the white counts): lost at once
-      if (foulBall && !tipTouchedCueBall && gameState === "playing") endGame(false, "game.foul.reason");
+      if (foulBall && !tipTouchedCueBall && gameState === "playing") {
+        if (mpGame.running) {
+          if (mpShot) mpShot.foul = true; // the database ends the game
+        } else endGame(false, "game.foul.reason");
+      }
     }
     physicsAcc -= PHYSICS_STEP;
     steps++;
@@ -1664,6 +1682,7 @@ function stepPhysics(frameDt) {
         b.body.setEnabled(false);
         b.inPocket = true;
         cueRespawnWait = 0;
+        if (mpShot) mpShot.whiteGone = true;
         continue;
       }
       const spot = findFreeCueSpot();
@@ -1732,6 +1751,7 @@ function gameLoop(currentTime) {
         shotInProgress = false;
         elevationGlide = true; // the next turn starts flat again
         stroke = null;
+        if (mpShot) reportShot();
       }
     } else {
       shotRestTimer = 0;
@@ -1808,6 +1828,10 @@ function gameLoop(currentTime) {
     renderPianoButton();
   }
   if (cameraFlight.active) applyCameraFlight(frameSeconds);
+  if (mpWantCamera) {
+    if (cameraMode === mpWantCamera) mpWantCamera = null;
+    else if (pianoMode === "off" && !cameraFlight.active) toggleCamera(); // the turn changed: to the cue view when it is mine, else free
+  }
   multiplayer?.update(frameSeconds, camera, cameraMode === "free");
 
   updateAudioListener(camera); // the ears follow the camera
@@ -1868,6 +1892,62 @@ function updateShadows(dt) {
     swayAge = 0;
     renderer.shadowMap.needsUpdate = true;
   }
+}
+
+/** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */
+function onMultiplayerGame(e) {
+  if (e.kind === "start") {
+    setupBalls(); // a new rack for both
+    hideGameOver();
+    roomNote("room.gameStart", e.firstName);
+  } else if (e.kind === "turn" || e.kind === "init") {
+    mpGame.running = true;
+    mpGame.myTurn = e.myTurn;
+    mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
+    if (e.kind === "turn" && !e.first) roomNote(e.myTurn ? "room.yourTurn" : "room.turnOf", e.turnName);
+  } else if (e.kind === "sync") {
+    applyRestState(e.balls);
+  } else if (e.kind === "over") {
+    mpGame.running = false;
+    mpGame.myTurn = false;
+    mpShot = null;
+    mpWantCamera = null;
+    endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
+  }
+}
+
+/** My shot is over: tell the database what happened and where the balls lie; it applies the rules and says who is up. */
+function reportShot() {
+  const lying = balls.filter((b) => !b.inPocket);
+  multiplayer.endShot({
+    foul: mpShot.foul,
+    whiteGone: mpShot.whiteGone,
+    pocketed: mpShot.pocketed,
+    restIds: lying.map((b) => b.id),
+    restX: lying.map((b) => b.pos.x),
+    restZ: lying.map((b) => b.pos.z),
+  });
+  mpShot = null;
+}
+
+/** The shot of another guest is over: put the balls where they lie on his table (the shot itself is not shown yet). */
+function applyRestState(rows) {
+  for (const row of rows) {
+    const b = balls.find((o) => o.id === row.id);
+    if (!b) continue;
+    if (row.pocketed) {
+      if (!b.isCue && !b.inPocket) {
+        b.inPocket = true;
+        addPocketedToHud(b);
+        removeBall(b);
+      }
+      continue;
+    }
+    b.body.setTranslation({ x: row.x, y: TABLE_H + BALL_R + 0.0005, z: row.z }, true);
+    b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+    b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+  }
+  physicsAwake = PHYSICS_AWAKE_STEPS; // the balls settle on the cloth
 }
 
 /**

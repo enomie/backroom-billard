@@ -52,9 +52,10 @@ const euler = new THREE.Euler();
  *   side) and the seat of this guest (null: a spectator). The first two guests present take the seats: the one
  *   who came first sits on the +z side.
  * @param {(kind: "joined" | "left", name: string) => void} onNote — somebody joined or left (after the first look into the room)
- * @param {(firstName: string) => void} onGameStart — the game starts (two guests sit at the table); the name of the one who shoots first
+ * @param {(event: object) => void} onGame — the game: { kind: "init" | "start" | "turn" | "sync" | "over", … }, see
+ *   onGameRow below (who is up, the end of a shot of somebody else with the balls where they lie, the result)
  */
-export function createMultiplayer(scene, onRoom, onNote, onGameStart) {
+export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let connection = null;
   let myId = ""; // the identity of this guest (hex)
   let joined = false;
@@ -176,23 +177,39 @@ export function createMultiplayer(scene, onRoom, onNote, onGameStart) {
           const e = faces.get(hex(row.identity));
           if (e) e.free = false; // away: no face (the guest stays in the list)
         });
-        // the game starts when it turns to "playing" (after the first look: a guest who comes into a running game is no start)
-        let playing = false;
-        const onGame = (row) => {
-          const now = row.state === 1;
-          if (looked && now && !playing) {
-            const first = [...roster.values()].find((p) => p.seat === row.turnSeat);
-            onGameStart(first?.name ?? "");
+        // The game: what the row says is turned into events for the game (after the first look; a guest who comes into a running game gets "init")
+        let before = { state: 0, turnSeat: 0, shotRunning: false };
+        let shooterSeat = 0; // the seat of the one whose shot is running
+        const nameOf = (seat) => [...roster.values()].find((p) => p.seat === seat)?.name ?? "";
+        const mySeat = () => roster.get(myId)?.seat ?? 0;
+        const onGameRow = (row) => {
+          const running = row.state === 1;
+          if (looked) {
+            if (running && before.state !== 1) onGame({ kind: "start", firstName: nameOf(row.turnSeat) });
+            if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat)) {
+              onGame({ kind: "turn", myTurn: row.turnSeat === mySeat(), turnName: nameOf(row.turnSeat), first: before.state !== 1 });
+            }
+            if (row.shotRunning && !before.shotRunning) shooterSeat = row.turnSeat;
+            if (before.shotRunning && !row.shotRunning && shooterSeat !== mySeat()) {
+              // the shot of another guest is over: the balls lie where his table has them
+              onGame({ kind: "sync", balls: [...conn.db.ball.iter()].map((b) => ({ id: b.id, x: b.x, z: b.z, pocketed: b.pocketed })) });
+            }
+            if (before.state === 1 && !running && row.winnerSeat > 0) {
+              const loserSeat = row.winnerSeat === 1 ? 2 : 1;
+              onGame({ kind: "over", iWon: row.winnerSeat === mySeat(), isPlayer: mySeat() > 0, winnerName: nameOf(row.winnerSeat), loserName: nameOf(loserSeat), reason: row.reason });
+            }
           }
-          playing = now;
+          before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning };
         };
-        conn.db.game.onInsert((_ctx, row) => onGame(row));
-        conn.db.game.onUpdate((_ctx, _old, row) => onGame(row));
+        conn.db.game.onInsert((_ctx, row) => onGameRow(row));
+        conn.db.game.onUpdate((_ctx, _old, row) => onGameRow(row));
         conn.subscriptionBuilder()
           .onApplied(() => {
             looked = true; // the guests that were there already are no news
+            const game = conn.db.game.id.find(1);
+            if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
@@ -211,6 +228,15 @@ export function createMultiplayer(scene, onRoom, onNote, onGameStart) {
   }
 
   return {
+    /** The shooter says that his shot begins (the database checks that he is up). */
+    takeShot(shot) {
+      call(() => connection?.reducers.takeShot(shot));
+    },
+    /** The shot is over: what happened and where the balls lie (the database applies the rules and says who is up next). */
+    endShot(result) {
+      const game = connection?.db.game.id.find(1);
+      if (game) call(() => connection.reducers.endShot({ shotSeq: game.shotSeq, ...result }));
+    },
     /**
      * Join the room with the profile of the welcome screen. Resolves when the room is set up (connected, the
      * guest is in the list), rejects if that does not work (no connection, or it takes too long).
