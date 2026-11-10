@@ -57,7 +57,7 @@ Ohne zweiten Namen entfällt der mittlere Teil.
 
 Am Anfang, **beim allerersten Besuch**, bekommt der Spieler `START_MONEY` (**15.000 $**). Der Screen zeigt den Stand oben; er sinkt **sofort** beim Auswählen (wie im Spiel: bezahlt wird bei der Wahl, nicht erst bei **Continue**; wer zurückwählt, bekommt es zurück). Beides ist **Pflicht**:
 
-- **Ein Getränk aus allen fünf** (`DRINK_MENU`, `shop-constants.js`): Bier 8 $, Rotwein 14 $, Weißwein 14 $, White Russian 16 $, Whiskey 18 $. Es ist das erste volle Glas.
+- **Ein Getränk aus allen fünf** (beim ersten Besuch und nach „Neu anfangen“ ist **Bier** schon gewählt, man kann es ändern oder abwählen) (`DRINK_MENU`, `shop-constants.js`): Bier 8 $, Rotwein 14 $, Weißwein 14 $, White Russian 16 $, Whiskey 18 $. Es ist das erste volle Glas.
 - **Eine Zigarettenpackung, entweder oder:** **Premium Blend** (schwarz/rot/gold) oder **Light Blend** (weiß/blau) (`PACK_DESIGNS`), je `PACK_PRICE` (75 $). Man muss eine nehmen, weil man ja rauchen muss; es gibt kein „keine“. Das Entweder-oder gilt nur für die Zigaretten, beim Getränk wählt man eines von allen.
 
 Die Wahl ersetzt das Glas und die Packung, die der Spieler sonst zu Beginn bekäme. Nicht bezahlbare Einträge sind grau.

@@ -12,6 +12,7 @@ import { loadProfile, saveProfile, clearProfile, PROFILE_VERSION } from "./profi
 
 const format = (amount) => "$ " + amount.toLocaleString("en-US");
 const $ = (id) => document.getElementById(id);
+const DEFAULT_DRINK = "beer";
 const CHEAPEST_DRINK = Math.min(...DRINK_MENU.map((d) => d.price));
 
 /**
@@ -24,7 +25,7 @@ export function showWelcome() {
   const required = { first: true, middle: false, last: true };
   const previous = loadProfile();
   let money = previous?.money ?? START_MONEY; // what he has before buying
-  let drink = previous?.firstDrink ?? null;
+  let drink = previous?.firstDrink ?? DEFAULT_DRINK; // a new player starts with a beer chosen (can be changed)
   let pack = previous?.firstPack ?? null;
   let country = isCountry(previous?.country) ? previous.country : DEFAULT_COUNTRY;
 
@@ -192,7 +193,7 @@ export function showWelcome() {
   $("welcome-restart-yes").addEventListener("click", () => {
     clearProfile();
     money = START_MONEY;
-    drink = null;
+    drink = DEFAULT_DRINK;
     pack = null;
     country = DEFAULT_COUNTRY;
     renderCountry();
