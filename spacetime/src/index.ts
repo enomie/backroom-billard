@@ -16,6 +16,9 @@ const GAME_PLAYING = 1;
 const GAME_STAKING = 2; // both seats are taken: the two set the stake and press Ready
 const BLACK_BALL = 8;
 const PIANO_KEY_BYTES = 11; // the 88 keys of the grand piano as bits
+const START_MONEY = 15_000; // a new account
+/** The secret key of an account: 20 characters of a 32 letter alphabet (no I, O, 0, 1), in five groups of four. The browser makes it up. */
+const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
 const RATE_WINDOW_MICROS = 1_000_000n; // a guest may call this many reducers per second (the busiest client sends about 45)
 const RATE_MAX = 100;
 const MAX_CHUNK_BYTES = 32_768; // a piece of a shot recording is about 7 kB
@@ -147,6 +150,28 @@ const spacetimedb = schema({
       sips: t.u8(),
       pack: t.u8(),
       packCount: t.u8(),
+    }
+  ),
+
+  /** The accounts of the multiplayer room (private: the key is a secret). The money, name, country and face live here, not in the browser. */
+  account: table(
+    {},
+    {
+      key: t.string().primaryKey(),
+      money: t.u32(),
+      name: t.string(),
+      country: t.string(),
+      face: t.string(),
+      createdAt: t.timestamp(),
+    }
+  ),
+
+  /** Which connection is logged in to which account (private): at most one connection per account. */
+  link: table(
+    {},
+    {
+      identity: t.identity().primaryKey(),
+      key: t.string().unique(),
     }
   ),
 
@@ -366,6 +391,47 @@ function checkProfile(name: string, country: string, face: string) {
   }
   if (face.length > 600 || !parsed || typeof parsed !== 'object') throw new SenderError('bad face');
 }
+
+/**
+ * A connection logs in to an account: at most one connection per account (a second device logs the first one out: he
+ * loses the table like a player who leaves), and the guest in the room gets name, country, face and money from the account.
+ */
+function joinAccount(ctx: Ctx, key: string) {
+  const account = ctx.db.account.key.find(key);
+  if (!account) throw new SenderError('unknown key');
+  const old = ctx.db.link.key.find(key);
+  if (old && old.identity.toHexString() !== ctx.sender.toHexString()) {
+    ctx.db.link.identity.delete(old.identity);
+    const gone = ctx.db.player.identity.find(old.identity);
+    if (gone && gone.seat !== SPECTATOR && theGame(ctx).state === GAME_PLAYING) finishGame(ctx, gone.seat === 1 ? 2 : 1, 'left');
+    if (gone) dropGuest(ctx, old.identity);
+  }
+  const own = ctx.db.link.identity.find(ctx.sender);
+  if (!own) ctx.db.link.insert({ identity: ctx.sender, key });
+  else if (own.key !== key) ctx.db.link.identity.update({ identity: ctx.sender, key }); // (the account he had before is left)
+  const row = ctx.db.player.identity.find(ctx.sender);
+  const guest = { name: account.name, country: account.country, face: account.face, money: account.money, connected: true, lastSeen: ctx.timestamp };
+  if (row) ctx.db.player.identity.update({ ...row, ...guest });
+  else ctx.db.player.insert({ identity: ctx.sender, ...guest, seat: SPECTATOR, joinedAt: ctx.timestamp });
+  sweep(ctx);
+}
+
+/** A new account: the browser makes up the key; name, country and face are checked like in set_profile. Starts with 15,000 $ and logs in. */
+export const create_account = spacetimedb.reducer({ key: t.string(), name: t.string(), country: t.string(), face: t.string() }, (ctx, { key, name, country, face }) => {
+  if (limited(ctx)) return;
+  checkProfile(name, country, face);
+  if (!KEY_PATTERN.test(key)) throw new SenderError('bad key');
+  if (ctx.db.account.key.find(key)) throw new SenderError('key taken');
+  ctx.db.account.insert({ key, money: START_MONEY, name, country, face, createdAt: ctx.timestamp });
+  joinAccount(ctx, key);
+});
+
+/** Log in to an existing account with its key (also from another device). */
+export const enter = spacetimedb.reducer({ key: t.string() }, (ctx, { key }) => {
+  if (limited(ctx)) return;
+  if (!KEY_PATTERN.test(key)) throw new SenderError('bad key');
+  joinAccount(ctx, key);
+});
 
 /** Come into the room (or change the name, the country, the face): there is one room, everybody joins it, as a spectator. */
 export const set_profile = spacetimedb.reducer(

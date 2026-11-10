@@ -23,11 +23,13 @@
 
 ## Schritte
 
-### 1. Modul: Konto, Anmeldung, Ausloggen (Tabellen und Aktionen, noch ohne Client)
+### 1. Modul: Konto, Anmeldung, Ausloggen (Tabellen und Aktionen, noch ohne Client) – **umgesetzt**
 
 - `create_account(key, name, country, face)`: prüft Form, Name, Land, Gesicht (wie `checkProfile`), legt `account` mit 15.000 $ und `link` an.
 - `enter(key)`: hängt die Identität an das Konto (`link`), setzt `player` (mit Name, Land, Gesicht und Geld **vom Konto**), wirft eine bisherige Verbindung desselben Kontos hinaus (ihr `player` und `link` verschwinden; ihr nächster Aufruf wird mit dem Fehler `logged-in-elsewhere` abgelehnt).
 - `set_profile` und `set_money` entfallen im Schritt 2 (hier noch da, damit der alte Client weiterläuft).
+- Gebaut: Schlüsselform `XXXX-XXXX-XXXX-XXXX-XXXX` (Alphabet ohne I, O, 0, 1), `create_account` und `enter` teilen `joinAccount`; wer ausgeloggt wird, verliert wie ein Spieler, der geht (`finishGame` mit „left“, wenn er am Tisch spielt), und seine Zeilen verschwinden. Der Client ruft beides noch nicht auf.
+- **Noch offen für Schritt 2:** `me()` muss prüfen, dass die Verbindung zu einem Konto gehört (`link`); wer ausgeloggt wurde, bekommt `logged-in-elsewhere`, sonst legt der Wiederbeitritt des Clients ihn neu an.
 - **Prüfen:** Typcheck (`npm run check`), Veröffentlichen **ohne** `--delete-data` (nur neue Tabellen und Aktionen), das Spiel läuft unverändert.
 
 ### 2. Modul: Geld nur noch auf dem Server (kleinere Umstellung, danach Client im selben Zug)

@@ -7,6 +7,8 @@ import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
 import CheckTimeoutsReducer from "../check_timeouts_reducer";
+import CreateAccountReducer from "../create_account_reducer";
+import EnterReducer from "../enter_reducer";
 import EndShotReducer from "../end_shot_reducer";
 import HeartbeatReducer from "../heartbeat_reducer";
 import LeavePianoReducer from "../leave_piano_reducer";
@@ -27,6 +29,8 @@ import TakeShotReducer from "../take_shot_reducer";
 import WithdrawBidReducer from "../withdraw_bid_reducer";
 
 export type CheckTimeoutsParams = __Infer<typeof CheckTimeoutsReducer>;
+export type CreateAccountParams = __Infer<typeof CreateAccountReducer>;
+export type EnterParams = __Infer<typeof EnterReducer>;
 export type EndShotParams = __Infer<typeof EndShotReducer>;
 export type HeartbeatParams = __Infer<typeof HeartbeatReducer>;
 export type LeavePianoParams = __Infer<typeof LeavePianoReducer>;

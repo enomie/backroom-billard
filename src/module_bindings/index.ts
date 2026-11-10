@@ -35,6 +35,8 @@ import {
 
 // Import all reducer arg schemas
 import CheckTimeoutsReducer from "./check_timeouts_reducer";
+import CreateAccountReducer from "./create_account_reducer";
+import EnterReducer from "./enter_reducer";
 import EndShotReducer from "./end_shot_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
 import LeavePianoReducer from "./leave_piano_reducer";
@@ -226,6 +228,8 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("check_timeouts", CheckTimeoutsReducer),
+  __reducerSchema("create_account", CreateAccountReducer),
+  __reducerSchema("enter", EnterReducer),
   __reducerSchema("end_shot", EndShotReducer),
   __reducerSchema("heartbeat", HeartbeatReducer),
   __reducerSchema("leave_piano", LeavePianoReducer),
