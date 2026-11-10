@@ -7,10 +7,10 @@ Hier gibt der Spieler seinen Namen ein und kauft gleich die ersten Dinge. Alles 
 ## Ablauf
 
 1. Startscreen: Bad Habits Games, PRESENT, Titel, **Confirm Age 18+** (wird bei jedem Besuch gefragt).
-2. **Dieser Screen** (**jedes Mal**, mit den gespeicherten Angaben vorausgefüllt): Name, Getränk, Zigaretten, **Continue**.
+2. **Dieser Screen** (**jedes Mal**, mit den gespeicherten Angaben vorausgefüllt): Name, Land, Gesicht, Getränk, Zigaretten, **Singleplayer** oder **Multiplayer**.
 3. Das Spiel (die Auswahl ist schon im Glas und in der Packung).
 
-Das Spiel lädt wie beim Startscreen im Hintergrund weiter; der Screen blendet aus, wenn **Continue** gedrückt ist und das Spiel bereit ist.
+Das Spiel lädt wie beim Startscreen im Hintergrund weiter; der Screen blendet aus, wenn **Singleplayer** oder **Multiplayer** gedrückt ist und das Spiel bereit ist (bei Multiplayer erst, wenn der Raum eingerichtet ist).
 
 ## Titel des Screens
 
@@ -32,7 +32,7 @@ Minimalistisch wie der Startscreen: Hintergrund `#1c1c1a`, zentriert, Roboto (Br
 - **Erlaubt:** nur **Buchstaben** (alle Schriften und Akzente: ä ö ü ß é ñ …, nicht nur A–Z), der **Punkt `.`** und der **Bindestrich `-`**. Alles andere (Ziffern, Leerzeichen, Sonderzeichen) wird beim Tippen gar nicht angenommen (kein Fehlertext und keine Erklärungszeile). Doppelnamen gehen also mit Bindestrich: „Anna-Lena“.
 - **Form:** Ein Bindestrich nicht am Anfang oder Ende und nicht doppelt (`--`), ein Punkt nur nach einem Buchstaben und nicht doppelt (`..`); mindestens ein Buchstabe pro ausgefülltem Feld; höchstens 24 Zeichen je Feld (Vorschlag).
 - **Groß- und Kleinschreibung:** Der erste Buchstabe jedes Namensteils (und nach einem Bindestrich) wird automatisch groß (aus „mario“ wird „Mario“), der Rest bleibt, wie getippt (damit „McDonald“ oder „de la Cruz“ nicht zerstört wird). Vorschlag, noch zu bestätigen.
-- **Enter** springt zum nächsten Feld, im letzten löst es **Continue** aus (wenn alles gültig ist).
+- **Enter** springt zum nächsten Feld, im letzten löst es **Singleplayer** aus (wenn alles gültig ist).
 
 ## Zweiter Name: voll oder nur als Initiale
 
@@ -68,9 +68,13 @@ Das Geld wird **gespeichert**: jede Ausgabe (hier und im Spiel: Getränke an der
 
 Bei jedem weiteren Besuch kauft der Spieler auf diesem Screen **wieder** sein erstes Getränk und seine erste Packung (jeder Besuch beginnt mit einem vollen Glas und einer Packung), und das kostet erneut. Das Spiel verliert damit nichts, das Geld sinkt aber mit jedem Besuch (siehe Offene Fragen: Pleite).
 
-## Continue
+## Einzelspieler oder Mehrspieler
 
-Der Knopf **Continue** ist **aktiv**, wenn Vorname und Nachname gültig sind und ein Getränk und eine Packung gewählt sind. Er ist im Stil des Startscreens: dünner gelber Rahmen. Ein Klick speichert das Profil und öffnet das Spiel.
+Statt „Continue“ gibt es **zwei Knöpfe**: **Singleplayer** (Einzelspieler) und **Multiplayer** (Mehrspieler). Beide sind **aktiv**, wenn Vorname und Nachname gültig sind und ein Getränk und eine Packung gewählt sind; Stil des Startscreens (dünner gelber Rahmen). Ein Klick speichert das Profil (mit Land und Gesicht) und startet das Spiel in dem Modus.
+
+- **Singleplayer:** **Keine Verbindung** zu SpacetimeDB, nichts wird gesendet. Am Billardtisch steht **nur ein Satz** Getränk, Zigaretten, Feuerzeug und Aschenbecher (der Platz auf der +z-Seite); der zweite Satz fehlt ganz. Die Tasten (R, T) benutzen immer diesen einen Satz, auch wenn die Kamera auf der anderen Seite steht.
+- **Multiplayer:** Der Knopf zeigt einen **Spinner**, bis der Raum eingerichtet ist (verbunden, der Gast steht in der Liste); beide Knöpfe sind solange gesperrt. Klappt es nicht (keine Verbindung, nach 15 s Zeitlimit), erscheint eine rote Meldung („Der Raum konnte nicht eingerichtet werden …“), die Knöpfe sind wieder frei, und man kann es noch einmal versuchen oder allein spielen. Beide Sätze am Tisch bleiben (die zwei Plätze, siehe `multiplayer.md`).
+- **Enter** im letzten Namensfeld löst **Singleplayer** aus (den harmlosen), wenn alles gültig ist.
 
 ## Speichern (nur im Browser)
 
@@ -106,15 +110,15 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 | `src/profile-store.js` | Lesen und Schreiben des Profils in `localStorage` (mit Speicher im Arbeitsspeicher als Ersatz), `saveMoney`, `clearProfile` |
 | `src/face.js` | Das Zufallsgesicht: Paletten, `randomFace`, `isFace` (prüft ein gespeichertes Gesicht), `faceSvg` (die Vorschau) |
 | `src/country-list.js`, `public/flags/` | Die Länder mit runder Flagge (Kürzel, deutscher und englischer Name), `countryName`, `flagUrl`, Standard Österreich |
-| `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Neu anfangen, Continue |
+| `src/welcome-screen.js` | Der Screen: Felder, Auswahl, Geld, Neu anfangen, die zwei Knöpfe |
 | `src/wallet.js` | Liest das Geld beim Start aus dem Profil und speichert jede Änderung; `setBalance` |
 | `src/entry.js` | Ablauf: Startscreen, Welcome, Spiel (das Spiel lädt im Hintergrund, danach `applyProfile` in `billard.js`) |
 | `src/glasses.js`, `src/cigarette-pack.js` | `setPlayerDrink` (das volle erste Glas auf der Seite des Spielers) und `setPlayerDesign` (die Packung; der andere Platz bekommt die andere Marke) |
 | `src/settings.js` | Zeigt im Einstellungs-Panel den Namen (voll) und das Guthaben |
 
-- **Ablauf im Code:** Der Klick auf **Confirm Age 18+** nimmt den Startscreen weg und zeigt Welcome; **Continue** speichert das Profil und wartet, bis das Spiel geladen ist; dann blendet der Screen aus und die Spieltasten gelten.
+- **Ablauf im Code:** Der Klick auf **Confirm Age 18+** nimmt den Startscreen weg und zeigt Welcome; **Singleplayer** oder **Multiplayer** speichert das Profil und wartet, bis das Spiel geladen (und bei Multiplayer der Raum eingerichtet) ist; dann blendet der Screen aus und die Spieltasten gelten.
 - **Neu anfangen:** Ein Link unten links fragt nach (Ja, neu anfangen / Abbrechen), löscht das Profil, setzt das Geld auf 15.000 $ und leert die Felder.
-- **Pleite:** Reicht das Geld nicht für ein Getränk und eine Packung (unter 83 $), steht ein roter Hinweis da, **Continue** bleibt aus, und nur „Neu anfangen“ hilft. Auswahlen, die man nicht mehr bezahlen kann, werden nicht übernommen.
+- **Pleite:** Reicht das Geld nicht für ein Getränk und eine Packung (unter 83 $), steht ein roter Hinweis da, beide Knöpfe bleiben aus, und nur „Neu anfangen“ hilft. Auswahlen, die man nicht mehr bezahlen kann, werden nicht übernommen.
 - **Einstellungs-Panel:** Es zeigt oben Name und Guthaben, scrollt innen, wenn es länger ist als der Bildschirm (der Kopf mit Titel und Kreuz bleibt stehen).
 
 ## Entschieden
@@ -131,7 +135,7 @@ Ein Eintrag in `localStorage` unter `backroom-billard.profile` (JSON):
 
 Auf diesem Screen kommen zwei Dinge dazu; beide werden wie der Name im Profil gespeichert.
 
-- **Gesicht (Facegenerator, umgesetzt, bewusst einfach):** Eine Vorschau (kleines flaches SVG, `src/face.js`) mit **einem** Knopf **Zufall**, der ein neues Gesicht würfelt. Es gibt **keinen** Bestätigungsknopf: **Das gezeigte Gesicht gilt**, **Continue** geht auch ohne zu würfeln. Beim ersten Besuch steht schon ein Zufallsgesicht da. Gewürfelt wird **aus kleinen Paletten**, nicht aus allen Farben: 8 **Hauttöne** (hell bis dunkel), 8 natürliche **Haarfarben** (schwarz, braun, rotbraun, blond, grau, weiß …) und mit 20 % Chance eine **lustige** (blau, grün, orange, pink, lila), 6 **Augenfarben**. Die **Haarfarbe gilt für Haar, Bart und Augenbrauen** zusammen. **Formen:** die **Breite** (schmal bis breit, aber nicht extrem), 6 Frisuren (von kahl bis lang), 3 Nasen, 3 Augenbrauen und der **Bart** (in 55 % der Fälle **keiner**, sonst Stoppeln, Kinnbart oder Vollbart): Die Gesichter sind für alle. Das Gesicht ist **starr** (keine Mimik). Als Kugel mit Nase und Augen schwebt es neben der Bar im Raum (`face-ball.js`, siehe [`multiplayer.md`](multiplayer.md)); die Daten (`face`) bleiben dieselben.
+- **Gesicht (Facegenerator, umgesetzt, bewusst einfach):** Eine Vorschau (kleines flaches SVG, `src/face.js`) mit **einem** Knopf **Zufall**, der ein neues Gesicht würfelt. Es gibt **keinen** Bestätigungsknopf: **Das gezeigte Gesicht gilt**, der Start geht auch ohne zu würfeln. Beim ersten Besuch steht schon ein Zufallsgesicht da. Gewürfelt wird **aus kleinen Paletten**, nicht aus allen Farben: 8 **Hauttöne** (hell bis dunkel), 8 natürliche **Haarfarben** (schwarz, braun, rotbraun, blond, grau, weiß …) und mit 20 % Chance eine **lustige** (blau, grün, orange, pink, lila), 6 **Augenfarben**. Die **Haarfarbe gilt für Haar, Bart und Augenbrauen** zusammen. **Formen:** die **Breite** (schmal bis breit, aber nicht extrem), 6 Frisuren (von kahl bis lang), 3 Nasen, 3 Augenbrauen und der **Bart** (in 55 % der Fälle **keiner**, sonst Stoppeln, Kinnbart oder Vollbart): Die Gesichter sind für alle. Das Gesicht ist **starr** (keine Mimik). Als Kugel mit Nase und Augen schwebt es neben der Bar im Raum (`face-ball.js`, siehe [`multiplayer.md`](multiplayer.md)); die Daten (`face`) bleiben dieselben.
 - **Land (umgesetzt):** Man wählt das Land, **für das man spielen will oder dem man sich zugehörig fühlt**, unabhängig von der Sprache, aus einer **Dropdown-Liste mit Suche** (Tippen filtert; Namen in der Sprache der Oberfläche, Deutsch oder Englisch). **Standard: Österreich** (`at`). Die Liste hat **nur die Länder, zu denen es eine (runde) Flagge gibt**: 42 Länder (`src/country-list.js`, Flaggen in `public/flags/{iso}.svg`, kopiert aus [`countries/`](countries/README.md), das nur Info bleibt). Mehr Länder: Flaggendatei und eine Zeile in `country-list.js`. Gesucht wird ohne Akzente und Groß-/Kleinschreibung („osterreich“ findet „Österreich“); Pfeiltasten und Enter wählen, Esc und ein Klick daneben schließen die Liste. Über dem Kopf des Spielers stehen später ein kleines Flaggen-Icon und sein Name, kompakt (siehe `multiplayer.md`).
 - Profil: `country` (Länderkürzel) und `face` (Hautfarbe, Augenfarbe, Haarfarbe, Breite, Frisur, Bart, Nase, Augenbrauen), beides umgesetzt. Die `version` bleibt 1 (sonst wären die alten Profile samt Geld weg): fehlende Felder bekommen beim Lesen Österreich beziehungsweise ein Zufallsgesicht.
 

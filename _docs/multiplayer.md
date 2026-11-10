@@ -55,12 +55,12 @@ Folgen:
 
 `src/multiplayer.js` (Werte in `multiplayer-constants.js`, Typen in `src/module_bindings/`, erzeugt mit `spacetime generate`, nicht von Hand ändern):
 
-- **Anmelden:** Nach dem Welcome-Screen verbindet sich das Spiel mit der Datenbank `backroom-billard-3000` und ruft `set_profile` (Name mit Initiale, Land, Gesicht als JSON, Geld). Das Login dieses Browsers (Token) liegt im `localStorage`, damit man beim nächsten Besuch derselbe Gast bleibt; ein privates Fenster oder ein anderer Browser ist ein neuer Gast.
+- **Anmelden (nur im Multiplayer):** Der Welcome-Screen fragt **Singleplayer oder Multiplayer**; nur der Multiplayer-Knopf verbindet sich (mit Spinner, bis der Raum eingerichtet ist), der Einzelspieler benutzt SpacetimeDB gar nicht. Die Verbindung geht mit der Datenbank `backroom-billard-3000` und ruft `set_profile` (Name mit Initiale, Land, Gesicht als JSON, Geld). Das Login dieses Browsers (Token) liegt im `localStorage`, damit man beim nächsten Besuch derselbe Gast bleibt; ein privates Fenster oder ein anderer Browser ist ein neuer Gast.
 - **Lebenszeichen und Ort:** `heartbeat` alle 2 s. In der **freien Kamera** schickt jeder alle 0,1 s Ort und Blick der Kamera (`set_presence`); wechselt er zurück zur Spielerkamera, einmal „weg“.
 - **Gesichter der anderen:** Jeder andere Gast erscheint als Gesicht (`face-ball.js`, mit Flagge und Name) **dort, wo seine freie Kamera ist**, mit seiner Blickrichtung, weich nachgeführt. Ist er in der Spielerkamera oder weg, ist sein Gesicht nicht zu sehen. Das eigene Gesicht schwebt weiter neben der Bar (nur zur Ansicht).
-- **Ohne Verbindung:** Das Spiel läuft allein weiter (Meldung in der Konsole: „no connection, playing alone“); jeder Aufruf ist abgesichert.
+- **Ohne Verbindung:** Im Multiplayer erscheint auf dem Welcome-Screen eine Meldung, und man kann es noch einmal versuchen oder allein spielen; ein Einzelspieler merkt nichts davon. Während des Spiels sind die Aufrufe abgesichert (ein Fehler beim Senden stört das Spiel nicht).
 - **Noch nicht verbunden:** die Tischwette, der Spielzustand, die Plätze, Zielen und der Stoß (Rekorder, Abspieler).
-- **Ausprobieren:** Das Spiel in zwei Fenstern öffnen (eines privat), jeweils Welcome-Screen durchlaufen, mit `C` in die freie Kamera und aufeinander zufliegen: Man sieht das Gesicht des anderen.
+- **Ausprobieren:** Das Spiel in zwei Fenstern öffnen (eines privat), jeweils den Welcome-Screen mit **Multiplayer** durchlaufen, mit `C` in die freie Kamera und aufeinander zufliegen: Man sieht das Gesicht des anderen.
 
 ## Zufall und Spielzustand
 

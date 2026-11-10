@@ -419,7 +419,9 @@ export function createGlasses(scene, taken) {
     const glass = build(drinks[i]);
     glass.group.position.set(frameX, frameTop, sz * GLASSES_FRAME_Z);
     group.add(glass.group);
-    return makePlayerGlass(glass);
+    const state = makePlayerGlass(glass);
+    state.side = i; // 0 on the −z half, 1 on the +z half of the frame
+    return state;
   });
 
   scene.add(group);
@@ -433,8 +435,16 @@ export function createGlasses(scene, taken) {
     player,
     /** The first drink of the player (the glass on his side, z > 0): a full glass of `kind`; the other glass never holds the same. */
     setPlayerDrink(kind) {
-      player[1].replace(kind);
-      if (player[0].kind === kind) player[0].replace(["wine-red", "wine-white", "beer", "whiskey", "white-russian"].find((k) => k !== kind));
+      player.find((g) => g.side === 1)?.replace(kind);
+      const other = player.find((g) => g.side === 0);
+      if (other?.kind === kind) other.replace(["wine-red", "wine-white", "beer", "whiskey", "white-russian"].find((k) => k !== kind));
+    },
+    /** Single player: the glass of the other seat (`side` 0 or 1) leaves the table. */
+    removePlayer(side) {
+      const i = player.findIndex((g) => g.side === side);
+      if (i < 0) return;
+      group.remove(player[i].group);
+      player.splice(i, 1);
     },
     update(dt) {
       liquidTime.value += dt;

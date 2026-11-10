@@ -283,6 +283,16 @@ export function createCigarettes(scene, ashtraySlots) {
     burnSteps(step) {
       return cigarettes.reduce((n, c) => n + Math.floor(c.burn / step), 0);
     },
+    /** Single player: the cigarettes in the ashtray of the other seat (`side` 0 or 1) leave the table. */
+    removeSide(side) {
+      for (let i = cigarettes.length - 1; i >= 0; i--) {
+        const c = cigarettes[i];
+        if (!c.slot.onFrame || c.slot.side !== side) continue;
+        group.remove(c.root);
+        if (c.smoke) group.remove(c.smoke);
+        cigarettes.splice(i, 1);
+      }
+    },
     /** The glowing cigarette in the ashtray of player `side` (0 or 1), or null. */
     playerCigarette(side) {
       return cigarettes.find((c) => c.slot.onFrame && c.slot.side === side && c.state === "glowing" && c.burn < 1 && !c.landed && !c.fall) ?? null;

@@ -26,7 +26,7 @@ import { createCigarettePacks } from "./cigarette-pack.js";
 import { createLighters } from "./lighter.js";
 import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
-import { createSmoking } from "./smoking.js";
+import { createSmoking, sideOf, setSoloSide } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
 import { ballTexture } from "./ball-texture.js";
@@ -1741,7 +1741,7 @@ function gameLoop(currentTime) {
   setMarker(hud.markerBody, 50 + playerState.body * 50);
   setMarker(hud.markerNicotine, 50 + playerState.nicotine * 50);
 
-  const packCount = packs.packs[camera.position.z < 0 ? 0 : 1].count;
+  const packCount = packs.packs[sideOf(camera)].count;
   if (packCount !== hud.packCount) {
     hud.packCount = packCount;
     (hud.packCountElement ??= document.getElementById("pack-count")).textContent = packCount;
@@ -1860,13 +1860,28 @@ function updateShadows(dt) {
   }
 }
 
-/** The choices of the welcome screen: the money after the purchases, the first drink and the first pack. */
-export function applyProfile(profile) {
+/**
+ * The choices of the welcome screen: the money after the purchases, the first drink and the first pack,
+ * and the mode. Multiplayer: joins the room first and waits until it is set up (rejects if it fails,
+ * then nothing has been applied). Single player: no connection at all, and only one set of glass,
+ * pack, lighter and ashtray stands at the table (the seat on the +z side).
+ * @param {import("./profile-store.js").Profile} profile
+ * @param {"single" | "multi"} mode
+ */
+export async function applyProfile(profile, mode) {
+  if (mode === "multi") await multiplayer.join(profile);
   wallet.setBalance(profile.money);
   glasses.setPlayerDrink(profile.firstDrink);
   packs.setPlayerDesign(profile.firstPack);
   faceBall.setProfile(profile);
-  multiplayer.join(profile); // the others see this guest (and he them); alone if there is no connection
+  if (mode === "single") {
+    glasses.removePlayer(0);
+    packs.remove(0);
+    lighters.remove(0);
+    ashtrays.removeFrame(0);
+    cigarettes.removeSide(0);
+    setSoloSide(1);
+  }
 }
 
 function scheduleInit() {

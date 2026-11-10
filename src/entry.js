@@ -48,17 +48,19 @@ async function boot() {
 }
 
 /**
- * The way in: the start screen (age) → the welcome screen (name, first drink and first pack) → the
- * game. The game loads in the background from the first moment; the choices of the welcome screen are
+ * The way in: the start screen (age) → the welcome screen (name, country, face, first drink and first pack, single or
+ * multiplayer) → the game. The game loads in the background from the first moment; the choices of the welcome screen are
  * handed to it when it is ready.
  */
 async function enter() {
   const game = boot();
   await waitForConfirmation();
-  const welcome = showWelcome(); // appears over the start screen
+  // the choice (single or multi) is applied to the game when it is ready; multiplayer waits for the room
+  const welcome = showWelcome(async (profile, mode) => {
+    await (await game)?.applyProfile(profile, mode);
+  }); // appears over the start screen
   removeStartScreen();
-  const profile = await welcome;
-  (await game)?.applyProfile(profile);
+  await welcome;
   introDone();
   hideWelcome();
 }

@@ -89,7 +89,7 @@ export function createAshtrays(scene) {
     m.rotation.y = rnd() * Math.PI * 2;
     m.renderOrder = 1; // after the opaque objects behind it
     group.add(m);
-    slots.push({ x, y, z, yaw: m.rotation.y, scale, onFrame, side });
+    slots.push({ x, y, z, yaw: m.rotation.y, scale, onFrame, side, mesh: m });
   };
 
   // Round tables: some have one, off to the side of the candle
@@ -112,6 +112,11 @@ export function createAshtrays(scene) {
     group,
     taken,
     slots,
+    /** Single player: the ashtray of the other seat (`side` 0 or 1) leaves the table. */
+    removeFrame(side) {
+      const slot = slots.find((s) => s.onFrame && s.side === side);
+      if (slot) group.remove(slot.mesh);
+    },
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {
       applyBallReflection(mat, reflection, { clearGlass: true });

@@ -1,8 +1,8 @@
 /**
  * The connection to the others (SpacetimeDB on Maincloud): the guest joins the room with his name,
  * country and face after the welcome screen, sends a sign of life and where his camera is, and sees the
- * faces of the others at the places of their free cameras. The game runs alone if there is no
- * connection (every call is guarded). See _docs/multiplayer.md.
+ * faces of the others at the places of their free cameras. Only used in multiplayer (the welcome screen
+ * asks): single player has no connection at all. See _docs/multiplayer.md.
  */
 import * as THREE from "three";
 import { DbConnection, tables } from "./module_bindings/index.ts";
@@ -17,6 +17,7 @@ import {
   MULTIPLAYER_HEARTBEAT_SECONDS,
   MULTIPLAYER_PRESENCE_SECONDS,
   MULTIPLAYER_FACE_FOLLOW,
+  MULTIPLAYER_JOIN_SECONDS,
 } from "./multiplayer-constants.js";
 
 const loadToken = () => {
@@ -46,7 +47,25 @@ export function createMultiplayer(scene) {
   let presenceAge = 0;
   let sentFree = null; // what the database knows about the free camera of this guest
 
+  let ready = null; // { resolve, reject, timer } while joining
   const hex = (identity) => identity.toHexString();
+  const finishJoin = (error) => {
+    if (!ready) return;
+    window.clearTimeout(ready.timer);
+    const { resolve, reject } = ready;
+    ready = null;
+    if (error) {
+      // it did not work: close what was opened, so that a new try starts from scratch
+      try {
+        connection?.disconnect();
+      } catch {
+        /* nothing to close */
+      }
+      connection = null;
+      joined = false;
+      reject(error);
+    } else resolve();
+  };
   const entry = (id) => {
     let e = faces.get(id);
     if (!e) {
@@ -66,7 +85,10 @@ export function createMultiplayer(scene) {
   /** A guest (the row of `player`): face, name, country. */
   const onPlayer = (row) => {
     const id = hex(row.identity);
-    if (id === myId) return;
+    if (id === myId) {
+      finishJoin(); // the own row is there: the room is set up
+      return;
+    }
     let face = null;
     try {
       face = JSON.parse(row.face);
@@ -120,7 +142,10 @@ export function createMultiplayer(scene) {
         sentFree = null;
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
-      .onConnectError((_ctx, error) => console.warn("[Backroom Billard] multiplayer: no connection, playing alone:", error))
+      .onConnectError((_ctx, error) => {
+        console.warn("[Backroom Billard] multiplayer: no connection:", error);
+        finishJoin(error instanceof Error ? error : new Error(String(error)));
+      })
       .onDisconnect(() => {
         joined = false;
         for (const id of [...faces.keys()]) drop(id);
@@ -129,14 +154,24 @@ export function createMultiplayer(scene) {
   }
 
   return {
-    /** Join the room with the profile of the welcome screen (once). Without a connection the game goes on alone. */
+    /**
+     * Join the room with the profile of the welcome screen. Resolves when the room is set up (connected, the
+     * guest is in the list), rejects if that does not work (no connection, or it takes too long).
+     * @returns {Promise<void>}
+     */
     join(profile) {
-      if (connection) return;
-      try {
-        connect(profile);
-      } catch (error) {
-        console.warn("[Backroom Billard] multiplayer: could not start, playing alone:", error);
-      }
+      return new Promise((resolve, reject) => {
+        if (connection) {
+          resolve(); // already in
+          return;
+        }
+        ready = { resolve, reject, timer: window.setTimeout(() => finishJoin(new Error("timeout")), MULTIPLAYER_JOIN_SECONDS * 1000) };
+        try {
+          connect(profile);
+        } catch (error) {
+          finishJoin(error);
+        }
+      });
     },
     /** Every frame: the sign of life, the place of the own camera, the faces of the others follow their cameras. */
     update(dt, camera, free) {

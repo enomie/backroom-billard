@@ -17,10 +17,13 @@ const DEFAULT_DRINK = "beer";
 const CHEAPEST_DRINK = Math.min(...DRINK_MENU.map((d) => d.price));
 
 /**
- * Show the screen; resolves with the profile when the player continues.
- * @returns {Promise<import("./profile-store.js").Profile>}
+ * Show the screen; resolves when the player has chosen Singleplayer or Multiplayer and `startGame` has finished.
+ * Multiplayer shows a spinner on its button until `startGame` is done; if it fails, a message appears and the
+ * player can try again or play alone.
+ * @param {(profile: import("./profile-store.js").Profile, mode: "single" | "multi") => Promise<void>} startGame
+ * @returns {Promise<void>}
  */
-export function showWelcome() {
+export function showWelcome(startGame) {
   const root = $("welcome");
   const fields = { first: $("welcome-first"), middle: $("welcome-middle"), last: $("welcome-last") };
   const required = { first: true, middle: false, last: true };
@@ -70,6 +73,7 @@ export function showWelcome() {
     make($("welcome-packs"), PACK_DESIGNS.map((d, i) => ({ value: i, label: d.subtitle, price: PACK_PRICE })), pack, drink ? priceOfDrink(drink) : 0, (v) => (pack = v));
   };
 
+  let busy = false; // Multiplayer is being set up
   const valid = () => Object.keys(fields).every((k) => isValidName(normalizeName(fields[k].value), required[k]));
 
   const update = () => {
@@ -77,7 +81,9 @@ export function showWelcome() {
     $("welcome-money").textContent = format(left);
     $("welcome-broke").hidden = money >= CHEAPEST_DRINK + PACK_PRICE;
     renderOptions();
-    $("welcome-continue").disabled = !(valid() && drink && pack !== null && left >= 0);
+    const ready = valid() && drink && pack !== null && left >= 0 && !busy;
+    $("welcome-single").disabled = !ready;
+    $("welcome-multi").disabled = !ready;
   };
 
   // the name: nothing but letters, "." and "-" can be typed
@@ -104,7 +110,7 @@ export function showWelcome() {
       if (e.key !== "Enter") return;
       e.preventDefault();
       if (order[i + 1]) order[i + 1].focus();
-      else if (!$("welcome-continue").disabled) $("welcome-continue").click();
+      else if (!$("welcome-single").disabled) $("welcome-single").click(); // Enter: the harmless one
     })
   );
 
@@ -225,10 +231,10 @@ export function showWelcome() {
   fields.first.focus();
 
   return new Promise((resolve) => {
-    $("welcome-continue").addEventListener("click", () => {
+    const profileNow = () => {
       const [firstName, middleName, lastName] = [fields.first, fields.middle, fields.last].map((f) => normalizeName(f.value));
       /** @type {import("./profile-store.js").Profile} */
-      const profile = {
+      return {
         version: PROFILE_VERSION,
         firstName,
         middleName,
@@ -241,10 +247,27 @@ export function showWelcome() {
         money: money - spent(),
         createdAt: previous?.createdAt ?? new Date().toISOString(),
       };
+    };
+    const go = async (mode) => {
+      const profile = profileNow();
       saveProfile(profile);
-      $("welcome-continue").disabled = true;
-      resolve(profile);
-    });
+      busy = true;
+      $("welcome-error").hidden = true;
+      $("welcome-multi").classList.toggle("is-busy", mode === "multi");
+      update();
+      try {
+        await startGame(profile, mode);
+        resolve();
+      } catch (error) {
+        console.warn("[Backroom Billard] the room could not be set up:", error);
+        busy = false;
+        $("welcome-multi").classList.remove("is-busy");
+        $("welcome-error").hidden = false;
+        update();
+      }
+    };
+    $("welcome-single").addEventListener("click", () => go("single"));
+    $("welcome-multi").addEventListener("click", () => go("multi"));
   });
 }
 

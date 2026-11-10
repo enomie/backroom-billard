@@ -151,6 +151,10 @@ export function createLighters(scene) {
   scene.add(group);
   return {
     lighters,
+    /** Single player: the lighter of the other seat (`side` 0 or 1) leaves the table. */
+    remove(side) {
+      group.remove(lighters[side].group);
+    },
     applyReflection(reflection) {
       for (const m of [...materials, steel]) {
         applyBallReflection(m, reflection);
