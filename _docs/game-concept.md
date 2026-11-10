@@ -71,7 +71,7 @@ Wie in Shootern könnte das Fadenkreuz schwanken, sodass man den **richtigen Mom
 
 - Deutsche Beschriftung der Enden (Durstig / Betrunken, Nervös / Verlangen?); die englischen Namen stehen fest.
 - Feintuning der Werte (Geschwindigkeit der Marker, Stärke der Wirkung) nach dem Spielen.
-- Tischwette: Was mit den Geboten der Nicht-Herausforderer geschieht und was der Herausforderer bei einem Sieg bekommt (Rest der Regeln: [`multiplayer.md`](multiplayer.md)).
+- Tischwette: Rest der Regeln (Gebote, Aussteigen des Siegers) in [`multiplayer.md`](multiplayer.md).
 - Wie lange dauert ein Spiel höchstens (Zeitlimit pro Stoß, Abbruch bei Inaktivität)?
 - Wie nah dürfen Zuschauer an den Tisch (Radius)?
 - Wie wird ein Spiel im Mehrspieler synchronisiert? Entworfen in [`multiplayer.md`](multiplayer.md) (aufnehmen und abspielen).
