@@ -19,7 +19,6 @@ export function createSettings(onRerack, getInfo) {
     document.getElementById("settings-money").textContent = info.money;
     open = true;
     root.hidden = false;
-    if (document.pointerLockElement) document.exitPointerLock(); // the free camera holds the mouse
     document.getElementById("settings-close").focus();
   };
   const hide = () => {

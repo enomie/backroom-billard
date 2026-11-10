@@ -1020,11 +1020,10 @@ function setupControls() {
     if (e.button === 0 && tryPianoPress(e)) return; // a key of the piano: play it, no aiming, no shot
     if (pianoMode !== "off") return; // seated at the piano: the mouse only plays
     if (cameraMode === "free") {
-      // Free camera: drag to look; a click also tries to capture the pointer
+      // Free camera: drag to look (the mouse is not captured: a click on the radio, a face or the piano uses the pointer)
       if (e.button === 0) {
         freeLookDragging = true;
         freeClickDistance = 0;
-        requestPointerLockSafe();
       }
       return;
     }
@@ -1040,20 +1039,17 @@ function setupControls() {
   function tryRadioClick(e) {
     if (!radio && !faceBall) return false;
     const rect = renderer.domElement.getBoundingClientRect();
-    // With the mouse captured (free camera) the crosshair in the screen center is the pointer
-    const ndc = document.pointerLockElement
-      ? { x: 0, y: 0 }
-      : {
-          x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          y: -(((e.clientY - rect.top) / rect.height) * 2 - 1),
-        };
+    const ndc = {
+      x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      y: -(((e.clientY - rect.top) / rect.height) * 2 - 1),
+    };
     return !!radio?.handleClick(camera, ndc) || !!faceBall?.handleClick(camera, ndc);
   }
 
-  /** The pointer in normalized device coordinates (with the mouse captured in the free camera, the crosshair in the middle). */
+  /** The pointer in normalized device coordinates. */
   function pointerNdc(e) {
     const rect = renderer.domElement.getBoundingClientRect();
-    return document.pointerLockElement ? { x: 0, y: 0 } : { x: ((e.clientX - rect.left) / rect.width) * 2 - 1, y: -(((e.clientY - rect.top) / rect.height) * 2 - 1) };
+    return { x: ((e.clientX - rect.left) / rect.width) * 2 - 1, y: -(((e.clientY - rect.top) / rect.height) * 2 - 1) };
   }
   /** A press on a piano key plays the note (true if a key was hit). */
   function tryPianoPress(e) {
@@ -1076,9 +1072,9 @@ function setupControls() {
   window.addEventListener("mousemove", (e) => {
     if (pianoMode !== "off" || cameraFlight.active) return;
     if (cameraMode === "free") {
-      // Mouse look: pointer locked (relative movement) or while dragging
-      if (freeLookDragging) freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
-      if (document.pointerLockElement || freeLookDragging) {
+      // Mouse look: only while dragging (button down)
+      if (freeLookDragging) {
+        freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
         freeYaw -= e.movementX * FREE_CAM_LOOK_SENSITIVITY;
         freePitch -= e.movementY * FREE_CAM_LOOK_SENSITIVITY;
         freePitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, freePitch));
@@ -1312,15 +1308,6 @@ let freePoseSaved = false;
 /** Currently held keys (KeyboardEvent.code) for the free camera movement. */
 const heldKeys = new Set();
 
-function requestPointerLockSafe() {
-  try {
-    const result = renderer.domElement.requestPointerLock?.();
-    if (result && typeof result.catch === "function") result.catch(() => {});
-  } catch {
-    /* pointer lock unavailable — dragging with the mouse still looks around */
-  }
-}
-
 /** Sit down at the piano (the camera flies to the stool and looks at the keys) or get up. */
 function togglePiano() {
   if (pianoMode === "on" || pianoMode === "entering") leavePiano();
@@ -1329,7 +1316,6 @@ function togglePiano() {
 
 function enterPiano() {
   if (!piano || cameraMode !== "free" || pianoMode !== "off" || !piano.isNear(camera)) return;
-  if (document.pointerLockElement) document.exitPointerLock(); // the mouse points at the keys now
   heldKeys.clear();
   pianoReturn.position.copy(camera.position);
   pianoReturn.yaw = freeYaw;
@@ -1410,12 +1396,10 @@ function toggleCamera() {
     cameraFlight.toQuat.copy(camera.quaternion);
     camera.position.copy(cameraFlight.from);
     camera.quaternion.copy(cameraFlight.fromQuat);
-    requestPointerLockSafe();
   } else {
     freeSavedPosition.copy(camera.position);
     freePoseSaved = true;
     freeLookDragging = false;
-    if (document.pointerLockElement) document.exitPointerLock();
     aimElevation = FP_CAM_DEFAULT_ELEVATION; // back at the table: flat, as at every turn
   }
 

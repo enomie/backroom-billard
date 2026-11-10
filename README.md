@@ -27,7 +27,7 @@ Beim Öffnen steht zuerst ein schlichter Startscreen auf `#1c1c1a`, zentriert: *
 | Kraft (1 bis 100, in Einerschritten, ohne %-Zeichen) | Mausrad, `W` / `S` oder Pfeil hoch/runter, vertikaler farbiger Slider rechts (auch per Touch) |
 | Stoß | Klick, `E` oder der SHOOT-Button unten in der Mitte |
 | Kamera wechseln (Spieler-Kamera ↔ freie Kamera) | `C` oder der große Knopf „C · Player/Free Camera“ unten links |
-| Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus umsehen (Klick fängt die Maus, `Esc` löst sie), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; am Handy mit einem Finger: seitlich wischen dreht, nach oben näher ran, nach unten weiter weg; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
+| Freie Kamera (nur beobachten, Start: Seitenansicht auf Tisch und Lampen) | Maus **ziehen** (Taste halten und bewegen) schaut um, die Maus wird nicht gefangen (ein Klick auf Radio, Gesicht oder Flügel nimmt die Mausposition), `WASD` bewegen, `Leertaste` hoch, `Shift` runter; am Handy mit einem Finger: seitlich wischen dreht, nach oben näher ran, nach unten weiter weg; nicht unter Tischhöhe, 1 m Abstand zu Wänden und Decke |
 | Trinken: antippen = ein Schluck, halten = Schluck für Schluck (5 pro Getränk) | `R` oder der Knopf „Drink“ unten links |
 | Leeres Glas: Getränkekarte, Klick auf ein Getränk kauft es | Maus oder Touch |
 | Neu aufbauen | `N` oder „Re-rack“ in den Einstellungen (Zahnrad oben rechts) |
