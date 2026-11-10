@@ -2,7 +2,9 @@
 import { BAR_WALL_SIDE, BAR_WALL_Z, BAR_WALL_DISTANCE, BAR_DEPTH, BAR_WIDTH } from "./bar-constants.js";
 import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
 
-export const FACE_BALL_RADIUS = 0.16;
+export const FACE_BALL_RADIUS = 0.128;
+/** The sign over the head (flag and name) always has this height on the screen (a share of the screen height), however far away or near the head is. */
+export const FACE_SIGN_SCREEN_HEIGHT = 0.035;
 /** Height of the middle of the head above the floor. */
 export const FACE_BALL_HEIGHT = 1.7;
 /** Next to the end of the bar (beyond its short side), in the middle of the bar's depth: x, y, z. */

@@ -13,6 +13,7 @@ import {
   FACE_BALL_TURN,
   FACE_BALL_RADIUS,
   FACE_BALL_CLICK_DISTANCE,
+  FACE_SIGN_SCREEN_HEIGHT,
 } from "./face-ball-constants.js";
 
 const R = FACE_BALL_RADIUS;
@@ -24,8 +25,9 @@ function makeSign() {
   canvas.height = 80;
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, fog: false }));
-  const height = R * 0.5;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, fog: false, sizeAttenuation: false }));
+  // (no size attenuation: the scale is a share of the screen, so the sign looks equally big from far and near)
+  const height = FACE_SIGN_SCREEN_HEIGHT * 0.9;
   sprite.scale.set((height * canvas.width) / canvas.height, height, 1);
   sprite.position.y = R * 1.55;
   const flag = new Image();
