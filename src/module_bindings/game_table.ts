@@ -19,5 +19,4 @@ export default __t.row({
   winnerSeat: __t.u8().name("winner_seat"),
   reason: __t.string(),
   stake: __t.u32(),
-  challenger: __t.option(__t.identity()),
 });

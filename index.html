@@ -106,6 +106,19 @@
       </div>
     </div>
 
+    <!-- The stake window (two at the table, before each game) and the table bet (spectators) -->
+    <div id="stake" class="stake" hidden>
+      <div class="stake__panel">
+        <h2 id="stake-title" class="stake__title">Set the stake</h2>
+        <p id="stake-note" class="stake__note"></p>
+        <div id="stake-rows" class="stake__rows"></div>
+        <div id="stake-steps" class="stake__steps"></div>
+        <p id="stake-agreed" class="stake__agreed"></p>
+        <button id="stake-main" type="button" class="btn btn--reset"></button>
+        <button id="stake-close" type="button" class="stake__close" data-i18n="stake.close" hidden>Close</button>
+      </div>
+    </div>
+
     <div class="hud-layer">
       <header class="hud-header">
         <div class="hud-left">
@@ -132,6 +145,7 @@
 
       <!-- The match (multiplayer, two at the table): the names and what each one pocketed -->
       <div id="match" class="match" hidden>
+        <div id="match-stake" class="match__stake" hidden></div>
         <div class="match__grid">
           <span class="match__who match__who--left"><img id="match-flag-1" class="match__flag" alt="" width="16" height="16" /><span id="match-name-1" class="match__name"></span></span>
           <span class="match__vs match__second" data-i18n="match.vs">vs</span>
@@ -144,6 +158,7 @@
           <div id="match-balls-2" class="match__side match__second"></div>
         </div>
         <div id="pocketed-balls" class="pocketed-balls" data-i18n-aria-label="pocketed.aria" aria-label="Pocketed balls"></div>
+        <button id="bet-open" type="button" class="match__bet" data-i18n="bet.open" hidden>Table bet</button>
       </div>
 
       <!-- Condition: two bars, calm in the middle (the keys R and T that move the markers: buttons at the bottom) -->

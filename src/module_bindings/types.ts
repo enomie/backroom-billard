@@ -44,7 +44,6 @@ export const Game = __t.object("Game", {
   winnerSeat: __t.u8(),
   reason: __t.string(),
   stake: __t.u32(),
-  challenger: __t.option(__t.identity()),
 });
 export type Game = __Infer<typeof Game>;
 
@@ -94,10 +93,12 @@ export const Presence = __t.object("Presence", {
 });
 export type Presence = __Infer<typeof Presence>;
 
-export const Rematch = __t.object("Rematch", {
+export const Stake = __t.object("Stake", {
   identity: __t.identity(),
+  amount: __t.u32(),
+  ready: __t.bool(),
 });
-export type Rematch = __Infer<typeof Rematch>;
+export type Stake = __Infer<typeof Stake>;
 
 export const Shot = __t.object("Shot", {
   seq: __t.u32(),

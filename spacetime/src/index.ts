@@ -8,11 +8,12 @@ import { schema, table, t, SenderError } from 'spacetimedb/server';
 
 /** Seats: 0 = spectator, 1 and 2 = the two players at the table. */
 const SPECTATOR = 0;
-const MIN_BID = 10;
-const BID_STEP = 10;
+const MIN_STAKE = 100; // the least a stake or a table bet can be (whoever has less may put in all he has)
+const STAKE_STEP = 10;
 const TIMEOUT_MICROS = 10_000_000n; // a player without a sign of life for 10 s has lost
 const GAME_WAITING = 0; // no (or one) player: nobody plays without a bid
 const GAME_PLAYING = 1;
+const GAME_STAKING = 2; // both seats are taken: the two set the stake and press Ready
 const BLACK_BALL = 8;
 
 const spacetimedb = schema({
@@ -43,8 +44,7 @@ const spacetimedb = schema({
       shotRunning: t.bool(),
       winnerSeat: t.u8(), // 0 = none yet
       reason: t.string(), // 'foul' | 'black-early' | 'black-last' | 'timeout' | 'left' | ''
-      stake: t.u32(), // the challenger's stake of this game
-      challenger: t.identity().optional(),
+      stake: t.u32(), // what each of the two put in (the winner of the game takes both); of the last game until the next one begins
     }
   ),
 
@@ -144,11 +144,13 @@ const spacetimedb = schema({
     }
   ),
 
-  /** The guests of a finished game who want to play again (when both seated players are in here, the next game begins). */
-  rematch: table(
+  /** The offers in the stake window of the two seated players, live: the stake is the smaller of the two, the game begins when both are ready. */
+  stake: table(
     { public: true },
     {
       identity: t.identity().primaryKey(),
+      amount: t.u32(),
+      ready: t.bool(),
     }
   ),
 
@@ -176,7 +178,7 @@ const me = (ctx: Ctx) => {
 const theGame = (ctx: Ctx) => {
   const found = ctx.db.game.id.find(1);
   if (found) return found;
-  const game = ctx.db.game.insert({ id: 1, state: GAME_WAITING, turnSeat: 0, shotSeq: 0, shotRunning: false, winnerSeat: 0, reason: '', stake: 0, challenger: undefined });
+  const game = ctx.db.game.insert({ id: 1, state: GAME_WAITING, turnSeat: 0, shotSeq: 0, shotRunning: false, winnerSeat: 0, reason: '', stake: 0 });
   resetBalls(ctx);
   return game;
 };
@@ -261,42 +263,90 @@ export const set_profile = spacetimedb.reducer(
 );
 
 /**
- * While no game is running, the first two guests present (in the order they came) take the two seats, the
- * first one seat 1; when both seats are taken the game starts by itself. A running game keeps its players.
+ * While no game is running: guests who are gone are taken out of the list, and free seats go to the guests present in the
+ * order they came (the first one to seat 1). Whoever sits keeps his seat. When both seats are taken the stake window opens.
+ * (With a player waiting at the table, a free seat goes to the highest table bet first: see fillEmptySeat.)
  */
 function seatTheFirstTwo(ctx: Ctx) {
   const game = theGame(ctx);
   if (game.state === GAME_PLAYING) return;
-  // guests who are gone are taken out of the list while no game runs (their seats, bids and rows go with them)
   for (const p of [...ctx.db.player.iter()]) {
     if (p.connected) continue;
     ctx.db.player.identity.delete(p.identity);
     ctx.db.bid.bidder.delete(p.identity);
-    ctx.db.rematch.identity.delete(p.identity);
+    ctx.db.stake.identity.delete(p.identity);
     ctx.db.hand.identity.delete(p.identity);
     ctx.db.kit.identity.delete(p.identity);
     ctx.db.presence.identity.delete(p.identity);
   }
-  const seatedBefore = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR && p.connected).length;
-  const present = [...ctx.db.player.iter()].filter((p) => p.connected).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
-  const seats = new Map(present.map((p, i) => [p.identity.toHexString(), i < 2 ? i + 1 : SPECTATOR]));
-  for (const p of ctx.db.player.iter()) {
-    const seat = seats.get(p.identity.toHexString()) ?? SPECTATOR;
-    if (p.seat !== seat) ctx.db.player.identity.update({ ...p, seat });
-  }
-  // fewer than two were sitting: whoever comes now is a new pairing, no "play again" is awaited
+  const seatedBefore = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR).length;
+  const free = [1, 2].filter((seat) => ![...ctx.db.player.iter()].some((p) => p.seat === seat));
+  const waiting = [...ctx.db.player.iter()].filter((p) => p.seat === SPECTATOR).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
+  free.forEach((seat, i) => {
+    if (waiting[i]) ctx.db.player.identity.update({ ...waiting[i], seat });
+  });
+  // fewer than two were sitting: whoever comes now is a new pairing, the first one to join shoots first
   if (seatedBefore < 2 && game.winnerSeat !== 0) ctx.db.game.id.update({ ...game, winnerSeat: 0, reason: '' });
-  startIfReady(ctx);
+  syncStaking(ctx);
 }
 
-/** Both seats are taken and nobody plays yet: the game begins, the first one to join shoots. */
-function startIfReady(ctx: Ctx) {
+/** Nobody plays: with two at the table the stake window is open (their offers in `stake`), otherwise the table waits. */
+function syncStaking(ctx: Ctx) {
   const game = theGame(ctx);
+  if (game.state === GAME_PLAYING) return;
   const seated = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR);
-  if (game.state === GAME_PLAYING || seated.length < 2 || game.winnerSeat !== 0) return; // (winnerSeat: a finished game waits for "play again")
-  resetBalls(ctx);
-  ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: 1, shotRunning: false, winnerSeat: 0, reason: '' });
+  const ids = new Set(seated.map((p) => p.identity.toHexString()));
+  for (const row of [...ctx.db.stake.iter()]) if (!ids.has(row.identity.toHexString())) ctx.db.stake.identity.delete(row.identity);
+  if (seated.length < 2) {
+    if (game.state === GAME_STAKING) ctx.db.game.id.update({ ...game, state: GAME_WAITING });
+    return;
+  }
+  let fresh = game.state === GAME_WAITING; // a new window: nobody is ready yet
+  for (const p of seated) {
+    const row = ctx.db.stake.identity.find(p.identity);
+    if (!row) {
+      ctx.db.stake.insert({ identity: p.identity, amount: Math.min(MIN_STAKE, p.money), ready: false });
+      fresh = true;
+    } else if (game.state === GAME_WAITING && row.amount > p.money) ctx.db.stake.identity.update({ ...row, amount: p.money }); // (the offer never stands above the money)
+  }
+  if (game.state === GAME_WAITING) ctx.db.game.id.update({ ...game, state: GAME_STAKING });
+  if (fresh) for (const row of [...ctx.db.stake.iter()]) if (row.ready) ctx.db.stake.identity.update({ ...row, ready: false });
 }
+
+/** What each of the two puts in: the smaller of the two offers (and never more than the money of either). */
+function agreedStake(ctx: Ctx) {
+  const seated = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR);
+  return Math.min(...seated.map((p) => Math.min(p.money, ctx.db.stake.identity.find(p.identity)?.amount ?? 0)));
+}
+
+/** A stake or a bet: a multiple of 10, at least 100 (or all the money, if that is less), at most the money. */
+const validAmount = (amount: number, money: number) => amount <= money && amount >= Math.min(MIN_STAKE, money) && (amount % STAKE_STEP === 0 || amount === money);
+
+/** The stake window: the own offer changes (live for the other one). When the agreed stake changes, both have to press Ready again. */
+export const set_stake = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount }) => {
+  const player = me(ctx);
+  const row = ctx.db.stake.identity.find(ctx.sender);
+  if (theGame(ctx).state !== GAME_STAKING || !row) throw new SenderError('no stake window open for you');
+  if (!validAmount(amount, player.money)) throw new SenderError(`a stake is a multiple of ${STAKE_STEP}, at least ${MIN_STAKE}, at most your money`);
+  const before = agreedStake(ctx);
+  ctx.db.stake.identity.update({ ...row, amount });
+  if (agreedStake(ctx) === before) return;
+  for (const r of [...ctx.db.stake.iter()]) if (r.ready) ctx.db.stake.identity.update({ ...r, ready: false });
+});
+
+/** Ready (or not any more): when both are ready the game begins, both stakes are in. */
+export const set_ready = spacetimedb.reducer({ ready: t.bool() }, (ctx, { ready }) => {
+  const row = ctx.db.stake.identity.find(ctx.sender);
+  if (theGame(ctx).state !== GAME_STAKING || !row) throw new SenderError('no stake window open for you');
+  ctx.db.stake.identity.update({ ...row, ready });
+  const rows = [...ctx.db.stake.iter()];
+  if (rows.length < 2 || !rows.every((r) => r.ready)) return;
+  const game = theGame(ctx);
+  resetBalls(ctx);
+  // (the clients pay their stake when the game begins, and the winner's client takes both at the end)
+  ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake: agreedStake(ctx) });
+  for (const r of rows) ctx.db.stake.identity.update({ ...r, ready: false });
+});
 
 /** A sign of life (the clients send it every 2 s). */
 export const heartbeat = spacetimedb.reducer((ctx) => {
@@ -305,29 +355,25 @@ export const heartbeat = spacetimedb.reducer((ctx) => {
   seatTheFirstTwo(ctx); // (does nothing while a game runs) heals a room that was left in a strange state
 });
 
-/** Table bet: raise the own bid (+10, +100 in the client; any multiple of 10, at least 10, at most the money). */
+/** Table bet (spectators): the own bid is set (a multiple of 10, at least 100, at most the money; all the money if that is less than 100). */
 export const place_bid = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount }) => {
   const player = me(ctx);
   if (player.seat !== SPECTATOR) throw new SenderError('only spectators bid');
-  if (amount < MIN_BID || amount % BID_STEP !== 0) throw new SenderError(`a bid is a multiple of ${BID_STEP}, at least ${MIN_BID}`);
-  if (amount > player.money) throw new SenderError('not enough money');
+  if (!validAmount(amount, player.money)) throw new SenderError(`a bid is a multiple of ${STAKE_STEP}, at least ${MIN_STAKE}, at most your money`);
   const old = ctx.db.bid.bidder.find(ctx.sender);
-  if (old && amount <= old.amount) throw new SenderError('a bid can only be raised (or withdrawn)');
   if (old) ctx.db.bid.bidder.update({ ...old, amount }); // the time of the first bid stays (first come)
   else ctx.db.bid.insert({ bidder: ctx.sender, amount, placedAt: ctx.timestamp });
   fillEmptySeat(ctx);
 });
 
-/** Withdraw the bid (not the challenger of the running game: his stake is in the game). */
+/** Withdraw the bid. */
 export const withdraw_bid = spacetimedb.reducer((ctx) => {
-  const game = theGame(ctx);
-  if (game.challenger && game.challenger.toHexString() === ctx.sender.toHexString() && game.state === GAME_PLAYING) throw new SenderError('the stake of the running game cannot be taken back');
   ctx.db.bid.bidder.delete(ctx.sender);
 });
 
 /**
- * Free seats (the table waits) go to the highest bidders, one after the other. With a player already
- * seated, the first bidder challenges him and pays his bid as the stake; with nobody seated he sits down for free.
+ * A free seat (nobody plays) goes to the highest bidder. With a player waiting at the table, the bidder challenges him: the
+ * stake window opens with the bid as his offer. With nobody seated he sits down alone.
  */
 function fillEmptySeat(ctx: Ctx) {
   for (;;) {
@@ -338,12 +384,12 @@ function fillEmptySeat(ctx: Ctx) {
     const best = topBid(ctx);
     const bidder = best && ctx.db.player.identity.find(best.bidder);
     if (!best || !bidder) return;
-    const champion = seated[0];
-    const seat = champion?.seat === 1 ? 2 : 1;
-    ctx.db.player.identity.update({ ...bidder, seat, money: bidder.money - (champion ? best.amount : 0) });
+    ctx.db.player.identity.update({ ...bidder, seat: seated[0]?.seat === 1 ? 2 : 1 });
     ctx.db.bid.bidder.delete(best.bidder);
-    if (champion) ctx.db.game.id.update({ ...game, stake: best.amount, challenger: best.bidder });
-    startIfReady(ctx);
+    const row = { identity: best.bidder, amount: Math.min(best.amount, bidder.money), ready: false };
+    if (ctx.db.stake.identity.find(best.bidder)) ctx.db.stake.identity.update(row);
+    else ctx.db.stake.insert(row);
+    syncStaking(ctx);
   }
 }
 
@@ -425,55 +471,47 @@ export const end_shot = spacetimedb.reducer(
   }
 );
 
-/** The game is over: the winner takes the stake, the loser becomes a spectator, the winner stays (waits for the next bid). */
+/**
+ * The game is over (the winner's client takes the stakes). The winner stays; the loser gives up his seat when a spectator has
+ * bet on the table, or when he left or fell silent. Otherwise both stay and the stake window opens again.
+ */
 function finishGame(ctx: Ctx, winnerSeat: number, reason: string) {
   const game = theGame(ctx);
   const players = [...ctx.db.player.iter()];
-  const winner = players.find((p) => p.seat === winnerSeat);
   const loser = players.find((p) => p.seat !== SPECTATOR && p.seat !== winnerSeat);
-  // the stake goes to the winner: the champion wins it from the challenger, a winning challenger gets his own back
-  if (winner) ctx.db.player.identity.update({ ...winner, money: winner.money + game.stake });
-  // a loser who is still here (foul, black ball) stays and may play again; one who left or was silent gives up his seat
-  if (loser && (reason === 'timeout' || reason === 'left')) ctx.db.player.identity.update({ ...loser, seat: SPECTATOR });
-  for (const r of [...ctx.db.rematch.iter()]) ctx.db.rematch.identity.delete(r.identity);
-  ctx.db.game.id.update({ ...game, state: GAME_WAITING, shotRunning: false, turnSeat: 0, winnerSeat, reason, stake: 0, challenger: undefined });
-  seatTheFirstTwo(ctx); // those who are really here take the seats (a gone player's seat is free); two of them start a game at once if none awaits "play again"
-  fillEmptySeat(ctx);
+  if (loser && (reason === 'timeout' || reason === 'left' || topBid(ctx))) ctx.db.player.identity.update({ ...loser, seat: SPECTATOR });
+  ctx.db.game.id.update({ ...game, state: GAME_WAITING, shotRunning: false, turnSeat: 0, winnerSeat, reason });
+  fillEmptySeat(ctx); // the highest bidder challenges the winner
+  seatTheFirstTwo(ctx); // anybody else present takes a free seat; two at the table open the stake window
 }
 
-/** "Play again" (the button after a game): when both seated players have pressed it, the next game begins, the loser shoots first. */
-export const play_again = spacetimedb.reducer((ctx) => {
-  const player = me(ctx);
-  const game = theGame(ctx);
-  if (game.state !== GAME_WAITING || game.winnerSeat === 0 || player.seat === SPECTATOR) throw new SenderError('no finished game to play again');
-  if (!ctx.db.rematch.identity.find(ctx.sender)) ctx.db.rematch.insert({ identity: ctx.sender });
-  const seated = [...ctx.db.player.iter()].filter((p) => p.seat !== SPECTATOR && p.connected);
-  if (seated.length < 2 || !seated.every((p) => ctx.db.rematch.identity.find(p.identity))) return; // the other one has not pressed yet
-  for (const r of [...ctx.db.rematch.iter()]) ctx.db.rematch.identity.delete(r.identity);
-  resetBalls(ctx);
-  ctx.db.game.id.update({ ...game, state: GAME_PLAYING, turnSeat: game.winnerSeat === 1 ? 2 : 1, shotRunning: false, winnerSeat: 0, reason: '', stake: 0, challenger: undefined });
-});
-
 /**
- * Anyone can call it (the clients every 2 s): a seated player without a sign of life for 10 s has lost
- * (his stake, if he was the challenger, belongs to the other one).
+ * Anyone can call it (the clients every 2 s): a seated player without a sign of life for 10 s has lost (the other one takes both
+ * stakes). In the stake window he is just taken out of the room.
  */
 export const check_timeouts = spacetimedb.reducer((ctx) => {
   const game = theGame(ctx);
-  if (game.state !== GAME_PLAYING) return;
+  if (game.state === GAME_WAITING) return;
   const now = ctx.timestamp.microsSinceUnixEpoch;
   for (const p of ctx.db.player.iter()) {
     if (p.seat === SPECTATOR || now - p.lastSeen.microsSinceUnixEpoch <= TIMEOUT_MICROS) continue;
-    finishGame(ctx, p.seat === 1 ? 2 : 1, 'timeout');
+    if (game.state === GAME_PLAYING) finishGame(ctx, p.seat === 1 ? 2 : 1, 'timeout');
+    else {
+      ctx.db.player.identity.update({ ...p, connected: false });
+      seatTheFirstTwo(ctx);
+    }
     return;
   }
 });
 
-/** A player gets up from the table: like a lost game for the challenger, simply free for the champion. */
+/** A player gets up from the table: a lost game while it runs, otherwise his seat is simply free. */
 export const leave_table = spacetimedb.reducer((ctx) => {
   const player = me(ctx);
   const game = theGame(ctx);
   if (player.seat === SPECTATOR) return;
   if (game.state === GAME_PLAYING) finishGame(ctx, player.seat === 1 ? 2 : 1, 'left');
-  else ctx.db.player.identity.update({ ...player, seat: SPECTATOR });
+  else {
+    ctx.db.player.identity.update({ ...player, seat: SPECTATOR });
+    syncStaking(ctx);
+  }
 });

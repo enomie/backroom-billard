@@ -949,6 +949,176 @@ html {
   color: #facc15;
 }
 
+/* The stake over the VS of the match panel, and the button of the spectators for the table bet */
+.match__stake {
+  margin-bottom: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--amber-300);
+}
+
+.match__stake[hidden],
+.match__bet[hidden] {
+  display: none;
+}
+
+.match__bet {
+  margin-top: 0.4rem;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid rgba(253, 230, 138, 0.55);
+  border-radius: 999px;
+  background: rgba(20, 14, 10, 0.85);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--amber-200);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.match__bet:hover {
+  background: rgba(60, 40, 20, 0.9);
+}
+
+/* The stake window (two at the table, before each game) and the table bet */
+.stake {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.stake[hidden] {
+  display: none;
+}
+
+.stake__panel {
+  width: min(21rem, calc(100vw - 2rem));
+  padding: 22px 26px;
+  text-align: center;
+  background: rgba(10, 8, 6, 0.94);
+  border: 1px solid rgba(253, 230, 138, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 0 40px rgba(250, 204, 21, 0.15);
+}
+
+.stake__title {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--amber-300);
+}
+
+.stake__note {
+  margin: 0 0 14px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stake__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 14px;
+}
+
+.stake__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  color: #d4d4d8;
+}
+
+.stake__who {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.stake__amount {
+  font-weight: 700;
+  color: var(--amber-200);
+}
+
+.stake__mark {
+  width: 1.2rem;
+  color: var(--text-muted);
+}
+
+.stake__mark.is-ready {
+  color: var(--emerald-500);
+  font-weight: 900;
+}
+
+.stake__none {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.stake__steps {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 10px;
+}
+
+.stake__step {
+  min-width: 3.4rem;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid rgba(253, 230, 138, 0.5);
+  border-radius: 8px;
+  background: rgba(40, 28, 16, 0.9);
+  font: inherit;
+  font-weight: 700;
+  color: var(--amber-200);
+  cursor: pointer;
+}
+
+.stake__step:hover {
+  background: rgba(80, 56, 24, 0.95);
+}
+
+.stake__agreed {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fde68a;
+}
+
+#stake-main.is-ready {
+  border-color: var(--emerald-500);
+  color: var(--emerald-500);
+}
+
+.stake__close {
+  display: block;
+  margin: 12px auto 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.stake__close[hidden] {
+  display: none;
+}
+
 /* Language switcher (flags) */
 .lang-switch {
   display: flex;

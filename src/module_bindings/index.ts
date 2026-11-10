@@ -39,7 +39,6 @@ import EndShotReducer from "./end_shot_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
 import LeaveTableReducer from "./leave_table_reducer";
 import PlaceBidReducer from "./place_bid_reducer";
-import PlayAgainReducer from "./play_again_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
@@ -47,6 +46,8 @@ import SetKitReducer from "./set_kit_reducer";
 import SetMoneyReducer from "./set_money_reducer";
 import SetPresenceReducer from "./set_presence_reducer";
 import SetProfileReducer from "./set_profile_reducer";
+import SetReadyReducer from "./set_ready_reducer";
+import SetStakeReducer from "./set_stake_reducer";
 import TakeShotReducer from "./take_shot_reducer";
 import WithdrawBidReducer from "./withdraw_bid_reducer";
 
@@ -62,9 +63,9 @@ import KitRow from "./kit_table";
 import PlayerRow from "./player_table";
 import PocketRow from "./pocket_table";
 import PresenceRow from "./presence_table";
-import RematchRow from "./rematch_table";
 import ShotRow from "./shot_table";
 import ShotChunkRow from "./shot_chunk_table";
+import StakeRow from "./stake_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -169,17 +170,17 @@ const tablesSchema = __schema({
       { name: 'presence_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PresenceRow),
-  rematch: __table({
-    name: 'rematch',
+  stake: __table({
+    name: 'stake',
     indexes: [
-      { accessor: 'identity', name: 'rematch_identity_idx_btree', algorithm: 'btree', columns: [
+      { accessor: 'identity', name: 'stake_identity_idx_btree', algorithm: 'btree', columns: [
         'identity',
       ] },
     ],
     constraints: [
-      { name: 'rematch_identity_key', constraint: 'unique', columns: ['identity'] },
+      { name: 'stake_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
-  }, RematchRow),
+  }, StakeRow),
   shot: __table({
     name: 'shot',
     indexes: [
@@ -214,7 +215,6 @@ const reducersSchema = __reducers(
   __reducerSchema("heartbeat", HeartbeatReducer),
   __reducerSchema("leave_table", LeaveTableReducer),
   __reducerSchema("place_bid", PlaceBidReducer),
-  __reducerSchema("play_again", PlayAgainReducer),
   __reducerSchema("push_chunk", PushChunkReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
@@ -222,6 +222,8 @@ const reducersSchema = __reducers(
   __reducerSchema("set_money", SetMoneyReducer),
   __reducerSchema("set_presence", SetPresenceReducer),
   __reducerSchema("set_profile", SetProfileReducer),
+  __reducerSchema("set_ready", SetReadyReducer),
+  __reducerSchema("set_stake", SetStakeReducer),
   __reducerSchema("take_shot", TakeShotReducer),
   __reducerSchema("withdraw_bid", WithdrawBidReducer),
 );

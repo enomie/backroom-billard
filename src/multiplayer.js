@@ -52,7 +52,7 @@ const euler = new THREE.Euler();
  *   side) and the seat of this guest (null: a spectator). The first two guests present take the seats: the one
  *   who came first sits on the +z side.
  * @param {(kind: "joined" | "left", name: string) => void} onNote — somebody joined or left (after the first look into the room)
- * @param {(event: object) => void} onGame — the game: { kind: "init" | "start" | "turn" | "sync" | "over", … }, see
+ * @param {(event: object) => void} onGame — the game: { kind: "init" | "start" | "turn" | "sync" | "over" | "table", … }, see
  *   onGameRow below (who is up, the end of a shot of somebody else with the balls where they lie, the result)
  */
 export function createMultiplayer(scene, onRoom, onNote, onGame) {
@@ -71,6 +71,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   const roster = new Map(); // identity (hex) → { name, country, money, seat, connected, joinedAt }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
+  let tellTableNow = null; // set when the connection is there: sends the stake window and the bids to the game
   const finishJoin = (error) => {
     if (!ready) return;
     window.clearTimeout(ready.timer);
@@ -118,6 +119,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       taken: [guests.some(([, p]) => p.seat === 2), guests.some(([, p]) => p.seat === 1)],
       mySide: seat === 1 ? 1 : seat === 2 ? 0 : null,
     });
+    tellTableNow?.(); // (the offers and bids carry names and money)
   };
   /** A guest (the row of `player`): face, name, country. */
   const onPlayer = (row) => {
@@ -194,14 +196,14 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
           if (e) e.pose = null; // away: the face stays where it was until the guest is gone from the list
         });
         // The game: what the row says is turned into events for the game (after the first look; a guest who comes into a running game gets "init")
-        let before = { state: 0, turnSeat: 0, shotRunning: false };
+        let before = { state: 0, turnSeat: 0, shotRunning: false, stake: 0 };
         let shooterSeat = 0; // the seat of the one whose shot is running
         const nameOf = (seat) => [...roster.values()].find((p) => p.seat === seat)?.name ?? "";
         const mySeat = () => roster.get(myId)?.seat ?? 0;
         const onGameRow = (row) => {
           const running = row.state === 1;
           if (looked) {
-            if (running && before.state !== 1) onGame({ kind: "start", firstName: nameOf(row.turnSeat) });
+            if (running && before.state !== 1) onGame({ kind: "start", firstName: nameOf(row.turnSeat), stake: row.stake, isPlayer: mySeat() > 0 });
             const shotJustEnded = before.shotRunning && !row.shotRunning;
             if (running && (before.state !== 1 || row.turnSeat !== before.turnSeat || shotJustEnded)) {
               // (also when the same one shoots again: his camera has to come back to the cue)
@@ -217,15 +219,42 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
             }
             if (before.state === 1 && !running && row.winnerSeat > 0) {
               const loserSeat = row.winnerSeat === 1 ? 2 : 1;
-              onGame({ kind: "over", iWon: row.winnerSeat === mySeat(), isPlayer: mySeat() > 0, winnerName: nameOf(row.winnerSeat), loserName: nameOf(loserSeat), reason: row.reason });
+              onGame({ kind: "over", iWon: row.winnerSeat === mySeat(), isPlayer: mySeat() > 0, winnerName: nameOf(row.winnerSeat), loserName: nameOf(loserSeat), reason: row.reason, stake: before.stake });
             }
           }
-          before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning };
+          before = { state: row.state, turnSeat: row.turnSeat, shotRunning: row.shotRunning, stake: row.stake };
+          tellTableNow();
         };
-        // somebody of the finished game wants to play again
-        conn.db.rematch.onInsert((_ctx, row) => {
-          if (looked && hex(row.identity) !== myId) onGame({ kind: "again", name: roster.get(hex(row.identity))?.name ?? "" });
-        });
+        // The stake window and the table bets: the whole picture each time something changes (offers are shown with the money of the guest as the limit)
+        const idOfSeat = (seat) => [...roster.entries()].find(([, p]) => p.seat === seat)?.[0];
+        tellTableNow = () => {
+          if (!looked) return;
+          const game = conn.db.game.id.find(1);
+          const stakes = [...conn.db.stake.iter()];
+          const offerOf = (seat) => {
+            const id = idOfSeat(seat);
+            const row = id && stakes.find((r) => hex(r.identity) === id);
+            return row ? { amount: Math.min(row.amount, roster.get(id).money), ready: row.ready } : null;
+          };
+          const offers = [offerOf(1), offerOf(2)];
+          const agreed = offers[0] && offers[1] ? Math.min(offers[0].amount, offers[1].amount) : 0;
+          const staking = game?.state === 2;
+          const bids = [...conn.db.bid.iter()]
+            .map((b) => ({ id: hex(b.bidder), name: roster.get(hex(b.bidder))?.name ?? "", amount: b.amount, placedAt: b.placedAt.microsSinceUnixEpoch }))
+            .sort((a, b) => b.amount - a.amount || Number(a.placedAt - b.placedAt));
+          onGame({
+            kind: "table",
+            staking,
+            offers, // by seat: [seat 1, seat 2], each { amount, ready } or null
+            stake: staking ? agreed : game?.state === 1 ? game.stake : 0, // what each puts in: agreed now, or of the running game
+            bids: bids.map((b) => ({ name: b.name, amount: b.amount, mine: b.id === myId })),
+          });
+        };
+        for (const table of [conn.db.stake, conn.db.bid]) {
+          table.onInsert(() => tellTableNow());
+          table.onUpdate(() => tellTableNow());
+          table.onDelete(() => tellTableNow());
+        }
         // the aim of the one who is up (the cue moves for the others) and the pieces of the recording of his shot
         const onAim = (row) => {
           if (looked && row.seat === before.turnSeat && row.seat !== mySeat()) onGame({ kind: "aim", angle: row.angle, pitch: row.elevation, x: row.nubX, y: row.nubY });
@@ -262,10 +291,11 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
         conn.subscriptionBuilder()
           .onApplied(() => {
             looked = true; // the guests that were there already are no news
+            tellTableNow();
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat, turnName: nameOf(game.turnSeat) });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.rematch, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid]);
         call(() => conn.reducers.setProfile(args)); // `joined` becomes true when the own row is there (see onPlayer)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -276,6 +306,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
       .onDisconnect(() => {
         joined = false;
         looked = false;
+        tellTableNow = null;
         roster.clear();
         for (const id of [...faces.keys()]) drop(id);
       })
@@ -330,9 +361,20 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     pushChunk(index, data, shotSeq) {
       call(() => connection?.reducers.pushChunk({ shotSeq, index, data }));
     },
-    /** "Play again": the next game begins when both players have pressed it. */
-    playAgain() {
-      call(() => connection?.reducers.playAgain());
+    /** The stake window: my offer (the stake is the smaller of the two offers). */
+    setStake(amount) {
+      call(() => connection?.reducers.setStake({ amount }));
+    },
+    /** The stake window: Ready (or not any more); the game begins when both are ready. */
+    setReady(ready) {
+      call(() => connection?.reducers.setReady({ ready }));
+    },
+    /** Table bet of a spectator: the highest bid challenges the winner. */
+    placeBid(amount) {
+      call(() => connection?.reducers.placeBid({ amount }));
+    },
+    withdrawBid() {
+      call(() => connection?.reducers.withdrawBid());
     },
     /** The shot is over: what happened and where the balls lie (the database applies the rules and says who is up next). */
     endShot(result, shotSeq) {

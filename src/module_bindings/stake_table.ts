@@ -12,4 +12,6 @@ import {
 
 export default __t.row({
   identity: __t.identity().primaryKey(),
+  amount: __t.u32(),
+  ready: __t.bool(),
 });

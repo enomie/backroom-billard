@@ -39,6 +39,7 @@ import { createPiano } from "./piano.js";
 import { createPlayerState } from "./player-state.js";
 import { SWAY_PITCH_OFFSET } from "./player-constants.js";
 import { createWallet } from "./wallet.js";
+import { createStakeWindow } from "./stake-window.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
@@ -217,6 +218,7 @@ let exhale = null; // exhaled smoke cloud (exhale.js)
 let packs = null; // the cigarette packs (cigarette-pack.js)
 let lighters = null; // the two lighters (lighter.js)
 let wallet = null; // the player's money (wallet.js)
+let stakeWindow = null; // the stake window and the table bet (stake-window.js)
 let drinkMenu = null; // the drinks popover (drink-menu.js)
 let settings = null; // the settings overlay (settings.js)
 let drinking = null; // sips from the player glasses with the R key (drinking.js)
@@ -351,6 +353,7 @@ function init() {
   wallet = createWallet((balance) => {
     myBalance = balance;
     renderMatch();
+    tellStakeWindow();
     multiplayer?.setMoney(balance); // (the others see it under my name)
   });
   smoking = createSmoking(cigarettes, exhale, lighters, packs, wallet, (dt) => playerState.drag(dt));
@@ -444,6 +447,12 @@ function setupLightingAndRoom() {
     onMultiplayerGame
   );
   recorder = createShotRecorder((index, bytes) => multiplayer.pushChunk(index, bytes, mpShot?.seq));
+  stakeWindow = createStakeWindow({
+    onStake: (amount) => multiplayer.setStake(amount),
+    onReady: (ready) => multiplayer.setReady(ready),
+    onBid: (amount) => multiplayer.placeBid(amount),
+    onWithdraw: () => multiplayer.withdrawBid(),
+  });
 }
 
 /* ====================================================
@@ -658,6 +667,7 @@ function poseCue(gap, relax = cueRelax, view = camera) {
 function fireCueStrike() {
   if (gameState !== "playing" || cameraMode !== "fps") return; // the free camera only observes
   if (mpGame.running && !mpGame.myTurn) return; // the other one is up
+  if (stakeWindow.open) return; // the stake is being set
   if (shotInProgress) return; // wait until the table is still
   if (!cueBall || cueBall.inPocket || cueBall.pos.y < TABLE_H - 0.01) return;
 
@@ -1271,9 +1281,8 @@ function setupControls() {
   smokeButton.addEventListener("pointercancel", releaseSmoke);
   const againButton = document.getElementById("game-over-again");
   againButton.addEventListener("click", () => {
-    multiplayer.playAgain();
-    againButton.disabled = true;
-    againButton.textContent = t("game.again.waiting");
+    hideGameOver(); // the stake window is behind it
+    stakeWindow.setBlocked(false);
   });
   document.getElementById("btn-restart").addEventListener("click", () => {
     if (mpGame.running) return;
@@ -1534,6 +1543,7 @@ function endGame(won, reasonKey = won ? "game.won.reason" : "game.lost.reason", 
   overlay.classList.toggle("game-over--won", won);
   renderGameOver();
   overlay.hidden = false;
+  stakeWindow?.setBlocked(true); // (the stake window for the next game waits behind it)
 }
 
 /** (Re-)render the game-over texts in the current language. */
@@ -1559,6 +1569,7 @@ function renderDynamicTexts() {
 onLanguageChange(renderDynamicTexts);
 
 function hideGameOver() {
+  stakeWindow?.setBlocked(false);
   document.getElementById("btn-restart").hidden = false;
   document.getElementById("game-over-again").hidden = true;
   gameState = "playing";
@@ -2103,6 +2114,7 @@ let matchMe = { name: "", country: "" }; // this guest (from his profile)
 let myBalance = 0; // his money (the wallet tells)
 let matchNames = [{ name: "", country: "", money: 0 }, { name: "", country: "", money: 0 }]; // the two seats (from the database)
 let matchPockets = []; // [{ ball, seat }]
+let matchTable = { staking: false, offers: [null, null], stake: 0, bids: [] }; // the stake window and the bids (from the database)
 const money = (amount) => "$ " + amount.toLocaleString("en-US");
 function renderMatch() {
   const panel = document.getElementById("match");
@@ -2113,6 +2125,9 @@ function renderMatch() {
   panel.classList.toggle("match--single", matchMode === "single");
   panel.classList.toggle("match--two", two);
   document.getElementById("pocketed-balls").hidden = two; // (the common list for one player; two have one each)
+  const stake = document.getElementById("match-stake");
+  stake.hidden = !(two && matchTable.stake > 0);
+  stake.textContent = t("match.stake", { amount: money(matchTable.stake) }); // (over the VS)
   // who stands where: (name, country, money) of the left and of the right one
   const mySeat = mySideNow === 1 ? 1 : mySideNow === 0 ? 2 : 0;
   const entry = (seat) => ({ ...matchNames[seat - 1], money: seat === mySeat ? myBalance : matchNames[seat - 1].money });
@@ -2156,6 +2171,14 @@ function onMultiplayerGame(e) {
     watchedShot = true; // I have seen a game being played (not only found its remains)
     return;
   }
+  if (e.kind === "table") {
+    matchTable = e;
+    // a stake window opens for me while a game-over panel without "Play again" is up (a new opponent came): the panel gives way
+    if (e.staking && mySideNow !== null && document.getElementById("game-over-again").hidden) hideGameOver();
+    tellStakeWindow();
+    renderMatch();
+    return;
+  }
   if (e.kind === "pockets") {
     matchPockets = e.rows;
     renderMatch();
@@ -2185,6 +2208,7 @@ function onMultiplayerGame(e) {
   }
   if (e.kind === "start") {
     setupBalls(); // a new rack for both
+    if (e.isPlayer && e.stake > 0) wallet.spend(e.stake); // my stake goes in (the winner takes both)
     watchedShot = false;
     remoteCue.active = false;
     hideGameOver();
@@ -2198,11 +2222,10 @@ function onMultiplayerGame(e) {
     else Object.assign(remoteCue, { relax: 0, place: null }); // his cue is at the ball again (his aim comes next)
     mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
     if (e.kind === "turn" && e.changed && !e.first) roomNote(e.myTurn ? "room.yourTurn" : "room.turnOf", e.turnName);
-  } else if (e.kind === "again") {
-    roomNote("room.wantsAgain", e.name);
   } else if (e.kind === "sync") {
     applyRestState(e.balls);
   } else if (e.kind === "over") {
+    if (e.isPlayer && e.iWon && e.stake > 0) wallet.setBalance(wallet.balance + 2 * e.stake); // both stakes
     mpGame.running = false;
     mpGame.myTurn = false;
     remoteCue.active = false;
@@ -2210,14 +2233,12 @@ function onMultiplayerGame(e) {
     mpWantCamera = null;
     if (!e.isPlayer && !watchedShot) return; // a game I never saw (found at my arrival, ended by the cleaning up): no news
     endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
-    // multiplayer: the two players can play again (both must press it); a spectator, or a player whose partner is gone,
+    // multiplayer: the two players go on to the stake window for the next game; a spectator, or a player whose partner is gone,
     // can only start a practice rack (Re-rack: he plays alone until somebody comes)
     const together = e.isPlayer && e.reason !== "timeout" && e.reason !== "left";
     document.getElementById("btn-restart").hidden = together;
     const again = document.getElementById("game-over-again");
     again.hidden = !together;
-    again.disabled = false;
-    again.textContent = t("game.again");
   }
 }
 
@@ -2365,11 +2386,20 @@ function applyKit(seat, kit) {
   packs.setSeatPack(side, kit.pack, kit.packCount);
 }
 
+/** What the stake window needs to know: my seat and money, the two at the table. */
+function tellStakeWindow() {
+  if (!stakeWindow) return;
+  const seat = mySideNow === 1 ? 1 : mySideNow === 0 ? 2 : 0;
+  stakeWindow.setMe({ seat, balance: myBalance, players: matchNames });
+  stakeWindow.setTable(matchTable);
+}
+
 /** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */
 function applyRoom(room) {
   matchNames = room.players;
   applySeats(room.taken, room.mySide);
   renderMatch();
+  tellStakeWindow();
   if (room.others === 0 && gameState !== "playing" && !mpGame.running) {
     // alone after a game: nobody to play again with, so the way to a practice rack is open
     document.getElementById("btn-restart").hidden = false;
