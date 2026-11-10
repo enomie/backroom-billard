@@ -242,6 +242,7 @@ const remoteCue = { active: false, angle: 0, pitch: 0, x: 0, y: 0, gap: CUE_AIM_
 const remoteView = new THREE.Object3D(); // the head of the one who is up (where his camera is): his cue is carried relative to it
 const remoteAim = { angle: 0, pitch: 0, x: 0, y: 0 }; // where the aim is going (the cue follows smoothly)
 const replay = createShotReplay(); // the shot of the other one, played back a little later
+let watchedShot = false; // a spectator has seen a shot of this game (so the end of it is news to him)
 let queuedEvents = []; // events (shot result, turn, end) that wait until the replay of the last shot is over
 let recorder = null; // writes down my shot for the others
 let aimAge = 0;
@@ -2113,6 +2114,7 @@ function onMultiplayerGame(e) {
   }
   if (e.kind === "shotStart") {
     replay.begin();
+    watchedShot = true; // I have seen a game being played (not only found its remains)
     return;
   }
   if (e.kind === "kit") {
@@ -2139,6 +2141,7 @@ function onMultiplayerGame(e) {
   }
   if (e.kind === "start") {
     setupBalls(); // a new rack for both
+    watchedShot = false;
     remoteCue.active = false;
     hideGameOver();
     roomNote("room.gameStart", e.firstName);
@@ -2160,6 +2163,7 @@ function onMultiplayerGame(e) {
     remoteCue.active = false;
     mpShot = null;
     mpWantCamera = null;
+    if (!e.isPlayer && !watchedShot) return; // a game I never saw (found at my arrival, ended by the cleaning up): no news
     endGame(e.iWon, `game.mp.${e.reason}`, { winner: e.winnerName, loser: e.loserName }, !e.isPlayer);
     // multiplayer: the two players can play again (both must press it); a spectator, or a player whose partner is gone,
     // can only start a practice rack (Re-rack: he plays alone until somebody comes)

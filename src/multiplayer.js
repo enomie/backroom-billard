@@ -67,7 +67,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   let lastHand = "false/false"; // what the database knows about my hands
   let lastKit = ""; // and about my drink and cigarettes
   const kits = new Map(); // identity (hex) → the last kit row of a guest
-  const roster = new Map(); // identity (hex) → { name, seat, connected }: who is in the room
+  const roster = new Map(); // identity (hex) → { name, seat, connected, joinedAt }: who is in the room
   let looked = false; // the first look into the room is done: from now on a new face is news
   const hex = (identity) => identity.toHexString();
   const finishJoin = (error) => {
@@ -117,8 +117,13 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
   const onPlayer = (row) => {
     const id = hex(row.identity);
     const before = roster.get(id);
-    roster.set(id, { name: row.name, seat: row.seat, connected: row.connected });
-    if (looked && id !== myId && (!before || before.connected !== row.connected)) onNote(row.connected ? "joined" : "left", row.name);
+    const joinedAt = row.joinedAt.microsSinceUnixEpoch;
+    roster.set(id, { name: row.name, seat: row.seat, connected: row.connected, joinedAt });
+    // news only about what happens after I am in the room: a guest who came after me, or who goes (not those who were here before me)
+    if (joined && looked && id !== myId && (!before || before.connected !== row.connected)) {
+      if (!row.connected) onNote("left", row.name);
+      else if (joinedAt >= (roster.get(myId)?.joinedAt ?? 0n)) onNote("joined", row.name);
+    }
     if (joined || id === myId) tellRoom();
     if (id !== myId && row.seat > 0 && row.seat !== before?.seat && kits.has(id)) {
       const k = kits.get(id); // he sat down: what stands at his seat

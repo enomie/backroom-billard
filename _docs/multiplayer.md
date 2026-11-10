@@ -80,6 +80,8 @@ Es gibt **einen** Raum für alle Besucher und **einen** Tisch. **Jeder kommt zue
 
 Dafür fehlen im Modul noch Aktionen wie `sit_down` (Platz nehmen) und `stand_up` (aufstehen) und die Anzeige im Spiel (Knöpfe, Liste, Hinweis).
 
+Meldungen gibt es nur über das, was **nach** dem eigenen Beitritt geschieht: Wer schon vor dir da war, löst keine „joined“-Meldung aus, und das Ende eines Spiels, das du nie gesehen hast (Reste, die beim Aufräumen enden), wird einem Zuschauer nicht gemeldet (nur den zwei Spielern und Zuschauern, die einen Stoß gesehen haben).
+
 ## Gesicht als Kugel im Raum (als Vorschau umgesetzt)
 
 `src/face-ball.js` baut das Gesicht aus denselben Daten wie die Vorschau auf dem Welcome-Screen (`face.js`) als Kugel (Kopf, Nase, Augen, Augenbrauen, Frisur, Bart; schmal bis breit) und darüber das Schild mit Flaggen-Icon und Name mit Initiale. Der Kopf hat einen Radius von 12,8 cm (`FACE_BALL_RADIUS`). Das **Schild** über dem Kopf (Flagge und Name) hat **immer dieselbe Größe auf dem Bildschirm**, egal wie nah oder weit der Kopf ist (`FACE_SIGN_SCREEN_HEIGHT`, 3,5 % der Bildhöhe). Heute **schwebt ein Gesicht neben dem Ende der Bar** (Kopfmitte auf 1,70 m, `FACE_BALL_*` in `face-ball-constants.js`, schaut in den Raum), zeigt nach dem Welcome-Screen das **eigene** Gesicht mit Name und Land, und ein **Klick** darauf (wie beim Radioknopf, in der freien Kamera mit dem Fadenkreuz) würfelt ein **neues Zufallsgesicht** (nur zur Ansicht, das Profil bleibt). Im Mehrspieler entsteht daraus pro Spieler ein solches Gesicht an der Stelle der freien Kamera.
