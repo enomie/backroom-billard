@@ -51,12 +51,18 @@ Folgen:
 
 Es gibt **einen** Raum für alle Besucher und **einen** Tisch. **Jeder kommt zuerst als Zuschauer** (geht herum, sieht die Gesichter der anderen, kann trinken, rauchen, Klavier spielen, Radio hören); niemand wird automatisch an den Tisch gesetzt (so ist es im Modul umgesetzt: `set_profile` setzt keinen Platz).
 
-> **Vorschlag, noch zu bestätigen** (die Regeln der Tischwette weiter unten bleiben die Grundlage):
+> **Vorschlag, noch zu bestätigen:** Die Tischwette ist **die Herausforderung**: Wer spielen will, fragt den Sitzenden und legt dabei seinen Einsatz.
 
-1. **Der erste Besucher** ist allein. Er kann sich **an den Tisch setzen** („Platz nehmen“): Dann ist er der **Platzhalter** (Platz 1), setzt nichts ein, kann **allein üben** (seine Stöße sehen die Zuschauer) und wartet auf einen Herausforderer. Wer sich nicht setzt, bleibt Zuschauer.
-2. **Der zweite Besucher** kommt ebenfalls als Zuschauer. Er sieht das Gesicht des ersten (und in einer Liste, wer im Raum ist und wer am Tisch sitzt). **Will er spielen**, legt er eine **Tischwette** (+10 / +100, mindestens 10): Er ist damit der **Herausforderer** des Platzhalters. Das Spiel beginnt nach kurzem Hinweis („Spiel beginnt in 5 s“); der Platzhalter kann in dieser Zeit aufstehen (dann kein Spiel, das Gebot geht zurück).
-3. **Ist der Tisch leer** und zwei Zuschauer wollen spielen, entscheiden die Gebote: der **Höchstbietende setzt sich ohne Einsatz** auf den Platz, der **zweithöchste fordert ihn** mit seinem Gebot (dieselbe Regel wie beim Aufhören des Siegers).
-4. **Alle weiteren Besucher** bleiben Zuschauer und können bieten; ihre Gebote bleiben stehen (siehe „Entschieden“).
+**Der Tisch hat drei Zustände:** leer, **einer sitzt allein** (er übt), **Spiel läuft** (zwei sitzen).
+
+1. **Erster Besucher:** Er ist allein im Raum, Zuschauer, der Tisch ist leer. Er kann sich **an den Tisch setzen** („Platz nehmen“) und **allein üben**: Seine Stöße sehen alle, die später kommen. Er ist der **Platzhalter**.
+2. **Zweiter Besucher:** Er kommt als Zuschauer, sieht das Gesicht des ersten und am Tisch, dass einer sitzt. Will er spielen, drückt er **Herausfordern** und wählt den **Einsatz** (+10 / +100, mindestens 10; das ist seine Tischwette). Der Platzhalter bekommt eine **Anfrage**: „Anna fordert dich heraus, Einsatz 50 $: Annehmen / Ablehnen“.
+   - **Annehmen:** Das Spiel beginnt (der Platzhalter stößt zuerst). Der Einsatz des Herausforderers liegt im Spiel.
+   - **Ablehnen** oder **keine Antwort in 15 s:** kein Spiel, das Gebot geht zurück; der Herausforderer bleibt Zuschauer (und kann es erneut versuchen).
+3. **Läuft schon ein Spiel:** Zuschauer **bieten** (ihre Gebote bleiben stehen). Nach dem Spiel bleibt der Sieger sitzen, und der **Höchstbietende** wird sein Herausforderer (Anfrage wie in 2; lehnt der Sieger ab oder steht auf, ist der Tisch frei).
+4. **Ist der Tisch leer**, und zwei Zuschauer wollen spielen: wer sich zuerst setzt, ist der Platzhalter, der andere fordert ihn heraus (wie in 2).
+
+**Satz am Tisch (Getränk, Zigaretten, Feuerzeug, Aschenbecher):** Ein Satz gehört zu einem Platz und steht nur da, **solange der Platz besetzt ist** (heute stehen im Multiplayer immer beide Sätze: das wird so geändert). Offen: Wo sind Getränk und Zigaretten eines **Zuschauers**? (siehe Offene Fragen)
 
 Dafür fehlen im Modul noch Aktionen wie `sit_down` (Platz nehmen) und `stand_up` (aufstehen) und die Anzeige im Spiel (Knöpfe, Liste, Hinweis).
 
@@ -126,6 +132,9 @@ Der Schütze rechnet selbst, also **könnte er schummeln** (falsche Häppchen sc
 Das SpacetimeDB-Modul liegt in [`spacetime/`](../spacetime/README.md) (TypeScript, `spacetimedb` 2.14; prüft mit `npm run check`): die Tabellen (Spieler, Spiel, Kugeln, Stoß, Häppchen, Zielen, Gebote) und die Aktionen mit den hier festgelegten Regeln (Foul, schwarze 8, Spielerwechsel, Tischwette, 10-s-Frist). Die Datenbank auf Maincloud heißt **`backroom-billard-3000`** (Konto `liquid3logic`). Das Modul ist **auf Maincloud veröffentlicht** (Dashboard: <https://spacetimedb.com/backroom-billard-3000>; wer es ändert, veröffentlicht es mit den Schritten in `spacetime/README.md` neu), das Spiel benutzt es **noch nicht**.
 
 ## Offene Fragen
+
+- **Zuschauer und ihre Sachen:** Die ersten Getränke und Zigaretten werden auf dem Welcome-Screen gekauft. Steht der Satz nur am Platz, hat ein Zuschauer nichts zum Trinken und Rauchen. Vorschlag: Jeder Gast hat **seinen eigenen Satz in der Hand** (das Glas erscheint beim Trinken in der Hand und löst sich danach auf, die Zigarette ebenso), am Tisch stehen die Sachen der Sitzenden. Oder: Zuschauer bekommen einen kleinen **Beistelltisch** (an der Bar?).
+- **Die Anfrage:** Muss der Platzhalter immer annehmen können (Vorschlag: ja), oder nimmt der Höchstbietende automatisch den Platz (wie bisher beschlossen)?
 
 Keine zum Regelwerk. Für den Bau stehen noch die Schritte unter „Was dafür im Spiel zuerst nötig wäre“ an (Rekorder, Abspieler, dann SpacetimeDB).
 
