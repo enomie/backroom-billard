@@ -420,6 +420,7 @@ function setupLightingAndRoom() {
   createBarLamps(scene);
   createBackbar(scene, bottles);
   if (debugFlag("face")) faceBall = createFaceBall(scene);
+  if (debugFlag("chat")) faceBall?.setMessage("This is a long sample message of ninety characters at most, to see how the bubble breaks it into lines. And a word: Donaudampfschifffahrtsgesellschaft!");
   multiplayer = createMultiplayer(
     scene,
     applyRoom,

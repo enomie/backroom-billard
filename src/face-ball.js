@@ -13,15 +13,24 @@ import {
   FACE_BALL_RADIUS,
   FACE_BALL_CLICK_DISTANCE,
   FACE_SIGN_SCREEN_HEIGHT,
+  FACE_BUBBLE_MAX_LINES,
+  FACE_BUBBLE_FONT_PX,
+  FACE_BUBBLE_LINE_PX,
+  FACE_BUBBLE_PADDING_PX,
+  FACE_BUBBLE_CANVAS_WIDTH,
+  FACE_BUBBLE_CANVAS_HEIGHT,
+  FACE_BUBBLE_GAP,
 } from "./face-ball-constants.js";
 
 const R = FACE_BALL_RADIUS;
+const SIGN_CANVAS_HEIGHT = 80; // (see makeSign)
+const SIGN_BOX_HEIGHT = 64; // the drawn pill of the sign inside that canvas
 
 /** The signboard above the head: a round flag and the name, one compact line. */
 function makeSign() {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
-  canvas.height = 80;
+  canvas.height = SIGN_CANVAS_HEIGHT;
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, fog: false, sizeAttenuation: false }));
@@ -60,6 +69,82 @@ function makeSign() {
 }
 
 /**
+ * Text broken into lines that fit `maxWidth` (words; a word that is too long is broken); at most FACE_BUBBLE_MAX_LINES, the last one ends
+ * with "…" when there was more.
+ */
+function wrapLines(ctx, text, maxWidth) {
+  const fits = (s) => ctx.measureText(s).width <= maxWidth;
+  const lines = [];
+  let line = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    if (line && fits(`${line} ${word}`)) {
+      line += ` ${word}`;
+      continue;
+    }
+    if (line) lines.push(line);
+    let rest = Array.from(word);
+    while (rest.length > 1 && !fits(rest.join(""))) {
+      let n = rest.length - 1;
+      while (n > 1 && !fits(rest.slice(0, n).join(""))) n--;
+      lines.push(rest.slice(0, n).join(""));
+      rest = rest.slice(n);
+    }
+    line = rest.join("");
+  }
+  if (line) lines.push(line);
+  if (lines.length <= FACE_BUBBLE_MAX_LINES) return lines;
+  const kept = lines.slice(0, FACE_BUBBLE_MAX_LINES);
+  let last = Array.from(kept[FACE_BUBBLE_MAX_LINES - 1]);
+  while (last.length > 1 && !fits(`${last.join("")}…`)) last.pop();
+  kept[FACE_BUBBLE_MAX_LINES - 1] = `${last.join("")}…`;
+  return kept;
+}
+
+/** The speech bubble above the sign: the last message of the guest, up to three lines (see _docs/chat.md). Drawn into a canvas, never as page text. */
+function makeBubble() {
+  const canvas = document.createElement("canvas");
+  canvas.width = FACE_BUBBLE_CANVAS_WIDTH;
+  canvas.height = FACE_BUBBLE_CANVAS_HEIGHT;
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, fog: false, sizeAttenuation: false }));
+  const perPixel = (FACE_SIGN_SCREEN_HEIGHT * 0.9) / SIGN_CANVAS_HEIGHT; // (the same size on the screen as the sign)
+  const height = canvas.height * perPixel;
+  sprite.scale.set(canvas.width * perPixel, height, 1);
+  sprite.position.y = R * 1.55; // (where the sign hangs; the bubble stands on its top edge: the anchor is below the sprite)
+  sprite.center.set(0.5, -((SIGN_BOX_HEIGHT / 2) * perPixel + FACE_BUBBLE_GAP) / height);
+  sprite.visible = false;
+  return {
+    sprite,
+    /** The message; an empty one takes the bubble away. */
+    set(text) {
+      sprite.visible = !!text;
+      if (!text) return;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `600 ${FACE_BUBBLE_FONT_PX}px Roboto, sans-serif`;
+      const lines = wrapLines(ctx, text, canvas.width - 8 - 2 * FACE_BUBBLE_PADDING_PX);
+      const textWidth = Math.max(...lines.map((l) => ctx.measureText(l).width));
+      const boxW = textWidth + 2 * FACE_BUBBLE_PADDING_PX;
+      const boxH = lines.length * FACE_BUBBLE_LINE_PX + 2 * FACE_BUBBLE_PADDING_PX;
+      const x0 = (canvas.width - boxW) / 2;
+      const y0 = canvas.height - 4 - boxH;
+      ctx.fillStyle = "rgba(20,14,10,0.88)";
+      ctx.strokeStyle = "rgba(253,230,138,0.5)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(x0, y0, boxW, boxH, 24);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#f4f4f5";
+      ctx.textBaseline = "middle";
+      lines.forEach((line, i) => ctx.fillText(line, x0 + FACE_BUBBLE_PADDING_PX, y0 + FACE_BUBBLE_PADDING_PX + FACE_BUBBLE_LINE_PX * (i + 0.5)));
+      texture.needsUpdate = true;
+    },
+  };
+}
+
+/**
  * @param {THREE.Scene} scene
  * @param {{ placed?: boolean }} [options] — `placed: false` for the face of another player: it has no place of its
  *   own (multiplayer.js moves it with `setPose`) and stays hidden until it gets a face with `show`.
@@ -76,6 +161,8 @@ export function createFaceBall(scene, { placed = true } = {}) {
   }
   const sign = makeSign();
   root.add(sign.sprite);
+  const bubble = makeBubble();
+  root.add(bubble.sprite);
   scene.add(root);
 
   let head = null; // the group of the face (rebuilt for every new face)
@@ -175,6 +262,10 @@ export function createFaceBall(scene, { placed = true } = {}) {
     show(face, name, country) {
       setFace(face);
       sign.set(name, country);
+    },
+    /** The last chat message of this guest over his sign (an empty text takes it away). */
+    setMessage(text) {
+      bubble.set(text);
     },
     /** Hang the face at a place; it looks the way the camera of that player looks (yaw about the vertical axis, pitch up). */
     setPose(x, y, z, yaw, pitch) {

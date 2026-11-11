@@ -1,6 +1,6 @@
 # Chat (Plan)
 
-> **Status: Plan; Schritt 1 (Modul) ist gebaut, der Rest nicht.** Im Mehrspieler schreibt jeder Gast eine Nachricht, die **über seinem Kopf** stehen bleibt, bis er sie **selbst löscht** oder den Raum verlässt. Wie die anderen Teile des Mehrspielers steht der Rahmen in [`multiplayer.md`](multiplayer.md).
+> **Status: Plan; Schritt 1 (Modul) und Schritt 2 (Sprechblase am Kopf) sind gebaut, der Rest nicht.** Im Mehrspieler schreibt jeder Gast eine Nachricht, die **über seinem Kopf** stehen bleibt, bis er sie **selbst löscht** oder den Raum verlässt. Wie die anderen Teile des Mehrspielers steht der Rahmen in [`multiplayer.md`](multiplayer.md).
 
 ## Entschieden
 
@@ -41,7 +41,7 @@
 ## Schritte (jeder lauffähig und geprüft)
 
 1. **Modul:** Tabelle `chat`, `say`, `clear_say`, Aufräumen in `dropGuest` und beim Verbindungsabbruch; Bindings. *Prüfen:* Typcheck; nach dem Veröffentlichen mit dem Spiel oder `spacetime sql … "select * from chat"`.
-2. **Sprechblase am Kopf:** `setMessage` in `face-ball.js`, Größen in den Konstanten; Debug-Flagge `chat` (`?debug=chat`) zeigt am Dummy-Kopf (`?debug=face`) einen langen Beispieltext. *Prüfen:* Umbruch, drei Zeilen und „…“, gleich große Darstellung aus Nähe und Ferne, leerer Text blendet aus.
+2. **Sprechblase am Kopf (gebaut):** `setMessage` in `face-ball.js`, Größen in den Konstanten; Debug-Flagge `chat` (`?debug=chat`) zeigt am Dummy-Kopf (`?debug=face`) einen langen Beispieltext. *Prüfen:* Umbruch, drei Zeilen und „…“, gleich große Darstellung aus Nähe und Ferne, leerer Text blendet aus.
 3. **Anbindung:** Nachrichten der anderen über deren Köpfen, `say` und `clearSay` im Client. *Prüfen:* mit zwei Browsern: Nachricht erscheint beim anderen, ersetzt die alte, verschwindet beim Löschen und wenn der Gast geht.
 4. **Eingabe und Anzeige für mich:** das Feld, `Enter` / `Esc`, Tasten schlucken, eigene Zeile mit ✕, Handy-Knopf und Senden-Knopf. *Prüfen:* beim Tippen keine Spieltaste (E, R, T, W A S D, `C`, `F` am Klavier), `Enter` öffnet nicht über offenen Fenstern, Löschen mit leerem Feld und mit ✕, Handy.
 5. **Docs und Aufräumen:** `multiplayer.md`, `spacetime/README.md`, README; tote Reste entfernen.

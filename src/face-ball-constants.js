@@ -5,6 +5,18 @@ import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
 export const FACE_BALL_RADIUS = 0.128;
 /** The sign over the head (flag and name) always has this height on the screen (a share of the screen height), however far away or near the head is. */
 export const FACE_SIGN_SCREEN_HEIGHT = 0.035;
+/**
+ * The message bubble above the sign (a guest's last chat message, see _docs/chat.md): drawn like the sign into a canvas and, like it,
+ * always the same size on the screen. Sizes in canvas pixels (the sign's canvas is 80 px high and stands for FACE_SIGN_SCREEN_HEIGHT · 0.9).
+ */
+export const FACE_BUBBLE_MAX_LINES = 3;
+export const FACE_BUBBLE_FONT_PX = 34;
+export const FACE_BUBBLE_LINE_PX = 44;
+export const FACE_BUBBLE_PADDING_PX = 16;
+export const FACE_BUBBLE_CANVAS_WIDTH = 640;
+export const FACE_BUBBLE_CANVAS_HEIGHT = FACE_BUBBLE_MAX_LINES * FACE_BUBBLE_LINE_PX + 2 * FACE_BUBBLE_PADDING_PX + 8;
+/** The gap between the sign and the bubble, as a share of the screen height. */
+export const FACE_BUBBLE_GAP = 0.004;
 /** Height of the middle of the head above the floor. */
 export const FACE_BALL_HEIGHT = 1.7;
 /** Next to the end of the bar (beyond its short side), in the middle of the bar's depth: x, y, z. */
