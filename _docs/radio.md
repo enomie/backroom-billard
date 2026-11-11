@@ -25,6 +25,8 @@ Das Sideboard steht an der **+x-Wand** (lange Seite), in Höhe der Tischmitte (`
 ## Bedienung
 
 - **Ein/Aus:** den rechten Knopf anklicken, aus höchstens 6 m Abstand (mit der freien Kamera `C`). Ein Klick auf den Knopf löst keinen Stoß aus.
+- **Im Mehrspieler gehört das Radio dem Raum (umgesetzt):** Der Knopf schaltet **für alle** im Raum ein oder aus (Tabelle `radio`, Aktion `set_radio`; kein Eintrag = an). **Jeder** darf, aber höchstens alle **5 Sekunden** (wer zu früh drückt, sieht „Das Radio wurde gerade erst umgeschaltet.“). Die anderen sehen die Meldung „Anna hat das Radio ausgeschaltet“. Wer neu kommt, bekommt den Stand sofort; gehen alle, ist es für den Nächsten wieder an. Der Ton selbst kommt weiter bei jedem aus dem eigenen Stream (nur der Schalter ist geteilt). Im Einzelspiel bleibt der Knopf rein lokal.
+- **Nur für mich aus:** Im Einstellungs-Panel unter „Radio“ steht der Knopf **Radio nur für mich aus** / **Radio für mich wieder an**: kein Ton bei diesem Gast, obwohl das Radio des Raums läuft (bleibt im Browser, `backroom-billard.radio-muted`).
 - **Start:** Browser erlauben Ton erst nach einer Nutzeraktion. Das ist der Klick auf **Confirm Age 18+** im Startscreen: Er schaltet den Ton frei (`unlockAudio` in `audio.js`) und startet das Radio. Ein anderer Tastendruck oder Klick startet es nicht. Das Radio ist von Anfang an „an“, die Skala zeigt bis zur Bestätigung **KLICK ZUM STARTEN**.
 
 ## Sender: Jazz24

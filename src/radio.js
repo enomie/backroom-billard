@@ -173,6 +173,8 @@ function rounded(width, height, radius) {
   return s;
 }
 
+const MUTED_KEY = "backroom-billard.radio-muted"; // only for this guest: no sound (settings)
+
 /**
  * Build the sideboard with the radio, add it to the scene and return its controls.
  * @param {THREE.Scene} scene
@@ -345,16 +347,28 @@ export function createRadio(scene) {
     },
     () => state === "live"
   );
-  /** The knob: the radio and its title are switched together. */
-  const switchOn = (value) => {
-    on = value;
-    audio.setOn(value);
-    if (value) metadata.start();
+  // "on" is the radio of the room (the knob; in multiplayer the database's, the same for everybody); "muted" is only for this guest (settings).
+  let muted = false;
+  try {
+    muted = localStorage.getItem(MUTED_KEY) === "1";
+  } catch {
+    /* not allowed: not muted */
+  }
+  let onToggle = null; // multiplayer: the knob asks the database instead of switching by itself ((next: boolean) => void)
+  /** The sound and the title follow the knob and the mute. */
+  const apply = () => {
+    const playing = on && !muted;
+    audio.setOn(playing);
+    if (playing) metadata.start();
     else {
       metadata.stop();
       title = "";
       redraw();
     }
+  };
+  const switchOn = (value) => {
+    on = value;
+    apply();
   };
   redraw();
   onLanguageChange(redraw);
@@ -387,9 +401,29 @@ export function createRadio(scene) {
       raycaster.far = RADIO_CLICK_DISTANCE;
       if (raycaster.intersectObject(hit, false).length === 0) return false;
       audio.unlock(); // a click is a user gesture
-      switchOn(!on);
+      if (onToggle) onToggle(!on);
+      else switchOn(!on);
       return true;
     },
+    /** Multiplayer: the knob asks `toggle(next)` (the database) instead of switching by itself; `setOn` follows its answer. */
+    setToggleHandler(toggle) {
+      onToggle = toggle;
+    },
+    /** The radio of the room is on or off (the knob turns, the sound follows). */
+    setOn(value) {
+      if (value !== on) switchOn(value);
+    },
+    /** Only for this guest: no sound, though the radio of the room plays (kept in the browser). */
+    setMuted(value) {
+      muted = value;
+      try {
+        localStorage.setItem(MUTED_KEY, value ? "1" : "0");
+      } catch {
+        /* not allowed: for this visit only */
+      }
+      apply();
+    },
+    isMuted: () => muted,
     /** Per frame: audio listener = camera, and the knob turns smoothly. */
     update(dt, camera) {
       audio.update(camera, radioPosition);

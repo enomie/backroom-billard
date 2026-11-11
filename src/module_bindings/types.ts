@@ -125,6 +125,15 @@ export const Presence = __t.object("Presence", {
 });
 export type Presence = __Infer<typeof Presence>;
 
+export const Radio = __t.object("Radio", {
+  id: __t.u8(),
+  on: __t.bool(),
+  by: __t.identity(),
+  byName: __t.string(),
+  at: __t.timestamp(),
+});
+export type Radio = __Infer<typeof Radio>;
+
 export const Ranking = __t.object("Ranking", {
   place: __t.u32(),
   name: __t.string(),

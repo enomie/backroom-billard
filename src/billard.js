@@ -1271,6 +1271,15 @@ function setupControls() {
     updateStatusDisplay(false);
   });
   createFullscreenButton();
+  // the radio only for me: off or on again (kept in the browser)
+  const muteButton = document.getElementById("settings-radio-mute");
+  const renderMute = () => (muteButton.textContent = t(radio.isMuted() ? "settings.radioUnmute" : "settings.radioMute"));
+  muteButton.addEventListener("click", () => {
+    radio.setMuted(!radio.isMuted());
+    renderMute();
+  });
+  renderMute();
+  onLanguageChange(renderMute);
   settings = createSettings(
     () => {
       if (mpGame.running) return;
@@ -2179,6 +2188,7 @@ const REFUSED_TEXTS = [
   ["a stake is", "refused.amount"],
   ["a game is running", "refused.running"],
   ["no free seat", "refused.seat"],
+  ["radio was just", "refused.radio"],
 ];
 
 /** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */
@@ -2200,6 +2210,12 @@ function onMultiplayerGame(e) {
     updateTurnClock();
     return;
   }
+  if (e.kind === "radio") {
+    // the radio of the room is on or off for everybody; somebody else's switch is news
+    radio.setOn(e.on);
+    if (!e.quiet && !e.mine && e.byName) roomNote(e.on ? "room.radioOn" : "room.radioOff", e.byName);
+    return;
+  }
   if (e.kind === "refused") {
     // the database said no: a short message for what the player can understand (the rest stays in the console)
     const key = REFUSED_TEXTS.find(([part]) => e.message.includes(part))?.[1];
@@ -2217,6 +2233,7 @@ function onMultiplayerGame(e) {
   if (e.kind === "kicked") {
     // the account was opened on another device: this one is out of the room and plays on alone
     mpMode = false;
+    radio.setToggleHandler(null); // the radio is his own again
     matchMode = "single";
     mpGame.running = false;
     mpGame.myTurn = false;
@@ -2406,6 +2423,7 @@ export async function startGame(choice) {
   myChoice = { drink: choice.firstDrink, pack: choice.firstPack }; // put on his seat as soon as he has one (applySeats); null: he could not pay it
   if (multi) {
     wallet.useServer((item) => multiplayer.buy(item)); // the money is the database's
+    radio.setToggleHandler((on) => multiplayer.setRadio(on)); // the radio is the room's: the knob asks the database
     await multiplayer.join();
     if (choice.firstDrink) multiplayer.buy(choice.firstDrink); // the first drink and the first pack
     if (choice.firstPack !== null) multiplayer.buy("pack");

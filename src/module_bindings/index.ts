@@ -51,6 +51,7 @@ import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
 import SetKitReducer from "./set_kit_reducer";
 import SetPresenceReducer from "./set_presence_reducer";
+import SetRadioReducer from "./set_radio_reducer";
 import SetReadyReducer from "./set_ready_reducer";
 import SetStakeReducer from "./set_stake_reducer";
 import SitPianoReducer from "./sit_piano_reducer";
@@ -72,6 +73,7 @@ import PianoRow from "./piano_table";
 import PlayerRow from "./player_table";
 import PocketRow from "./pocket_table";
 import PresenceRow from "./presence_table";
+import RadioRow from "./radio_table";
 import RankingRow from "./ranking_table";
 import ShotRow from "./shot_table";
 import ShotChunkRow from "./shot_chunk_table";
@@ -204,6 +206,17 @@ const tablesSchema = __schema({
       { name: 'presence_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PresenceRow),
+  radio: __table({
+    name: 'radio',
+    indexes: [
+      { accessor: 'id', name: 'radio_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'radio_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, RadioRow),
   ranking: __table({
     name: 'ranking',
     indexes: [
@@ -294,6 +307,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_hand", SetHandReducer),
   __reducerSchema("set_kit", SetKitReducer),
   __reducerSchema("set_presence", SetPresenceReducer),
+  __reducerSchema("set_radio", SetRadioReducer),
   __reducerSchema("set_ready", SetReadyReducer),
   __reducerSchema("set_stake", SetStakeReducer),
   __reducerSchema("sit_piano", SitPianoReducer),

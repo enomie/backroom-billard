@@ -24,6 +24,7 @@ const MAX_MONEY = 100_000_000; // no account holds more than this
 const PRICES: Record<string, number> = { beer: 8, 'wine-red': 14, 'wine-white': 14, whiskey: 18, 'white-russian': 16, pack: 75 };
 /** The secret key of an account: 20 characters of a 32 letter alphabet (no I, O, 0, 1), in five groups of four. The browser makes it up. */
 const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
+const RADIO_COOLDOWN_MICROS = 5_000_000n; // the radio can be switched at most every 5 s (by anybody)
 const RANKING_SIZE = 100; // the world ranking shows the richest hundred
 const RANKING_EVERY_MICROS = 5_000_000n; // and is worked out at most every 5 s
 const RATE_WINDOW_MICROS = 1_000_000n; // a guest may call this many reducers per second (the busiest client sends about 45)
@@ -230,6 +231,18 @@ const spacetimedb = schema({
     {},
     {
       id: t.u8().primaryKey(),
+      at: t.timestamp(),
+    }
+  ),
+
+  /** The radio on the sideboard, for everybody in the room (row id 1; no row: on). Who switched it last is shown to the others. */
+  radio: table(
+    { public: true },
+    {
+      id: t.u8().primaryKey(),
+      on: t.bool(),
+      by: t.identity(),
+      byName: t.string(),
       at: t.timestamp(),
     }
   ),
@@ -460,6 +473,18 @@ export const refresh_ranking = spacetimedb.reducer((ctx) => {
   for (const own of [...ctx.db.standing.iter()]) if (!linked.has(own.identity.toHexString())) ctx.db.standing.identity.delete(own.identity);
 });
 
+/** Switch the radio on or off for everybody in the room (at most every 5 s, whoever it is). */
+export const set_radio = spacetimedb.reducer({ on: t.bool() }, (ctx, { on }) => {
+  if (limited(ctx)) return;
+  const player = me(ctx);
+  const row = ctx.db.radio.id.find(1);
+  if ((row ? row.on : true) === on) return; // (it is so already)
+  if (row && ctx.timestamp.microsSinceUnixEpoch - row.at.microsSinceUnixEpoch < RADIO_COOLDOWN_MICROS) throw new SenderError('radio was just switched');
+  const next = { id: 1, on, by: ctx.sender, byName: player.name, at: ctx.timestamp };
+  if (row) ctx.db.radio.id.update(next);
+  else ctx.db.radio.insert(next);
+});
+
 /** Buy a drink or a pack of cigarettes at the bar: the price is the module's, the money is taken from the account or the call is refused. */
 export const buy = spacetimedb.reducer({ item: t.string() }, (ctx, { item }) => {
   if (limited(ctx)) return;
@@ -602,6 +627,7 @@ function seatTheFirstTwo(ctx: Ctx) {
   const game = theGame(ctx);
   if (game.state === GAME_PLAYING) return;
   for (const p of [...ctx.db.player.iter()]) if (isGone(ctx, p)) dropGuest(ctx, p.identity);
+  if (ctx.db.player.count() === 0n) ctx.db.radio.id.delete(1); // nobody is here any more: the radio is on again for the next one
   const free = [1, 2].filter((seat) => ![...ctx.db.player.iter()].some((p) => p.seat === seat));
   const waiting = [...ctx.db.player.iter()].filter((p) => p.seat === SPECTATOR && !ctx.db.sitout.identity.find(p.identity)).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
   free.forEach((seat, i) => {
