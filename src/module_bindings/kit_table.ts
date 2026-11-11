@@ -15,5 +15,5 @@ export default __t.row({
   drink: __t.string(),
   sips: __t.u8(),
   pack: __t.u8(),
-  packCount: __t.u8(),
+  packCount: __t.u8().name("pack_count"),
 });

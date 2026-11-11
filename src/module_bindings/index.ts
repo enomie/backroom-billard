@@ -37,16 +37,16 @@ import {
 import BuyReducer from "./buy_reducer";
 import CheckTimeoutsReducer from "./check_timeouts_reducer";
 import CreateAccountReducer from "./create_account_reducer";
-import EnterReducer from "./enter_reducer";
 import EndShotReducer from "./end_shot_reducer";
+import EnterReducer from "./enter_reducer";
 import HeartbeatReducer from "./heartbeat_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import LeavePianoReducer from "./leave_piano_reducer";
 import LeaveTableReducer from "./leave_table_reducer";
 import PlaceBidReducer from "./place_bid_reducer";
 import PlayKeysReducer from "./play_keys_reducer";
-import RefreshRankingReducer from "./refresh_ranking_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
+import RefreshRankingReducer from "./refresh_ranking_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
 import SetKitReducer from "./set_kit_reducer";
@@ -75,8 +75,8 @@ import PresenceRow from "./presence_table";
 import RankingRow from "./ranking_table";
 import ShotRow from "./shot_table";
 import ShotChunkRow from "./shot_chunk_table";
-import StandingRow from "./standing_table";
 import StakeRow from "./stake_table";
+import StandingRow from "./standing_table";
 import TurnRow from "./turn_table";
 
 /** Type-only namespace exports for generated type groups. */
@@ -204,39 +204,6 @@ const tablesSchema = __schema({
       { name: 'presence_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, PresenceRow),
-  standing: __table({
-    name: 'standing',
-    indexes: [
-      { accessor: 'identity', name: 'standing_identity_idx_btree', algorithm: 'btree', columns: [
-        'identity',
-      ] },
-    ],
-    constraints: [
-      { name: 'standing_identity_key', constraint: 'unique', columns: ['identity'] },
-    ],
-  }, StandingRow),
-  turn: __table({
-    name: 'turn',
-    indexes: [
-      { accessor: 'id', name: 'turn_id_idx_btree', algorithm: 'btree', columns: [
-        'id',
-      ] },
-    ],
-    constraints: [
-      { name: 'turn_id_key', constraint: 'unique', columns: ['id'] },
-    ],
-  }, TurnRow),
-  stake: __table({
-    name: 'stake',
-    indexes: [
-      { accessor: 'identity', name: 'stake_identity_idx_btree', algorithm: 'btree', columns: [
-        'identity',
-      ] },
-    ],
-    constraints: [
-      { name: 'stake_identity_key', constraint: 'unique', columns: ['identity'] },
-    ],
-  }, StakeRow),
   ranking: __table({
     name: 'ranking',
     indexes: [
@@ -273,6 +240,39 @@ const tablesSchema = __schema({
       { name: 'shot_chunk_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, ShotChunkRow),
+  stake: __table({
+    name: 'stake',
+    indexes: [
+      { accessor: 'identity', name: 'stake_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'stake_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, StakeRow),
+  standing: __table({
+    name: 'standing',
+    indexes: [
+      { accessor: 'identity', name: 'standing_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'standing_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, StandingRow),
+  turn: __table({
+    name: 'turn',
+    indexes: [
+      { accessor: 'id', name: 'turn_id_idx_btree', algorithm: 'btree', columns: [
+        'id',
+      ] },
+    ],
+    constraints: [
+      { name: 'turn_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, TurnRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
@@ -280,16 +280,16 @@ const reducersSchema = __reducers(
   __reducerSchema("buy", BuyReducer),
   __reducerSchema("check_timeouts", CheckTimeoutsReducer),
   __reducerSchema("create_account", CreateAccountReducer),
-  __reducerSchema("enter", EnterReducer),
   __reducerSchema("end_shot", EndShotReducer),
+  __reducerSchema("enter", EnterReducer),
   __reducerSchema("heartbeat", HeartbeatReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("leave_piano", LeavePianoReducer),
   __reducerSchema("leave_table", LeaveTableReducer),
   __reducerSchema("place_bid", PlaceBidReducer),
   __reducerSchema("play_keys", PlayKeysReducer),
-  __reducerSchema("refresh_ranking", RefreshRankingReducer),
   __reducerSchema("push_chunk", PushChunkReducer),
+  __reducerSchema("refresh_ranking", RefreshRankingReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
   __reducerSchema("set_kit", SetKitReducer),

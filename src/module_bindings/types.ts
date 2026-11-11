@@ -10,6 +10,16 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const Account = __t.object("Account", {
+  key: __t.string(),
+  money: __t.u32(),
+  name: __t.string(),
+  country: __t.string(),
+  face: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type Account = __Infer<typeof Account>;
+
 export const Aim = __t.object("Aim", {
   seat: __t.u8(),
   angle: __t.f64(),
@@ -63,6 +73,28 @@ export const Kit = __t.object("Kit", {
 });
 export type Kit = __Infer<typeof Kit>;
 
+export const Link = __t.object("Link", {
+  identity: __t.identity(),
+  key: __t.string(),
+});
+export type Link = __Infer<typeof Link>;
+
+export const Lobby = __t.object("Lobby", {
+  identity: __t.identity(),
+  name: __t.string(),
+  country: __t.string(),
+  face: __t.string(),
+  money: __t.u32(),
+});
+export type Lobby = __Infer<typeof Lobby>;
+
+export const Piano = __t.object("Piano", {
+  id: __t.u8(),
+  sitter: __t.option(__t.identity()),
+  keys: __t.byteArray(),
+});
+export type Piano = __Infer<typeof Piano>;
+
 export const Player = __t.object("Player", {
   identity: __t.identity(),
   name: __t.string(),
@@ -82,44 +114,6 @@ export const Pocket = __t.object("Pocket", {
 });
 export type Pocket = __Infer<typeof Pocket>;
 
-export const Lobby = __t.object("Lobby", {
-  identity: __t.identity(),
-  name: __t.string(),
-  country: __t.string(),
-  face: __t.string(),
-  money: __t.u32(),
-});
-export type Lobby = __Infer<typeof Lobby>;
-
-export const Piano = __t.object("Piano", {
-  id: __t.u8(),
-  sitter: __t.option(__t.identity()),
-  keys: __t.byteArray(),
-});
-export type Piano = __Infer<typeof Piano>;
-
-export const Ranking = __t.object("Ranking", {
-  place: __t.u32(),
-  name: __t.string(),
-  country: __t.string(),
-  money: __t.u32(),
-});
-export type Ranking = __Infer<typeof Ranking>;
-
-export const Standing = __t.object("Standing", {
-  identity: __t.identity(),
-  place: __t.u32(),
-  money: __t.u32(),
-});
-export type Standing = __Infer<typeof Standing>;
-
-export const Turn = __t.object("Turn", {
-  id: __t.u8(),
-  startedAt: __t.timestamp(),
-  running: __t.bool(),
-});
-export type Turn = __Infer<typeof Turn>;
-
 export const Presence = __t.object("Presence", {
   identity: __t.identity(),
   x: __t.f64(),
@@ -131,12 +125,26 @@ export const Presence = __t.object("Presence", {
 });
 export type Presence = __Infer<typeof Presence>;
 
-export const Stake = __t.object("Stake", {
-  identity: __t.identity(),
-  amount: __t.u32(),
-  ready: __t.bool(),
+export const Ranking = __t.object("Ranking", {
+  place: __t.u32(),
+  name: __t.string(),
+  country: __t.string(),
+  money: __t.u32(),
 });
-export type Stake = __Infer<typeof Stake>;
+export type Ranking = __Infer<typeof Ranking>;
+
+export const RankingMeta = __t.object("RankingMeta", {
+  id: __t.u8(),
+  at: __t.timestamp(),
+});
+export type RankingMeta = __Infer<typeof RankingMeta>;
+
+export const Rate = __t.object("Rate", {
+  identity: __t.identity(),
+  windowStart: __t.timestamp(),
+  calls: __t.u32(),
+});
+export type Rate = __Infer<typeof Rate>;
 
 export const Shot = __t.object("Shot", {
   seq: __t.u32(),
@@ -158,4 +166,30 @@ export const ShotChunk = __t.object("ShotChunk", {
   data: __t.byteArray(),
 });
 export type ShotChunk = __Infer<typeof ShotChunk>;
+
+export const Sitout = __t.object("Sitout", {
+  identity: __t.identity(),
+});
+export type Sitout = __Infer<typeof Sitout>;
+
+export const Stake = __t.object("Stake", {
+  identity: __t.identity(),
+  amount: __t.u32(),
+  ready: __t.bool(),
+});
+export type Stake = __Infer<typeof Stake>;
+
+export const Standing = __t.object("Standing", {
+  identity: __t.identity(),
+  place: __t.u32(),
+  money: __t.u32(),
+});
+export type Standing = __Infer<typeof Standing>;
+
+export const Turn = __t.object("Turn", {
+  id: __t.u8(),
+  startedAt: __t.timestamp(),
+  running: __t.bool(),
+});
+export type Turn = __Infer<typeof Turn>;
 
