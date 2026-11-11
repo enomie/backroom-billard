@@ -172,7 +172,7 @@ Im **Einstellungs-Panel** (nur Mehrspieler) steht, wer am Tisch sitzt, der Knopf
 
 ## Aufräumliste (abdichten)
 
-Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Punkte 9 und 14.
+Beim Durchgehen des Moduls und des Clients gefunden; **offen** ist nur noch Punkt 9 (bewusst: gleiche Namen bleiben erlaubt).
 
 **A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“) – behoben, siehe unten**
 1. *(behoben)* Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
@@ -200,7 +200,7 @@ Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Pun
 
 **D. Der Client**
 13. *(behoben)* `onGameRow` ruft `tellTableNow()` ohne Prüfung auf: nach einem Verbindungsabbruch ist es `null`.
-14. Die Meldungen „X ist beigetreten / gegangen“ kommen auch für Geister (siehe A) und für jedes Neuladen eines Gastes in Folge; bündeln oder bei sehr schnellen Wechseln unterdrücken.
+14. *(behoben: „gegangen“ wartet 4 Sekunden; kommt derselbe Gast wieder, gibt es keine der beiden Meldungen, und ein erneutes „beigetreten“ desselben Gasts innerhalb von 4 Sekunden wird nur einmal gemeldet)* Die Meldungen „X ist beigetreten / gegangen“ kommen auch für Geister (siehe A) und für jedes Neuladen eines Gastes in Folge; bündeln oder bei sehr schnellen Wechseln unterdrücken.
 15. *(behoben: eine kurze Meldung im Spiel, z. B. „Nicht genug Geld.“, „Am Klavier sitzt schon jemand.“; der Rest bleibt in der Konsole)* Ein abgelehnter Aufruf (die Datenbank sagt Nein) steht nur in der Konsole. Für Einsatz, Tischwette und Hocker eine kurze Meldung im Spiel anzeigen.
 16. *(behoben: der Client meldet sich mit dem Schlüssel neu an und betritt den Raum wieder)* Stand nach einem Verbindungsabbruch mit automatischem Wiederverbinden: `roster`, Gesichter und Tabellen werden geleert, der Beitritt (`set_profile`) wird aber nicht neu gesendet; der Gast ist dann ein Geist aus seiner Sicht.
 17. *(behoben: Knopf im Einstellungs-Panel)* `leave_table` ist im Client nicht angeschlossen (kein Knopf zum Aufstehen vom Tisch).

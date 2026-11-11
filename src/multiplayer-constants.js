@@ -11,6 +11,9 @@ export const MULTIPLAYER_FACE_FOLLOW = 12;
 /** The most the welcome screen waits for the room to be set up (s); then it says that it did not work. */
 export const MULTIPLAYER_JOIN_SECONDS = 15;
 
+/** "X joined" / "X left": a guest who goes and comes back within this many seconds (a reload, a flickering connection) is no news. */
+export const MULTIPLAYER_NOTE_SECONDS = 4;
+
 /** The recording of a shot is sent in pieces of this many ms; the others play it back this much later (a buffer for the network). */
 export const REPLAY_CHUNK_MS = 100;
 export const REPLAY_DELAY_MS = 700;

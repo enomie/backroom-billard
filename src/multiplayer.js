@@ -18,6 +18,7 @@ import {
   MULTIPLAYER_PRESENCE_SECONDS,
   MULTIPLAYER_FACE_FOLLOW,
   MULTIPLAYER_JOIN_SECONDS,
+  MULTIPLAYER_NOTE_SECONDS,
 } from "./multiplayer-constants.js";
 
 const loadToken = () => {
@@ -65,7 +66,31 @@ const euler = new THREE.Euler();
  * @param {(event: object) => void} onGame — the game: { kind: "init" | "start" | "turn" | "sync" | "over" | "table", … }, see
  *   onGameRow below (who is up, the end of a shot of somebody else with the balls where they lie, the result)
  */
-export function createMultiplayer(scene, onRoom, onNote, onGame) {
+export function createMultiplayer(scene, onRoom, announce, onGame) {
+  // "left" waits a few seconds: if the same guest comes back meanwhile (a reload, a flickering connection), neither is news;
+  // and the same guest joining again within a few seconds is announced once
+  const leaving = new Map(); // name → timer of the waiting "left"
+  const joinedAtMs = new Map(); // name → when "joined" was last announced
+  const onNote = (kind, name) => {
+    if (kind === "left") {
+      if (leaving.has(name)) return;
+      leaving.set(name, window.setTimeout(() => {
+        leaving.delete(name);
+        joinedAtMs.delete(name);
+        announce("left", name);
+      }, MULTIPLAYER_NOTE_SECONDS * 1000));
+      return;
+    }
+    if (leaving.has(name)) {
+      window.clearTimeout(leaving.get(name)); // he is back: no news
+      leaving.delete(name);
+      return;
+    }
+    const last = joinedAtMs.get(name);
+    if (last !== undefined && performance.now() - last < MULTIPLAYER_NOTE_SECONDS * 1000) return;
+    joinedAtMs.set(name, performance.now());
+    announce("joined", name);
+  };
   let connection = null;
   let myId = ""; // the identity of this guest (hex)
   let joined = false;
