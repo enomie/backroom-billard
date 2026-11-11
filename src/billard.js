@@ -40,6 +40,7 @@ import { createWallet } from "./wallet.js";
 import { createStakeWindow } from "./stake-window.js";
 import { createRankingPanel } from "./ranking-panel.js";
 import { debugFlag } from "./debug-flags.js";
+import { createFullscreenButton } from "./fullscreen.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
@@ -1269,6 +1270,7 @@ function setupControls() {
     setupBalls();
     updateStatusDisplay(false);
   });
+  createFullscreenButton();
   settings = createSettings(
     () => {
       if (mpGame.running) return;

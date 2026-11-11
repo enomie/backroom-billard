@@ -122,6 +122,8 @@ export default {
   "refused.amount": "Dieser Betrag ist nicht möglich.",
   "refused.running": "Ein Spiel läuft.",
   "refused.seat": "Kein Platz frei.",
+  "settings.fullscreen": "Vollbild",
+  "settings.fullscreenLeave": "Vollbild beenden",
   "settings.name": "Name",
   "settings.money": "Guthaben",
   "start.present": "PRÄSENTIERT",

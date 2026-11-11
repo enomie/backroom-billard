@@ -122,6 +122,8 @@ export default {
   "refused.amount": "That amount is not possible.",
   "refused.running": "A game is running.",
   "refused.seat": "No free seat.",
+  "settings.fullscreen": "Go fullscreen",
+  "settings.fullscreenLeave": "Leave fullscreen",
   "settings.name": "Name",
   "settings.money": "Money",
   "start.present": "PRESENT",
