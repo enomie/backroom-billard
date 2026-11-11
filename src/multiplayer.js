@@ -402,14 +402,18 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
         };
         // who pocketed which ball (the two lists above the table): the whole list each time something changes
         const tellPockets = () => onGame({ kind: "pockets", rows: [...conn.db.pocket.iter()].map((p) => ({ ball: p.ballId, seat: p.seat })) });
-        // the last chat message of each guest: over the head of the others (the own one is shown elsewhere); it goes with the guest
+        // the last chat message of each guest: over the head of the others, the own one at the left of the screen; it goes with the guest
         const onChat = (row) => {
           const id = hex(row.identity);
-          if (id !== myId) entry(id).ball.setMessage(row.text);
+          if (id === myId) onGame({ kind: "chat", text: row.text });
+          else entry(id).ball.setMessage(row.text);
         };
         conn.db.chat.onInsert((_ctx, row) => onChat(row));
         conn.db.chat.onUpdate((_ctx, _old, row) => onChat(row));
-        conn.db.chat.onDelete((_ctx, row) => faces.get(hex(row.identity))?.ball.setMessage(""));
+        conn.db.chat.onDelete((_ctx, row) => {
+          if (hex(row.identity) === myId) onGame({ kind: "chat", text: "" });
+          else faces.get(hex(row.identity))?.ball.setMessage("");
+        });
         // the radio: on or off for everybody (no row: on); a change by somebody else is news
         const tellRadio = (on, byName, mine, quiet) => onGame({ kind: "radio", on, byName, mine, quiet });
         conn.db.radio.onInsert((_ctx, row) => looked && tellRadio(row.on, row.byName, hex(row.by) === myId, false));

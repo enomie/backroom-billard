@@ -189,9 +189,14 @@ html {
 
 .hud-actions {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column; /* the settings gear, and under it the chat button (multiplayer) */
+  align-items: flex-end;
+  gap: 0.35rem;
   flex-shrink: 0;
+}
+
+.btn-settings[hidden] {
+  display: none;
 }
 
 .btn {
@@ -1047,6 +1052,90 @@ html {
 .ranking__gap {
   padding: 0.1rem 0.3rem 0.1rem 2.9rem;
   color: var(--text-muted);
+}
+
+/* My own chat message, left under the status, with a ✕ to take it away */
+.chat-own {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  max-width: 13rem;
+  margin-top: 0.4rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid rgba(253, 230, 138, 0.5);
+  border-radius: 0.6rem;
+  background: rgba(20, 14, 10, 0.88);
+  font-size: 0.75rem;
+  color: #f4f4f5;
+}
+
+.chat-own[hidden] {
+  display: none;
+}
+
+.chat-own__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chat-own__clear {
+  flex: none;
+  padding: 0 0.1rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.chat-own__clear:hover {
+  color: var(--amber-300);
+}
+
+/* The chat field at the bottom */
+.chat-box {
+  position: absolute;
+  left: 50%;
+  bottom: 10.5rem; /* above the buttons and the circle for the tip of the cue */
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+  width: min(30rem, calc(100vw - 2rem));
+  padding: 0.35rem;
+  border: 1px solid rgba(253, 230, 138, 0.6);
+  border-radius: 999px;
+  background: rgba(20, 14, 10, 0.92);
+}
+
+.chat-box[hidden] {
+  display: none;
+}
+
+.chat-box__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.8rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.95rem;
+  color: #f4f4f5;
+  outline: none;
+}
+
+.chat-box__send {
+  flex: none;
+  padding: 0.3rem 1rem;
+  border: 1px solid rgba(253, 230, 138, 0.55);
+  border-radius: 999px;
+  background: rgba(60, 40, 16, 0.9);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber-200);
+  cursor: pointer;
 }
 
 /* The countdown of the one who is up (3 minutes to shoot), next to his name */

@@ -147,6 +147,10 @@ export function createStakeWindow(actions) {
     get open() {
       return !panel.hidden && players();
     },
+    /** Any of its panels (the stake window or the table bet) is up. */
+    get visible() {
+      return !panel.hidden;
+    },
     render,
   };
 }

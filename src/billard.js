@@ -41,6 +41,7 @@ import { createStakeWindow } from "./stake-window.js";
 import { createRankingPanel } from "./ranking-panel.js";
 import { debugFlag } from "./debug-flags.js";
 import { createFullscreenButton } from "./fullscreen.js";
+import { createChatBox } from "./chat-box.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
@@ -220,6 +221,7 @@ let lighters = null; // the two lighters (lighter.js)
 let wallet = null; // the player's money (wallet.js)
 let stakeWindow = null; // the stake window and the table bet (stake-window.js)
 let rankingPanel = null; // the world ranking in the settings (ranking-panel.js)
+let chatBox = null; // the chat field and my own message (chat-box.js)
 let drinkMenu = null; // the drinks popover (drink-menu.js)
 let settings = null; // the settings overlay (settings.js)
 let drinking = null; // sips from the player glasses with the R key (drinking.js)
@@ -1272,6 +1274,23 @@ function setupControls() {
     updateStatusDisplay(false);
   });
   createFullscreenButton();
+  chatBox = createChatBox({
+    say: (text) => multiplayer.say(text),
+    clear: () => multiplayer.clearSay(),
+    canOpen: () =>
+      !settings.isOpen() &&
+      !isStartScreenOpen() &&
+      !drinkMenu.isOpen() &&
+      !stakeWindow.visible &&
+      document.getElementById("game-over").hidden,
+    onOpen: () => {
+      // the field takes the keys: let go of what is held
+      heldKeys.clear();
+      smokeUp();
+      drinkUp();
+      piano?.releaseAll();
+    },
+  });
   // the radio only for me: off or on again (kept in the browser)
   const muteButton = document.getElementById("settings-radio-mute");
   const renderMute = () => (muteButton.textContent = t(radio.isMuted() ? "settings.radioUnmute" : "settings.radioMute"));
@@ -2213,6 +2232,10 @@ function onMultiplayerGame(e) {
     updateTurnClock();
     return;
   }
+  if (e.kind === "chat") {
+    chatBox.setOwn(e.text);
+    return;
+  }
   if (e.kind === "radio") {
     // the radio of the room is on or off for everybody; somebody else's switch is news
     radio.setOn(e.on);
@@ -2237,6 +2260,7 @@ function onMultiplayerGame(e) {
     // the account was opened on another device: this one is out of the room and plays on alone
     mpMode = false;
     radio.setToggleHandler(null); // the radio is his own again
+    chatBox.setEnabled(false);
     matchMode = "single";
     mpGame.running = false;
     mpGame.myTurn = false;
@@ -2427,6 +2451,7 @@ export async function startGame(choice) {
   if (multi) {
     wallet.useServer((item) => multiplayer.buy(item)); // the money is the database's
     radio.setToggleHandler((on) => multiplayer.setRadio(on)); // the radio is the room's: the knob asks the database
+    chatBox.setEnabled(true);
     await multiplayer.join();
     if (choice.firstDrink) multiplayer.buy(choice.firstDrink); // the first drink and the first pack
     if (choice.firstPack !== null) multiplayer.buy("pack");
