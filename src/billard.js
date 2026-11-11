@@ -158,7 +158,7 @@ const tableDimensions = {
 const pocketSpecs = createPocketSpecs(tableDimensions);
 
 // State
-let cameraMode = "fps"; // 'fps' (cue view) or 'free' (free fly camera)
+let camMode = "cue"; // the camera: "cue" (behind the white ball, looking at it), "free" (flies about) or "piano" (on the stool); see setCamMode
 let aimAngle = 0; // shot direction −Z (the rack lies in −Z)
 // Where the cue tip meets the ball, set with the nub on the shoot button: -1..1 across / up (unit circle)
 const strikeNub = { x: 0, y: 0 };
@@ -230,17 +230,11 @@ let glasses = null; // wine and beer glasses (glasses.js)
 let ashtrays = null; // glass ashtrays (ashtray.js)
 let candles = null; // candle holders on the tables (candle.js)
 let piano = null; // grand piano, can be played with the mouse and the keys (piano.js)
-/** "off", "entering" (the camera moves to the stool), "on" (seated, playing), "leaving" (back to where it was). */
-let pianoMode = "off";
 let pianoMine = false; // multiplayer: the database says that I sit at the piano
 let pianoSitter = null; // multiplayer: the name of the guest who sits there (not me), or null
-const pianoTransition = { from: new THREE.Vector3(), to: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), toQuat: new THREE.Quaternion(), t: 0 };
-/** The flight of the camera to the other view after C: from where it was, to the new view (fixed for the free camera, followed each frame for the cue camera). */
-const cameraFlight = { active: false, t: 0, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion(), to: new THREE.Vector3(), toQuat: new THREE.Quaternion() };
-const pianoReturn = { position: new THREE.Vector3(), yaw: 0, pitch: 0 };
 /** The multiplayer game (null fields in single player): is one running, and is it this guest's turn. */
 const mpGame = { running: false, myTurn: false, turnSeat: 0 };
-let mpWantCamera = null; // "fps" / "free": the camera follows the turn (to the cue view when it is my turn, else free) until it is there
+let mpWantCamera = null; // "cue" / "free": the camera follows the turn (to the cue view when it is my turn, else free) until it is there
 /** The cue of the one who is up, as the others see it: moved by his aim, and during his shot by the replay. */
 const remoteCue = { active: false, angle: 0, pitch: 0, x: 0, y: 0, gap: CUE_AIM_GAP, relax: 0, place: null }; // place: where it struck (null: at the ball)
 const remoteView = new THREE.Object3D(); // the head of the one who is up (where his camera is): his cue is carried relative to it
@@ -391,25 +385,10 @@ function init() {
 /** Groups of the scene whose objects stand still for the whole game. */
 const STATIC_GROUPS = new Set(["room", "furniture", "bottles", "ashtrays", "wall-lamps", "ceiling-lamps", "atmosphere", "cigarette-packs"]);
 
-/**
- * Cue camera: orbits `camFocus` directly from the aim angle and elevation (no smoothing, so the
- * camera, the aim line and the cue always agree and nothing jitters).
- */
-function placeAimCamera() {
-  const ce = Math.cos(aimElevation);
-  camera.position.set(
-    camFocus.x + Math.sin(aimAngle) * ce * FP_CAM_DISTANCE,
-    camFocus.y + Math.sin(aimElevation) * FP_CAM_DISTANCE,
-    camFocus.z + Math.cos(aimAngle) * ce * FP_CAM_DISTANCE
-  );
-  camera.lookAt(camFocus); // always at the ball, however high the camera is
-}
-
 /** Jump the cue camera to the cue ball (start, new rack). */
 function snapFpsCamera() {
-  if (cameraMode !== "fps" || !cueBall) return;
+  if (camMode !== "cue" || !cueBall) return;
   camFocus.copy(cueBall.pos);
-  placeAimCamera();
 }
 
 function setupLightingAndRoom() {
@@ -606,7 +585,7 @@ const _cueForward = new THREE.Vector3(0, 0, 1);
 function updateCueRelax(dt) {
   if (remoteCue.active) {
     cueRelax = Math.max(0, cueRelax - dt / CUE_RETURN_TIME); // the cue of the one who is up is shown at the ball, not carried
-  } else if (cameraMode === "free") {
+  } else if (camMode !== "cue") {
     cueRelax = Math.min(1, cueRelax + dt / CUE_RELAX_TIME);
   } else if (shotInProgress) {
     if (strokeContacted) cueShotTime += dt; // the follow-through starts at the contact
@@ -667,7 +646,7 @@ function poseCue(gap, relax = cueRelax, view = camera) {
 }
 
 function fireCueStrike() {
-  if (gameState !== "playing" || cameraMode !== "fps") return; // the free camera only observes
+  if (gameState !== "playing" || camMode !== "cue") return; // the free camera only observes
   if (mpGame.running && !mpGame.myTurn) return; // the other one is up
   if (stakeWindow.open) return; // the stake is being set
   if (shotInProgress) return; // wait until the table is still
@@ -988,7 +967,7 @@ function setupControls() {
   window.addEventListener(
     "wheel",
     (e) => {
-      if (cameraMode !== "fps") return;
+      if (camMode !== "cue") return;
       // Scroll up (-deltaY) = more power, scroll down (+deltaY) = less power
       const delta = -Math.sign(e.deltaY) * 0.01; // 1 % per notch
       setPower(selectedPower + delta);
@@ -1035,8 +1014,8 @@ function setupControls() {
   // Mouse control (drag to aim; a click does not shoot: E or the SHOOT button does)
   container.addEventListener("mousedown", (e) => {
     if (e.button === 0 && tryPianoPress(e)) return; // a key of the piano: play it, no aiming, no shot
-    if (pianoMode !== "off") return; // seated at the piano: the mouse only plays
-    if (cameraMode === "free") {
+    if (camMode === "piano") return; // seated at the piano: the mouse only plays
+    if (camMode === "free") {
       // Free camera: drag to look (the mouse is not captured: a click on the radio, a face or the piano uses the pointer)
       if (e.button === 0) {
         freeLookDragging = true;
@@ -1076,17 +1055,17 @@ function setupControls() {
 
   window.addEventListener("mouseup", (e) => {
     piano?.release();
-    if (freeLookDragging && freeClickDistance < 5 && cameraMode === "free") tryRadioClick(e);
+    if (freeLookDragging && freeClickDistance < 5 && camMode === "free") tryRadioClick(e);
     freeLookDragging = false;
-    if (isMouseDown && cameraMode === "fps") {
+    if (isMouseDown && camMode === "cue") {
       if (totalDragDist < 5) tryRadioClick(e); // (clicked briefly: maybe the radio knob)
     }
     isMouseDown = false;
   });
 
   window.addEventListener("mousemove", (e) => {
-    if (pianoMode !== "off" || cameraFlight.active) return;
-    if (cameraMode === "free") {
+    if (camMode === "piano" || cameraMove.active) return;
+    if (camMode === "free") {
       // Mouse look: only while dragging (button down)
       if (freeLookDragging) {
         freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
@@ -1116,14 +1095,14 @@ function setupControls() {
     "keydown",
     (e) => {
       if (!piano || settings.isOpen() || isStartScreenOpen() || drinkMenu.isOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
-      const seated = pianoMode === "on" || pianoMode === "entering";
-      if (!seated && e.code === "KeyF" && cameraMode === "free" && pianoMode === "off" && piano.isNear(camera)) {
+      const seated = camMode === "piano";
+      if (!seated && e.code === "KeyF" && camMode === "free" && !cameraMove.active && piano.isNear(camera)) {
         if (!e.repeat) enterPiano(); // F sits down; once seated it is only a key (Esc or the button gets up)
       } else if (!seated) {
         return;
       } else if (e.code === "Escape") {
         leavePiano();
-      } else if (pianoMode === "on") {
+      } else if (!cameraMove.active) {
         piano.keyDown(e.code, e.repeat);
       }
       e.preventDefault();
@@ -1135,7 +1114,7 @@ function setupControls() {
     "keyup",
     (e) => {
       if (!piano) return;
-      if (piano.keyUp(e.code) || pianoMode === "on" || pianoMode === "entering") e.stopPropagation(); // seated, the keys are not for the game
+      if (piano.keyUp(e.code) || camMode === "piano") e.stopPropagation(); // seated, the keys are not for the game
     },
     true
   );
@@ -1166,7 +1145,7 @@ function setupControls() {
       if (!mpGame.running) setupBalls(); // N = new rack (R is for drinking); in a multiplayer game the database starts the racks
       return;
     }
-    if (cameraMode === "free") {
+    if (camMode !== "cue") {
       if (e.code === "Space") e.preventDefault(); // no page scroll / button activation
       return;
     }
@@ -1196,7 +1175,7 @@ function setupControls() {
   container.addEventListener(
     "touchstart",
     (e) => {
-      if (pianoMode === "on" && e.touches.length === 1) {
+      if (camMode === "piano" && !cameraMove.active && e.touches.length === 1) {
         const rect = renderer.domElement.getBoundingClientRect();
         const touch = e.touches[0];
         if (piano.pressAt(camera, { x: ((touch.clientX - rect.left) / rect.width) * 2 - 1, y: -(((touch.clientY - rect.top) / rect.height) * 2 - 1) })) return;
@@ -1213,7 +1192,7 @@ function setupControls() {
   container.addEventListener(
     "touchmove",
     (e) => {
-      if (cameraMode === "fps" && e.touches.length === 1) {
+      if (camMode === "cue" && e.touches.length === 1) {
         const dx = e.touches[0].clientX - touchX;
         const dy = e.touches[0].clientY - touchY;
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) touchMoved = true;
@@ -1222,7 +1201,7 @@ function setupControls() {
         aimAngle -= dx * 0.006;
         aimElevation = THREE.MathUtils.clamp(aimElevation + dy * 0.005, FP_CAM_MIN_ELEVATION, FP_CAM_MAX_ELEVATION);
         if (dy !== 0) elevationGlide = false;
-      } else if (cameraMode === "free" && pianoMode === "off" && e.touches.length === 1) {
+      } else if (camMode === "free" && e.touches.length === 1) {
         // Free camera: swipe sideways = turn, swipe up = closer, down = further away
         const dx = e.touches[0].clientX - touchX;
         const dy = e.touches[0].clientY - touchY;
@@ -1230,7 +1209,7 @@ function setupControls() {
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
         freeYaw -= dx * FREE_CAM_TOUCH_TURN;
-        camera.position.addScaledVector(_freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw)), -dy * FREE_CAM_TOUCH_MOVE);
+        freePosition.addScaledVector(_freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw)), -dy * FREE_CAM_TOUCH_MOVE);
         confineFreeCamera();
       }
     },
@@ -1240,9 +1219,9 @@ function setupControls() {
   container.addEventListener("touchend", (e) => {
     if (e.cancelable) e.preventDefault(); // prevents the additionally synthesized mouse events (not possible while the page scrolls)
     piano?.release();
-    if (cameraMode === "fps" && !touchMoved) {
+    if (camMode === "cue" && !touchMoved) {
       fireCueStrike();
-    } else if (cameraMode === "free" && pianoMode === "off" && !touchMoved && e.changedTouches.length) {
+    } else if (camMode === "free" && !touchMoved && e.changedTouches.length) {
       tryRadioClick(e.changedTouches[0]); // a tap on the radio
     }
   });
@@ -1307,76 +1286,48 @@ function setupControls() {
 
 function renderCameraLabel() {
   document.getElementById("cam-label").innerText = t(
-    cameraMode === "fps" ? "camera.fp" : "camera.free"
+    camMode === "cue" ? "camera.fp" : "camera.free"
   );
 }
 
-/** Free camera view angles (radians); the camera position itself is `camera.position`. */
+/**
+ * The free camera has its own state (position and view angles, kept while the cue camera or the piano is in use); only in the "free" mode do
+ * the keys, the mouse and the touch move it. The camera itself is placed by updateCamera, from the pose of the mode.
+ */
+const freePosition = new THREE.Vector3(...FREE_CAM_START_POSITION);
 let freeYaw = 0;
 let freePitch = 0;
 let freeLookDragging = false;
 let freeClickDistance = 0; // mouse movement since the button went down (a click, not a drag)
-/** Where the free camera was left when switching back to the cue view. */
-const freeSavedPosition = new THREE.Vector3();
-let freePoseSaved = false;
 /** Currently held keys (KeyboardEvent.code) for the free camera movement. */
 const heldKeys = new Set();
 
 /** Sit down at the piano (the camera flies to the stool and looks at the keys) or get up. */
 function togglePiano() {
-  if (pianoMode === "on" || pianoMode === "entering") leavePiano();
+  if (camMode === "piano") leavePiano();
   else enterPiano();
 }
 
 function enterPiano() {
-  if (!piano || cameraMode !== "free" || pianoMode !== "off" || !piano.isNear(camera)) return;
+  if (!piano || camMode !== "free" || cameraMove.active || !piano.isNear(camera)) return;
   if (mpMode && (pianoSitter || (mpGame.running && mpGame.myTurn))) return; // somebody sits there, or I am up at the table
   if (mpMode) multiplayer.sitPiano();
   heldKeys.clear();
-  pianoReturn.position.copy(camera.position);
-  pianoReturn.yaw = freeYaw;
-  pianoReturn.pitch = freePitch;
-  const seat = piano.seat();
-  const look = new THREE.PerspectiveCamera(); // a camera looks along −z (a plain object would look along +z)
-  look.position.copy(seat.position);
-  look.lookAt(seat.target);
-  startPianoMove(seat.position, look.quaternion, "entering");
+  setCamMode("piano");
 }
 
 function leavePiano() {
-  if (pianoMode !== "on" && pianoMode !== "entering") return;
+  if (camMode !== "piano") return;
   piano.releaseAll();
   if (mpMode) multiplayer.leavePiano();
-  startPianoMove(pianoReturn.position, new THREE.Quaternion().setFromEuler(new THREE.Euler(pianoReturn.pitch, pianoReturn.yaw, 0, "YXZ")), "leaving");
-}
-
-function startPianoMove(position, quaternion, mode) {
-  pianoTransition.from.copy(camera.position);
-  pianoTransition.fromQuat.copy(camera.quaternion);
-  pianoTransition.to.copy(position);
-  pianoTransition.toQuat.copy(quaternion);
-  pianoTransition.t = 0;
-  pianoMode = mode;
-  renderPianoButton();
-}
-
-/** The camera on its way to the stool or back (smooth). */
-function updatePianoMove(dt) {
-  if (pianoMode !== "entering" && pianoMode !== "leaving") return;
-  pianoTransition.t = Math.min(1, pianoTransition.t + dt / PIANO_SEAT_SECONDS);
-  const k = pianoTransition.t * pianoTransition.t * (3 - 2 * pianoTransition.t);
-  camera.position.lerpVectors(pianoTransition.from, pianoTransition.to, k);
-  camera.quaternion.slerpQuaternions(pianoTransition.fromQuat, pianoTransition.toQuat, k);
-  if (pianoTransition.t < 1) return;
-  pianoMode = pianoMode === "entering" ? "on" : "off";
-  renderPianoButton();
+  setCamMode("free"); // (the free camera is where it was: it did not move while he sat)
 }
 
 /** The piano button: shown close to the piano (free camera) and while seated; "play" or "leave". */
 function renderPianoButton() {
-  const seated = pianoMode === "on" || pianoMode === "entering";
+  const seated = camMode === "piano";
   const dock = document.getElementById("piano-dock");
-  const show = seated || (cameraMode === "free" && pianoMode === "off" && !!piano && piano.isNear(camera));
+  const show = seated || (camMode === "free" && !!piano && piano.isNear(camera));
   if (dock.hidden === show) dock.hidden = !show;
   const cap = seated ? "Esc" : "F"; // F sits down, Esc (or the button) gets up
   const capElement = document.getElementById("piano-cap");
@@ -1389,83 +1340,111 @@ function renderPianoButton() {
   if (labelElement.textContent !== label) labelElement.textContent = label; // (called every frame: only touch the page on a change)
 }
 
-function toggleCamera() {
-  if (pianoMode !== "off") return; // sitting at the piano: first get up
-  if (mpGame.running && !mpGame.myTurn && cameraMode === "free") return; // the other one is up: stay in the free camera and watch
-  cameraMode = cameraMode === "fps" ? "free" : "fps";
-  const free = cameraMode === "free";
-  cameraFlight.from.copy(camera.position);
-  cameraFlight.fromQuat.copy(camera.quaternion);
+/* ---- The camera: one place decides where it is ------------------------------------------------------------------------ */
+const _pose = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
+const _poseCamera = new THREE.PerspectiveCamera(); // (a camera looks along −z: a plain object would look along +z)
+const _poseEuler = new THREE.Euler(0, 0, 0, "YXZ");
+/** The way from where the camera was to the pose of a new mode (smooth); the target is read again each frame, so a moving one is followed. */
+const cameraMove = { active: false, t: 0, seconds: CAMERA_FLIGHT_SECONDS, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion() };
 
-  if (free) {
-    // Multiplayer: from the cue camera back and up (and to the side of the seat); else the first time the default
-    // observer pose, afterwards where the free camera was left
-    if (mpMode) {
-      placeFreeCameraBehindCue();
-    } else if (!freePoseSaved) {
-      camera.position.set(...FREE_CAM_START_POSITION);
-      camera.lookAt(...FREE_CAM_START_TARGET);
-      const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
-      freeYaw = euler.y;
-      freePitch = euler.x;
-    } else {
-      camera.position.copy(freeSavedPosition);
-      camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
-    }
-    cameraFlight.to.copy(camera.position); // the free view is fixed: fly there
-    cameraFlight.toQuat.copy(camera.quaternion);
-    camera.position.copy(cameraFlight.from);
-    camera.quaternion.copy(cameraFlight.fromQuat);
-  } else {
-    freeSavedPosition.copy(camera.position);
-    freePoseSaved = true;
+// the free camera starts at the observer pose (a side view on the table and the lamps)
+_poseCamera.position.copy(freePosition);
+_poseCamera.lookAt(...FREE_CAM_START_TARGET);
+_poseEuler.setFromQuaternion(_poseCamera.quaternion, "YXZ");
+freeYaw = _poseEuler.y;
+freePitch = _poseEuler.x;
+
+/** The pose of the cue camera: behind the white ball on the circle of its height, looking at the ball (see _docs/camera.md). */
+function cuePose(out) {
+  const ce = Math.cos(aimElevation);
+  _poseCamera.position.set(
+    camFocus.x + Math.sin(aimAngle) * ce * FP_CAM_DISTANCE,
+    camFocus.y + Math.sin(aimElevation) * FP_CAM_DISTANCE,
+    camFocus.z + Math.cos(aimAngle) * ce * FP_CAM_DISTANCE
+  );
+  _poseCamera.lookAt(camFocus);
+  out.position.copy(_poseCamera.position);
+  out.quaternion.copy(_poseCamera.quaternion);
+}
+/** The pose of the free camera: its own position and angles. */
+function freePose(out) {
+  out.position.copy(freePosition);
+  out.quaternion.setFromEuler(_poseEuler.set(freePitch, freeYaw, 0, "YXZ"));
+}
+/** The pose of the guest on the piano stool, looking at the keys. */
+function pianoPose(out) {
+  const seat = piano.seat();
+  _poseCamera.position.copy(seat.position);
+  _poseCamera.lookAt(seat.target);
+  out.position.copy(_poseCamera.position);
+  out.quaternion.copy(_poseCamera.quaternion);
+}
+
+/** Every frame: the camera is at the pose of its mode, or on its way there. */
+function updateCamera(dt) {
+  if (camMode === "cue") cuePose(_pose);
+  else if (camMode === "free") freePose(_pose);
+  else pianoPose(_pose);
+  if (!cameraMove.active) {
+    camera.position.copy(_pose.position);
+    camera.quaternion.copy(_pose.quaternion);
+    return;
+  }
+  cameraMove.t = Math.min(1, cameraMove.t + dt / cameraMove.seconds);
+  const k = cameraMove.t * cameraMove.t * (3 - 2 * cameraMove.t);
+  camera.position.lerpVectors(cameraMove.from, _pose.position, k);
+  camera.quaternion.slerpQuaternions(cameraMove.fromQuat, _pose.quaternion, k);
+  if (cameraMove.t >= 1) cameraMove.active = false;
+}
+
+/** Change the mode of the camera ("cue", "free", "piano"): the one way to do it; the camera flies from where it is to the new pose. */
+function setCamMode(mode) {
+  if (mode === camMode) return;
+  const from = camMode;
+  cameraMove.from.copy(camera.position);
+  cameraMove.fromQuat.copy(camera.quaternion);
+  cameraMove.t = 0;
+  cameraMove.seconds = mode === "piano" || from === "piano" ? PIANO_SEAT_SECONDS : CAMERA_FLIGHT_SECONDS;
+  cameraMove.active = true;
+  camMode = mode;
+  if (mode === "free" && from === "cue" && mpMode) placeFreeCameraBehindCue(); // (multiplayer: after the shot back and up from the cue camera)
+  if (mode === "cue") {
     freeLookDragging = false;
     aimElevation = FP_CAM_DEFAULT_ELEVATION; // back at the table: flat, as at every turn
   }
-
-  cameraFlight.active = true;
-  cameraFlight.t = 0;
   renderCameraLabel();
-  document.getElementById("aim-crosshair").style.display = free ? "none" : "flex";
+  renderPianoButton();
+  document.getElementById("aim-crosshair").style.display = mode === "cue" ? "flex" : "none";
 }
 
-/** After the view was placed for this frame: show the camera on its way from the old view to it. */
-function applyCameraFlight(dt) {
-  cameraFlight.t = Math.min(1, cameraFlight.t + dt / CAMERA_FLIGHT_SECONDS);
-  const k = cameraFlight.t * cameraFlight.t * (3 - 2 * cameraFlight.t);
-  if (cameraMode === "fps") {
-    // the cue view moves (the focus eases to the ball): fly to where it is now
-    cameraFlight.to.copy(camera.position);
-    cameraFlight.toQuat.copy(camera.quaternion);
-  }
-  camera.position.lerpVectors(cameraFlight.from, cameraFlight.to, k);
-  camera.quaternion.slerpQuaternions(cameraFlight.fromQuat, cameraFlight.toQuat, k);
-  if (cameraFlight.t >= 1) cameraFlight.active = false;
+/** The button C: from the cue camera to the free one and back. */
+function toggleCamera() {
+  if (camMode === "piano") return; // sitting at the piano: first get up
+  if (mpGame.running && !mpGame.myTurn && camMode === "free") return; // the other one is up: stay in the free camera and watch
+  setCamMode(camMode === "cue" ? "free" : "cue");
 }
 
-/** Multiplayer: the free camera starts behind and above the cue camera, to the side of the seat, looking down at the table. */
+/** The free camera starts back and up from the cue camera, to the side of the seat (the two seats go to different sides: not through the head of the other one). */
 function placeFreeCameraBehindCue() {
   camera.getWorldDirection(_freeForward);
   _freeForward.y = 0;
   if (_freeForward.lengthSq() < 1e-6) _freeForward.set(0, 0, -1);
   _freeForward.normalize();
-  const sign = mySideNow === 1 ? 1 : -1; // the two seats go to different sides (not through the head of the other one)
+  const sign = mySideNow === 1 ? 1 : -1;
   _freeRight.set(-_freeForward.z, 0, _freeForward.x);
-  camera.position.addScaledVector(_freeForward, -FREE_CAM_BACK).addScaledVector(_freeRight, sign * FREE_CAM_SIDE);
-  camera.position.y = THREE.MathUtils.clamp(camera.position.y + FREE_CAM_UP, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
+  freePosition.copy(camera.position).addScaledVector(_freeForward, -FREE_CAM_BACK).addScaledVector(_freeRight, sign * FREE_CAM_SIDE);
+  freePosition.y = THREE.MathUtils.clamp(freePosition.y + FREE_CAM_UP, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
   freeYaw = Math.atan2(-_freeForward.x, -_freeForward.z);
   freePitch = FREE_CAM_PITCH;
-  camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
   confineFreeCamera();
 }
 
-/** Move and rotate the free camera: WASD, space = up, shift = down, mouse look. */
 const _freeForward = new THREE.Vector3();
 const _freeRight = new THREE.Vector3();
 const _freeMove = new THREE.Vector3();
-function updateFreeCamera(dt) {
-  camera.rotation.set(freePitch, freeYaw, 0, "YXZ");
 
+/** Move the free camera with the keys (W A S D, arrows, Space and Shift for up and down). */
+function updateFreeCamera(dt) {
   const forward = _freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw));
   const right = _freeRight.set(Math.cos(freeYaw), 0, -Math.sin(freeYaw));
   const move = _freeMove.set(0, 0, 0);
@@ -1479,24 +1458,23 @@ function updateFreeCamera(dt) {
 
   if (move.lengthSq() > 0) {
     move.normalize().multiplyScalar(FREE_CAM_SPEED * dt);
-    camera.position.add(move);
+    freePosition.add(move);
     confineFreeCamera();
   }
 }
 
-/** The free camera stays inside the room and between its heights (it flies above the chairs, 1.5 m up, so tables need no keep-out area). */
 function confineFreeCamera() {
   const m = FREE_CAM_ROOM_MARGIN;
-  camera.position.x = THREE.MathUtils.clamp(camera.position.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
-  camera.position.z = THREE.MathUtils.clamp(camera.position.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
-  camera.position.y = THREE.MathUtils.clamp(camera.position.y, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
+  freePosition.x = THREE.MathUtils.clamp(freePosition.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
+  freePosition.z = THREE.MathUtils.clamp(freePosition.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
+  freePosition.y = THREE.MathUtils.clamp(freePosition.y, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
   // not into the head of another guest: pushed out (two heads never take the same place, and nobody sees through a head)
   for (const head of multiplayer?.heads() ?? []) {
-    _freeMove.set(camera.position.x - head.x, camera.position.y - head.y, camera.position.z - head.z);
+    _freeMove.set(freePosition.x - head.x, freePosition.y - head.y, freePosition.z - head.z);
     const distance = _freeMove.length();
     if (distance >= FREE_CAM_HEAD_DISTANCE) continue;
     if (distance < 1e-4) _freeMove.set(1, 0, 0);
-    camera.position.set(head.x, head.y, head.z).addScaledVector(_freeMove.normalize(), FREE_CAM_HEAD_DISTANCE);
+    freePosition.set(head.x, head.y, head.z).addScaledVector(_freeMove.normalize(), FREE_CAM_HEAD_DISTANCE);
   }
 }
 
@@ -1885,7 +1863,7 @@ function gameLoop(currentTime) {
   }
 
   // Turning with the keys (A/D, arrows) — continuous, also while the balls roll
-  if (cameraMode === "fps") {
+  if (camMode === "cue") {
     const turn = (heldKeys.has("ArrowLeft") || heldKeys.has("KeyA") ? 1 : 0) - (heldKeys.has("ArrowRight") || heldKeys.has("KeyD") ? 1 : 0);
     aimAngle += turn * FP_CAM_KEY_TURN_SPEED * dt;
   }
@@ -1935,14 +1913,14 @@ function gameLoop(currentTime) {
     }
     // my aim goes to the others while I am up and looking along the cue (about 15 times per second)
     aimAge += dt;
-    if (mpGame.running && mpGame.myTurn && cameraMode === "fps" && !shotInProgress && gameState === "playing" && aimAge >= AIM_SEND_SECONDS) {
+    if (mpGame.running && mpGame.myTurn && camMode === "cue" && !shotInProgress && gameState === "playing" && aimAge >= AIM_SEND_SECONDS) {
       aimAge = 0;
       multiplayer.setAim({ angle: aimAngle + aimSway, elevation: aimCuePitch(), power: selectedPower, nubX: strikeNub.x, nubY: strikeNub.y });
     }
 
     // Align the aim line with the ball
     if (aimLine) {
-      aimLine.visible = remoteCue.active ? false : cameraMode === "fps" && !shotInProgress; // (the aim line of the one who is up is not shown to the others)
+      aimLine.visible = remoteCue.active ? false : camMode === "cue" && !shotInProgress; // (the aim line of the one who is up is not shown to the others)
       aimLine.position.set(
         cueBall.pos.x,
         cueBall.pos.y - BALL_R + 0.002,
@@ -1954,30 +1932,25 @@ function gameLoop(currentTime) {
 
   // Camera positioning: the orbit center is the shot position; it stays there while the balls roll
   // and eases to the new cue ball position once the table is still. Turning works at any time.
-  if (cameraMode === "fps" && cueBall) {
-    if (!shotInProgress) {
-      const ease = 1 - Math.exp(-FP_CAM_FOCUS_RATE * frameSeconds);
-      camFocus.lerp(cueBall.pos, ease);
-      if (elevationGlide) {
-        aimElevation += (FP_CAM_DEFAULT_ELEVATION - aimElevation) * ease;
-        if (Math.abs(aimElevation - FP_CAM_DEFAULT_ELEVATION) < 0.002) {
-          aimElevation = FP_CAM_DEFAULT_ELEVATION;
-          elevationGlide = false;
-        }
+  if (camMode === "cue" && cueBall && !shotInProgress) {
+    const ease = 1 - Math.exp(-FP_CAM_FOCUS_RATE * frameSeconds);
+    camFocus.lerp(cueBall.pos, ease);
+    if (elevationGlide) {
+      aimElevation += (FP_CAM_DEFAULT_ELEVATION - aimElevation) * ease;
+      if (Math.abs(aimElevation - FP_CAM_DEFAULT_ELEVATION) < 0.002) {
+        aimElevation = FP_CAM_DEFAULT_ELEVATION;
+        elevationGlide = false;
       }
     }
-    placeAimCamera();
-  } else if (cameraMode === "free") {
-    if (pianoMode === "off" && !cameraFlight.active) updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
-    else updatePianoMove(frameSeconds);
-    renderPianoButton();
   }
-  if (cameraFlight.active) applyCameraFlight(frameSeconds);
+  if (camMode === "free" && !cameraMove.active) updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
+  updateCamera(frameSeconds);
+  renderPianoButton();
   if (mpWantCamera) {
-    if (cameraMode === mpWantCamera) mpWantCamera = null;
-    else if (pianoMode === "off" && !cameraFlight.active) toggleCamera(); // the turn changed: to the cue view when it is mine, else free
+    if (camMode === mpWantCamera) mpWantCamera = null;
+    else if (camMode !== "piano" && !cameraMove.active) toggleCamera(); // the turn changed: to the cue view when it is mine, else free
   }
-  multiplayer?.update(frameSeconds, camera, cameraMode === "free");
+  multiplayer?.update(frameSeconds, camera, camMode !== "cue");
 
   updateAudioListener(camera); // the ears follow the camera
   if (atmosphere) atmosphere.update(frameSeconds);
@@ -2231,7 +2204,7 @@ function onMultiplayerGame(e) {
     pianoMine = e.mine;
     pianoSitter = e.sitter && !e.mine ? e.sitter : null;
     piano.setRemoteKeys(e.mine ? [] : e.midis);
-    if (!e.mine && (wasMine || e.sitter) && (pianoMode === "on" || pianoMode === "entering")) leavePiano();
+    if (!e.mine && (wasMine || e.sitter) && camMode === "piano") leavePiano();
     renderPianoButton();
     return;
   }
@@ -2283,7 +2256,7 @@ function onMultiplayerGame(e) {
     renderMatch(); // (who is up)
     if (e.myTurn) remoteCue.active = false; // my cue now
     else Object.assign(remoteCue, { relax: 0, place: null }); // his cue is at the ball again (his aim comes next)
-    mpWantCamera = e.myTurn ? "fps" : "free"; // the one who is up looks along his cue, the other watches
+    mpWantCamera = e.myTurn ? "cue" : "free"; // the one who is up looks along his cue, the other watches
   } else if (e.kind === "sync") {
     applyRestState(e.balls);
   } else if (e.kind === "over") {

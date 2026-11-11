@@ -1,6 +1,6 @@
 # Kamera und Cue: Befund und Umbau (Plan)
 
-> **Status: Teil 1 (Befund) und Teil 2 (Spielerkamera und Cue) sind umgesetzt, Teil 3 (ein Kamerasystem) ist Plan.** Es gibt heute zwei Kameras (Spielerkamera hinter dem Cue, freie Kamera) und den Klavierhocker; der Wechsel dazwischen geht über mehrere Sonderwege. Hier steht, was an der Spielerkamera nicht stimmt (Teil 1, Ursachen), wie sie und der Cue zusammenpassen sollen (Teil 2) und wie die Kameras vereinfacht werden (Teil 3).
+> **Status: umgesetzt** (Teil 1 Befund, Teil 2 Spielerkamera und Cue, Teil 3 ein Kamerasystem). Es gibt heute zwei Kameras (Spielerkamera hinter dem Cue, freie Kamera) und den Klavierhocker; der Wechsel dazwischen geht über mehrere Sonderwege. Hier steht, was an der Spielerkamera nicht stimmt (Teil 1, Ursachen), wie sie und der Cue zusammenpassen sollen (Teil 2) und wie die Kameras vereinfacht werden (Teil 3).
 
 ## 1. Befund (Ursachen)
 
@@ -22,7 +22,7 @@
 
 ## 3. Ein Kamerasystem statt Sonderwegen (größerer Umbau)
 
-### Heute
+### Vorher (jetzt ersetzt)
 
 Die Kamera ist eine einzige `camera`, die an verschiedenen Stellen direkt bewegt wird:
 
@@ -48,7 +48,18 @@ Zwei Zustandsvariablen (`cameraMode`, `pianoMode`) und drei Übergangsmechanisme
 - **Mehrspieler:** `mpWantCamera` wird zu einem einzigen „gewünschten Modus“, den das Spiel setzt (am Zug: „cue“; nach dem Zug und für Zuschauer: „free“; Klavier nur, wenn man frei ist). Der Anfangsort der freien Kamera nach dem Zug („hinter und über dem Cue“, `placeFreeCameraBehindCue`) wird einmal beim Wechsel in „free“ in die freien Variablen geschrieben.
 - Die **Kopfposition für die anderen** (`multiplayer.update`) und alle Strahlen von der Kamera (Radio, Klavier, Gesichter) lesen weiter die tatsächliche `camera`.
 
-### Schritte (jeder lauffähig und geprüft)
+### Umgesetzt
+
+Die fünf Schritte unten haben sich als so eng verbunden erwiesen, dass sie **in einem Zug** gebaut wurden (`src/billard.js`):
+
+- `camMode` ("cue", "free", "piano") statt `cameraMode` und `pianoMode`; **eine** Stelle ändert ihn, `setCamMode(mode)`.
+- Die freie Kamera hat eigene Variablen (`freePosition`, `freeYaw`, `freePitch`); Tasten, Maus und Touch bewegen sie nur im Modus „free“.
+- Die Zielposen sind die Funktionen `cuePose`, `freePose`, `pianoPose`; `updateCamera(dt)` setzt die Kamera jeden Frame auf die Pose des Modus oder, nach einem Wechsel, weich dorthin (`cameraMove`, ein Übergang für alle Wechsel; die Zielpose wird dabei jeden Frame neu gelesen).
+- Weggefallen: `placeAimCamera`, `cameraFlight`, `applyCameraFlight`, `pianoTransition`, `pianoReturn`, `startPianoMove`, `updatePianoMove`, `freeSavedPosition`, `freePoseSaved`. Das Aufstehen vom Klavier ist `setCamMode("free")` (die freie Kamera hat sich beim Sitzen nicht bewegt).
+- Mehrspieler: `mpWantCamera` ist der gewünschte Modus ("cue" oder "free"); der Anfangsort der freien Kamera nach dem Zug (`placeFreeCameraBehindCue`) wird beim Wechsel in „free“ in die freien Variablen geschrieben.
+- Im Browser geprüft (Einzelspiel): `C` hin und zurück, Umsehen, Laufen (`W`), Stoß (`E`). Nicht geprüft: Klavier und Mehrspieler-Wechsel.
+
+### Schritte (so geplant)
 
 1. **Freie Kamera mit eigenen Variablen:** `freePosition` neben `freeYaw`, `freePitch`; `updateFreeCamera` und `confineFreeCamera` arbeiten darauf und schreiben die Pose in die Kamera. Verhalten unverändert. *Prüfen:* freie Kamera laufen und umschauen (Maus, Tasten, Handy), Gesichter und Wand-Begrenzung wie vorher.
 2. **Zielposen als Funktionen:** `cuePose()` aus `placeAimCamera` (reine Berechnung mit der Änderung aus Teil 2), `freePose()`, `pianoPose()`. Die Kamera wird noch wie bisher gesetzt. *Prüfen:* wie Schritt 1, dazu die Spielerkamera.
