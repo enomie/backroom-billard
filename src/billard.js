@@ -39,6 +39,7 @@ import { SWAY_PITCH_OFFSET } from "./player-constants.js";
 import { createWallet } from "./wallet.js";
 import { createStakeWindow } from "./stake-window.js";
 import { createRankingPanel } from "./ranking-panel.js";
+import { debugFlag } from "./debug-flags.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
@@ -246,7 +247,7 @@ let recorder = null; // writes down my shot for the others
 let aimAge = 0;
 let mpShot = null; // my shot in a multiplayer game: what happens until the balls lie still, to be reported
 let multiplayer = null; // the others: faces at their cameras (multiplayer.js)
-let faceBall = null; // a face as a ball in the room: a click throws the dice (face-ball.js)
+let faceBall = null; // the dummy head next to the bar (face-ball.js): only with the debug flag "face" (?debug=face), else null
 let radio = null; // radio on the sideboard (radio.js)
 let physicsAcc = 0; // time accumulator for fixed physics steps
 /** Physics steps still to run after something was put on the table (new rack, re-spotted ball); everything at rest needs no steps. */
@@ -417,7 +418,7 @@ function setupLightingAndRoom() {
   createBar(scene, glasses, bottles);
   createBarLamps(scene);
   createBackbar(scene, bottles);
-  faceBall = createFaceBall(scene);
+  if (debugFlag("face")) faceBall = createFaceBall(scene);
   multiplayer = createMultiplayer(
     scene,
     applyRoom,
@@ -2406,7 +2407,7 @@ export async function startGame(choice) {
     await multiplayer.join();
     if (choice.firstDrink) multiplayer.buy(choice.firstDrink); // the first drink and the first pack
     if (choice.firstPack !== null) multiplayer.buy("pack");
-    faceBall.show(JSON.parse(choice.face), choice.name, choice.country);
+    faceBall?.show(JSON.parse(choice.face), choice.name, choice.country);
   } else {
     wallet.setBalance(choice.money);
     applySeats([false, true], 1); // one set at the table: the +z seat
