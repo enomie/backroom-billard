@@ -19,6 +19,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | `presence` | wo jeder ist (Kamera: Ort und Blick, freie Kamera ein oder aus); das Gesicht der anderen hängt dort |
 | `pocket` | welche Kugel welcher Platz versenkt hat (die zwei Listen über dem Tisch) |
 | `ranking`, `standing` | die Weltrangliste (die ersten 100 nach Geld) und der Platz jedes angemeldeten Gastes (`refresh_ranking`, höchstens alle 5 s) |
+| `chat` | die letzte Nachricht jedes Gastes (eine Zeile je Gast, kein Verlauf; sie geht mit dem Gast) |
 | `radio` | das Radio des Raums: an oder aus, wer es zuletzt umgeschaltet hat (kein Eintrag: an; leer, wenn alle gegangen sind) |
 | `sitout` | (privat) wer selbst vom Tisch aufgestanden ist |
 | `lobby` | (öffentlich) wer angemeldet ist, aber noch nicht im Raum (Wahl an der Bar): Name, Land, Gesicht, Geld; verschwindet mit `join_room` |
@@ -32,6 +33,7 @@ Läuft auf **Maincloud** (extern), die Datenbank heißt **`backroom-billard-3000
 | Reducer | Zweck |
 |---------|-------|
 | `create_account`, `enter`, `join_room` | Konto anlegen (der Browser würfelt den Schlüssel `XXXX-XXXX-XXXX-XXXX-XXXX`, Name, Land und Gesicht werden geprüft, 15.000 $) und mit einem Schlüssel anmelden (`enter`; nur angemeldet, noch nicht im Raum); `join_room` betritt den Raum. Es gibt **einen** Raum für alle, jeder kommt als Zuschauer; eine Verbindung je Konto (ein zweites Gerät loggt das erste aus); die ersten zwei Gäste setzen sich |
+| `say`, `clear_say` | die eigene Chat-Nachricht setzen (1 bis 90 Zeichen, keine Steuer- oder Formatzeichen, mindestens 2 s nach der letzten) und löschen |
 | `set_radio` | das Radio für alle im Raum ein- oder ausschalten (höchstens alle 5 s, von wem auch immer) |
 | `leave_table`, `take_seat` | Vom Tisch aufstehen (ein laufendes Spiel ist verloren; wer selbst aufsteht, wird nicht von selbst wieder gesetzt) und sich wieder an einen freien Platz setzen |
 | `refresh_ranking` | die Weltrangliste und die Plätze neu berechnen (höchstens alle 5 s, wer immer fragt) |

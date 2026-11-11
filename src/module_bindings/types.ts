@@ -45,6 +45,13 @@ export const Bid = __t.object("Bid", {
 });
 export type Bid = __Infer<typeof Bid>;
 
+export const Chat = __t.object("Chat", {
+  identity: __t.identity(),
+  text: __t.string(),
+  at: __t.timestamp(),
+});
+export type Chat = __Infer<typeof Chat>;
+
 export const Game = __t.object("Game", {
   id: __t.u8(),
   state: __t.u8(),

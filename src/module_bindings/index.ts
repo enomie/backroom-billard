@@ -36,6 +36,7 @@ import {
 // Import all reducer arg schemas
 import BuyReducer from "./buy_reducer";
 import CheckTimeoutsReducer from "./check_timeouts_reducer";
+import ClearSayReducer from "./clear_say_reducer";
 import CreateAccountReducer from "./create_account_reducer";
 import EndShotReducer from "./end_shot_reducer";
 import EnterReducer from "./enter_reducer";
@@ -47,6 +48,7 @@ import PlaceBidReducer from "./place_bid_reducer";
 import PlayKeysReducer from "./play_keys_reducer";
 import PushChunkReducer from "./push_chunk_reducer";
 import RefreshRankingReducer from "./refresh_ranking_reducer";
+import SayReducer from "./say_reducer";
 import SetAimReducer from "./set_aim_reducer";
 import SetHandReducer from "./set_hand_reducer";
 import SetKitReducer from "./set_kit_reducer";
@@ -65,6 +67,7 @@ import WithdrawBidReducer from "./withdraw_bid_reducer";
 import AimRow from "./aim_table";
 import BallRow from "./ball_table";
 import BidRow from "./bid_table";
+import ChatRow from "./chat_table";
 import GameRow from "./game_table";
 import HandRow from "./hand_table";
 import KitRow from "./kit_table";
@@ -118,6 +121,17 @@ const tablesSchema = __schema({
       { name: 'bid_bidder_key', constraint: 'unique', columns: ['bidder'] },
     ],
   }, BidRow),
+  chat: __table({
+    name: 'chat',
+    indexes: [
+      { accessor: 'identity', name: 'chat_identity_idx_btree', algorithm: 'btree', columns: [
+        'identity',
+      ] },
+    ],
+    constraints: [
+      { name: 'chat_identity_key', constraint: 'unique', columns: ['identity'] },
+    ],
+  }, ChatRow),
   game: __table({
     name: 'game',
     indexes: [
@@ -292,6 +306,7 @@ const tablesSchema = __schema({
 const reducersSchema = __reducers(
   __reducerSchema("buy", BuyReducer),
   __reducerSchema("check_timeouts", CheckTimeoutsReducer),
+  __reducerSchema("clear_say", ClearSayReducer),
   __reducerSchema("create_account", CreateAccountReducer),
   __reducerSchema("end_shot", EndShotReducer),
   __reducerSchema("enter", EnterReducer),
@@ -303,6 +318,7 @@ const reducersSchema = __reducers(
   __reducerSchema("play_keys", PlayKeysReducer),
   __reducerSchema("push_chunk", PushChunkReducer),
   __reducerSchema("refresh_ranking", RefreshRankingReducer),
+  __reducerSchema("say", SayReducer),
   __reducerSchema("set_aim", SetAimReducer),
   __reducerSchema("set_hand", SetHandReducer),
   __reducerSchema("set_kit", SetKitReducer),

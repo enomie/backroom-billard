@@ -24,6 +24,8 @@ const MAX_MONEY = 100_000_000; // no account holds more than this
 const PRICES: Record<string, number> = { beer: 8, 'wine-red': 14, 'wine-white': 14, whiskey: 18, 'white-russian': 16, pack: 75 };
 /** The secret key of an account: 20 characters of a 32 letter alphabet (no I, O, 0, 1), in five groups of four. The browser makes it up. */
 const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
+const CHAT_MAX_CHARS = 90; // the last message of a guest, shown over his head
+const CHAT_COOLDOWN_MICROS = 2_000_000n; // at least this long between two messages of one guest
 const RADIO_COOLDOWN_MICROS = 5_000_000n; // the radio can be switched at most every 5 s (by anybody)
 const RANKING_SIZE = 100; // the world ranking shows the richest hundred
 const RANKING_EVERY_MICROS = 5_000_000n; // and is worked out at most every 5 s
@@ -235,6 +237,16 @@ const spacetimedb = schema({
     }
   ),
 
+  /** The last message of each guest (one row each; no history). It stays until he clears it or leaves the room. */
+  chat: table(
+    { public: true },
+    {
+      identity: t.identity().primaryKey(),
+      text: t.string(),
+      at: t.timestamp(),
+    }
+  ),
+
   /** The radio on the sideboard, for everybody in the room (row id 1; no row: on). Who switched it last is shown to the others. */
   radio: table(
     { public: true },
@@ -417,6 +429,7 @@ export const onDisconnect = spacetimedb.clientDisconnected((ctx) => {
   const sitter = thePiano(ctx).sitter;
   if (sitter && sitter.toHexString() === ctx.sender.toHexString()) freePiano(ctx);
   ctx.db.lobby.identity.delete(ctx.sender);
+  ctx.db.chat.identity.delete(ctx.sender); // his message goes with him
   ctx.db.presence.identity.delete(ctx.sender); // the face goes away with the guest
   ctx.db.hand.identity.delete(ctx.sender);
   ctx.db.kit.identity.delete(ctx.sender);
@@ -471,6 +484,29 @@ export const refresh_ranking = spacetimedb.reducer((ctx) => {
   for (const row of [...ctx.db.ranking.iter()]) if (row.place > listed.length) ctx.db.ranking.place.delete(row.place);
   const linked = new Set(links.map((l) => l.identity.toHexString()));
   for (const own of [...ctx.db.standing.iter()]) if (!linked.has(own.identity.toHexString())) ctx.db.standing.identity.delete(own.identity);
+});
+
+/**
+ * Say something: the guest's message over his head (it replaces his last one). 1 to 90 characters, no control or invisible formatting
+ * characters (no line breaks), at least 2 s after his last one.
+ */
+export const say = spacetimedb.reducer({ text: t.string() }, (ctx, { text }) => {
+  if (limited(ctx)) return;
+  me(ctx);
+  const clean = text.trim();
+  const length = [...clean].length; // (characters, not bytes)
+  if (length < 1 || length > CHAT_MAX_CHARS || /[\p{Cc}\p{Cf}\u2028\u2029]/u.test(clean)) throw new SenderError('bad message');
+  const own = ctx.db.chat.identity.find(ctx.sender);
+  if (own && ctx.timestamp.microsSinceUnixEpoch - own.at.microsSinceUnixEpoch < CHAT_COOLDOWN_MICROS) throw new SenderError('too fast');
+  const row = { identity: ctx.sender, text: clean, at: ctx.timestamp };
+  if (own) ctx.db.chat.identity.update(row);
+  else ctx.db.chat.insert(row);
+});
+
+/** Take the own message away. */
+export const clear_say = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
+  ctx.db.chat.identity.delete(ctx.sender);
 });
 
 /** Switch the radio on or off for everybody in the room (at most every 5 s, whoever it is). */
@@ -614,6 +650,7 @@ function dropGuest(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identity.
   ctx.db.rate.identity.delete(identity);
   ctx.db.lobby.identity.delete(identity);
   ctx.db.sitout.identity.delete(identity);
+  ctx.db.chat.identity.delete(identity);
   const piano = thePiano(ctx);
   if (piano.sitter && piano.sitter.toHexString() === identity.toHexString()) freePiano(ctx);
 }

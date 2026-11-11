@@ -1,6 +1,6 @@
 # Chat (Plan)
 
-> **Status: Plan, nichts davon ist umgesetzt.** Im Mehrspieler schreibt jeder Gast eine Nachricht, die **über seinem Kopf** stehen bleibt, bis er sie **selbst löscht** oder den Raum verlässt. Wie die anderen Teile des Mehrspielers steht der Rahmen in [`multiplayer.md`](multiplayer.md).
+> **Status: Plan; Schritt 1 (Modul) ist gebaut, der Rest nicht.** Im Mehrspieler schreibt jeder Gast eine Nachricht, die **über seinem Kopf** stehen bleibt, bis er sie **selbst löscht** oder den Raum verlässt. Wie die anderen Teile des Mehrspielers steht der Rahmen in [`multiplayer.md`](multiplayer.md).
 
 ## Entschieden
 
