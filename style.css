@@ -969,6 +969,13 @@ html {
   color: var(--text-muted);
 }
 
+.settings__ask {
+  flex-basis: 100%;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.settings__ask[hidden],
 .settings__account[hidden],
 .settings__soon[hidden] {
   display: none;

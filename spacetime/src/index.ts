@@ -234,6 +234,14 @@ const spacetimedb = schema({
     }
   ),
 
+  /** Guests who got up from the table on their own: they are not seated again by themselves (private); they sit down with take_seat or a table bet. */
+  sitout: table(
+    {},
+    {
+      identity: t.identity().primaryKey(),
+    }
+  ),
+
   /** How many calls a guest made in the current second (private: only the module sees it). */
   rate: table(
     {},
@@ -580,6 +588,7 @@ function dropGuest(ctx: Ctx, identity: Parameters<typeof ctx.db.player.identity.
   ctx.db.presence.identity.delete(identity);
   ctx.db.rate.identity.delete(identity);
   ctx.db.lobby.identity.delete(identity);
+  ctx.db.sitout.identity.delete(identity);
   const piano = thePiano(ctx);
   if (piano.sitter && piano.sitter.toHexString() === identity.toHexString()) freePiano(ctx);
 }
@@ -594,7 +603,7 @@ function seatTheFirstTwo(ctx: Ctx) {
   if (game.state === GAME_PLAYING) return;
   for (const p of [...ctx.db.player.iter()]) if (isGone(ctx, p)) dropGuest(ctx, p.identity);
   const free = [1, 2].filter((seat) => ![...ctx.db.player.iter()].some((p) => p.seat === seat));
-  const waiting = [...ctx.db.player.iter()].filter((p) => p.seat === SPECTATOR).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
+  const waiting = [...ctx.db.player.iter()].filter((p) => p.seat === SPECTATOR && !ctx.db.sitout.identity.find(p.identity)).sort((a, b) => Number(a.joinedAt.microsSinceUnixEpoch - b.joinedAt.microsSinceUnixEpoch));
   free.forEach((seat, i) => {
     if (waiting[i]) ctx.db.player.identity.update({ ...waiting[i], seat });
   });
@@ -679,6 +688,7 @@ export const place_bid = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount
   const player = me(ctx);
   if (player.seat !== SPECTATOR) throw new SenderError('only spectators bid');
   if (!validAmount(amount, player.money)) throw new SenderError(`a bid is a multiple of ${STAKE_STEP}, at least ${MIN_STAKE}, at most your money`);
+  ctx.db.sitout.identity.delete(ctx.sender); // (a bid says that he wants to play)
   const old = ctx.db.bid.bidder.find(ctx.sender);
   if (old) ctx.db.bid.bidder.update({ ...old, amount }); // the time of the first bid stays (first come)
   else ctx.db.bid.insert({ bidder: ctx.sender, amount, placedAt: ctx.timestamp });
@@ -845,14 +855,31 @@ export const check_timeouts = spacetimedb.reducer((ctx) => {
   if (!limited(ctx)) sweep(ctx);
 });
 
-/** A player gets up from the table: a lost game while it runs, otherwise his seat is simply free. */
+/**
+ * A player gets up from the table: a lost game while it runs, otherwise his seat is simply free. He is not seated again by himself
+ * (he sits down with take_seat, or with a table bet).
+ */
 export const leave_table = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
   const player = me(ctx);
   const game = theGame(ctx);
   if (player.seat === SPECTATOR) return;
+  if (!ctx.db.sitout.identity.find(ctx.sender)) ctx.db.sitout.insert({ identity: ctx.sender });
   if (game.state === GAME_PLAYING) finishGame(ctx, player.seat === 1 ? 2 : 1, 'left');
   else {
     ctx.db.player.identity.update({ ...player, seat: SPECTATOR });
-    syncStaking(ctx);
+    fillEmptySeat(ctx); // (a bidder takes the free seat)
+    seatTheFirstTwo(ctx);
   }
+});
+
+/** A spectator who got up (or never sat) takes a free seat at the table, when nobody plays and a seat is free. */
+export const take_seat = spacetimedb.reducer((ctx) => {
+  if (limited(ctx)) return;
+  const player = me(ctx);
+  if (player.seat !== SPECTATOR) return;
+  if (theGame(ctx).state === GAME_PLAYING) throw new SenderError('a game is running');
+  ctx.db.sitout.identity.delete(ctx.sender);
+  seatTheFirstTwo(ctx);
+  if (ctx.db.player.identity.find(ctx.sender)?.seat === SPECTATOR) throw new SenderError('no free seat');
 });

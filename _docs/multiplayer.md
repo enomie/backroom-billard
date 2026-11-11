@@ -166,9 +166,13 @@ Am Flügel sitzt **immer nur einer**; was er spielt, hören und sehen alle.
 - **Hocker belegt:** Jeder sieht, wer sitzt (der Knopf zeigt „Klavier besetzt (Anna)“); eine Zeitgrenze für Stille gibt es nicht (nur die 10 Sekunden ohne Verbindung). Mit der Maus oder der Tastatur spielt im Mehrspieler nur, wer sitzt.
 - **Lautstärke:** dieselbe Kurve wie beim Radio (voll bis 2,5 m, danach leiser).
 
+## Tisch verlassen und wieder setzen (umgesetzt)
+
+Im **Einstellungs-Panel** (nur Mehrspieler) steht, wer am Tisch sitzt, der Knopf **Tisch verlassen** (`leave_table`): Läuft ein Spiel, kommt erst eine Frage („Du verlierst das Spiel und deinen Einsatz“), und der andere gewinnt beide Einsätze (Grund `left`); sonst wird der Platz sofort frei, ein wartender Bieter rückt nach, und der Verbliebene bekommt ein frisches Rack zum Üben. Wer **selbst aufgestanden ist**, wird nicht von selbst wieder gesetzt (private Tabelle `sitout`); er setzt sich mit dem Knopf **Am Tisch sitzen** (`take_seat`, erscheint, solange ein Platz frei ist und kein Spiel läuft) oder mit einer Tischwette zurück.
+
 ## Aufräumliste (abdichten)
 
-Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Punkte 9, 14, 15 und 17.
+Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Punkte 9 und 14.
 
 **A. Geister im Raum (wahrscheinlichste Ursache für „andere online, obwohl keiner da ist“) – behoben, siehe unten**
 1. *(behoben)* Ein **Zuschauer, der still geworden ist**, wird nie entfernt: `check_timeouts` prüft nur Gäste mit Platz. Nach einem Neuveröffentlichen des Moduls oder einem Absturz bleiben so Zeilen mit `connected = true` und altem `lastSeen` stehen. Sie zählen als „andere im Raum“, nehmen freie Plätze nach Beitrittsreihenfolge (der Neue wird Zuschauer) und lösen Beitritts- und Austrittsmeldungen aus.
@@ -197,9 +201,9 @@ Beim Durchgehen des Moduls und des Clients gefunden; **offen** sind noch die Pun
 **D. Der Client**
 13. *(behoben)* `onGameRow` ruft `tellTableNow()` ohne Prüfung auf: nach einem Verbindungsabbruch ist es `null`.
 14. Die Meldungen „X ist beigetreten / gegangen“ kommen auch für Geister (siehe A) und für jedes Neuladen eines Gastes in Folge; bündeln oder bei sehr schnellen Wechseln unterdrücken.
-15. Ein abgelehnter Aufruf (die Datenbank sagt Nein) steht nur in der Konsole. Für Einsatz, Tischwette und Hocker eine kurze Meldung im Spiel anzeigen.
+15. *(behoben: eine kurze Meldung im Spiel, z. B. „Nicht genug Geld.“, „Am Klavier sitzt schon jemand.“; der Rest bleibt in der Konsole)* Ein abgelehnter Aufruf (die Datenbank sagt Nein) steht nur in der Konsole. Für Einsatz, Tischwette und Hocker eine kurze Meldung im Spiel anzeigen.
 16. *(behoben: der Client meldet sich mit dem Schlüssel neu an und betritt den Raum wieder)* Stand nach einem Verbindungsabbruch mit automatischem Wiederverbinden: `roster`, Gesichter und Tabellen werden geleert, der Beitritt (`set_profile`) wird aber nicht neu gesendet; der Gast ist dann ein Geist aus seiner Sicht.
-17. `leave_table` ist im Client nicht angeschlossen (kein Knopf zum Aufstehen vom Tisch).
+17. *(behoben: Knopf im Einstellungs-Panel)* `leave_table` ist im Client nicht angeschlossen (kein Knopf zum Aufstehen vom Tisch).
 
 **E. Aufräumen**
 18. *(behoben)* Docs: der Abschnitt über das Datenbank-Modul war veraltet.

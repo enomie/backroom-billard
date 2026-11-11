@@ -26,6 +26,7 @@ import SetPresenceReducer from "../set_presence_reducer";
 import SetReadyReducer from "../set_ready_reducer";
 import SetStakeReducer from "../set_stake_reducer";
 import SitPianoReducer from "../sit_piano_reducer";
+import TakeSeatReducer from "../take_seat_reducer";
 import TakeShotReducer from "../take_shot_reducer";
 import WithdrawBidReducer from "../withdraw_bid_reducer";
 
@@ -49,6 +50,7 @@ export type SetPresenceParams = __Infer<typeof SetPresenceReducer>;
 export type SetReadyParams = __Infer<typeof SetReadyReducer>;
 export type SetStakeParams = __Infer<typeof SetStakeReducer>;
 export type SitPianoParams = __Infer<typeof SitPianoReducer>;
+export type TakeSeatParams = __Infer<typeof TakeSeatReducer>;
 export type TakeShotParams = __Infer<typeof TakeShotReducer>;
 export type WithdrawBidParams = __Infer<typeof WithdrawBidReducer>;
 

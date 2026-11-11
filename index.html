@@ -305,6 +305,16 @@
             <button id="settings-ranking" type="button" class="welcome__link" data-i18n="ranking.title">World ranking</button>
             <p id="settings-soon" class="settings__soon" data-i18n="settings.soon" hidden>Coming later.</p>
           </div>
+          <!-- Multiplayer: get up from the table, or sit down again -->
+          <div id="settings-table" class="settings__account" hidden>
+            <button id="settings-leave" type="button" class="welcome__link" data-i18n="settings.leaveTable">Leave table</button>
+            <button id="settings-sit" type="button" class="welcome__link" data-i18n="settings.sitTable" hidden>Sit at the table</button>
+            <span id="settings-leave-ask" class="settings__ask" hidden>
+              <span data-i18n="settings.leaveAsk">Leave the table now? You lose the game and your stake.</span>
+              <button id="settings-leave-yes" type="button" class="welcome__link welcome__link--danger" data-i18n="settings.leaveYes">Leave</button>
+              <button id="settings-leave-no" type="button" class="welcome__link" data-i18n="settings.leaveNo">Stay</button>
+            </span>
+          </div>
           <div id="ranking-box" class="ranking" hidden>
             <ol id="ranking-list" class="ranking__list"></ol>
           </div>

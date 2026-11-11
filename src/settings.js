@@ -6,15 +6,25 @@
 
 /**
  * @param {() => void} onRerack — the player asked for a new rack
- * @param {() => { name: string, money: string, multi: boolean }} getInfo — what the top of the panel shows (`multi`: the account buttons)
+ * @param {() => { name: string, money: string, multi: boolean, seated: boolean, seatFree: boolean, running: boolean }} getInfo — what the panel shows
+ *   (`multi`: the account buttons and the table buttons; `seated`: he sits at the table; `seatFree`: a seat is free; `running`: a game is on)
+ * @param {{ leave: () => void, sit: () => void }} table — get up from the table (a game that runs is lost, so it is asked first), sit down at a free seat
  */
-export function createSettings(onRerack, getInfo) {
+export function createSettings(onRerack, getInfo, table) {
   const root = document.getElementById("settings");
   const opener = document.getElementById("btn-settings");
   let open = false;
+  let info = null;
+  const leaveButton = document.getElementById("settings-leave");
+  const sitButton = document.getElementById("settings-sit");
+  const ask = document.getElementById("settings-leave-ask");
 
   const show = () => {
-    const info = getInfo();
+    info = getInfo();
+    document.getElementById("settings-table").hidden = !info.multi || !(info.seated || info.seatFree);
+    leaveButton.hidden = !info.seated;
+    sitButton.hidden = info.seated || !info.seatFree;
+    ask.hidden = true;
     document.getElementById("settings-name").textContent = info.name;
     document.getElementById("settings-money").textContent = info.money;
     document.getElementById("settings-account").hidden = !info.multi;
@@ -45,6 +55,28 @@ export function createSettings(onRerack, getInfo) {
   );
   window.addEventListener("keydown", (e) => {
     if (open && e.code === "Escape") hide();
+  });
+  // the table: get up (asked first while a game runs: it is lost), or sit down again
+  leaveButton.addEventListener("click", () => {
+    if (info.running) {
+      leaveButton.hidden = true;
+      ask.hidden = false;
+      return;
+    }
+    table.leave();
+    hide();
+  });
+  document.getElementById("settings-leave-yes").addEventListener("click", () => {
+    table.leave();
+    hide();
+  });
+  document.getElementById("settings-leave-no").addEventListener("click", () => {
+    ask.hidden = true;
+    leaveButton.hidden = false;
+  });
+  sitButton.addEventListener("click", () => {
+    table.sit();
+    hide();
   });
   // buying play money and changing name or face will be paid with real money later: for now they only say so
   for (const id of ["settings-buy", "settings-change"]) {

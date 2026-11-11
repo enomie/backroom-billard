@@ -35,6 +35,7 @@ const saveToken = (token) => {
   }
 };
 let kickedHandler = null; // set by the room: the account was opened on another device
+let refusedHandler = null; // set by the room: the database said no (the text of its refusal)
 const isKicked = (error) => String(error?.message ?? error).includes("logged-in-elsewhere");
 /** Call a reducer; a refusal or a lost connection is only noted (the call is a promise), it must not stop the game. `refused` is told when the database says no. */
 const call = (fn, refused) => {
@@ -43,6 +44,7 @@ const call = (fn, refused) => {
       if (isKicked(error)) kickedHandler?.();
       else {
         console.warn("[Backroom Billard] multiplayer: the database said no:", error?.message ?? error);
+        refusedHandler?.(String(error?.message ?? error));
         refused?.();
       }
     });
@@ -199,6 +201,7 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     onGame({ kind: "kicked" });
   };
   kickedHandler = kick;
+  refusedHandler = (message) => onGame({ kind: "refused", message });
 
   /** The login of `spec` (see above): a new account (the key is made up here) or the key; the key is kept in localStorage once the database accepted it. */
   function runLogin(conn) {
@@ -444,6 +447,14 @@ export function createMultiplayer(scene, onRoom, onNote, onGame) {
     /** The database's clock now (ms since 1970), as far as this browser can tell: for the countdown. */
     serverNow() {
       return Date.now() + clockOffset;
+    },
+    /** Get up from the table (a game that runs is lost); he sits down again with takeSeat or a table bet. */
+    leaveTable() {
+      call(() => connection?.reducers.leaveTable());
+    },
+    /** Sit down at a free seat of the table (when nobody plays). */
+    takeSeat() {
+      call(() => connection?.reducers.takeSeat());
     },
     /** Ask the database to work the world ranking out (it does at most every 5 s). */
     refreshRanking() {

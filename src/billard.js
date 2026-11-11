@@ -1274,7 +1274,15 @@ function setupControls() {
       setupBalls();
       updateStatusDisplay(false);
     },
-    () => ({ name: matchMode === "multi" ? settingsName : t("mode.single"), money: wallet.format(wallet.balance), multi: matchMode === "multi" })
+    () => ({
+      name: matchMode === "multi" ? settingsName : t("mode.single"),
+      money: wallet.format(wallet.balance),
+      multi: matchMode === "multi",
+      seated: mySideNow !== null,
+      seatFree,
+      running: mpGame.running,
+    }),
+    { leave: () => multiplayer.leaveTable(), sit: () => multiplayer.takeSeat() }
   );
 
   window.addEventListener("resize", () => {
@@ -2158,6 +2166,18 @@ function updateTurnClock() {
   });
 }
 
+/** What the database says when it refuses something, and the message for the player (i18n key). */
+const REFUSED_TEXTS = [
+  ["not enough money", "refused.money"],
+  ["somebody sits at the piano", "refused.piano"],
+  ["you are up", "refused.up"],
+  ["only spectators bid", "refused.bid"],
+  ["a bid is", "refused.amount"],
+  ["a stake is", "refused.amount"],
+  ["a game is running", "refused.running"],
+  ["no free seat", "refused.seat"],
+];
+
 /** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */
 function onMultiplayerGame(e) {
   if (e.kind === "aim") {
@@ -2175,6 +2195,12 @@ function onMultiplayerGame(e) {
   if (e.kind === "clock") {
     turnClock = { startedAt: e.startedAt, running: e.running }; // (the database's time)
     updateTurnClock();
+    return;
+  }
+  if (e.kind === "refused") {
+    // the database said no: a short message for what the player can understand (the rest stays in the console)
+    const key = REFUSED_TEXTS.find(([part]) => e.message.includes(part))?.[1];
+    if (key) wallet.say(key);
     return;
   }
   if (e.kind === "ranking") {
@@ -2447,8 +2473,10 @@ function tellStakeWindow() {
 
 /** Multiplayer: somebody came or went. The seats follow; alone, "Waiting for another player" stands on the screen. */
 let partnerHere = false; // two sat at the table at the last look
+let seatFree = false; // a seat of the table is free (he may sit down)
 function applyRoom(room) {
   matchNames = room.players;
+  seatFree = !(room.taken[0] && room.taken[1]);
   const two = !!(room.players[0].name && room.players[1].name);
   // The partner left (no game running): the one who stays gets a fresh rack to play on alone, until somebody comes.
   // (A game that ended because he left keeps its message; its rack is ready already.)

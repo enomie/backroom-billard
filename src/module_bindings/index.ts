@@ -54,6 +54,7 @@ import SetPresenceReducer from "./set_presence_reducer";
 import SetReadyReducer from "./set_ready_reducer";
 import SetStakeReducer from "./set_stake_reducer";
 import SitPianoReducer from "./sit_piano_reducer";
+import TakeSeatReducer from "./take_seat_reducer";
 import TakeShotReducer from "./take_shot_reducer";
 import WithdrawBidReducer from "./withdraw_bid_reducer";
 
@@ -296,6 +297,7 @@ const reducersSchema = __reducers(
   __reducerSchema("set_ready", SetReadyReducer),
   __reducerSchema("set_stake", SetStakeReducer),
   __reducerSchema("sit_piano", SitPianoReducer),
+  __reducerSchema("take_seat", TakeSeatReducer),
   __reducerSchema("take_shot", TakeShotReducer),
   __reducerSchema("withdraw_bid", WithdrawBidReducer),
 );
