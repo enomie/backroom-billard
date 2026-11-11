@@ -642,16 +642,19 @@ function agreedStake(ctx: Ctx) {
 /** A stake or a bet: a multiple of 10, at least 100 (or all the money, if that is less), at most the money. */
 const validAmount = (amount: number, money: number) => amount <= money && amount >= Math.min(MIN_STAKE, money) && (amount % STAKE_STEP === 0 || amount === money);
 
-/** The stake window: the own offer changes (live for the other one). When the agreed stake changes, both have to press Ready again. */
+/** The stake window: the own offer changes (live for the other one). His own Ready goes; the other's stays unless the agreed stake falls. */
 export const set_stake = spacetimedb.reducer({ amount: t.u32() }, (ctx, { amount }) => {
   if (limited(ctx)) return;
   const player = me(ctx);
   const row = ctx.db.stake.identity.find(ctx.sender);
   if (theGame(ctx).state !== GAME_STAKING || !row) throw new SenderError('no stake window open for you');
   if (!validAmount(amount, player.money)) throw new SenderError(`a stake is a multiple of ${STAKE_STEP}, at least ${MIN_STAKE}, at most your money`);
+  if (amount === row.amount) return;
   const before = agreedStake(ctx);
-  ctx.db.stake.identity.update({ ...row, amount });
-  if (agreedStake(ctx) === before) return;
+  ctx.db.stake.identity.update({ ...row, amount, ready: false }); // (whoever changes his own offer has to press Ready again)
+  // A stake that goes up cannot surprise the other one (it never passes his own offer): his Ready stays, so he can match a raise.
+  // A stake that goes down, though, is not what he saw: then both have to press Ready again.
+  if (agreedStake(ctx) >= before) return;
   for (const r of [...ctx.db.stake.iter()]) if (r.ready) ctx.db.stake.identity.update({ ...r, ready: false });
 });
 
