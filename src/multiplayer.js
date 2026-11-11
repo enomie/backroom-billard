@@ -402,6 +402,14 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
         };
         // who pocketed which ball (the two lists above the table): the whole list each time something changes
         const tellPockets = () => onGame({ kind: "pockets", rows: [...conn.db.pocket.iter()].map((p) => ({ ball: p.ballId, seat: p.seat })) });
+        // the last chat message of each guest: over the head of the others (the own one is shown elsewhere); it goes with the guest
+        const onChat = (row) => {
+          const id = hex(row.identity);
+          if (id !== myId) entry(id).ball.setMessage(row.text);
+        };
+        conn.db.chat.onInsert((_ctx, row) => onChat(row));
+        conn.db.chat.onUpdate((_ctx, _old, row) => onChat(row));
+        conn.db.chat.onDelete((_ctx, row) => faces.get(hex(row.identity))?.ball.setMessage(""));
         // the radio: on or off for everybody (no row: on); a change by somebody else is news
         const tellRadio = (on, byName, mine, quiet) => onGame({ kind: "radio", on, byName, mine, quiet });
         conn.db.radio.onInsert((_ctx, row) => looked && tellRadio(row.on, row.byName, hex(row.by) === myId, false));
@@ -438,7 +446,7 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
             const game = conn.db.game.id.find(1);
             if (game?.state === 1) onGame({ kind: "init", myTurn: game.turnSeat === mySeat(), turnSeat: game.turnSeat });
           })
-          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby, tables.ranking, tables.standing, tables.turn, tables.radio]);
+          .subscribe([tables.player, tables.presence, tables.game, tables.ball, tables.aim, tables.shotChunk, tables.hand, tables.kit, tables.pocket, tables.stake, tables.bid, tables.piano, tables.lobby, tables.ranking, tables.standing, tables.turn, tables.radio, tables.chat]);
         runLogin(conn); // (also after a lost connection: log in again, and come back into the room if he was in it)
         console.info("[Backroom Billard] multiplayer: connected as", myId.slice(0, 8));
       })
@@ -479,6 +487,14 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
     /** The database's clock now (ms since 1970), as far as this browser can tell: for the countdown. */
     serverNow() {
       return Date.now() + clockOffset;
+    },
+    /** Say something: the message over my head (1 to 90 characters; the database allows one every 2 seconds). */
+    say(text) {
+      call(() => connection?.reducers.say({ text }));
+    },
+    /** Take my message away. */
+    clearSay() {
+      call(() => connection?.reducers.clearSay());
     },
     /** Switch the radio on or off for everybody in the room (the database allows it every 5 seconds). */
     setRadio(on) {

@@ -2190,6 +2190,8 @@ const REFUSED_TEXTS = [
   ["a game is running", "refused.running"],
   ["no free seat", "refused.seat"],
   ["radio was just", "refused.radio"],
+  ["too fast", "refused.fast"],
+  ["bad message", "refused.message"],
 ];
 
 /** A multiplayer game event (see multiplayer.js): start, whose turn it is, the end of a shot of somebody else, the end of the game. */

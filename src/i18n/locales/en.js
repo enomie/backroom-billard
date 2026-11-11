@@ -129,6 +129,8 @@ export default {
   "room.radioOn": "{name} turned the radio on",
   "room.radioOff": "{name} turned the radio off",
   "refused.radio": "The radio was just switched.",
+  "refused.fast": "Wait a moment before the next message.",
+  "refused.message": "That message is not possible.",
   "settings.name": "Name",
   "settings.money": "Money",
   "start.present": "PRESENT",
