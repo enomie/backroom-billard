@@ -123,6 +123,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbo
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
 - [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen
 - [`_docs/welcome-screen.md`](_docs/welcome-screen.md) — Welcome-Screen nach dem Startscreen: Spielart, Konto (Schlüssel, Name in drei Feldern, Land, Gesicht), „Was darf es sein?“
+- [`_docs/chat.md`](_docs/chat.md) — Plan (nicht umgesetzt): Chat im Mehrspieler, die letzte Nachricht steht über dem Kopf, bis der Gast sie löscht; Schritte mit Prüfungen
 - [`_docs/camera.md`](_docs/camera.md) — Plan (nicht umgesetzt): Spielerkamera schaut immer auf die weiße Kugel, Cue und Kamera gleich begrenzt, ein Kamerasystem statt Sonderwegen
 - [`_docs/konto-umbau.md`](_docs/konto-umbau.md) — Plan (nicht umgesetzt): Spielart zuerst, Konto und Geld auf dem Server, Rangliste; die Schritte mit Prüfungen
 - [`_docs/countries/`](_docs/countries/README.md) — Länderdaten aus einem anderen Projekt (71 ISO-Codes mit deutschen und englischen Namen, 42 Flaggen als SVG); nur Material, noch nicht im Spiel verwendet. Die Flaggen stammen von der VDMFK-Seite, die Nutzungsrechte sind nicht geklärt.
