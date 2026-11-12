@@ -1,6 +1,6 @@
 # Trinken und Rauchen: Befund und Umbau (Plan)
 
-> **Status: Plan, nichts davon ist umgesetzt.** Auslöser: Eine Testerin meldet, man trinke das Getränk des anderen Spielers. Hier stehen die Ursache (Teil 1), was die Prüfung von Trinken und Rauchen sonst noch ergeben hat (Teil 2) und wie das System sauberer wird (Teil 3 und 4). Zu den Regeln siehe [`game-concept.md`](game-concept.md), [`cigarettes.md`](cigarettes.md), [`glass-objects.md`](glass-objects.md) und [`multiplayer.md`](multiplayer.md).
+> **Status: Plan, nichts davon ist umgesetzt.** Auslöser: Eine Testerin meldet, man trinke das Getränk des anderen Spielers. Hier stehen die Ursache (Teil 1), was die Prüfung von Trinken und Rauchen sonst noch ergeben hat (Teil 2), das neue Modell (Teil 3) und die Schritte (Teil 4). Zu den Regeln siehe [`game-concept.md`](game-concept.md), [`cigarettes.md`](cigarettes.md), [`glass-objects.md`](glass-objects.md) und [`multiplayer.md`](multiplayer.md).
 
 ## 1. Die Ursache
 
@@ -17,7 +17,7 @@
 
 | # | Befund | Folge |
 |---|--------|-------|
-| a | **Zuschauer trinken und rauchen aus den Sätzen der Spieler**: `sideOf` nimmt für sie die Kameraseite, `nearestGlass` das nächste Glas. | Er verbraucht lokal Glas und Zigaretten eines Spielers (und kauft für ihn eine neue Packung); die anderen sehen es nicht (`onHand` ignoriert Zuschauer). Widerspricht „Sätze nur an besetzten Plätzen“ in `multiplayer.md`. |
+| a | **Zuschauer trinken und rauchen aus den Sätzen der Spieler**: `sideOf` nimmt für sie die Kameraseite, `nearestGlass` das nächste Glas. | Er verbraucht lokal Glas und Zigaretten eines Spielers (und kauft für ihn eine neue Packung); die anderen sehen es nicht (`onHand` ignoriert Zuschauer). Richtig wäre: ein **eigenes Kit**, das man nur beim Benutzen sieht (Teil 3). |
 | b | **Wieder hinsetzen füllt kostenlos auf:** `applySeats` stellt bei jedem Platzwechsel Glas (`DRINK_SIPS`) und Packung (`PACK_SIZE`) aus `myChoice` neu hin. Seit „Tisch verlassen / Am Tisch sitzen“ geht das beliebig oft. | Ein **Gratis-Nachfüllen** ohne Geld, die Rechnung des Servers (`buy`) wird umgangen. |
 | c | **Das Getränkemenü ersetzt das nächste leere Glas**, nicht das des Gastes (siehe Teil 1). | Man kauft und ersetzt ein fremdes Glas (lokal). |
 | d | **Der Zustand liegt in den Szenenobjekten**, verstreut auf fünf Module (Glas in `glasses.js`, Packung, Feuerzeug, Aschenbecher, Zigaretten), jedes mit eigener Liste „je Seite“, dazu die globale Variable `mySide` in `smoking.js`. | Jede Änderung (Platz, Kauf, Synchronisation) muss an fünf Stellen richtig sein. |
@@ -25,23 +25,25 @@
 | f | **`set_kit` kennt Preise nicht**: Der Server prüft nur Form und Grenzen, nicht, ob zum Zustand ein Kauf gehört. | Wer das Kit selbst schickt, hat ein volles Glas ohne Kauf (bekannt, „Vertrauen“, aber b macht es ohne Absicht möglich). |
 | g | Kleinkram: `drinking.sipsLeft` und der Zähler am Knopf für Zuschauer ohne Platz (zeigt ein fremdes Glas). | folgt aus Teil 1 und a. |
 
-## 3. Soll-Zustand
+## 3. Soll-Zustand: ein Kit je Gast
 
-- **Ein Gast hat eine Hand** (Trinken und Rauchen) **an seinem Platz**: Die Hand bekommt **einen Platz** (0, 1 oder keinen) und eine **Blickpose** (die eigene Kamera, bei den anderen der Kopf aus `presence`). Die **eigene** Hand und die **fernen** Hände sind dieselbe Sache mit anderer Quelle für Platz und Pose, nicht zwei Programme.
-- **Der Platz entscheidet, nie die Entfernung.** Wer **keinen Platz** hat (Zuschauer), hat **keine Hand**: `R` und `T` tun nichts und sagen kurz „Setz dich an den Tisch, um zu trinken“ (Vorschlag, siehe Teil 5).
-- **Ein Platz hat einen Satz** (Glas, Packung, Feuerzeug, Aschenbecher mit Zigaretten) in **einem Objekt** (`seats[side]`), nicht verteilt; der Zustand daran ist die **Wahrheit** (Getränk, Schlucke, Packung, Zahl).
-- **Nachfüllen nur durch Kaufen.** Ein Platzwechsel ändert den **Zustand nicht**: Wer wieder aufsteht und sich setzt, bekommt sein **Kit wie es war** (Glas mit den Schlucken, die noch da waren, Packung mit der Zahl, die noch da war). Gratis-Nachfüllen ist weg.
-- **Das Menü gehört zum Glas des Gastes:** leer → Menü → der Kauf (`buy`) ersetzt **sein** Glas.
+**Entschieden (Johann):** Jeder Gast hat sein **eigenes Kit** (Getränk, Zigaretten, Feuerzeug), auch jeder **Zuschauer**.
+
+- **Spieler am Tisch:** Ihr Kit **steht an ihrem Platz** (Glas, Packung, Feuerzeug, Aschenbecher mit Zigaretten), wie bisher.
+- **Zuschauer:** Ihr Kit ist **unsichtbar, bis sie es benutzen.** Trinkt ein Zuschauer (`R`), erscheint sein Glas in der Hand, wird getrunken und verschwindet danach wieder; raucht er (`T`), erscheinen Zigarette und Feuerzeug in der Hand und verschwinden danach. **Die anderen sehen es nur in diesem Moment** (seine Hand-Ereignisse gehen wie die der Spieler an alle). Es steht nirgends herum.
+- **Das Kit gehört dem Gast, nicht dem Platz.** Es hat einen Zustand (Getränk, Schlucke, Packung, Zahl der Zigaretten) und ein **Zuhause**: am Platz (wer sitzt) oder in der Hand (wer nicht sitzt). Setzt sich ein Zuschauer oder steht ein Spieler auf, **wandert dasselbe Kit** mit: ein leeres Glas bleibt leer, die Packung hat die Zigaretten, die noch da waren. **Nachfüllen nur durch Kaufen** (`buy`), nie durch Hinsetzen.
+- **Jeder benutzt nur sein eigenes Kit.** Es gibt keine Suche nach dem nächsten Glas mehr; damit ist die Ursache aus Teil 1 weg, und die eigene Hand und die fernen Hände sind **dasselbe Programm** (`createHand`) mit anderer Quelle für Kit und Blickpose.
+- **Das Getränkemenü** gehört zum Glas **des Gastes**: leer → Menü → der Kauf ersetzt **sein** Glas.
 
 ## 4. Schritte (jeder lauffähig und geprüft)
 
-1. **Sofortige Korrektur (klein):** Die eigene Hand benutzt den **eigenen Platz** (`mySide`): Trinken bekommt eine Liste mit nur dem eigenen Glas (und für Zuschauer eine leere Liste), die Zahl am Knopf und das Menü ebenfalls. Zuschauer: `R` und `T` tun nichts und zeigen die Meldung. *Prüfen:* Einzelspiel (nichts ändert sich); im Mehrspieler: in der Spielerkamera und in der freien Kamera nahe am Glas des anderen trinken: es ist immer das eigene; Zuschauer trinkt nicht; leeres Glas des anderen öffnet kein Menü.
-2. **Kit bleibt beim Platzwechsel:** `applySeats` setzt Glas und Packung nur beim **ersten** Sitzen (aus dem Welcome), danach der Stand wie er war (im Browser gehalten; ein Neuladen ist ein neuer Beitritt wie bisher). *Prüfen:* leer trinken, aufstehen, hinsetzen: das Glas bleibt leer; kaufen füllt auf.
-3. **Eine Hand für alle:** `createHand({ seat, view })` fasst `createDrinking` und `createSmoking` zusammen; die eigene Hand ist `createHand` mit dem eigenen Platz und der Kamera, die fernen sind `createHand` mit dem Platz des Gastes und der Pose aus `presence`. Die globale Variable `mySide` und `sideOf` in `smoking.js` entfallen. *Prüfen:* Trinken, Rauchen, Feuerzeug, Packung leer und neu kaufen (Einzelspiel und Mehrspieler, eigene und ferne Hand); die anderen sehen alles wie vorher.
-4. **`seats.js`:** Ein Objekt je Platz mit Glas, Packung, Feuerzeug, Aschenbecher; `setTaken(side, bool)` ersetzt die fünf Aufrufe in `applySeats`; `seats[side].kit()` und `setKit()` für die Übertragung (`sendMyKit`, `applyKit`). *Prüfen:* wie Schritt 3, dazu Platzwechsel und Aufstehen vom Tisch.
-5. **Aufräumen:** tote Reste (`orderFor`, `glasses.player`-Filter, `myChoice` nach dem ersten Sitzen), Docs (`game-concept.md`, `cigarettes.md`, `multiplayer.md`), Browser-Prüfung aller Wege.
+1. **Sofortige Korrektur für die Spieler (klein):** Die eigene Hand eines **sitzenden** Gastes benutzt nur das **Glas seines Platzes** (`mySide`): das Trinken, das Getränkemenü und die Schlucke am Knopf. *Prüfen:* in der Spielerkamera und in der freien Kamera nahe am Glas des anderen: es ist immer das eigene; ein leeres Glas des anderen öffnet kein Menü; Einzelspiel unverändert. (Zuschauer bleiben bis Schritt 4 wie heute.)
+2. **Kit gehört dem Gast:** Jeder Gast (auch der Zuschauer) hat sein Kit im Browser (`myKit`: Getränk, Schlucke, Packung, Zahl), gesetzt aus dem Welcome-Kauf und danach nur durch Trinken, Rauchen und `buy` verändert. `applySeats` stellt beim **Sitzen** das vorhandene Kit hin (nicht mehr frisch gefüllt); `sendMyKit` schickt es **auch als Zuschauer** (die Datenbank hat `kit` je Gast schon). *Prüfen:* leer trinken, aufstehen, hinsetzen: das Glas bleibt leer; Kaufen füllt auf; die anderen sehen den Stand.
+3. **Eine Hand je Gast:** `createHand({ kit, view, home })` fasst `createDrinking` und `createSmoking` zusammen, ohne Suche nach dem nächsten Glas; die eigene Hand und die fernen (nach Gast, nicht mehr nach Platz geführt) sind `createHand`. Die globale Variable `mySide` und `sideOf` in `smoking.js` entfallen. Spieler wie bisher am Platz. *Prüfen:* Trinken, Rauchen, Feuerzeug, Packung leer und neu kaufen für beide Spieler (eigene und ferne Hand); wie vorher, nur ohne die Verwechslung.
+4. **Das Kit eines Zuschauers in der Hand:** Für Gäste ohne Platz erscheinen Glas, Packung, Feuerzeug und Zigarette **nur beim Benutzen** an der Hand (Start unter und neben dem Mund, Flug zum Mund und zurück, danach unsichtbar); `onHand` hört auch auf Zuschauer. Die Zigarette (`cigarettes.js`) und das Feuerzeug (`lighter.js`) müssen dafür **frei beweglich** sein, nicht nur in den Kerben des Aschenbechers. *Prüfen:* ein Zuschauer trinkt und raucht, die anderen sehen genau das, und nur dann; sein Kit verschwindet danach wieder; ein Zuschauer, der sich setzt, hat sein Kit (mit Stand) am Platz.
+5. **`seats.js` und Aufräumen:** Ein Objekt je Platz (Glas, Packung, Feuerzeug, Aschenbecher) mit `setTaken` statt der fünf Aufrufe in `applySeats`; tote Reste (`orderFor`, der Filter `glasses.player`, `myChoice` nach dem ersten Sitzen); Docs (`game-concept.md`, `cigarettes.md`, `multiplayer.md`). *Prüfen:* alle Wege in beiden Spielarten.
 
-## 5. Offene Fragen
+## 5. Offene Punkte
 
-- **Zuschauer:** nichts (mit Meldung) oder ein **eigener kleiner Satz** (Glas und Zigaretten in der Hand, nicht am Tisch)? Vorschlag: nichts; bei „Sätze nur an besetzten Plätzen“ in `multiplayer.md` bleibt es dann dabei.
-- **Wohin mit dem Kit eines Aufgestandenen?** Vorschlag: es bleibt im Browser des Gastes und kommt beim nächsten Sitzen wieder an den Platz (der Platz ist solange leer); beim **Neuladen** beginnt der Gast wie bisher mit dem Welcome-Kauf.
+- **Die Zigarette des Zuschauers nach dem Loslassen von `T`:** Vorschlag: sie wird **ausgedrückt** und ist weg (jede neue kommt aus der Packung); ein Spieler am Tisch lässt sie dagegen im Aschenbecher weiterglimmen, wie bisher. Alternative: Der Zuschauer behält sie (dann glimmt sie in der Hand weiter und ist nur beim Rauchen zu sehen).
+- **Wo startet das Glas eines Zuschauers?** Vorschlag: Es erscheint unter und neben dem Mund (wie aus dem Ärmel) und fliegt zum Mund, ohne Einblendung am Tisch.
