@@ -1,6 +1,6 @@
-# Chat (Plan)
+# Chat
 
-> **Status: Plan; Schritt 1 bis 4 sind gebaut (Modul, Sprechblase, Anbindung, Eingabe), Schritt 5 (Aufräumen) folgt.** Im Mehrspieler schreibt jeder Gast eine Nachricht, die **über seinem Kopf** stehen bleibt, bis er sie **selbst löscht** oder den Raum verlässt. Wie die anderen Teile des Mehrspielers steht der Rahmen in [`multiplayer.md`](multiplayer.md).
+> **Status: umgesetzt.** Im Mehrspieler schreibt jeder Gast eine Nachricht, die **über seinem Kopf** stehen bleibt, bis er sie **selbst löscht** oder den Raum verlässt. Wie die anderen Teile des Mehrspielers steht der Rahmen in [`multiplayer.md`](multiplayer.md).
 
 ## Entschieden
 
@@ -38,7 +38,7 @@
 - **Knopf (Sprechblase):** Symbol im Kopf der Anzeige, nur im Mehrspieler.
 - **Texte** (`en.js`, `de.js`): `chat.placeholder`, `chat.send`, `chat.clear`, `chat.open`.
 
-## Schritte (jeder lauffähig und geprüft)
+## Schritte (so gebaut)
 
 1. **Modul:** Tabelle `chat`, `say`, `clear_say`, Aufräumen in `dropGuest` und beim Verbindungsabbruch; Bindings. *Prüfen:* Typcheck; nach dem Veröffentlichen mit dem Spiel oder `spacetime sql … "select * from chat"`.
 2. **Sprechblase am Kopf (gebaut):** `setMessage` in `face-ball.js`, Größen in den Konstanten; Debug-Flagge `chat` (`?debug=chat`) zeigt am Dummy-Kopf (`?debug=face`) einen langen Beispieltext. *Prüfen:* Umbruch, drei Zeilen und „…“, gleich große Darstellung aus Nähe und Ferne, leerer Text blendet aus.
@@ -46,8 +46,18 @@
 4. **Eingabe und Anzeige für mich (gebaut, `src/chat-box.js`):** das Feld, `Enter` / `Esc`, Tasten schlucken, eigene Zeile mit ✕, Handy-Knopf und Senden-Knopf. *Prüfen:* beim Tippen keine Spieltaste (E, R, T, W A S D, `C`, `F` am Klavier), `Enter` öffnet nicht über offenen Fenstern, Löschen mit leerem Feld und mit ✕, Handy.
 5. **Docs und Aufräumen:** `multiplayer.md`, `spacetime/README.md`, README; tote Reste entfernen.
 
-## Offene Punkte für die Umsetzung
+## Offen (später)
 
-- Genaue Stelle und Symbol des Handy-Knopfs (Vorschlag: unter dem Zahnrad oben rechts).
-- Aussehen der Sprechblase (Vorschlag: wie das Schild, etwas heller, ohne Spitze).
 - Später möglich: Reichweite abstufen (weit weg nur eine kleine Blase ohne Text), ein kurzer Verlauf in einer Ecke.
+
+## Umsetzung
+
+| Datei | Inhalt |
+|-------|--------|
+| `spacetime/src/index.ts` | Tabelle `chat`, `say`, `clear_say` |
+| `src/face-ball.js`, `src/face-ball-constants.js` | Die Sprechblase über dem Schild (`setMessage`), Größen |
+| `src/multiplayer.js` | `chat` abonnieren, die Nachrichten an die Köpfe und die eigene ans Spiel; `say`, `clearSay` |
+| `src/chat-box.js` | Das Eingabefeld, die Tasten, die eigene Nachricht mit ✕, der Handy-Knopf |
+| `src/debug-flags.js` | `?debug=face,chat`: eine lange Beispielnachricht am Dummy-Kopf (Test der Sprechblase ohne zweiten Gast) |
+
+Prüfen mit zwei Browsern: Nachricht erscheint über dem Kopf des Absenders, die zweite ersetzt die erste (nach 2 s Abstand), Löschen mit leerem `Enter` und mit ✕, die Nachricht verschwindet, wenn der Gast geht; beim Tippen tun E, R, T, W A S D, `C` und `F` nichts.

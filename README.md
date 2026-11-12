@@ -56,6 +56,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 - **Physik:** im Ruhezustand wird nichts berechnet (siehe `_docs/physics.md`).
 - **Nebel und Rauch:** Fragmente ohne Wirkung werden vor der Lichtberechnung verworfen. HUD und Audio-Hörer schreiben nur bei Änderung.
 - Statische Gruppen (`STATIC_GROUPS`) berechnen ihre Matrizen nicht jedes Bild neu.
+- **Debug-Flaggen:** Mit `?debug=face` (hinter der Adresse) erscheint der Dummy-Kopf neben der Bar wieder (dein eigenes Gesicht als Kugel mit Name und Flagge), mit `?debug=face,chat` dazu eine lange Beispielnachricht über ihm (`src/debug-flags.js`).
 - **Messen:** Mit `?perf` hinter der Adresse (z. B. `http://localhost:5173/?perf`) erscheint unten rechts ein Entwickler-Overlay (`src/perf-hud.js`): fps, CPU-Zeit der Schleife und von `render`, **GPU-Zeit** (Timer-Query), Draw-Calls, Dreiecke, Programme, dazu Schalter für Nebelschichten, Schatten und Pixelverhältnis. Ist `loop`/`render` klein und `gpu` groß, begrenzt die Grafikkarte.
 - **Reserve für schwächere Geräte** (nicht umgesetzt, die Optik soll bleiben): Materialien mit Klarlack (Vertäfelung, Kugeln), die 11 Nebelschichten, Retina-Pixelverhältnis 2 (4× Pixel), die 4 Kerzen-Punktlichter (bleiben wie sie sind).
 
@@ -74,6 +75,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `physics-constants.js` | Reibung, Dämpfung, Restitution, Zeitschritt |
 | `multiplayer.js`, `multiplayer-constants.js`, `module_bindings/` | Verbindung zur Datenbank (Maincloud): anmelden, Ort der Kamera senden, die Gesichter der anderen zeigen; `module_bindings/` wird erzeugt, nicht von Hand ändern |
 | `spacetime/` | Das SpacetimeDB-Modul (Entwurf für den Multiplayer, nicht veröffentlicht), siehe `spacetime/README.md` |
+| `chat-box.js` | Chat im Mehrspieler: Eingabefeld (`Enter`), eigene Nachricht, Handy-Knopf; die Sprechblase über dem Kopf zeichnet `face-ball.js` |
 | `radio.js`, `radio-audio.js`, `radio-metadata.js`, `radio-constants.js` | Sideboard mit Radio, Stream, Titelanzeige und Raumklang über zwei Lautsprecher |
 | `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
@@ -123,7 +125,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbo
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
 - [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen
 - [`_docs/welcome-screen.md`](_docs/welcome-screen.md) — Welcome-Screen nach dem Startscreen: Spielart, Konto (Schlüssel, Name in drei Feldern, Land, Gesicht), „Was darf es sein?“
-- [`_docs/chat.md`](_docs/chat.md) — Plan (nicht umgesetzt): Chat im Mehrspieler, die letzte Nachricht steht über dem Kopf, bis der Gast sie löscht; Schritte mit Prüfungen
+- [`_docs/chat.md`](_docs/chat.md) — Chat im Mehrspieler: die letzte Nachricht steht über dem Kopf, bis der Gast sie löscht (`Enter` zum Schreiben)
 - [`_docs/camera.md`](_docs/camera.md) — Plan (nicht umgesetzt): Spielerkamera schaut immer auf die weiße Kugel, Cue und Kamera gleich begrenzt, ein Kamerasystem statt Sonderwegen
 - [`_docs/konto-umbau.md`](_docs/konto-umbau.md) — Plan (nicht umgesetzt): Spielart zuerst, Konto und Geld auf dem Server, Rangliste; die Schritte mit Prüfungen
 - [`_docs/countries/`](_docs/countries/README.md) — Länderdaten aus einem anderen Projekt (71 ISO-Codes mit deutschen und englischen Namen, 42 Flaggen als SVG); nur Material, noch nicht im Spiel verwendet. Die Flaggen stammen von der VDMFK-Seite, die Nutzungsrechte sind nicht geklärt.
