@@ -2449,7 +2449,14 @@ export async function startGame(choice) {
   matchMe = { name: multi ? choice.name : "", country: multi ? choice.country : "" };
   settingsName = multi ? choice.fullName : "";
   renderMatch();
-  myChoice = { drink: choice.firstDrink, pack: choice.firstPack }; // put on his seat as soon as he has one (applySeats); null: he could not pay it
+  // his kit (see _docs/trinken-rauchen.md): what he bought at the bar; it goes to his seat when he sits and with him when he gets up.
+  // What he could not pay stands empty (an empty glass, a pack without cigarettes).
+  myKit = {
+    drink: choice.firstDrink ?? "beer",
+    sips: choice.firstDrink ? DRINK_SIPS : 0,
+    pack: choice.firstPack ?? 0,
+    packCount: choice.firstPack === null ? 0 : PACK_SIZE,
+  };
   if (multi) {
     wallet.useServer((item) => multiplayer.buy(item)); // the money is the database's
     radio.setToggleHandler((on) => multiplayer.setRadio(on)); // the radio is the room's: the knob asks the database
@@ -2467,9 +2474,16 @@ let settingsName = ""; // the name in the settings panel (multiplayer); single p
 
 /** Which seats of the table are taken: only their sets (glass, pack, lighter, ashtray with cigarettes) stand there; `mySide` is this guest's seat. */
 let mpMode = false; // this guest is in the multiplayer room (not single player)
-let myChoice = null; // what this guest chose at the welcome screen: { drink, pack }
+let myKit = null; // the kit of this guest: { drink (the kind of the glass), sips, pack (the design), packCount }; his seat shows it while he sits
 let mySideNow = null; // his seat (0 or 1), null: a spectator
+/** The kit as it stands at a seat now. */
+function readSeatKit(side) {
+  const glass = glasses.seat(side);
+  const pack = packs.packs[side];
+  return { drink: glass.kind, sips: glass.sipsLeft, pack: pack.design, packCount: pack.count };
+}
 function applySeats(taken, mySide) {
+  if (mySideNow !== null && mySide !== mySideNow && myKit) myKit = readSeatKit(mySideNow); // he gets up (or moves): his kit goes with him
   [0, 1].forEach((side) => {
     glasses.setSeat(side, taken[side]);
     packs.setSeat(side, taken[side]);
@@ -2478,25 +2492,22 @@ function applySeats(taken, mySide) {
     cigarettes.setSeat(side, taken[side]);
   });
   setMySide(mySide);
-  if (myChoice && mySide !== null && mySide !== mySideNow) {
-    // he sits (or sits elsewhere now): his drink and his cigarettes stand at his seat, full
-    // (what he could not pay at the bar stands empty: an empty glass, a pack without cigarettes)
-    if (myChoice.drink) glasses.setSeatGlass(mySide, myChoice.drink, DRINK_SIPS);
-    else glasses.setSeatGlass(mySide, glasses.seat(mySide).kind, 0);
-    packs.setSeatPack(mySide, myChoice.pack ?? packs.packs[mySide].design, myChoice.pack === null ? 0 : PACK_SIZE);
+  if (myKit && mySide !== null && mySide !== mySideNow) {
+    // he sits (or sits elsewhere now): his kit stands at his seat as it is (an empty glass stays empty: only buying fills it)
+    glasses.setSeatGlass(mySide, myKit.drink, myKit.sips);
+    packs.setSeatPack(mySide, myKit.pack, myKit.packCount);
   }
   mySideNow = mySide;
 }
 
-/** What stands at my seat (drink with the sips left, the cigarettes) goes to the database when it changes (a sip, a new order, a cigarette). */
+/** My kit (drink with the sips left, the cigarettes) goes to the database when it changes (a sip, a new order, a cigarette), also while I do not sit. */
 let kitAge = 0;
 function sendMyKit(dt) {
   kitAge += dt;
-  if (kitAge < 0.25 || mySideNow === null) return;
+  if (kitAge < 0.25 || !myKit) return;
   kitAge = 0;
-  const glass = glasses.seat(mySideNow);
-  const pack = packs.packs[mySideNow];
-  multiplayer.setKit({ drink: glass.kind, sips: glass.sipsLeft, pack: pack.design, packCount: pack.count });
+  if (mySideNow !== null) myKit = readSeatKit(mySideNow); // (while he sits his seat is the kit: a sip, a new order, a cigarette)
+  multiplayer.setKit(myKit); // (every guest, spectators too: the others put it at his seat when he sits down)
 }
 
 /** The drink and cigarettes of the guest on another seat: as he has them (when his animation is over, else a moment later). */
