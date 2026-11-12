@@ -59,7 +59,7 @@ export const BEER_FOAM_DECAY_SECONDS = 240;
 /**
  * R held: the glass flies to the mouth (s) and stays there, one gulp after the other, until R is
  * let go or the glass is empty; then it flies back (s). One gulp takes DRINK_SIP_SECONDS (±jitter),
- * the level falls steadily. The glass tilts from START (full) to END (empty) (rad) and takes
+ * the level falls steadily. The glass tilts from START (full) to END (empty, the bottom up) (rad) and takes
  * DRINK_TILT_SECONDS to reach the tilt. After at least DRINK_AHH_MIN_GULPS gulps the player sighs.
  */
 export const DRINK_FLY_IN = 0.45;
@@ -67,13 +67,16 @@ export const DRINK_SIP_SECONDS = 0.8;
 export const DRINK_SIP_JITTER = 0.15;
 export const DRINK_FLY_OUT = 0.45;
 export const DRINK_TILT_START = 0.7;
-export const DRINK_TILT_END = 1.2;
+export const DRINK_TILT_END = 1.9;
 export const DRINK_TILT_SECONDS = 0.35;
 export const DRINK_AHH_MIN_GULPS = 2;
-/** Where the glass is held (m). */
-export const DRINK_MOUTH_FORWARD = 0.3;
-export const DRINK_MOUTH_DOWN = 0.2;
-export const DRINK_MOUTH_RIGHT = 0.05;
+/**
+ * Where the glass is held, in front of the face and in view (m): the camera sees 25° below the middle of the screen, so DOWN stays small
+ * compared to FORWARD (0.2 / 0.3 put the glass below the picture).
+ */
+export const DRINK_MOUTH_FORWARD = 0.4;
+export const DRINK_MOUTH_DOWN = 0.08;
+export const DRINK_MOUTH_RIGHT = 0.06;
 export const DRINK_ARC = 0.06;
 
 /**

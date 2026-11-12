@@ -359,7 +359,9 @@ function init() {
   drinkMenu = createDrinkMenu(wallet, (item) => {
     if (wallet.spend(item.price, item.kind)) orderFor.replace(item.kind);
   });
-  drinking = createDrinking(glasses, () => playerState.sip(), (glass) => {
+  // he drinks from the glass of his own seat (never the nearest one: that can be the other player's); a spectator has no seat yet (see _docs/trinken-rauchen.md)
+  const ownGlasses = { get player() { return mySideNow === null ? glasses.player : [glasses.seat(mySideNow)]; } };
+  drinking = createDrinking(ownGlasses, () => playerState.sip(), (glass) => {
     orderFor = glass;
     drinkMenu.show();
   });

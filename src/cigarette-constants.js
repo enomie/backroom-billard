@@ -98,9 +98,9 @@ export const SMOKING_ARC = 0.07;
 /** Holding T longer draws harder: the drag is full after this many seconds; a short tap still gives a small puff. */
 export const SMOKING_MAX_DRAW = 3;
 export const SMOKING_MIN_STRENGTH = 0.12;
-/** The cigarette at the mouth: in front of and below the camera (m), pointing forward and a little up (rad). */
-export const SMOKING_MOUTH_FORWARD = 0.3;
-export const SMOKING_MOUTH_DOWN = 0.1;
+/** The cigarette at the mouth: in front of and a little below the camera, in view (m), pointing forward and a little up (rad). */
+export const SMOKING_MOUTH_FORWARD = 0.28;
+export const SMOKING_MOUTH_DOWN = 0.05;
 export const SMOKING_MOUTH_RIGHT = 0.05; // a little to the right, so it does not hide behind the cue
 export const SMOKING_MOUTH_TILT = 0.18;
 /** Drawing: the ember glows brighter (reaches its maximum after this many seconds) and the cigarette burns this much faster. */
