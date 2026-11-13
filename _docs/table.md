@@ -25,10 +25,17 @@ Ursprung in der Tischmitte, Filzoberkante bei `y = TABLE_H` (0,85 m). Alle Maße
 
 ## Taschen
 
-- **Loch rund**, Mitte auf der Filzkante (Ecke: Filzkanten-Ecke, Seite: Filzkante bei z = 0).
-- Radius = halbe WPA-Mündung: Ecke ≈ 58 mm, Seite ≈ 64 mm.
-- **Bandenenden mit Facette:** Die Rückseite des Gummis endet am Loch, die Nase ist zurückgeschnitten (Ecke 45°, Seite ca. 14°).
-- Die Nasen-Spitzen ergeben sich daraus (`cushionTipOffsets` in `pocket-spec.js`).
+Nach WPA (Mittelwerte), berechnet in `pocket-spec.js` (`POCKET_GEOMETRY`):
+
+| | Ecke | Seite |
+|---|---|---|
+| Öffnung (Nasenspitze zu Nasenspitze) | 116 mm | 129 mm |
+| Bandenwinkel (Nase zu Facette) | 142° | 104° |
+| Loch | Ø ≈ 142 mm, Mitte auf der Filzkanten-Ecke | Ø ≈ 119 mm, Mitte 24 mm hinter der Filzkante |
+| Abstand Öffnung bis Lochkante | ≈ 44 mm (WPA 25–57) | 4,8 mm (WPA 0–9,5) |
+
+- Die Nase jeder Bande endet an der Öffnung, die Facette läuft im Bandenwinkel nach hinten.
+- Das runde Loch geht genau durch die hinteren Bandenenden an der Filzkante.
 
 ## Wie der Tisch entsteht
 

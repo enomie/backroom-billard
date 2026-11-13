@@ -3,12 +3,10 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { woodTexture, glossyWoodMaterial } from "./wood.js";
 import { buildTableWithPocketsCSG } from "./table-csg.js";
 import { feltTextures } from "./felt-texture.js";
-import { cushionTipOffsets, pocketCupDims } from "./pocket-spec.js";
+import { POCKET_GEOMETRY, pocketCupDims } from "./pocket-spec.js";
 import {
   CUSHION_PROFILE_BOTTOM_OUTSET,
   CUSHION_PROFILE_FACE_RECESS,
-  CUSHION_END_RECESS_CORNER,
-  CUSHION_END_RECESS_SIDE,
   LEG_CUP_GAP,
   LEG_RADIUS_TOP,
   LEG_RADIUS_BOTTOM,
@@ -153,7 +151,7 @@ export function buildAuthenticTableWithHoles(
 
   const hwNose = PLAY_W / 2;
   const hlNose = PLAY_L / 2;
-  const { cornerTip, sideTip } = cushionTipOffsets();
+  const { corner, side } = POCKET_GEOMETRY;
 
   const feltShape = new THREE.Shape();
   feltShape.moveTo(-hw, -hl);
@@ -222,6 +220,8 @@ export function buildAuthenticTableWithHoles(
    */
   function addRailAlongX(feltEdgeZ, inwardNz) {
     const outwardZ = -inwardNz;
+    // Back-side ends (felt edge) = nose tip + facet recess · rubber width
+    const xBack = hwNose - corner.tip + corner.k * rubberThick;
     const profile = buildCushionProfile(
       feltEdgeZ,
       inwardNz,
@@ -234,10 +234,10 @@ export function buildAuthenticTableWithHoles(
         profile,
         "x",
         inwardNz,
-        -(hwNose - cornerTip + CUSHION_END_RECESS_CORNER * rubberThick),
-        hwNose - cornerTip + CUSHION_END_RECESS_CORNER * rubberThick,
-        CUSHION_END_RECESS_CORNER,
-        CUSHION_END_RECESS_CORNER
+        -xBack,
+        xBack,
+        corner.k,
+        corner.k
       ),
       cushionRubberMat
     );
@@ -260,8 +260,7 @@ export function buildAuthenticTableWithHoles(
    */
   function addRailAlongZ(feltEdgeX, inwardNx) {
     const outwardX = -inwardNx;
-    // Long cushion: two pieces between the side pocket and the corner pocket tip
-    const zEnd = hlNose - cornerTip;
+    // Long cushion: two pieces between the side pocket and the corner pocket
     const profile = buildCushionProfile(
       feltEdgeX,
       inwardNx,
@@ -269,12 +268,12 @@ export function buildAuthenticTableWithHoles(
       railH,
       TABLE_H
     );
-    // Back-side ends (felt edge) = nose end + recess · rubber width
-    const sBack = sideTip - CUSHION_END_RECESS_SIDE * rubberThick;
-    const zBack = zEnd + CUSHION_END_RECESS_CORNER * rubberThick;
+    // Back-side ends (felt edge) = nose tip ∓ facet recess · rubber width
+    const sBack = side.tip - side.k * rubberThick;
+    const zBack = hlNose - corner.tip + corner.k * rubberThick;
     for (const [sa, sb, ka, kb] of [
-      [sBack, zBack, CUSHION_END_RECESS_SIDE, CUSHION_END_RECESS_CORNER],
-      [-zBack, -sBack, CUSHION_END_RECESS_CORNER, CUSHION_END_RECESS_SIDE],
+      [sBack, zBack, side.k, corner.k],
+      [-zBack, -sBack, corner.k, side.k],
     ]) {
       const rubber = new THREE.Mesh(
         cushionPieceGeometry(profile, "z", inwardNx, sa, sb, ka, kb),

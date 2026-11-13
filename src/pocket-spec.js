@@ -2,41 +2,46 @@
  * pocket-spec.js — single source of truth for the table pockets (CSG & physics)
  */
 import {
-  POCKET_R_CORNER,
-  POCKET_R_SIDE,
-  POCKET_CORNER_OFFSET_FACTOR,
-  POCKET_SIDE_OFFSET_FACTOR,
+  POCKET_MOUTH_CORNER,
+  POCKET_MOUTH_SIDE,
+  POCKET_MOUTH_ANGLE_CORNER_DEG,
+  POCKET_MOUTH_ANGLE_SIDE_DEG,
+  POCKET_SHELF_SIDE,
   POCKET_OVERHANG_TOP,
   POCKET_DEPTH_BOTTOM,
-  CUSHION_END_RECESS_CORNER,
-  CUSHION_END_RECESS_SIDE,
   CUSHION_PROFILE_WIDTH,
 } from "./table-constants.js";
 
-export const POCKET_DIM_DEFAULTS = {
-  r_corner: POCKET_R_CORNER,
-  r_side: POCKET_R_SIDE,
-  cornerOffsetFactor: POCKET_CORNER_OFFSET_FACTOR,
-  sideOffsetFactor: POCKET_SIDE_OFFSET_FACTOR,
-  overhangTop: POCKET_OVERHANG_TOP,
-  depthBottom: POCKET_DEPTH_BOTTOM,
-};
+/** Facet recess per meter of rubber depth for a mouth angle (90° = square cut). */
+const facetRecess = (deg) => Math.tan(((deg - 90) * Math.PI) / 180);
 
 /**
- * Nose tips of the cushions at the pockets (distance from the nose-line corner or from the center).
- * The back of the rubber ends at the round hole (`r` from the hole center on the felt edge),
- * the nose is cut back by `k · rubber width` (facet).
- *
- * @param {typeof POCKET_DIM_DEFAULTS} [dims]
- * @returns {{ cornerTip: number; sideTip: number }}
+ * Pocket geometry derived from the WPA mouth and angle.
+ * `tip`: nose tip distance from the nose-line corner (corner) or from the center (side), along the cushion.
+ * `k`: facet recess per meter of rubber depth; the back of the rubber (felt edge) ends at `tip − k · W`.
+ * The round hole passes through these back ends: corner hole centered on the felt-edge corner, side hole
+ * pushed outwards by `centerOut` so that its edge lies `POCKET_SHELF_SIDE` behind the nose line.
  */
-export function cushionTipOffsets(dims = POCKET_DIM_DEFAULTS) {
+function pocketGeometry() {
   const W = CUSHION_PROFILE_WIDTH;
+
+  const cornerTip = POCKET_MOUTH_CORNER / Math.SQRT2;
+  const cornerK = facetRecess(POCKET_MOUTH_ANGLE_CORNER_DEG);
+  const cornerRadius = W + cornerTip - cornerK * W;
+
+  const sideTip = POCKET_MOUTH_SIDE / 2;
+  const sideK = facetRecess(POCKET_MOUTH_ANGLE_SIDE_DEG);
+  const sideBack = sideTip - sideK * W;
+  const inset = W - POCKET_SHELF_SIDE; // hole edge inside the felt edge
+  const sideCenterOut = (sideBack * sideBack - inset * inset) / (2 * inset);
+
   return {
-    cornerTip: dims.r_corner + (CUSHION_END_RECESS_CORNER - 1) * W,
-    sideTip: dims.r_side + CUSHION_END_RECESS_SIDE * W,
+    corner: { tip: cornerTip, k: cornerK, radius: cornerRadius },
+    side: { tip: sideTip, k: sideK, radius: sideCenterOut + inset, centerOut: sideCenterOut },
   };
 }
+
+export const POCKET_GEOMETRY = pocketGeometry();
 
 /**
  * Dimensions of the pocket cup (catcher) below the playing plate — shared by visuals and physics.
@@ -62,11 +67,10 @@ export function pocketCupDims(spec, tableH, feltDepth) {
  * Creates the binding pocket specs for the CSG cut-outs and pocketing checks.
  *
  * @param {Object} table
- * @param {number} table.playW — WPA playing field width (1.27 m)
- * @param {number} table.playL — WPA playing field length (2.54 m)
+ * @param {number} table.playW — WPA playing field width (1.27 m), nose to nose
+ * @param {number} table.playL — WPA playing field length (2.54 m), nose to nose
  * @param {number} table.tableH — felt surface Y
  * @param {number} table.cushionH — CUSHION_NOSE_TO_BED (Blueprint railH)
- * @param {typeof POCKET_DIM_DEFAULTS} [dims]
  * @returns {Array<{
  *   id: string;
  *   center: [number, number, number];
@@ -74,69 +78,34 @@ export function pocketCupDims(spec, tableH, feltDepth) {
  *   height: number;
  *   yTop: number;
  *   yBottom: number;
- *   axis: [number, number, number];
  * }>}
  */
-export function createPocketSpecs(table, dims = POCKET_DIM_DEFAULTS) {
-  // playW/playL = nose to nose; the round holes are centered on the felt edge
-  const hw = table.playW / 2 + CUSHION_PROFILE_WIDTH; // Filzkante (Lochmitte liegt darauf)
+export function createPocketSpecs(table) {
+  const hw = table.playW / 2 + CUSHION_PROFILE_WIDTH; // felt edge
   const hl = table.playL / 2 + CUSHION_PROFILE_WIDTH;
 
-  const yTop = table.tableH + table.cushionH + dims.overhangTop;
-  const yBottom = table.tableH - dims.depthBottom;
-  const height = yTop - yBottom;
+  const yTop = table.tableH + table.cushionH + POCKET_OVERHANG_TOP;
+  const yBottom = table.tableH - POCKET_DEPTH_BOTTOM;
   const yCenter = (yTop + yBottom) / 2;
 
-  /** Optional outward offset of the hole center (0 = exactly on the felt edge). */
-  const cornerOut = dims.r_corner * dims.cornerOffsetFactor;
-  const sideOut = dims.r_side * dims.sideOffsetFactor;
+  const { corner, side } = POCKET_GEOMETRY;
+  const sideX = hw + side.centerOut;
 
   const pockets = [
-    {
-      id: "corner-tl",
-      x: -(hw + cornerOut),
-      z: -(hl + cornerOut),
-      radius: dims.r_corner,
-    },
-    {
-      id: "corner-tr",
-      x: hw + cornerOut,
-      z: -(hl + cornerOut),
-      radius: dims.r_corner,
-    },
-    {
-      id: "corner-bl",
-      x: -(hw + cornerOut),
-      z: hl + cornerOut,
-      radius: dims.r_corner,
-    },
-    {
-      id: "corner-br",
-      x: hw + cornerOut,
-      z: hl + cornerOut,
-      radius: dims.r_corner,
-    },
-    {
-      id: "side-l",
-      x: -(hw + sideOut),
-      z: 0,
-      radius: dims.r_side,
-    },
-    {
-      id: "side-r",
-      x: hw + sideOut,
-      z: 0,
-      radius: dims.r_side,
-    },
+    { id: "corner-tl", x: -hw, z: -hl, radius: corner.radius },
+    { id: "corner-tr", x: hw, z: -hl, radius: corner.radius },
+    { id: "corner-bl", x: -hw, z: hl, radius: corner.radius },
+    { id: "corner-br", x: hw, z: hl, radius: corner.radius },
+    { id: "side-l", x: -sideX, z: 0, radius: side.radius },
+    { id: "side-r", x: sideX, z: 0, radius: side.radius },
   ];
 
   return pockets.map((p) => ({
     id: p.id,
     center: [p.x, yCenter, p.z],
     radius: p.radius,
-    height,
+    height: yTop - yBottom,
     yTop,
     yBottom,
-    axis: /** @type {const} */ ([0, 1, 0]),
   }));
 }

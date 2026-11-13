@@ -49,28 +49,18 @@ export const DIAMONDS_PER_SPAN = 3;
 /** Green playing plate (felt on a carrier): 5 mm thick; the pocket cup starts below it. */
 export const FELT_BED_DEPTH = 0.005;
 
-/** Pocket mouth, WPA mid value → cylinder approximation radius = mouth/2 */
-const CORNER_MOUTH =
-  (0.1143 + 0.1175) / 2;
-const SIDE_MOUTH = (0.127 + 0.130175) / 2;
-
-export const POCKET_R_CORNER = CORNER_MOUTH / 2;
-export const POCKET_R_SIDE = SIDE_MOUTH / 2;
-
-/** 0 = hole center exactly on the corner of the felt edge (sketch). */
-export const POCKET_CORNER_OFFSET_FACTOR = 0;
-/** 0 = hole center exactly on the felt edge (sketch). */
-export const POCKET_SIDE_OFFSET_FACTOR = 0;
+/**
+ * Pockets (WPA): the mouth is measured from cushion nose tip to nose tip, the mouth angle between the
+ * cushion nose line and the facet (jaw). Mid values of the WPA ranges.
+ */
+export const POCKET_MOUTH_CORNER = (0.1143 + 0.1175) / 2; // 4.5″–4.625″
+export const POCKET_MOUTH_SIDE = (0.127 + 0.130175) / 2; // 5″–5.125″
+export const POCKET_MOUTH_ANGLE_CORNER_DEG = 142;
+export const POCKET_MOUTH_ANGLE_SIDE_DEG = 104;
+/** Side pocket shelf: from the mouth line (nose line) to the edge of the hole, WPA 0–⅜″. */
+export const POCKET_SHELF_SIDE = 0.0048;
 export const POCKET_OVERHANG_TOP = 0.02;
 export const POCKET_DEPTH_BOTTOM = 0.15;
-
-/**
- * Cushion ends at the pockets (facet): the back of the rubber (at the felt edge) ends at the round
- * hole, the nose is cut back. `k` = recess of the end face per meter of rubber depth
- * (k = 1 → 45°, k = 0,25 → ca. 14°).
- */
-export const CUSHION_END_RECESS_CORNER = 1.0;
-export const CUSHION_END_RECESS_SIDE = 0.25;
 
 /** Table legs stand directly below the corner pocket cups; air gap between cup bottom and leg top. */
 export const LEG_CUP_GAP = 0.02;
