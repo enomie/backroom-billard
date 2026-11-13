@@ -130,6 +130,8 @@ import {
   SWERVE_SECONDS,
   TABLE_FRICTION,
   BALL_FRICTION,
+  ROLLING_RESISTANCE,
+  SIDE_SPIN_DECEL,
   CUE_RESPAWN_DELAY,
 } from "./physics-constants.js";
 
@@ -899,6 +901,28 @@ function applySwerve(dt) {
   const [sideX, sideZ] = [ux / slip - along * hx, uz / slip - along * hz]; // slip direction across the path
   const k = (SWERVE_BOOST - 1) * ((TABLE_FRICTION + BALL_FRICTION) / 2) * 9.81 * cueBall.body.mass() * dt;
   cueBall.body.applyImpulse({ x: -sideX * k, y: 0, z: -sideZ * k }, true); // friction acts against the slip
+}
+
+/**
+ * Cloth drag (see ROLLING_RESISTANCE, SIDE_SPIN_DECEL): a constant deceleration of every ball on the
+ * table. The horizontal spin changes with the speed so that the slip of the contact point stays as it
+ * is (a rolling ball keeps rolling); the spin about the vertical axis decays towards 0.
+ * @param {number} dt — physics step (s)
+ */
+function applyClothDrag(dt) {
+  const dv = ROLLING_RESISTANCE * 9.81 * dt;
+  const dw = SIDE_SPIN_DECEL * dt;
+  for (const b of balls) {
+    if (b.inPocket || b.body.translation().y < TABLE_H - 0.01) continue;
+    const v = b.body.linvel();
+    const w = b.body.angvel();
+    const speed = Math.hypot(v.x, v.z);
+    const f = speed > dv ? dv / speed : 1; // part of the speed that is taken away
+    const [ax, az] = [v.x * f, v.z * f];
+    const wy = Math.abs(w.y) > dw ? w.y - Math.sign(w.y) * dw : 0;
+    b.body.setLinvel({ x: v.x - ax, y: v.y, z: v.z - az }, false);
+    b.body.setAngvel({ x: w.x - az / BALL_R, y: wy, z: w.z + ax / BALL_R }, false);
+  }
 }
 
 /** Safety net: if the physical hit did not move the ball, give it the intended impulse. */
@@ -1761,6 +1785,7 @@ function stepPhysics(frameDt) {
       for (const b of balls) rememberVelocity(b);
       physics.world.step(physics.eventQueue);
       detectBallImpacts();
+      applyClothDrag(physics.world.timestep);
       if (!stroke || stroke.phase === "done") applySwerve(physics.world.timestep);
       let foulBall = null; // the cue tip touched a coloured ball (see below)
       physics.eventQueue.drainCollisionEvents((h1, h2, started) => {

@@ -20,6 +20,7 @@ Trimeshes bekommen `FIX_INTERNAL_EDGES_TWO_SIDED`. Ohne dieses Flag lenken Dreie
 - **Seitendrall (Effet):** Der Nubbel trifft die Kugel außermittig; die echte Spitzenform und die Reibung der Spitze erzeugen den Drall (gemessen bei halbem Radius seitlich: ca. 18 rad/s um die Hochachse, unten: Rückdrall). Weil die Spitze in der Simulation unendlich schwer ist, würde die Kugel dabei bis zu **14°** von der Zielrichtung abweichen (echt: 1–3°). Deshalb zieht `limitSquirt` (`billard.js`) die Richtung nach dem Stoß auf höchstens `CUE_SQUIRT_MAX_DEG` (2,5°, bei Stoß ganz außen, weg von der getroffenen Seite) zurück; der Drall bleibt.
 - **Kurve (Swerve):** Mit steilem Cue ist die Drehachse geneigt, und die Kugel kurvt, solange sie noch auf dem Filz gleitet (Reibung gegen den Schlupf des Berührpunkts). Die Physik gibt das nur schwach, deshalb vervielfacht `applySwerve` in den ersten `SWERVE_SECONDS` (1 s) nach dem Stoß den **seitlichen Teil** dieser Reibung auf der weißen Kugel um `SWERVE_BOOST` (8). Gemessen bei 30° Cue-Neigung: ca. 8° Kursänderung auf 0,8 m (zur Seite des Effets), mit flachem Cue ca. 3°; ohne Boost unter 1°. Mit `SWERVE_BOOST = 1` und `CUE_SQUIRT_MAX_DEG = 14` ist das alte Verhalten wieder da.
 - **Weiße Kugel:** wird nach 600 ms auf einem freien Platz neu aufgelegt (nicht gelöscht, nicht im HUD).
+- **Tuchbremse:** Rapiers Damping ist aus (0), weil es proportional zur Geschwindigkeit bremst (langsame Kugeln kriechen sekundenlang). Stattdessen bremst `applyClothDrag` (`billard.js`) jede Kugel auf dem Tisch **konstant** (Rollwiderstand `ROLLING_RESISTANCE` × g); der Drall wird dabei so mitgenommen, dass eine rollende Kugel weiter rollt. Seitendrall um die Hochachse klingt mit `SIDE_SPIN_DECEL` ab. Gemessen: aus 1 m/s ca. 3,4 m Weg, Stillstand nach ca. 7 s.
 - **Ruhe:** unter 1 cm/s (und kaum Drall) setzt das Spiel die Geschwindigkeit auf 0. Sobald **alle** Kugeln unter 2 cm/s sind (der Tisch gilt als still), werden die Reste (Geschwindigkeit und Drall) auf 0 gesetzt, sonst würde eine kriechende Kugel ihre Restgeschwindigkeit behalten, während die Physik schläft, und beim nächsten Stoß „von allein“ weiterrollen (auch die weiße).
 - **Sicherheitsnetz:** Eine Kugel außerhalb des Tisches wird zurückgesetzt (Konsolen-Warnung).
 
@@ -27,11 +28,11 @@ Trimeshes bekommen `FIX_INTERNAL_EDGES_TWO_SIDED`. Ohne dieses Flag lenken Dreie
 
 | Wert | Standard | Wirkung |
 |------|----------|---------|
-| `LINEAR_DAMPING` | 0,25 | Rollwiderstand: wie weit Kugeln auslaufen |
-| `ANGULAR_DAMPING` | 0,40 | Ausklingen des Drehens |
-| `CUSHION_RESTITUTION` | 0,70 | Sprungkraft der Bande (× Kugel 0,95) |
+| `ROLLING_RESISTANCE` | 0,015 | Rollwiderstand: wie weit Kugeln auslaufen |
+| `SIDE_SPIN_DECEL` | 10 | Abklingen des Seitendralls (rad/s pro s) |
+| `CUSHION_RESTITUTION` | 0,80 | Sprungkraft der Bande (× Kugel 0,95 ≈ 0,76) |
 | `BALL_RESTITUTION` | 0,95 | Kugel gegen Kugel |
-| `TABLE_FRICTION` | 0,15 | Grip auf dem Filz |
+| `TABLE_FRICTION` | 0,34 | Grip auf dem Filz (mit Kugel gemittelt: 0,2 Gleitreibung) |
 | `CUP_RESTITUTION` | 0,20 | Wie stark Kugeln im Becher springen |
 | `CUE_SQUIRT_MAX_DEG` | 2,5 | Größte Ablenkung bei seitlichem Stoß (Grad) |
 | `SWERVE_BOOST` | 8 | Verstärkung der Kurve bei Effet (1 = reine Physik) |

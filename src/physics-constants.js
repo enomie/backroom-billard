@@ -6,7 +6,7 @@
 export const PHYSICS_STEP = 1 / 240;
 
 /** Cushion (K-66 rubber) */
-export const CUSHION_RESTITUTION = 0.7;
+export const CUSHION_RESTITUTION = 0.8;
 export const CUSHION_FRICTION = 0.2;
 export const CONTACT_SKIN_M = 0.001;
 
@@ -14,12 +14,21 @@ export const CONTACT_SKIN_M = 0.001;
 export const BALL_MASS_KG = 0.17;
 export const BALL_RESTITUTION = 0.95;
 export const BALL_FRICTION = 0.06;
-export const LINEAR_DAMPING = 0.25;
-export const ANGULAR_DAMPING = 0.4;
+/** Rapier's damping is proportional to the speed (slow balls would creep for seconds); the cloth's drag is applied in applyClothDrag instead. */
+export const LINEAR_DAMPING = 0;
+export const ANGULAR_DAMPING = 0;
 
-/** Playing plate (felt on a carrier) */
+/**
+ * Cloth drag, applied per step to every ball on the table (constant, not proportional to the speed):
+ * rolling resistance (coefficient, deceleration = value × g; the spin follows, rolling stays rolling)
+ * and the decay of the spin about the vertical axis (side spin, rad/s per second).
+ */
+export const ROLLING_RESISTANCE = 0.015;
+export const SIDE_SPIN_DECEL = 10;
+
+/** Playing plate (felt on a carrier). Friction is averaged with the ball's: (0.34 + 0.06) / 2 = 0.2 sliding friction on the cloth. */
 export const TABLE_RESTITUTION = 0.4;
-export const TABLE_FRICTION = 0.15;
+export const TABLE_FRICTION = 0.34;
 
 /** Pocket cup (catcher, leather) */
 export const CUP_RESTITUTION = 0.2;
