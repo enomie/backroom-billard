@@ -84,9 +84,13 @@ Code: `src/door.js`, Werte in `door-constants.js`. Aus Rücksicht auf die Bildra
 
 An der kurzen Wand **gegenüber der Tür** (`src/neon-sign.js`, Werte in `src/neon-sign-constants.js`): **BACKROOM** in leuchtendem Blau über **BILLARD** in leuchtendem Gelb, in der Schrift des Titels (Limelight), 1,5 m breit, Mitte auf 2,7 m Höhe. Die Buchstaben sind als **Leuchtröhren** gezeichnet (Umriss mit hellem Kern und Schein) auf einer Fläche, die zum Bild **addiert** wird: kein echtes Licht, also kein Aufwand pro Pixel, und kein Nebel schluckt es. Die Wand bekommt dadurch keinen Lichtschein.
 
-## Kugeln: Einschlüsse (umgesetzt)
+## Kugeln: Farben, volle und halbe, Zahlen (umgesetzt)
 
-Die Kugeln tragen kleine **Einschlüsse** wie Elfenbeinkugeln (`src/ball-texture.js`, Werte in `ball-constants.js`), damit man sieht, wie sie sich drehen: etwa 90 winzige Flecken (Radius 0,4–1,2 mm) gleichmäßig über die ganze Kugel verteilt, **für jede Kugel ein anderes Muster** (fest, bei jedem Start gleich). Auf hellen und bunten Kugeln sind sie dunkelbraun, auf der schwarzen 8 hell-grau. Rein optisch: eine kleine Canvas-Textur je Kugel (512 × 256, einmal erzeugt und behalten), die Farbe der Kugel steckt in der Textur. Größe, Anzahl und Stärke der Flecken stehen in `ball-constants.js`.
+- **Farben:** Klassischer Satz: 1/9 gelb, 2/10 blau, 3/11 rot, 4/12 violett, 5/13 orange, 6/14 grün, 7/15 weinrot, 8 schwarz, Weiße cremeweiß. Werte in `ball-constants.js` (`ballColor`).
+- **Volle und halbe:** 1–8 sind voll, 9–15 halb (ein farbiger Gürtel von etwa einem Drittel der Kugel auf Elfenbein). Rein optisch, die Regeln kennen keine Gruppen. In der Aufstellung liegen in den hinteren Ecken eine volle und eine halbe Kugel (`RACK_ORDER`).
+- **Zahlen:** Auf zwei gegenüberliegenden Seiten am Äquator ein heller Kreis mit der schwarzen Zahl (Roboto fett), 6 und 9 unterstrichen. Bis die Schrift geladen ist, steht eine Ersatzschrift drin, danach wird die Textur neu gezeichnet.
+- **Einschlüsse:** Kleine Flecken wie bei Elfenbeinkugeln, damit man sieht, wie sich eine Kugel dreht: etwa 90 winzige Flecken (Radius 0,4–1,2 mm), gleichmäßig über die ganze Kugel verteilt, **für jede Kugel ein anderes Muster** (fest, bei jedem Start gleich). Auf hellem und farbigem Grund dunkelbraun, auf Schwarz hellgrau.
+- **Technik:** Eine Canvas-Textur je Kugel (1024 × 512, `src/ball-texture.js`). Geometrie und Material jeder Kugel werden einmal angelegt und bei jeder neuen Aufstellung wiederverwendet (`src/balls.js`). Die versenkten Kugeln im HUD sind runde Punkte in der Kugelfarbe, halbe mit Gürtel.
 
 ## Filz: abgenutzt und mit Flecken (umgesetzt)
 

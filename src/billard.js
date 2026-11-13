@@ -14,7 +14,7 @@ import {
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
 import { createCeilingLamps } from "./ceiling-lamps.js";
-import { captureRoomReflection, applyBallReflection } from "./ball-reflection.js";
+import { captureRoomReflection } from "./ball-reflection.js";
 import { createRoom } from "./room.js";
 import { createFurniture } from "./furniture.js";
 import { createCandles } from "./candle.js";
@@ -29,7 +29,8 @@ import { createExhale } from "./exhale.js";
 import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
-import { ballTexture } from "./ball-texture.js";
+import { createBallMesh, ballDot } from "./balls.js";
+import { RACK_ORDER } from "./ball-constants.js";
 import { isStartScreenOpen } from "./start-screen.js";
 import { createDoor } from "./door.js";
 import { createNeonSign } from "./neon-sign.js";
@@ -192,30 +193,9 @@ let cueShotTime = 0; // seconds since the shot
 let cueRelax = 0; // 0 = aiming/strike pose, 1 = relaxed hold (linear; eased when applied)
 let cueRespawnWait = null; // seconds since the white ball is gone (pocketed or off the table); null = it is on the table
 let lastShotTime = 0; // guard against double-triggered shots
-/** 15 object balls, all different; no. 8 stays black. The HUD uses the same colors. */
-const BALL_COLORS = [
-  0xfacc15, // 1 yellow
-  0x1d4ed8, // 2 blue
-  0xdc2626, // 3 red
-  0x7c3aed, // 4 purple
-  0xf97316, // 5 orange
-  0x15803d, // 6 green
-  0x7f1d1d, // 7 maroon
-  0x111827, // 8 black
-  0x38bdf8, // 9 light blue
-  0xf472b6, // 10 pink
-  0x14b8a6, // 11 teal
-  0x92400e, // 12 brown
-  0xa3e635, // 13 lime
-  0x94a3b8, // 14 gray
-  0xd946ef, // 15 magenta
-];
-
 /** "playing" | "won" | "lost" — the black 8 must be pocketed last */
 let gameState = "playing";
 const BLACK_BALL_ID = 8;
-/** Ball numbers in rack position order; the 8 sits in the middle of the third row. */
-const RACK_ORDER = [1, 2, 3, 4, 8, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15];
 
 /** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
@@ -472,22 +452,8 @@ function setupBalls() {
   elevationGlide = true; // a new rack starts like every turn: flat
   cueRelax = 0;
 
-  const sphereGeo = new THREE.SphereGeometry(BALL_R, 32, 32);
-
-  function createBall(x, z, colorHex, isCue = false, id = 0) {
-    const mat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff, // the color comes from the texture, with its specks
-      map: ballTexture(colorHex, id),
-      roughness: 0.03,
-      metalness: 0.04,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.03,
-      reflectivity: 0.98,
-    });
-    applyBallReflection(mat, ballReflection);
-    const mesh = new THREE.Mesh(sphereGeo, mat);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
+  function createBall(x, z, id) {
+    const mesh = createBallMesh(id, ballReflection);
     mesh.position.set(x, TABLE_H + BALL_R, z);
     scene.add(mesh);
 
@@ -503,9 +469,8 @@ function setupBalls() {
       vel: new THREE.Vector3(0, 0, 0),
       preVel: new THREE.Vector3(0, 0, 0), // velocity before the last physics step
       radius: BALL_R,
-      isCue,
+      isCue: id === 0,
       id,
-      color: colorHex,
       inPocket: false, // true only once the ball has hit the cup floor
       inHole: false, // currently dropping into a pocket (the entry sound played)
     };
@@ -515,7 +480,7 @@ function setupBalls() {
   }
 
   // Cue ball
-  cueBall = createBall(0, HEAD_SPOT_Z, 0xf8fafc, true, 0);
+  cueBall = createBall(0, HEAD_SPOT_Z, 0);
 
   // Triangle rack
   const startZ = -PLAY_L * 0.22;
@@ -530,7 +495,7 @@ function setupBalls() {
       const px = startX + c * (BALL_R * 2.04);
       const pz = startZ - r * rowGap;
       const number = RACK_ORDER[idx];
-      createBall(px, pz, BALL_COLORS[number - 1], false, number);
+      createBall(px, pz, number);
       idx++;
     }
   }
@@ -1568,14 +1533,11 @@ function syncBallFromBody(b) {
   b.mesh.quaternion.set(q.x, q.y, q.z, q.w);
 }
 
-/** Show pocketed balls as round circles in the ball color. */
+/** Show a pocketed ball in the HUD (balls.js). */
 function addPocketedToHud(b) {
   const host = document.getElementById("pocketed-balls");
   if (!host) return;
-  const dot = document.createElement("span");
-  dot.className = "pocketed-ball";
-  dot.style.backgroundColor = "#" + b.color.toString(16).padStart(6, "0");
-  dot.dataset.ballId = String(b.id);
+  const dot = ballDot(b.id);
   dot.title = t("pocketed.ball", { n: b.id });
   host.appendChild(dot);
 }
@@ -2219,9 +2181,7 @@ function renderMatch() {
         .filter((p) => p.seat === n)
         .sort((a, b) => a.ball - b.ball)
         .map((p) => {
-          const dot = document.createElement("span");
-          dot.className = "pocketed-ball";
-          dot.style.backgroundColor = "#" + BALL_COLORS[p.ball - 1].toString(16).padStart(6, "0");
+          const dot = ballDot(p.ball);
           dot.title = t("pocketed.ball", { n: p.ball });
           return dot;
         })
