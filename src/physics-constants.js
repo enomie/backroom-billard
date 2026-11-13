@@ -23,7 +23,7 @@ export const ANGULAR_DAMPING = 0;
  * rolling resistance (coefficient, deceleration = value × g; the spin follows, rolling stays rolling)
  * and the decay of the spin about the vertical axis (side spin, rad/s per second).
  */
-export const ROLLING_RESISTANCE = 0.015;
+export const ROLLING_RESISTANCE = 0.01;
 export const SIDE_SPIN_DECEL = 10;
 
 /** Playing plate (felt on a carrier). Friction is averaged with the ball's: (0.34 + 0.06) / 2 = 0.2 sliding friction on the cloth. */
