@@ -360,7 +360,7 @@ function init() {
     if (wallet.spend(item.price, item.kind)) orderFor.replace(item.kind);
   });
   // he drinks from the glass of his own seat (never the nearest one: that can be the other player's); a spectator has no seat yet (see _docs/trinken-rauchen.md)
-  const ownGlasses = { get player() { return mySideNow === null ? glasses.player : [glasses.seat(mySideNow)]; } };
+  const ownGlasses = { get player() { return mySideNow === null ? [] : [glasses.seat(mySideNow)]; } };
   drinking = createDrinking(ownGlasses, () => playerState.sip(), (glass) => {
     orderFor = glass;
     drinkMenu.show();
@@ -2067,6 +2067,7 @@ function updateShadows(dt) {
 /** What my hands do (R: drink, T: smoke, held down): the others see it too (multiplayer). */
 const myHand = { drinking: false, smoking: false };
 const drinkDown = () => {
+  if (mySideNow === null) return; // (no seat: no glass of the players is his; the kit in his hand comes next)
   drinking.press(camera);
   myHand.drinking = true;
   multiplayer?.setHand(myHand);
@@ -2077,6 +2078,7 @@ const drinkUp = () => {
   multiplayer?.setHand(myHand);
 };
 const smokeDown = () => {
+  if (mySideNow === null) return; // (no seat: the cigarettes of the players are not his)
   smoking.press(camera);
   myHand.smoking = true;
   multiplayer?.setHand(myHand);

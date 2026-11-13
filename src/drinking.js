@@ -113,7 +113,8 @@ export function createDrinking(glasses, onSip, onEmpty) {
       held = true;
       if (phase !== "idle") return;
       const best = nearestGlass(camera);
-      if (!best || best.sipsLeft <= 0) {
+      if (!best) return; // no glass for him
+      if (best.sipsLeft <= 0) {
         onEmpty(best);
         return;
       }
