@@ -66,6 +66,10 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 |----------------|-------|
 | `entry.js` | Einstieg: lädt Three.js, Rapier, dann die Spielmodule |
 | `billard.js` | Szene, Kugeln, Steuerung, Kamera, Spielschleife |
+| `ball-physics.js` | Was Rapier nicht selbst macht: Tuchbremse, Effet (Swerve), Begrenzung der Abweichung nach dem Stoß |
+| `free-camera.js` | Freie Kamera (Tasten, Maus, Touch; bleibt im Raum und außerhalb fremder Köpfe) |
+| `match-panel.js` | Anzeige über dem Tisch: Namen, Flaggen, Geld, Einsatz, eingelochte Kugeln, Zugzeit |
+| `math-utils.js`, `storage.js` | Gemeinsame Helfer: `lerp`, `clamp`, fester Zufall; `localStorage` mit Ersatz im Speicher |
 | `table-constants.js` | Alle Tischmaße (WPA 9 Fuß) |
 | `table-blueprint.js` | Tisch bauen: Platte, Banden, Holz, Becher |
 | `pocket-spec.js` | Taschen-Maße, Bandenspitzen, Becher-Maße |
@@ -77,7 +81,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `spacetime/` | Das SpacetimeDB-Modul (Entwurf für den Multiplayer, nicht veröffentlicht), siehe `spacetime/README.md` |
 | `chat-box.js` | Chat im Mehrspieler: Eingabefeld (`Enter`), eigene Nachricht, Handy-Knopf; die Sprechblase über dem Kopf zeichnet `face-ball.js` |
 | `radio.js`, `radio-audio.js`, `radio-metadata.js`, `radio-constants.js` | Sideboard mit Radio, Stream, Titelanzeige und Raumklang über zwei Lautsprecher |
-| `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge |
+| `audio.js`, `shot-sounds.js`, `collision-sounds.js`, `cup-sounds.js`, `rolling-sound.js`, `shot-sound-kinds.js`, `synth-utils.js`, `sound-constants.js` | Audio-Kontext und alle generierten Klänge; `shot-sound-kinds.js` nummeriert die Klänge eines Stoßes für die Wiederholung im Mehrspieler |
 | `cue-model.js`, `cue-constants.js` | Der Queue (Gummispitze, Zwinge, Ahorn-Schaft, Messing-Verbindung, dunkles Griffstück) und seine Haltepose nach dem Stoß |
 | `furniture.js`, `furniture-constants.js` | Runde Tische mit Clubsesseln |
 | `candle.js`, `candle-constants.js` | Kerzenhalter mit Kerze, Flamme und flackerndem Schein auf jedem Tisch |

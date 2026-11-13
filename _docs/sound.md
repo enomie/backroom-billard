@@ -4,7 +4,7 @@
 
 ## Code
 
-`src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kugel–Kugel, Bande), `src/cup-sounds.js` (Tasche und Becher), `src/rolling-sound.js` (Rollen), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`; Klänge für Rauchen, Feuerzeug und Trinken in `smoke-sounds.js`, `lighter-sounds.js`, `drink-sounds.js`.
+`src/shot-sounds.js` (Stoß-Klänge), `src/collision-sounds.js` (Kugel–Kugel, Bande), `src/cup-sounds.js` (Tasche und Becher), `src/rolling-sound.js` (Rollen), `src/shot-sound-kinds.js` (die Klänge eines Stoßes als Nummern, für die Wiederholung im Mehrspieler), `src/synth-utils.js` (gemeinsame Hilfen), `src/audio.js` (gemeinsamer Audio-Kontext), Werte in `src/sound-constants.js`; Klänge für Rauchen, Feuerzeug und Trinken in `smoke-sounds.js`, `lighter-sounds.js`, `drink-sounds.js`.
 
 ### Stoß-Animation
 

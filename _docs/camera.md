@@ -53,8 +53,8 @@ Zwei Zustandsvariablen (`cameraMode`, `pianoMode`) und drei Übergangsmechanisme
 Die fünf Schritte unten haben sich als so eng verbunden erwiesen, dass sie **in einem Zug** gebaut wurden (`src/billard.js`):
 
 - `camMode` ("cue", "free", "piano") statt `cameraMode` und `pianoMode`; **eine** Stelle ändert ihn, `setCamMode(mode)`.
-- Die freie Kamera hat eigene Variablen (`freePosition`, `freeYaw`, `freePitch`); Tasten, Maus und Touch bewegen sie nur im Modus „free“.
-- Die Zielposen sind die Funktionen `cuePose`, `freePose`, `pianoPose`; `updateCamera(dt)` setzt die Kamera jeden Frame auf die Pose des Modus oder, nach einem Wechsel, weich dorthin (`cameraMove`, ein Übergang für alle Wechsel; die Zielpose wird dabei jeden Frame neu gelesen).
+- Die freie Kamera ist ein eigenes Modul (`free-camera.js`) mit eigener Position und eigenen Winkeln; Tasten, Maus und Touch bewegen sie nur im Modus „free“, `placeBehind` setzt sie nach dem Zug hinter und über den Cue.
+- Die Zielposen sind `cuePose`, `freeCamera.pose`, `pianoPose`; `updateCamera(dt)` setzt die Kamera jeden Frame auf die Pose des Modus oder, nach einem Wechsel, weich dorthin (`cameraMove`, ein Übergang für alle Wechsel; die Zielpose wird dabei jeden Frame neu gelesen).
 - Weggefallen: `placeAimCamera`, `cameraFlight`, `applyCameraFlight`, `pianoTransition`, `pianoReturn`, `startPianoMove`, `updatePianoMove`, `freeSavedPosition`, `freePoseSaved`. Das Aufstehen vom Klavier ist `setCamMode("free")` (die freie Kamera hat sich beim Sitzen nicht bewegt).
 - Mehrspieler: `mpWantCamera` ist der gewünschte Modus ("cue" oder "free"); der Anfangsort der freien Kamera nach dem Zug (`placeFreeCameraBehindCue`) wird beim Wechsel in „free“ in die freien Variablen geschrieben.
 - Im Browser geprüft (Einzelspiel): `C` hin und zurück, Umsehen, Laufen (`W`), Stoß (`E`). Nicht geprüft: Klavier und Mehrspieler-Wechsel.

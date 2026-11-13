@@ -59,15 +59,23 @@ import { createBackbar } from "./backbar.js";
 import { createFaceBall } from "./face-ball.js";
 import { createMultiplayer } from "./multiplayer.js";
 import { roomNote, renderNote } from "./room-notices.js";
-import { isCountry, flagUrl } from "./country-list.js";
 import { createShotRecorder, createShotReplay } from "./shot-replay.js";
-import { AIM_SEND_SECONDS, TURN_LIMIT_SECONDS } from "./multiplayer-constants.js";
+import { AIM_SEND_SECONDS } from "./multiplayer-constants.js";
 import { DRINK_SIPS } from "./glasses-constants.js";
 import { PACK_SIZE } from "./cigarette-pack.js";
 import { createCueModel, CUE_LENGTH } from "./cue-model.js";
-import { playDrawBackSound, playForwardSound, playStrikeSound } from "./shot-sounds.js";
-import { playBallHitSound, playCushionHitSound } from "./collision-sounds.js";
-import { playPocketEntrySound, playCupLandingSound, playCupWallSound } from "./cup-sounds.js";
+import {
+  playShotSound,
+  SOUND_DRAW_BACK,
+  SOUND_FORWARD,
+  SOUND_STRIKE,
+  SOUND_POCKET_ENTRY,
+  SOUND_CUP_LANDING,
+  SOUND_CUP_WALL,
+  SOUND_CUSHION_HIT,
+  SOUND_BALL_HIT,
+} from "./shot-sound-kinds.js";
+import { createSwerve, applyClothDrag, limitSquirt, ensureBallWasHit } from "./ball-physics.js";
 import { updateAudioListener } from "./audio.js";
 import { updateRollingSound } from "./rolling-sound.js";
 import { BALL_TOUCH_DISTANCE } from "./sound-constants.js";
@@ -95,21 +103,7 @@ import {
   CUE_PITCH_MAX,
 } from "./cue-constants.js";
 import {
-  FREE_CAM_SPEED,
-  FREE_CAM_LOOK_SENSITIVITY,
-  FREE_CAM_TOUCH_TURN,
-  FREE_CAM_TOUCH_MOVE,
-  FREE_CAM_MIN_Y,
-  FREE_CAM_MAX_Y,
-  FREE_CAM_START_POSITION,
-  FREE_CAM_START_TARGET,
-  FREE_CAM_ROOM_MARGIN,
   CAMERA_FLIGHT_SECONDS,
-  FREE_CAM_BACK,
-  FREE_CAM_SIDE,
-  FREE_CAM_UP,
-  FREE_CAM_PITCH,
-  FREE_CAM_HEAD_DISTANCE,
   FP_CAM_DISTANCE,
   FP_CAM_MIN_ELEVATION,
   FP_CAM_MAX_ELEVATION,
@@ -117,8 +111,6 @@ import {
   FP_CAM_KEY_TURN_SPEED,
   FP_CAM_FOCUS_RATE,
   SHOT_REST_DELAY,
-  ROOM_LENGTH,
-  ROOM_WIDTH,
   ROOM_HEIGHT,
   ROOM_AMBIENT_COLOR,
   ROOM_AMBIENT_INTENSITY,
@@ -126,19 +118,14 @@ import {
   LAMP_SHADOW_BURN_STEP,
 } from "./room-constants.js";
 import { PIANO_SEAT_SECONDS } from "./piano-constants.js";
+import { createFreeCamera } from "./free-camera.js";
+import { renderMatchPanel, renderTurnClock } from "./match-panel.js";
 import { t, onLanguageChange } from "./i18n/index.js";
-import { GRAVITY,
+import {
   PHYSICS_STEP,
   REST_LINEAR_SPEED,
   REST_SURFACE_SPEED,
   CUSHION_RESTITUTION,
-  CUE_SQUIRT_MAX_DEG,
-  SWERVE_BOOST,
-  SWERVE_SECONDS,
-  TABLE_FRICTION,
-  BALL_FRICTION,
-  ROLLING_RESISTANCE,
-  SIDE_SPIN_DECEL,
   SHOT_SPEED_MIN,
   SHOT_SPEED_MAX,
   SHOT_SPEED_CURVE,
@@ -205,6 +192,7 @@ const BLACK_BALL_ID = 8;
 
 /** @type {typeof balls} pocketed balls, removed after the physics step */
 const pendingRemoval = [];
+const swerve = createSwerve(); // the bend of the white ball's path after an off-center hit (ball-physics.js)
 let physics = null; // Rapier world (physics-world.js)
 let ballReflection = null; // captured room reflection used by the ball materials
 let exhale = null; // exhaled smoke cloud (exhale.js)
@@ -702,17 +690,7 @@ function aimCuePitch() {
   return THREE.MathUtils.clamp(aimElevation - CUE_PITCH_BELOW_CAMERA + aimSwayPitch, CUE_PITCH_MIN, CUE_PITCH_MAX);
 }
 
-/** Where the shot sounds come from: the cue behind the ball and the player's head further back. */
 /** The sounds of a shot: made here, and written down for the others when it is my shot in a multiplayer game. */
-const SOUND_DRAW_BACK = 1;
-const SOUND_FORWARD = 2;
-const SOUND_STRIKE = 3;
-const SOUND_POCKET_ENTRY = 4;
-const SOUND_CUP_LANDING = 5;
-const SOUND_CUP_WALL = 6;
-const SOUND_CUSHION_HIT = 7;
-const SOUND_BALL_HIT = 8;
-
 /**
  * Play a sound of the shot and, in my shot in a multiplayer game, note it for the others.
  * @param {number} kind — SOUND_*
@@ -721,48 +699,8 @@ const SOUND_BALL_HIT = 8;
  * @param {number[]} position — where it is heard (for the cue sounds: the angle of the shot in the first place)
  */
 function shotSound(kind, p1, p2, position) {
-  playShotSound(kind, p1, p2, position);
+  playShotSound(kind, p1, p2, position, cueBall.pos);
   if (mpShot) recorder.event(performance.now(), kind, p1, p2, position);
-}
-
-/** The sound itself (also for the replay of the shot of another guest). */
-function playShotSound(kind, p1, p2, position) {
-  switch (kind) {
-    case SOUND_DRAW_BACK:
-      playDrawBackSound(p1, p2, shotSoundPositions(position[0]));
-      break;
-    case SOUND_FORWARD:
-      playForwardSound(p1, p2, shotSoundPositions(position[0]));
-      break;
-    case SOUND_STRIKE:
-      playStrikeSound(p1, position);
-      break;
-    case SOUND_POCKET_ENTRY:
-      playPocketEntrySound(p1, `r${p2}`, position);
-      break;
-    case SOUND_CUP_LANDING:
-      playCupLandingSound(p1, `f${p2}`, position);
-      break;
-    case SOUND_CUP_WALL:
-      playCupWallSound(p1, `w${p2}`, position);
-      break;
-    case SOUND_CUSHION_HIT:
-      playCushionHitSound(p1, `c${p2}`, position);
-      break;
-    case SOUND_BALL_HIT:
-      playBallHitSound(p1, `b${Math.floor(p2 / 100)}-${p2 % 100}`, position);
-      break;
-  }
-}
-
-function shotSoundPositions(angle) {
-  const back = [Math.sin(angle), 0, Math.cos(angle)];
-  const at = (distance, up) => [
-    cueBall.pos.x + back[0] * distance,
-    cueBall.pos.y + up,
-    cueBall.pos.z + back[2] * distance,
-  ];
-  return { cue: at(0.5, 0.06), head: at(1.1, 0.5) };
 }
 
 /** Advance the stroke by one physics step and move the kinematic cue tip body accordingly. */
@@ -795,8 +733,8 @@ function advanceCueStroke(dt) {
       s.gap = -CUE_FOLLOW_DISTANCE;
       s.phase = "done";
       physics.cue.collider.setEnabled(false);
-      limitSquirt(s);
-      ensureBallWasHit(s);
+      limitSquirt(cueBall, s);
+      ensureBallWasHit(cueBall, s);
     }
   }
 
@@ -823,97 +761,11 @@ function advanceCueStroke(dt) {
 
 /** The tip reaches the ball: sound, status, and the follow-through timer starts. */
 function onCueContact() {
-  swerveTime = 0;
+  swerve.hit();
   shotSound(SOUND_STRIKE, stroke.strength, 0, cueBall.pos.toArray()); // the "tock" of the tip hitting the ball
   updateStatusDisplay(true);
   strokeContacted = true;
   cueShotTime = 0;
-}
-
-/** The angle in (−π, π]. */
-const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-
-/**
- * After a hit off center: pull the ball's direction back toward the aim line (see CUE_SQUIRT_MAX_DEG).
- * Speed and spin stay; the horizontal part of the spin turns with the direction so that the ball
- * still rolls consistently.
- */
-function limitSquirt(s) {
-  const v = cueBall.body.linvel();
-  const speed = Math.hypot(v.x, v.z);
-  if (speed < 0.1) return;
-  const heading = Math.atan2(v.x, -v.z); // 0 = along −z
-  const wanted = -s.aimAngle - s.x * THREE.MathUtils.degToRad(CUE_SQUIRT_MAX_DEG);
-  const psi = -wrapAngle(wanted - heading); // the rotation about the vertical axis that gets it there
-  const [c, sn] = [Math.cos(psi), Math.sin(psi)];
-  const w = cueBall.body.angvel();
-  cueBall.body.setLinvel({ x: v.x * c + v.z * sn, y: v.y, z: -v.x * sn + v.z * c }, true);
-  cueBall.body.setAngvel({ x: w.x * c + w.z * sn, y: w.y, z: -w.x * sn + w.z * c }, true);
-}
-
-let swerveTime = SWERVE_SECONDS; // seconds since the hit
-
-/**
- * Swerve (see SWERVE_BOOST): while the white ball slides on the cloth the friction pulls against the
- * slip of the contact point; its part across the ball's direction is what bends the path. It is
- * multiplied here, in the first seconds after the hit.
- * @param {number} dt — physics step (s)
- */
-function applySwerve(dt) {
-  swerveTime += dt;
-  if (SWERVE_BOOST <= 1 || swerveTime > SWERVE_SECONDS || !cueBall || cueBall.inPocket) return;
-  if (cueBall.body.translation().y < TABLE_H - 0.01) return;
-  const v = cueBall.body.linvel();
-  const w = cueBall.body.angvel();
-  const speed = Math.hypot(v.x, v.z);
-  // speed of the contact point on the cloth (the point below the center): 0 = rolling, no slip
-  const ux = v.x + BALL_R * w.z;
-  const uz = v.z - BALL_R * w.x;
-  const slip = Math.hypot(ux, uz);
-  if (speed < 0.05 || slip < 0.02) return;
-  const [hx, hz] = [v.x / speed, v.z / speed];
-  const along = (ux * hx + uz * hz) / slip;
-  const [sideX, sideZ] = [ux / slip - along * hx, uz / slip - along * hz]; // slip direction across the path
-  const k = (SWERVE_BOOST - 1) * ((TABLE_FRICTION + BALL_FRICTION) / 2) * GRAVITY * cueBall.body.mass() * dt;
-  cueBall.body.applyImpulse({ x: -sideX * k, y: 0, z: -sideZ * k }, true); // friction acts against the slip
-}
-
-/**
- * Cloth drag (see ROLLING_RESISTANCE, SIDE_SPIN_DECEL): a constant deceleration of every ball on the
- * table. The horizontal spin changes with the speed so that the slip of the contact point stays as it
- * is (a rolling ball keeps rolling); the spin about the vertical axis decays towards 0.
- * @param {number} dt — physics step (s)
- */
-function applyClothDrag(dt) {
-  const dv = ROLLING_RESISTANCE * GRAVITY * dt;
-  const dw = SIDE_SPIN_DECEL * dt;
-  for (const b of balls) {
-    if (b.inPocket || b.body.translation().y < TABLE_H - 0.01) continue;
-    const v = b.body.linvel();
-    const w = b.body.angvel();
-    const speed = Math.hypot(v.x, v.z);
-    const f = speed > dv ? dv / speed : 1; // part of the speed that is taken away
-    const [ax, az] = [v.x * f, v.z * f];
-    const wy = Math.abs(w.y) > dw ? w.y - Math.sign(w.y) * dw : 0;
-    b.body.setLinvel({ x: v.x - ax, y: v.y, z: v.z - az }, false);
-    b.body.setAngvel({ x: w.x - az / BALL_R, y: wy, z: w.z + ax / BALL_R }, false);
-  }
-}
-
-/** Safety net: if the physical hit did not move the ball, give it the intended impulse. */
-function ensureBallWasHit(s) {
-  const v = cueBall.body.linvel();
-  if (Math.hypot(v.x, v.z) >= 0.3 * s.ballSpeed) return;
-  console.warn("[Backroom Billard] cue stroke did not move the ball, applying the impulse");
-  const m = cueBall.body.mass();
-  cueBall.body.applyImpulse(
-    {
-      x: -Math.sin(s.aimAngle) * s.ballSpeed * m,
-      y: 0,
-      z: -Math.cos(s.aimAngle) * s.ballSpeed * m,
-    },
-    true
-  );
 }
 
 function updateStatusDisplay(moving) {
@@ -1078,9 +930,7 @@ function setupControls() {
       // Mouse look: only while dragging (button down)
       if (freeLookDragging) {
         freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
-        freeYaw -= e.movementX * FREE_CAM_LOOK_SENSITIVITY;
-        freePitch -= e.movementY * FREE_CAM_LOOK_SENSITIVITY;
-        freePitch = THREE.MathUtils.clamp(freePitch, -Math.PI / 2 + 0.01, Math.PI / 2 - 0.01);
+        freeCamera.look(e.movementX, e.movementY);
       }
       return;
     }
@@ -1217,9 +1067,7 @@ function setupControls() {
         if (Math.abs(dx) > 3 || Math.abs(dy) > 3) touchMoved = true;
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
-        freeYaw -= dx * FREE_CAM_TOUCH_TURN;
-        freePosition.addScaledVector(_freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw)), -dy * FREE_CAM_TOUCH_MOVE);
-        confineFreeCamera();
+        freeCamera.touch(dx, dy);
       }
     },
     { passive: true }
@@ -1338,9 +1186,7 @@ function renderCameraLabel() {
  * The free camera has its own state (position and view angles, kept while the cue camera or the piano is in use); only in the "free" mode do
  * the keys, the mouse and the touch move it. The camera itself is placed by updateCamera, from the pose of the mode.
  */
-const freePosition = new THREE.Vector3(...FREE_CAM_START_POSITION);
-let freeYaw = 0;
-let freePitch = 0;
+const freeCamera = createFreeCamera({ heads: () => multiplayer?.heads() ?? [] }); // (free-camera.js)
 let freeLookDragging = false;
 let freeClickDistance = 0; // mouse movement since the button went down (a click, not a drag)
 /** Currently held keys (KeyboardEvent.code) for the free camera movement. */
@@ -1387,16 +1233,8 @@ function renderPianoButton() {
 /* ---- The camera: one place decides where it is ------------------------------------------------------------------------ */
 const _pose = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
 const _poseCamera = new THREE.PerspectiveCamera(); // (a camera looks along −z: a plain object would look along +z)
-const _poseEuler = new THREE.Euler(0, 0, 0, "YXZ");
 /** The way from where the camera was to the pose of a new mode (smooth); the target is read again each frame, so a moving one is followed. */
 const cameraMove = { active: false, t: 0, seconds: CAMERA_FLIGHT_SECONDS, from: new THREE.Vector3(), fromQuat: new THREE.Quaternion() };
-
-// the free camera starts at the observer pose (a side view on the table and the lamps)
-_poseCamera.position.copy(freePosition);
-_poseCamera.lookAt(...FREE_CAM_START_TARGET);
-_poseEuler.setFromQuaternion(_poseCamera.quaternion, "YXZ");
-freeYaw = _poseEuler.y;
-freePitch = _poseEuler.x;
 
 /** The pose of the cue camera: behind the white ball on the circle of its height, looking at the ball (see _docs/camera.md). */
 function cuePose(out) {
@@ -1410,11 +1248,6 @@ function cuePose(out) {
   out.position.copy(_poseCamera.position);
   out.quaternion.copy(_poseCamera.quaternion);
 }
-/** The pose of the free camera: its own position and angles. */
-function freePose(out) {
-  out.position.copy(freePosition);
-  out.quaternion.setFromEuler(_poseEuler.set(freePitch, freeYaw, 0, "YXZ"));
-}
 /** The pose of the guest on the piano stool, looking at the keys. */
 function pianoPose(out) {
   const seat = piano.seat();
@@ -1427,7 +1260,7 @@ function pianoPose(out) {
 /** Every frame: the camera is at the pose of its mode, or on its way there. */
 function updateCamera(dt) {
   if (camMode === "cue") cuePose(_pose);
-  else if (camMode === "free") freePose(_pose);
+  else if (camMode === "free") freeCamera.pose(_pose);
   else pianoPose(_pose);
   if (!cameraMove.active) {
     camera.position.copy(_pose.position);
@@ -1451,7 +1284,7 @@ function setCamMode(mode) {
   cameraMove.seconds = mode === "piano" || from === "piano" ? PIANO_SEAT_SECONDS : CAMERA_FLIGHT_SECONDS;
   cameraMove.active = true;
   camMode = mode;
-  if (mode === "free" && from === "cue" && mpMode) placeFreeCameraBehindCue(); // (multiplayer: after the shot back and up from the cue camera)
+  if (mode === "free" && from === "cue" && mpMode) freeCamera.placeBehind(camera, mySideNow === 1 ? 1 : -1); // (multiplayer: after the shot back and up from the cue camera)
   if (mode === "cue") {
     freeLookDragging = false;
     aimElevation = FP_CAM_DEFAULT_ELEVATION; // back at the table: flat, as at every turn
@@ -1466,60 +1299,6 @@ function toggleCamera() {
   if (camMode === "piano") return; // sitting at the piano: first get up
   if (mpGame.running && !mpGame.myTurn && camMode === "free") return; // the other one is up: stay in the free camera and watch
   setCamMode(camMode === "cue" ? "free" : "cue");
-}
-
-/** The free camera starts back and up from the cue camera, to the side of the seat (the two seats go to different sides: not through the head of the other one). */
-function placeFreeCameraBehindCue() {
-  camera.getWorldDirection(_freeForward);
-  _freeForward.y = 0;
-  if (_freeForward.lengthSq() < 1e-6) _freeForward.set(0, 0, -1);
-  _freeForward.normalize();
-  const sign = mySideNow === 1 ? 1 : -1;
-  _freeRight.set(-_freeForward.z, 0, _freeForward.x);
-  freePosition.copy(camera.position).addScaledVector(_freeForward, -FREE_CAM_BACK).addScaledVector(_freeRight, sign * FREE_CAM_SIDE);
-  freePosition.y = THREE.MathUtils.clamp(freePosition.y + FREE_CAM_UP, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
-  freeYaw = Math.atan2(-_freeForward.x, -_freeForward.z);
-  freePitch = FREE_CAM_PITCH;
-  confineFreeCamera();
-}
-
-const _freeForward = new THREE.Vector3();
-const _freeRight = new THREE.Vector3();
-const _freeMove = new THREE.Vector3();
-
-/** Move the free camera with the keys (W A S D, arrows, Space and Shift for up and down). */
-function updateFreeCamera(dt) {
-  const forward = _freeForward.set(-Math.sin(freeYaw), 0, -Math.cos(freeYaw));
-  const right = _freeRight.set(Math.cos(freeYaw), 0, -Math.sin(freeYaw));
-  const move = _freeMove.set(0, 0, 0);
-  // (arrow keys too: near the piano the letters play)
-  if (heldKeys.has("KeyW") || heldKeys.has("ArrowUp")) move.add(forward);
-  if (heldKeys.has("KeyS") || heldKeys.has("ArrowDown")) move.sub(forward);
-  if (heldKeys.has("KeyD") || heldKeys.has("ArrowRight")) move.add(right);
-  if (heldKeys.has("KeyA") || heldKeys.has("ArrowLeft")) move.sub(right);
-  if (heldKeys.has("Space")) move.y += 1;
-  if (heldKeys.has("ShiftLeft") || heldKeys.has("ShiftRight")) move.y -= 1;
-
-  if (move.lengthSq() > 0) {
-    move.normalize().multiplyScalar(FREE_CAM_SPEED * dt);
-    freePosition.add(move);
-    confineFreeCamera();
-  }
-}
-
-function confineFreeCamera() {
-  const m = FREE_CAM_ROOM_MARGIN;
-  freePosition.x = THREE.MathUtils.clamp(freePosition.x, -ROOM_WIDTH / 2 + m, ROOM_WIDTH / 2 - m);
-  freePosition.z = THREE.MathUtils.clamp(freePosition.z, -ROOM_LENGTH / 2 + m, ROOM_LENGTH / 2 - m);
-  freePosition.y = THREE.MathUtils.clamp(freePosition.y, FREE_CAM_MIN_Y, FREE_CAM_MAX_Y);
-  // not into the head of another guest: pushed out (two heads never take the same place, and nobody sees through a head)
-  for (const head of multiplayer?.heads() ?? []) {
-    _freeMove.set(freePosition.x - head.x, freePosition.y - head.y, freePosition.z - head.z);
-    const distance = _freeMove.length();
-    if (distance >= FREE_CAM_HEAD_DISTANCE) continue;
-    if (distance < 1e-4) _freeMove.set(1, 0, 0);
-    freePosition.set(head.x, head.y, head.z).addScaledVector(_freeMove.normalize(), FREE_CAM_HEAD_DISTANCE);
-  }
 }
 
 /* ====================================================
@@ -1757,8 +1536,8 @@ function stepPhysics(frameDt) {
       for (const b of balls) rememberVelocity(b);
       physics.world.step(physics.eventQueue);
       detectBallImpacts();
-      applyClothDrag(physics.world.timestep);
-      if (!stroke || stroke.phase === "done") applySwerve(physics.world.timestep);
+      applyClothDrag(balls, physics.world.timestep);
+      if (!stroke || stroke.phase === "done") swerve.apply(cueBall, physics.world.timestep);
       let foulBall = null; // the cue tip touched a coloured ball (see below)
       physics.eventQueue.drainCollisionEvents((h1, h2, started) => {
         if (!started) return;
@@ -1985,7 +1764,7 @@ function gameLoop(currentTime) {
       }
     }
   }
-  if (camMode === "free" && !cameraMove.active) updateFreeCamera(Math.min(frameSeconds, 0.1)); // real frame time, so the speed does not depend on the physics cap
+  if (camMode === "free" && !cameraMove.active) freeCamera.update(Math.min(frameSeconds, 0.1), heldKeys); // real frame time, so the speed does not depend on the physics cap
   updateCamera(frameSeconds);
   renderPianoButton();
   if (mpWantCamera) {
@@ -2156,65 +1935,12 @@ let myBalance = 0; // his money (the wallet tells)
 let matchNames = [{ name: "", country: "", money: 0 }, { name: "", country: "", money: 0 }]; // the two seats (from the database)
 let matchPockets = []; // [{ ball, seat }]
 let matchTable = { staking: false, offers: [null, null], stake: 0, bids: [] }; // the stake window and the bids (from the database)
-const money = (amount) => "$ " + amount.toLocaleString("en-US");
-function renderMatch() {
-  const panel = document.getElementById("match");
-  panel.hidden = matchMode === null;
-  if (matchMode === null) return;
-  const two = matchMode === "multi" && !!(matchNames[0].name && matchNames[1].name);
-  const alone = matchMode === "multi" && !two;
-  panel.classList.toggle("match--single", matchMode === "single");
-  panel.classList.toggle("match--two", two);
-  document.getElementById("pocketed-balls").hidden = two; // (the common list for one player; two have one each)
-  const stake = document.getElementById("match-stake");
-  stake.hidden = !(two && matchTable.stake > 0);
-  stake.textContent = t("match.stake", { amount: money(matchTable.stake) }); // (over the VS)
-  // who stands where: (name, country, money) of the left and of the right one
-  const mySeat = mySideNow === 1 ? 1 : mySideNow === 0 ? 2 : 0;
-  const entry = (seat) => ({ ...matchNames[seat - 1], money: seat === mySeat ? myBalance : matchNames[seat - 1].money });
-  const left = two ? entry(1) : { ...matchMe, name: matchMode === "single" ? t("mode.single") : matchMe.name, money: myBalance };
-  const right = two ? entry(2) : alone ? { name: t("room.waiting"), country: "", money: null } : null;
-  [left, right].forEach((who, i) => {
-    const n = i + 1;
-    document.getElementById(`match-name-${n}`).textContent = who?.name ?? "";
-    const flag = document.getElementById(`match-flag-${n}`);
-    flag.hidden = !(who?.country && isCountry(who.country));
-    if (!flag.hidden) flag.src = flagUrl(who.country);
-    document.getElementById(`match-money-${n}`).textContent = who && who.money !== null ? money(who.money) : "";
-    document.getElementById(`match-name-${n}`).parentElement.classList.toggle("is-up", two && mpGame.running && mpGame.turnSeat === n); // (a rounded border: his turn)
-    document.getElementById(`match-name-${n}`).classList.toggle("is-waiting", who === right && alone);
-    document.getElementById(`match-balls-${n}`).replaceChildren(
-      ...(two ? matchPockets : [])
-        .filter((p) => p.seat === n)
-        .sort((a, b) => a.ball - b.ball)
-        .map((p) => {
-          const dot = ballDot(p.ball);
-          dot.title = t("pocketed.ball", { n: p.ball });
-          return dot;
-        })
-    );
-  });
-}
+/** The names, flags, money and pocketed balls above the table (match-panel.js). */
+const matchState = () => ({ mode: matchMode, me: matchMe, balance: myBalance, names: matchNames, pockets: matchPockets, table: matchTable, mySide: mySideNow, game: mpGame });
+const renderMatch = () => renderMatchPanel(matchState());
 
-/**
- * The countdown next to the name of the one who is up: 3 minutes from the start of his turn (the database's time, as far as this browser can
- * tell); not while his shot is on its way. Red and blinking in the last 30 seconds. At zero the database ends the game.
- */
-let turnClock = null; // { startedAt (ms), running }
-function updateTurnClock() {
-  const two = matchMode === "multi" && !!(matchNames[0].name && matchNames[1].name);
-  const left = turnClock && two && mpGame.running && !turnClock.running ? Math.max(0, TURN_LIMIT_SECONDS - (multiplayer.serverNow() - turnClock.startedAt) / 1000) : null;
-  [1, 2].forEach((seat) => {
-    const el = document.getElementById(`match-clock-${seat}`);
-    const show = left !== null && mpGame.turnSeat === seat;
-    el.hidden = !show;
-    if (!show) return;
-    const seconds = Math.ceil(left);
-    const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-    if (el.textContent !== text) el.textContent = text;
-    el.classList.toggle("is-low", seconds <= 30);
-  });
-}
+let turnClock = null; // { startedAt (ms), running }: the database's time of the start of the turn
+const updateTurnClock = () => renderTurnClock(matchState(), turnClock, multiplayer?.serverNow());
 
 /** What the database says when it refuses something, and the message for the player (i18n key). */
 const REFUSED_TEXTS = [
@@ -2381,7 +2107,7 @@ function applyReplay(dt) {
     const picture = replay.sample(performance.now());
     if (picture) {
       Object.assign(remoteCue, picture.cue, { active: true });
-      for (const s of picture.sounds) playShotSound(s.kind, s.p1, s.p2, s.position); // the clacks and the cue as they were heard
+      for (const s of picture.sounds) playShotSound(s.kind, s.p1, s.p2, s.position, cueBall.pos); // the clacks and the cue as they were heard
       updateRollingSound(picture.rolling);
       for (const b of balls) {
         const p = picture.balls.get(b.id);
