@@ -51,7 +51,7 @@ Der Server führt das Konto (Schlüssel, Name, Land, Gesicht, Geld); der Browser
 
 ## „Was darf es sein?“: die Karte
 
-Ein **Getränk** aus den fünf und eine **Packung Zigaretten** aus den zwei (**Premium Blend** schwarz/rot/gold, **Light Blend** weiß/blau). Die Zahl oben sinkt **sofort** beim Auswählen; wer zurückwählt, bekommt es zurück; nicht bezahlbare Einträge sind grau. Preise: `DRINK_MENU` und `PACK_PRICE` in `shop-constants.js` (Bier 8 $, Rot- und Weißwein 14 $, White Russian 16 $, Whiskey 18 $, Packung 75 $); die Preise im Modul müssen dieselben sein.
+Ein **Getränk** aus den zehn und eine **Packung Zigaretten** aus den zwei (**Premium Blend** schwarz/rot/gold, **Light Blend** weiß/blau). Die Zahl oben sinkt **sofort** beim Auswählen; wer zurückwählt, bekommt es zurück; nicht bezahlbare Einträge sind grau. Preise: `DRINK_MENU` und `PACK_PRICE` in `shop-constants.js` (Bier 8 $, Rot- und Weißwein 14 $, Gin Tonic 15 $, White Russian 16 $, Achterl Vodka 16 $, Cocktail 17 $, Whiskey 18 $, Champagner 22 $, Cognac 24 $, Packung 75 $); die Preise im Modul müssen dieselben sein.
 
 - **Bezahlt wird mit Los:** im Einzelspiel vom Geld im Browser, im Mehrspieler über `buy` vom Konto auf dem Server.
 - **Pleite:** Reicht das Geld nicht für eine Wahl, **darf man trotzdem spielen** (es steht ein Hinweis da): Was er nicht bezahlen kann, bleibt leer (leeres Glas, Packung ohne Zigaretten) und lässt sich auch im Spiel nicht kaufen. **Setzen** darf er mit „alles, was er hat“.

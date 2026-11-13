@@ -1,11 +1,11 @@
 /**
- * The sounds of drinking: the gulp (swallow), the liquid that runs while the glass is tilted, and
- * the sigh after a long drink. All generated; they come from the player himself, so they are not
+ * The sounds of drinking: the gulp (swallow), the liquid that runs while the glass is tilted, the
+ * ice clinking, and the sigh after a long drink. All generated; they come from the player himself, so they are not
  * positioned.
  */
 import { getAudioContext, getMasterNode, playBuffer } from "./audio.js";
 import { bandpass, finish, lerp, pick } from "./synth-utils.js";
-import { GULP_GAIN, GULP_SECONDS, GULP_VARIANTS, DRINK_FLOW, AHH_GAIN, AHH_SECONDS } from "./sound-constants.js";
+import { GULP_GAIN, GULP_SECONDS, GULP_VARIANTS, DRINK_FLOW, AHH_GAIN, AHH_SECONDS, ICE_CLINK_GAIN, ICE_CLINK_SECONDS, ICE_CLINK_VARIANTS } from "./sound-constants.js";
 
 /** One swallow: a small air click, a throat thump whose pitch falls, and a gluck of water behind it. */
 function synthGulp(sampleRate) {
@@ -73,7 +73,30 @@ function synthAhh(sampleRate) {
   return finish(out, sampleRate, 0.9, 0.01);
 }
 
+/** Ice against glass: two or three short knocks, each a few bright, inharmonic partials that die quickly. */
+function synthClink(sampleRate) {
+  const n = Math.floor(ICE_CLINK_SECONDS * sampleRate);
+  const out = new Float32Array(n);
+  const knocks = 2 + Math.floor(Math.random() * 2);
+  for (let k = 0; k < knocks; k++) {
+    const at = k === 0 ? 0 : 0.04 + Math.random() * 0.16;
+    const gain = k === 0 ? 1 : 0.4 + Math.random() * 0.5;
+    const base = 2600 + Math.random() * 1600;
+    const partials = [1, 1.47, 2.09, 2.76].map((m) => [base * m * (0.98 + Math.random() * 0.04), 0.5 / m]);
+    for (let i = Math.floor(at * sampleRate); i < n; i++) {
+      const t = i / sampleRate - at;
+      const envelope = Math.exp(-t / 0.025) * gain;
+      if (envelope < 0.001) break;
+      let v = 0;
+      for (const [hz, level] of partials) v += level * Math.sin(2 * Math.PI * hz * t);
+      out[i] += v * envelope;
+    }
+  }
+  return finish(out, sampleRate, 0.9, 0.002);
+}
+
 let gulps = null;
+let clinks = null;
 let flow = null;
 let ahh = null;
 
@@ -89,6 +112,14 @@ export function playGulpSound() {
   if (!audio) return;
   gulps ??= Array.from({ length: GULP_VARIANTS }, () => toBuffer(audio, synthGulp(audio.sampleRate)));
   playBuffer(pick(gulps), { gain: GULP_GAIN * (0.85 + Math.random() * 0.3), rate: 0.92 + Math.random() * 0.16 });
+}
+
+/** Ice cubes clink in the glass. */
+export function playIceSound() {
+  const audio = getAudioContext();
+  if (!audio) return;
+  clinks ??= Array.from({ length: ICE_CLINK_VARIANTS }, () => toBuffer(audio, synthClink(audio.sampleRate)));
+  playBuffer(pick(clinks), { gain: ICE_CLINK_GAIN * (0.8 + Math.random() * 0.4), rate: 0.94 + Math.random() * 0.12 });
 }
 
 /**

@@ -5,6 +5,8 @@
  */
 import * as THREE from "three";
 import { woodTexture } from "./wood.js";
+import { DRINK_KINDS } from "./glasses.js";
+import { ICE_MELT_SECONDS } from "./glasses-constants.js";
 import { receiveWallLampsDeep } from "./wall-lamp-light.js";
 import { ROOM_WIDTH, WAINSCOT_PROTRUSION } from "./room-constants.js";
 import {
@@ -192,7 +194,7 @@ export function createBar(scene, glasses, bottles) {
     seed = (seed * 16807) % 2147483647;
     return seed / 2147483647;
   };
-  const kinds = ["wine-red", "wine-white", "beer", "whiskey", "white-russian"];
+  const kinds = DRINK_KINDS;
   const placed = [];
   const place = (object, radius) => {
     for (let attempt = 0; attempt < 30; attempt++) {
@@ -207,7 +209,7 @@ export function createBar(scene, glasses, bottles) {
     }
   };
   for (let i = 0; i < BAR_DRINKS_COUNT; i++) {
-    const glass = glasses.makeGlass(kinds[Math.floor(rnd() * kinds.length)]);
+    const glass = glasses.makeGlass(kinds[Math.floor(rnd() * kinds.length)], rnd() * 0.6 * ICE_MELT_SECONDS);
     place(glass.group, glass.radius);
   }
   for (let i = 0; i < BAR_BOTTLES_COUNT; i++) place(bottles.makeBottle(rnd() < 0.5 ? "wine" : "beer"), 0.04);

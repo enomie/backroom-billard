@@ -21,7 +21,19 @@ const PIANO_KEY_BYTES = 11; // the 88 keys of the grand piano as bits
 const START_MONEY = 15_000; // a new account
 const MAX_MONEY = 100_000_000; // no account holds more than this
 /** What the bar sells ($). The same numbers stand in src/shop-constants.js (for the display): change both. */
-const PRICES: Record<string, number> = { beer: 8, 'wine-red': 14, 'wine-white': 14, whiskey: 18, 'white-russian': 16, pack: 75 };
+const PRICES: Record<string, number> = {
+  beer: 8,
+  'wine-red': 14,
+  'wine-white': 14,
+  champagne: 22,
+  whiskey: 18,
+  cognac: 24,
+  vodka: 16,
+  'gin-tonic': 15,
+  'white-russian': 16,
+  cocktail: 17,
+  pack: 75,
+};
 /** The secret key of an account: 20 characters of a 32 letter alphabet (no I, O, 0, 1), in five groups of four. The browser makes it up. */
 const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
 const CHAT_MAX_CHARS = 90; // the last message of a guest, shown over his head

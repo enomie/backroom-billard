@@ -136,6 +136,15 @@ export const DRINK_FLOW = {
   "wine-white": { hz: 1000, q: 1.0, gain: 0.035 },
   whiskey: { hz: 600, q: 1.2, gain: 0.02 },
   "white-russian": { hz: 700, q: 1.2, gain: 0.03 },
+  champagne: { hz: 1700, q: 0.8, gain: 0.045 },
+  cognac: { hz: 650, q: 1.2, gain: 0.02 },
+  vodka: { hz: 800, q: 1.1, gain: 0.03 },
+  "gin-tonic": { hz: 1400, q: 0.8, gain: 0.045 },
+  cocktail: { hz: 850, q: 1.0, gain: 0.035 },
 };
+/** Ice clinking against the glass (with each gulp while there is ice): a few short, bright knocks. */
+export const ICE_CLINK_GAIN = 0.07;
+export const ICE_CLINK_SECONDS = 0.35;
+export const ICE_CLINK_VARIANTS = 4;
 export const AHH_GAIN = 0.1;
 export const AHH_SECONDS = 0.8;

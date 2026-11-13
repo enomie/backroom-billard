@@ -82,7 +82,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 | `furniture.js`, `furniture-constants.js` | Runde Tische mit Clubsesseln |
 | `candle.js`, `candle-constants.js` | Kerzenhalter mit Kerze, Flamme und flackerndem Schein auf jedem Tisch |
 | `ashtray.js`, `ashtray-constants.js` | Glas-Aschenbecher auf Tischen und am Billardtisch |
-| `glasses.js`, `glasses-constants.js` | Wein-, Bier- und Whiskeyglas mit Getränk auf Tischen und am Billardtisch |
+| `glasses.js`, `glasses-constants.js` | Gläser mit Getränk (zehn Sorten, Eiswürfel, die schmelzen) auf Tischen, an der Bar und am Billardtisch |
 | `bottles.js`, `bottles-constants.js` | Wein- und Bierflaschen auf den Tischen |
 | `lighter.js`, `lighter-constants.js`, `lighter-sounds.js` | Zippo-Feuerzeuge (silbern und golden) |
 | `wallet.js`, `drink-menu.js`, `shop-constants.js` | Geld, Getränkekarte, Preise |

@@ -32,7 +32,7 @@ Jede Zigarette hat 5 Züge (ein Zug etwa ein Fünftel); wer will, raucht sie auf
 
 ### Geld
 
-Das Geld steht oben in der Mitte **unter dem Namen** (im Feld „Name und Geld“, siehe `multiplayer.md`; `wallet.js`, Start **15.000 $**). Gekauft wird **Trinken** (Getränkekarte: Bier 8, Wein 14, White Russian 16, Whiskey 18 $) und **Zigaretten** (automatisch eine neue Packung für 75 $, wenn die alte leer ist).
+Das Geld steht oben in der Mitte **unter dem Namen** (im Feld „Name und Geld“, siehe `multiplayer.md`; `wallet.js`, Start **15.000 $**). Gekauft wird **Trinken** (Getränkekarte: zehn Getränke von Bier 8 $ bis Cognac 24 $, siehe `glass-objects.md`) und **Zigaretten** (automatisch eine neue Packung für 75 $, wenn die alte leer ist).
 
 ### Tasten und Bedienknöpfe (HUD)
 

@@ -5,7 +5,7 @@
  * flies back and the player sighs after a long drink. A tap is one gulp. See _docs/game-concept.md.
  */
 import * as THREE from "three";
-import { playGulpSound, startFlowSound, playAhhSound } from "./drink-sounds.js";
+import { playGulpSound, startFlowSound, playAhhSound, playIceSound } from "./drink-sounds.js";
 import { carriedStart } from "./carried.js";
 import {
   DRINK_FLY_IN,
@@ -159,6 +159,7 @@ export function createDrinking(glasses, onSip, onEmpty) {
           gulpsDone++;
           glass.setShare(Math.max(0, shareFrom - 1 / DRINK_SIPS));
           playGulpSound();
+          if (glass.hasIce?.()) playIceSound();
           if (held && glass.sipsLeft > 0) beginGulp();
           else beginOut();
         }
@@ -167,6 +168,7 @@ export function createDrinking(glasses, onSip, onEmpty) {
         if (time >= DRINK_FLY_OUT) {
           glass.group.position.copy(glass.rest.position);
           glass.group.quaternion.copy(glass.rest.quaternion);
+          if (glass.hasIce?.()) playIceSound(); // (set down)
           if (glass.carried) glass.group.visible = false; // (gone again)
           const emptied = glass.sipsLeft <= 0 ? glass : null;
           phase = "idle";
