@@ -38,6 +38,7 @@ export class RadioAudio {
     this.unlocked = false; // a user gesture happened (browsers allow sound only after one)
     this.element = null;
     this.spatial = false;
+    this.volume = 1; // this guest's level (settings slider), 0..1, times RADIO_VOLUME
     this.nodes = null;
     this.state = /** @type {RadioState} */ ("off");
     this.plainOnly = false; // the server does not allow Web Audio (CORS): play plainly from now on
@@ -188,7 +189,7 @@ export class RadioAudio {
       upmix.channelInterpretation = "speakers";
       const splitter = ctx.createChannelSplitter(2);
       const level = ctx.createGain();
-      level.gain.value = RADIO_VOLUME;
+      level.gain.value = RADIO_VOLUME * this.volume;
       level.connect(master);
       const panners = [this.speakers.left, this.speakers.right].map((pos, channel) => {
         const panner = ctx.createPanner();
@@ -236,6 +237,12 @@ export class RadioAudio {
     this.spatial = false;
   }
 
+  /** This guest's level from the settings slider (0..1); applied at once. */
+  setVolume(volume) {
+    this.volume = volume;
+    if (this.nodes) this.nodes.level.gain.value = RADIO_VOLUME * volume;
+  }
+
   stop() {
     this.closeConnection();
     window.clearInterval(this.watchdog);
@@ -251,6 +258,6 @@ export class RadioAudio {
     if (this.spatial || !this.element) return;
     const d = camera.position.distanceTo(radioPosition);
     const gain = RADIO_REF_DISTANCE / (RADIO_REF_DISTANCE + RADIO_ROLLOFF * Math.max(0, d - RADIO_REF_DISTANCE));
-    this.element.volume = Math.min(1, gain * RADIO_VOLUME);
+    this.element.volume = Math.min(1, gain * RADIO_VOLUME * this.volume);
   }
 }

@@ -1299,6 +1299,10 @@ function setupControls() {
   });
   renderMute();
   onLanguageChange(renderMute);
+  // the level of the radio only for me (kept in the browser)
+  const volumeSlider = document.getElementById("settings-radio-volume");
+  volumeSlider.value = String(Math.round(radio.getVolume() * 100));
+  volumeSlider.addEventListener("input", () => radio.setVolume(Number(volumeSlider.value) / 100));
   settings = createSettings(
     () => {
       if (mpGame.running) return;

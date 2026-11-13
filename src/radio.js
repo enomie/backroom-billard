@@ -174,6 +174,7 @@ function rounded(width, height, radius) {
 }
 
 const MUTED_KEY = "backroom-billard.radio-muted"; // only for this guest: no sound (settings)
+const VOLUME_KEY = "backroom-billard.radio-volume"; // only for this guest: level 0..1 (settings slider)
 
 /**
  * Build the sideboard with the radio, add it to the scene and return its controls.
@@ -354,6 +355,14 @@ export function createRadio(scene) {
   } catch {
     /* not allowed: not muted */
   }
+  let volume = 1;
+  try {
+    const stored = parseFloat(localStorage.getItem(VOLUME_KEY));
+    if (stored >= 0 && stored <= 1) volume = stored;
+  } catch {
+    /* not allowed: full level */
+  }
+  audio.setVolume(volume);
   let onToggle = null; // multiplayer: the knob asks the database instead of switching by itself ((next: boolean) => void)
   /** The sound and the title follow the knob and the mute. */
   const apply = () => {
@@ -424,6 +433,17 @@ export function createRadio(scene) {
       apply();
     },
     isMuted: () => muted,
+    /** Only for this guest: the level of the radio, 0..1 (kept in the browser). */
+    setVolume(value) {
+      volume = Math.min(1, Math.max(0, value));
+      audio.setVolume(volume);
+      try {
+        localStorage.setItem(VOLUME_KEY, String(volume));
+      } catch {
+        /* not allowed: for this visit only */
+      }
+    },
+    getVolume: () => volume,
     /** Per frame: audio listener = camera, and the knob turns smoothly. */
     update(dt, camera) {
       audio.update(camera, radioPosition);

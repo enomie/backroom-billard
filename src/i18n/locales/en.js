@@ -124,6 +124,7 @@ export default {
   "refused.seat": "No free seat.",
   "settings.fullscreen": "Go fullscreen",
   "settings.fullscreenLeave": "Leave fullscreen",
+  "settings.radioVolume": "Radio volume",
   "settings.radioMute": "Radio off for me",
   "settings.radioUnmute": "Radio on for me again",
   "room.radioOn": "{name} turned the radio on",

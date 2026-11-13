@@ -124,6 +124,7 @@ export default {
   "refused.seat": "Kein Platz frei.",
   "settings.fullscreen": "Vollbild",
   "settings.fullscreenLeave": "Vollbild beenden",
+  "settings.radioVolume": "Radio-Lautstärke",
   "settings.radioMute": "Radio nur für mich aus",
   "settings.radioUnmute": "Radio für mich wieder an",
   "room.radioOn": "{name} hat das Radio eingeschaltet",
