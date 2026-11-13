@@ -150,7 +150,9 @@ if (!THREE) {
    1. GLOBAL VARIABLES & CONSTANTS
 ==================================================== */
 let scene, camera, renderer;
-let balls = []; // { mesh, body, collider, pos, vel, radius, isCue, id, inPocket }
+let balls = []; // { mesh, body, collider, pos, vel, radius, isCue, id, inPocket, stray }
+/** Object balls that left the table, put back once the table is still (see respawnStrayBalls). */
+const strayBalls = [];
 /** @type {Map<number, object>} collider handle → ball */
 const ballByCollider = new Map();
 let cueBall = null;
@@ -444,6 +446,7 @@ function setupBalls() {
     if (physics && b.body) physics.removeBall(b.body);
   });
   balls = [];
+  strayBalls.length = 0;
   ballByCollider.clear();
   stroke = null;
   if (physics) physics.cue.collider.setEnabled(false);
@@ -504,12 +507,12 @@ function setupBalls() {
 }
 
 /** Find a free spot for the cue ball (default spot, otherwise further back). */
-function findFreeCueSpot() {
+function findFreeCueSpot(self) {
   const minDistSq = (BALL_R * 2.1) ** 2;
   const isFree = (x, z) =>
     balls.every(
       (o) =>
-        o.isCue || o.inPocket || (o.pos.x - x) ** 2 + (o.pos.z - z) ** 2 > minDistSq
+        o === self || o.inPocket || o.stray || (o.pos.x - x) ** 2 + (o.pos.z - z) ** 2 > minDistSq
     );
   const baseZ = HEAD_SPOT_Z;
   const maxZ = PLAY_L * 0.45;
@@ -1641,14 +1644,38 @@ function onBallPocketed(b, pocketId) {
 /** The white ball is put back on a free spot (it was pocketed or shot off the table). */
 function respawnCueBall() {
   cueRespawnWait = null;
-  const b = cueBall;
-  const spot = findFreeCueSpot();
+  putOnFreeSpot(cueBall);
+  cueBall.inPocket = false;
+}
+
+/** Object balls that left the table come back on free spots (no foul), one after the other. */
+function respawnStrayBalls() {
+  for (const b of strayBalls) {
+    b.stray = false;
+    putOnFreeSpot(b);
+  }
+  strayBalls.length = 0;
+}
+
+/** @param {typeof balls[number]} b */
+function putOnFreeSpot(b) {
+  const spot = findFreeCueSpot(b);
   b.body.setEnabled(true);
   b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
   b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
   b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-  b.inPocket = false;
+  b.pos.set(spot.x, TABLE_H + BALL_R + 0.0005, spot.z); // the next ball placed sees this one at once
   physicsAwake = PHYSICS_AWAKE_STEPS; // the ball settles on the cloth
+}
+
+/**
+ * Has the ball left the table: far off, on the floor, or lying on the wooden rail (above the cloth,
+ * outside the playing area, nearly still)?
+ */
+function isOffTable(b, speed) {
+  if (Math.abs(b.pos.x) > 1.2 || Math.abs(b.pos.z) > 1.8 || b.pos.y < 0.5) return true;
+  const outside = Math.abs(b.pos.x) > PLAY_W / 2 || Math.abs(b.pos.z) > PLAY_L / 2;
+  return outside && b.pos.y > TABLE_H + BALL_R + 0.015 && speed < 0.05;
 }
 
 /** A ball that starts to drop into a pocket makes the rim tick and the slide into the cup. */
@@ -1737,6 +1764,7 @@ function stepPhysics(frameDt) {
     cueRespawnWait += frameDt;
     if (cueRespawnWait >= CUE_RESPAWN_DELAY && !isCueMoving && (!stroke || stroke.phase === "done") && pendingRemoval.length === 0) respawnCueBall();
   }
+  if (strayBalls.length && !isCueMoving && (!stroke || stroke.phase === "done")) respawnStrayBalls();
   // Everything lies still: nothing can change, so the physics world is not stepped at all
   if (!stroke && !isCueMoving && pendingRemoval.length === 0 && physicsAwake <= 0) {
     physicsAcc = 0;
@@ -1815,24 +1843,24 @@ function stepPhysics(frameDt) {
     const b = balls[i];
     syncBallFromBody(b);
 
-    // Stray ball (jumped off the table): put it back on the table
-    if (!b.inPocket && (Math.abs(b.pos.x) > 1.2 || Math.abs(b.pos.z) > 1.8 || b.pos.y < 0.5)) {
-      console.warn("[Backroom Billard] ball outside the table, resetting it", b.id);
+    if (b.stray) continue; // off the table, waiting to come back
+
+    // Stray ball (jumped off the table): it comes back once the table is still
+    if (!b.inPocket && isOffTable(b, Math.hypot(b.vel.x, b.vel.y, b.vel.z))) {
+      console.warn("[Backroom Billard] ball off the table", b.id);
+      b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+      b.body.setTranslation({ x: 0, y: -2, z: 0 }, true); // out of sight, below the floor
+      b.body.setEnabled(false);
       if (b.isCue) {
-        // The white ball left the table: it counts like a pocketed one (it comes back when the others lie still)
-        b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-        b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-        b.body.setTranslation({ x: 0, y: -2, z: 0 }, true); // out of sight, below the floor
-        b.body.setEnabled(false);
+        // The white ball counts like a pocketed one
         b.inPocket = true;
         cueRespawnWait = 0;
         if (mpShot) mpShot.whiteGone = true;
-        continue;
+      } else {
+        b.stray = true; // an object ball: no foul, it is put back on a free spot
+        strayBalls.push(b);
       }
-      const spot = findFreeCueSpot();
-      b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
-      b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
       continue;
     }
 
@@ -1890,7 +1918,7 @@ function gameLoop(currentTime) {
   // The table is still for a moment → the cue camera may return to the shot position
   if (shotInProgress) {
     const strokeFinished = !stroke || stroke.phase === "done";
-    if (strokeFinished && !isCueMoving && cueBall && !cueBall.inPocket) {
+    if (strokeFinished && !isCueMoving && cueBall && !cueBall.inPocket && strayBalls.length === 0) {
       shotRestTimer += dt;
       if (shotRestTimer >= SHOT_REST_DELAY) {
         shotInProgress = false;

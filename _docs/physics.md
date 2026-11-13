@@ -22,7 +22,7 @@ Trimeshes bekommen `FIX_INTERNAL_EDGES_TWO_SIDED`. Ohne dieses Flag lenken Dreie
 - **Weiße Kugel:** wird nach 600 ms auf einem freien Platz neu aufgelegt (nicht gelöscht, nicht im HUD).
 - **Tuchbremse:** Rapiers Damping ist aus (0), weil es proportional zur Geschwindigkeit bremst (langsame Kugeln kriechen sekundenlang). Stattdessen bremst `applyClothDrag` (`billard.js`) jede Kugel auf dem Tisch **konstant** (Rollwiderstand `ROLLING_RESISTANCE` × g); der Drall wird dabei so mitgenommen, dass eine rollende Kugel weiter rollt. Seitendrall um die Hochachse klingt mit `SIDE_SPIN_DECEL` ab. Gemessen: aus 1 m/s ca. 5,1 m Weg, Stillstand nach ca. 10 s.
 - **Ruhe:** unter 1 cm/s (und kaum Drall) setzt das Spiel die Geschwindigkeit auf 0. Sobald **alle** Kugeln unter 2 cm/s sind (der Tisch gilt als still), werden die Reste (Geschwindigkeit und Drall) auf 0 gesetzt, sonst würde eine kriechende Kugel ihre Restgeschwindigkeit behalten, während die Physik schläft, und beim nächsten Stoß „von allein“ weiterrollen (auch die weiße).
-- **Sicherheitsnetz:** Eine Kugel außerhalb des Tisches wird zurückgesetzt (Konsolen-Warnung).
+- **Kugel vom Tisch:** Als „draußen“ gilt eine Kugel weit weg, am Boden oder still liegend auf der Holzbande (über dem Tuch, außerhalb der Spielfläche). Die weiße zählt wie versenkt. Eine farbige ist **kein Foul**: Sie wird aus der Physik genommen und, sobald der Tisch still ist, auf einen freien Platz am Kopfpunkt gelegt (nie auf eine andere Kugel, auch bei mehreren nacheinander). Der Stoß endet erst danach.
 
 ## Stellschrauben (`src/physics-constants.js`)
 
