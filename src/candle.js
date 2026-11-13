@@ -32,18 +32,7 @@ import {
 import { applyBallReflection } from "./ball-reflection.js";
 import { glowTexture } from "./glow.js";
 import { smokeLightUniforms } from "./smoke-light.js";
-
-/** Small deterministic random generator (same layout on every start). */
-function random(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { seededRandom } from "./math-utils.js";
 
 /** Dish with a raised rim and a tube in the middle, as one solid of revolution. */
 function holderGeometry() {
@@ -83,7 +72,7 @@ const flicker = (t, phase) =>
 export function createCandles(scene) {
   const group = new THREE.Group();
   group.name = "candles";
-  const rnd = random(CANDLE_SEED);
+  const rnd = seededRandom(CANDLE_SEED);
 
   const holderMat = new THREE.MeshPhysicalMaterial({
     color: HOLDER_COLOR,

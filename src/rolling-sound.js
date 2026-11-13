@@ -3,7 +3,7 @@
  * brightness follow how fast the balls roll on the table. See _docs/sound.md.
  */
 import { getAudioContext, getMasterNode, createSoundPanner, setPannerPosition } from "./audio.js";
-import { lerp } from "./synth-utils.js";
+import { lerp } from "./math-utils.js";
 import {
   ROLL_GAIN_MAX,
   ROLL_FULL_ACTIVITY,

@@ -14,8 +14,8 @@ import {
   SWAY_SPEED,
   DRUNK_SHOT_ERROR,
 } from "./player-constants.js";
+import { clamp } from "./math-utils.js";
 
-const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 /** How far out of the calm zone a marker is: 0 inside, up to 1 at the end of the bar. */
 const outside = (v) => Math.max(0, Math.abs(v) - CALM_ZONE) / (1 - CALM_ZONE);
 
@@ -26,16 +26,16 @@ export function createPlayerState() {
 
     /** Time passes: the player gets thirsty and wants a cigarette. */
     update(dt) {
-      state.body = clamp1(state.body - THIRST_DRIFT * dt);
-      state.nicotine = clamp1(state.nicotine + DESIRE_DRIFT * dt);
+      state.body = clamp(state.body - THIRST_DRIFT * dt, -1, 1);
+      state.nicotine = clamp(state.nicotine + DESIRE_DRIFT * dt, -1, 1);
     },
     /** One sip of a drink. */
     sip() {
-      state.body = clamp1(state.body + SIP_EFFECT);
+      state.body = clamp(state.body + SIP_EFFECT, -1, 1);
     },
     /** Drawing on a cigarette for `dt` seconds. */
     drag(dt) {
-      state.nicotine = clamp1(state.nicotine - DRAG_EFFECT * dt);
+      state.nicotine = clamp(state.nicotine - DRAG_EFFECT * dt, -1, 1);
     },
 
     /**

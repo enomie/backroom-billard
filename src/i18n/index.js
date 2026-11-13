@@ -13,6 +13,7 @@
 import en from "./locales/en.js";
 import de from "./locales/de.js";
 import { FLAGS } from "./flags.js";
+import { storageGet, storageSet } from "../storage.js";
 
 /** Registered languages; the first one is the default. */
 export const LANGUAGES = [
@@ -67,11 +68,7 @@ function markActiveFlag() {
 export function setLanguage(code) {
   if (!find(code)) return;
   current = code;
-  try {
-    localStorage.setItem(STORAGE_KEY, code);
-  } catch {
-    /* storage unavailable (private mode etc.) — the choice just is not remembered */
-  }
+  storageSet(STORAGE_KEY, code);
   document.documentElement.lang = code;
   applyTranslations();
   markActiveFlag();
@@ -97,12 +94,7 @@ function renderSwitcher() {
 
 /** Build the flag switcher and apply the stored (or default) language. Call once at startup. */
 export function initI18n() {
-  let saved = null;
-  try {
-    saved = localStorage.getItem(STORAGE_KEY);
-  } catch {
-    /* ignore */
-  }
+  const saved = storageGet(STORAGE_KEY);
   // the stored choice, else the language of the browser, else English
   const browser = (navigator.languages ?? [navigator.language]).map((l) => l?.slice(0, 2).toLowerCase()).find(find);
   current = find(saved) ? saved : browser ?? LANGUAGES[0].code;

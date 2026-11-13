@@ -10,6 +10,11 @@ import {
   CUSHION_PROFILE_WIDTH,
   RAIL_WOOD_DEPTH,
   FELT_BED_DEPTH,
+  RACK_APEX_Z,
+  RACK_SPREAD,
+  RACK_ROW_GAP,
+  CUE_SPOT_MAX_Z,
+  BALL_SPAWN_LIFT,
 } from "./table-constants.js";
 import { createPocketSpecs } from "./pocket-spec.js";
 import { createPhysicsWorld } from "./physics-world.js";
@@ -122,7 +127,7 @@ import {
 } from "./room-constants.js";
 import { PIANO_SEAT_SECONDS } from "./piano-constants.js";
 import { t, onLanguageChange } from "./i18n/index.js";
-import {
+import { GRAVITY,
   PHYSICS_STEP,
   REST_LINEAR_SPEED,
   REST_SURFACE_SPEED,
@@ -460,7 +465,7 @@ function setupBalls() {
     scene.add(mesh);
 
     const { body, collider } = physics.addBall(
-      { x, y: TABLE_H + BALL_R + 0.0005, z },
+      { x, y: TABLE_H + BALL_R + BALL_SPAWN_LIFT, z },
       BALL_R
     );
     const bObj = {
@@ -485,16 +490,16 @@ function setupBalls() {
   cueBall = createBall(0, HEAD_SPOT_Z, 0);
 
   // Triangle rack
-  const startZ = -PLAY_L * 0.22;
+  const startZ = RACK_APEX_Z;
   const rows = 5;
   let idx = 0;
-  const rowGap = BALL_R * Math.sqrt(3) + 0.0008;
+  const rowGap = BALL_R * Math.sqrt(3) + RACK_ROW_GAP;
 
   for (let r = 0; r < rows; r++) {
     const count = r + 1;
-    const startX = -((count - 1) * BALL_R * 1.02);
+    const startX = -((count - 1) * BALL_R * RACK_SPREAD);
     for (let c = 0; c < count; c++) {
-      const px = startX + c * (BALL_R * 2.04);
+      const px = startX + c * (BALL_R * 2 * RACK_SPREAD);
       const pz = startZ - r * rowGap;
       const number = RACK_ORDER[idx];
       createBall(px, pz, number);
@@ -512,7 +517,7 @@ function findFreeCueSpot() {
         o.isCue || o.inPocket || (o.pos.x - x) ** 2 + (o.pos.z - z) ** 2 > minDistSq
     );
   const baseZ = HEAD_SPOT_Z;
-  const maxZ = PLAY_L * 0.45;
+  const maxZ = CUE_SPOT_MAX_Z;
   for (let z = baseZ; z <= maxZ; z += BALL_R * 0.5) {
     for (const x of [0, BALL_R * 2.5, -BALL_R * 2.5, BALL_R * 5, -BALL_R * 5]) {
       if (isFree(x, z)) return { x, z };
@@ -869,7 +874,7 @@ function applySwerve(dt) {
   const [hx, hz] = [v.x / speed, v.z / speed];
   const along = (ux * hx + uz * hz) / slip;
   const [sideX, sideZ] = [ux / slip - along * hx, uz / slip - along * hz]; // slip direction across the path
-  const k = (SWERVE_BOOST - 1) * ((TABLE_FRICTION + BALL_FRICTION) / 2) * 9.81 * cueBall.body.mass() * dt;
+  const k = (SWERVE_BOOST - 1) * ((TABLE_FRICTION + BALL_FRICTION) / 2) * GRAVITY * cueBall.body.mass() * dt;
   cueBall.body.applyImpulse({ x: -sideX * k, y: 0, z: -sideZ * k }, true); // friction acts against the slip
 }
 
@@ -880,7 +885,7 @@ function applySwerve(dt) {
  * @param {number} dt — physics step (s)
  */
 function applyClothDrag(dt) {
-  const dv = ROLLING_RESISTANCE * 9.81 * dt;
+  const dv = ROLLING_RESISTANCE * GRAVITY * dt;
   const dw = SIDE_SPIN_DECEL * dt;
   for (const b of balls) {
     if (b.inPocket || b.body.translation().y < TABLE_H - 0.01) continue;
@@ -943,7 +948,7 @@ function setupControls() {
   const powerPct = document.getElementById("power-percent");
   /** Set the shot power; always a whole percent (1 % steps). */
   function setPower(val) {
-    const pct = Math.max(POWER_MIN, Math.min(POWER_MAX, Math.round(val * 100)));
+    const pct = THREE.MathUtils.clamp(Math.round(val * 100), POWER_MIN, POWER_MAX);
     selectedPower = pct / 100;
     const fraction = (pct - POWER_MIN) / (POWER_MAX - POWER_MIN); // 0 = bottom, 1 = top
     powerThumb.style.bottom = fraction * 100 + "%";
@@ -1075,7 +1080,7 @@ function setupControls() {
         freeClickDistance += Math.abs(e.movementX) + Math.abs(e.movementY);
         freeYaw -= e.movementX * FREE_CAM_LOOK_SENSITIVITY;
         freePitch -= e.movementY * FREE_CAM_LOOK_SENSITIVITY;
-        freePitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, freePitch));
+        freePitch = THREE.MathUtils.clamp(freePitch, -Math.PI / 2 + 0.01, Math.PI / 2 - 0.01);
       }
       return;
     }
@@ -1640,7 +1645,7 @@ function respawnCueBall() {
   const b = cueBall;
   const spot = findFreeCueSpot();
   b.body.setEnabled(true);
-  b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
+  b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + BALL_SPAWN_LIFT, z: spot.z }, true);
   b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
   b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
   b.inPocket = false;
@@ -1826,7 +1831,7 @@ function stepPhysics(frameDt) {
         continue;
       }
       const spot = findFreeCueSpot();
-      b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + 0.0005, z: spot.z }, true);
+      b.body.setTranslation({ x: spot.x, y: TABLE_H + BALL_R + BALL_SPAWN_LIFT, z: spot.z }, true);
       b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
       continue;
@@ -2441,7 +2446,7 @@ function applyRestState(rows) {
       }
       continue;
     }
-    b.body.setTranslation({ x: row.x, y: TABLE_H + BALL_R + 0.0005, z: row.z }, true);
+    b.body.setTranslation({ x: row.x, y: TABLE_H + BALL_R + BALL_SPAWN_LIFT, z: row.z }, true);
     b.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     b.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
   }

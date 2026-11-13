@@ -30,6 +30,7 @@ import {
   RADIO_COLOR_BRASS,
   RADIO_COLOR_KNOB,
 } from "./radio-constants.js";
+import { storageGet, storageSet } from "./storage.js";
 
 /* ---- Textures ----------------------------------------------------------------------------- */
 
@@ -348,12 +349,7 @@ export function createRadio(scene) {
     () => state === "live"
   );
   // "on" is the radio of the room (the knob; in multiplayer the database's, the same for everybody); "muted" is only for this guest (settings).
-  let muted = false;
-  try {
-    muted = localStorage.getItem(MUTED_KEY) === "1";
-  } catch {
-    /* not allowed: not muted */
-  }
+  let muted = storageGet(MUTED_KEY) === "1";
   let onToggle = null; // multiplayer: the knob asks the database instead of switching by itself ((next: boolean) => void)
   /** The sound and the title follow the knob and the mute. */
   const apply = () => {
@@ -416,11 +412,7 @@ export function createRadio(scene) {
     /** Only for this guest: no sound, though the radio of the room plays (kept in the browser). */
     setMuted(value) {
       muted = value;
-      try {
-        localStorage.setItem(MUTED_KEY, value ? "1" : "0");
-      } catch {
-        /* not allowed: for this visit only */
-      }
+      storageSet(MUTED_KEY, value ? "1" : "0");
       apply();
     },
     isMuted: () => muted,

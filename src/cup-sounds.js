@@ -4,7 +4,8 @@
  * See _docs/sound.md.
  */
 import { getAudioContext, playBuffer, allowSound, impactStrength } from "./audio.js";
-import { lerp, pick, bandpass, finish } from "./synth-utils.js";
+import { pick, bandpass, finish } from "./synth-utils.js";
+import { lerp } from "./math-utils.js";
 import {
   CUP_RIM_GAIN_MIN,
   CUP_RIM_GAIN_MAX,

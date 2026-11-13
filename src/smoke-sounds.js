@@ -4,7 +4,8 @@
  * All generated; the sound comes from the player himself, so it is not positioned.
  */
 import { getAudioContext, getMasterNode, playBuffer } from "./audio.js";
-import { bandpass, finish, lerp } from "./synth-utils.js";
+import { bandpass, finish } from "./synth-utils.js";
+import { lerp } from "./math-utils.js";
 import {
   DRAG_GAIN_START,
   DRAG_GAIN_END,

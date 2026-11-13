@@ -42,23 +42,13 @@ import {
 } from "./cigarette-constants.js";
 import { glowTexture } from "./glow.js";
 import { createSmokeColumn, faceCamera } from "./smoke.js";
+import { seededRandom } from "./math-utils.js";
+import { GRAVITY } from "./physics-constants.js";
 
 const PAPER_FULL = CIGARETTE_LENGTH - CIGARETTE_FILTER_LENGTH;
 /** A cigarette that burns down in the ashtray slips off the rim and reaches the dish after this long (s). */
 const SLIP_TIME = 0.12;
 const R = CIGARETTE_DIAMETER / 2;
-
-/** Small deterministic random generator (same layout on every start). */
-function random(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** Beige-tan filter with fine speckles. */
 function filterTexture() {
@@ -100,7 +90,7 @@ function restingPose(slot, k, tipSupport) {
 export function createCigarettes(scene, ashtraySlots) {
   const group = new THREE.Group();
   group.name = "cigarettes";
-  const rnd = random(CIGARETTE_SEED);
+  const rnd = seededRandom(CIGARETTE_SEED);
 
   const unit = new THREE.CylinderGeometry(R, R, 1, 16).rotateZ(-Math.PI / 2); // 1 m long along +x
   const filterGeo = new THREE.CylinderGeometry(R, R, CIGARETTE_FILTER_LENGTH, 16).rotateZ(-Math.PI / 2);
@@ -219,7 +209,7 @@ export function createCigarettes(scene, ashtraySlots) {
     const half = f.length / 2;
     const slot = c.slot;
     const ground = slot.y + ASHTRAY_FLOOR * slot.scale + R;
-    f.velocity.y -= 9.81 * dt;
+    f.velocity.y -= GRAVITY * dt;
     f.center.addScaledVector(f.velocity, dt);
     if (f.spin.lengthSq() > 1e-6) {
       c.root.quaternion.premultiply(_q.setFromAxisAngle(_axis.copy(f.spin).normalize(), f.spin.length() * dt));
@@ -367,7 +357,7 @@ export function createCigarettes(scene, ashtraySlots) {
           // a short hop: it reaches a spot in the dish after FALL_TIME and lands there
           const velocity = new THREE.Vector3(
             (slot.x + Math.cos(a) * r - middle.x) / SLIP_TIME,
-            (ground - middle.y + (9.81 * SLIP_TIME * SLIP_TIME) / 2) / SLIP_TIME,
+            (ground - middle.y + (GRAVITY * SLIP_TIME * SLIP_TIME) / 2) / SLIP_TIME,
             (slot.z + Math.sin(a) * r - middle.z) / SLIP_TIME
           );
           startFall(c, velocity, new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(4));

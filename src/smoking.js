@@ -100,7 +100,7 @@ export function createSmoking(cigarettes, exhale, wallet, onDraw, kitOf) {
   /** The drag is over: exhale (if there was a drag) and fly the cigarette back (above its ashtray if it is burnt down). */
   function endDrag(camera) {
     if (drawTime > 0.05) {
-      const strength = Math.max(SMOKING_MIN_STRENGTH, Math.min(1, drawTime / SMOKING_MAX_DRAW));
+      const strength = THREE.MathUtils.clamp(drawTime / SMOKING_MAX_DRAW, SMOKING_MIN_STRENGTH, 1);
       exhale.trigger(camera, strength);
       playExhaleSound(strength);
     }

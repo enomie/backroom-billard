@@ -20,21 +20,10 @@ import {
   MULTIPLAYER_JOIN_SECONDS,
   MULTIPLAYER_NOTE_SECONDS,
 } from "./multiplayer-constants.js";
+import { storageGet, storageSet } from "./storage.js";
 
-const loadToken = () => {
-  try {
-    return localStorage.getItem(MULTIPLAYER_TOKEN_KEY) ?? undefined;
-  } catch {
-    return undefined;
-  }
-};
-const saveToken = (token) => {
-  try {
-    localStorage.setItem(MULTIPLAYER_TOKEN_KEY, token);
-  } catch {
-    /* not allowed: the guest is a new one next time */
-  }
-};
+const loadToken = () => storageGet(MULTIPLAYER_TOKEN_KEY) ?? undefined;
+const saveToken = (token) => storageSet(MULTIPLAYER_TOKEN_KEY, token);
 let kickedHandler = null; // set by the room: the account was opened on another device
 let refusedHandler = null; // set by the room: the database said no (the text of its refusal)
 const isKicked = (error) => String(error?.message ?? error).includes("logged-in-elsewhere");

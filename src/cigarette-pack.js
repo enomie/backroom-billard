@@ -28,6 +28,7 @@ import {
   PACK_FRAME_TURN,
   PACK_SEED,
 } from "./cigarette-constants.js";
+import { seededRandom } from "./math-utils.js";
 
 const W = PACK_WIDTH;
 const D = PACK_DEPTH;
@@ -37,18 +38,6 @@ const LID = PACK_LID_HEIGHT;
 const R = CIGARETTE_DIAMETER / 2;
 /** Cigarettes in a full pack. */
 export const PACK_SIZE = 20;
-
-/** Small deterministic random generator (same layout on every start). */
-function random(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 /** Front art for a design: colored card, a band with the name, lines. Invented brand. */
 function frontTexture(design) {
@@ -128,7 +117,7 @@ function cigaretteGeometries() {
 export function createCigarettePacks(scene, taken) {
   const group = new THREE.Group();
   group.name = "cigarette-packs";
-  const rnd = random(PACK_SEED);
+  const rnd = seededRandom(PACK_SEED);
 
   // Materials per design: cardboard, front of the body and front of the lid
   const designs = PACK_DESIGNS.map((design) => {

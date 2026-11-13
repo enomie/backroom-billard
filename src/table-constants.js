@@ -10,6 +10,16 @@ export const PLAY_W = 1.27;
 /** Where the white ball is placed (head spot): along the table, towards the player at the start. */
 export const HEAD_SPOT_Z = PLAY_L * 0.28;
 
+/** Where the front ball of the triangle rack sits (foot side). */
+export const RACK_APEX_Z = -PLAY_L * 0.22;
+/** Rack spacing: balls of a row 1.02 radii from the centre line each (2 % gap), rows 0.8 mm further apart than touching. */
+export const RACK_SPREAD = 1.02;
+export const RACK_ROW_GAP = 0.0008;
+/** The cue ball is placed again between the head spot and this point (behind the head spot) when its spot is taken. */
+export const CUE_SPOT_MAX_Z = PLAY_L * 0.45;
+/** Balls are created this far above the cloth so they do not start inside it. */
+export const BALL_SPAWN_LIFT = 0.0005;
+
 /** Felt playing surface height (common furniture height; the WPA specifies floor-to-rail separately) */
 export const TABLE_H = 0.85;
 

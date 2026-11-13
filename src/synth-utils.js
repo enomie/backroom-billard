@@ -1,6 +1,5 @@
 /** Small helpers for the procedural sound synthesis (shared by shot-sounds.js and collision-sounds.js). */
 
-export const lerp = (a, b, t) => a + (b - a) * t;
 export const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
 /**

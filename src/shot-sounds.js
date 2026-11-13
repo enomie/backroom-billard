@@ -6,7 +6,8 @@
  * with the power choosing gain/brightness and a little random pitch variation.
  */
 import { getAudioContext, playBuffer } from "./audio.js";
-import { lerp, pick, bandpass, slowNoise, finish } from "./synth-utils.js";
+import { pick, bandpass, slowNoise, finish } from "./synth-utils.js";
+import { lerp } from "./math-utils.js";
 import {
   SLIDE_LENGTHS,
   SLIDE_VARIANTS,

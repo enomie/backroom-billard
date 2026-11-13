@@ -32,6 +32,7 @@ import {
   BOTTLE_SEED,
 } from "./bottles-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
+import { seededRandom } from "./math-utils.js";
 
 /** Bottle outline: round bottom, straight body, smooth shoulder to the neck, ring at the mouth. */
 function bottleGeometry({ height, radius, shoulderStart, shoulderEnd, neck }) {
@@ -79,18 +80,6 @@ function labelTexture(kind) {
   return tex;
 }
 
-/** Small deterministic random generator (same layout on every start). */
-function random(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, z: number, r: number }[]} taken — objects already on the tables
@@ -100,7 +89,7 @@ function random(seed) {
 export function createBottles(scene, taken) {
   const group = new THREE.Group();
   group.name = "bottles";
-  const rnd = random(BOTTLE_SEED);
+  const rnd = seededRandom(BOTTLE_SEED);
 
   const glass = (color, opacity) =>
     new THREE.MeshPhysicalMaterial({ color, transparent: true, opacity, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, depthWrite: false });

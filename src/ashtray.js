@@ -21,6 +21,7 @@ import {
   ASHTRAY_SEED,
 } from "./ashtray-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
+import { seededRandom } from "./math-utils.js";
 
 /** Heavy glass dish with a flat wide rim; the rim is lowered at the notches. */
 function ashtrayGeometry() {
@@ -47,18 +48,6 @@ function ashtrayGeometry() {
   return geo;
 }
 
-/** Small deterministic random generator (same layout on every start). */
-function random(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /**
  * @param {THREE.Scene} scene
  * @returns {{ group: THREE.Group, taken: { x: number, z: number, r: number }[],
@@ -68,7 +57,7 @@ function random(seed) {
 export function createAshtrays(scene) {
   const group = new THREE.Group();
   group.name = "ashtrays";
-  const rnd = random(ASHTRAY_SEED);
+  const rnd = seededRandom(ASHTRAY_SEED);
   const geo = ashtrayGeometry();
   const mat = new THREE.MeshPhysicalMaterial({
     color: ASHTRAY_COLOR,

@@ -2,11 +2,11 @@
  * The secret key of the multiplayer account (see _docs/konto-umbau.md): 20 characters of a 32 letter alphabet (no I, O, 0, 1) in five
  * groups of four, made up here in the browser (the random numbers of the database module can be guessed) and kept in localStorage.
  */
+import { storageGet, storageSet, storageRemove } from "./storage.js";
+
 const STORAGE_KEY = "backroom-billard.account-key";
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const KEY_PATTERN = /^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/;
-
-let memory = null; // when localStorage is not available
 
 /** A new random key (100 bits). */
 export function makeKey() {
@@ -25,31 +25,16 @@ export function normalizeKey(text) {
 
 /** @returns {string | null} the key of this browser's account */
 export function loadKey() {
-  try {
-    const key = localStorage.getItem(STORAGE_KEY);
-    if (key && KEY_PATTERN.test(key)) return key;
-  } catch {
-    /* not allowed: the key lives in memory for this visit */
-  }
-  return memory;
+  const key = storageGet(STORAGE_KEY);
+  return key && KEY_PATTERN.test(key) ? key : null;
 }
 
 /** The account of this browser is given up (a new one is made next time). */
 export function clearKey() {
-  memory = null;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* nothing to remove */
-  }
+  storageRemove(STORAGE_KEY);
 }
 
 /** @param {string} key */
 export function saveKey(key) {
-  memory = key;
-  try {
-    localStorage.setItem(STORAGE_KEY, key);
-  } catch {
-    /* not allowed: it stays in memory */
-  }
+  storageSet(STORAGE_KEY, key);
 }

@@ -10,6 +10,7 @@
  */
 import { REPLAY_CHUNK_MS, REPLAY_DELAY_MS } from "./multiplayer-constants.js";
 import { TABLE_H } from "./table-constants.js";
+import { lerp, clamp } from "./math-utils.js";
 
 const COUNT_AT = 10; // where the number of balls (or the −1 of a sound event) stands
 const HEAD = 11;
@@ -98,7 +99,6 @@ function decode(bytes) {
   return { frames, events };
 }
 
-const lerp = (a, b, k) => a + (b - a) * k;
 const lerpAngle = (a, b, k) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * k;
 
 /** The playback of the others: collects the pieces, plays them back `REPLAY_DELAY_MS` after the first arrived. */
@@ -158,7 +158,7 @@ export function createShotReplay() {
       const a = frames[i];
       const b = frames[Math.min(i + 1, frames.length - 1)];
       const done = i + 1 >= frames.length && t >= a[0];
-      const k = a === b ? 0 : Math.min(1, Math.max(0, (t - a[0]) / (b[0] - a[0] || 1)));
+      const k = a === b ? 0 : clamp((t - a[0]) / (b[0] - a[0]), 0, 1);
       const cue = {
         angle: lerpAngle(a[1], b[1], k),
         pitch: lerp(a[2], b[2], k),

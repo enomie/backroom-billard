@@ -44,6 +44,7 @@ import {
   BEER_FOAM_DECAY_SECONDS,
 } from "./glasses-constants.js";
 import { applyBallReflection } from "./ball-reflection.js";
+import { seededRandom } from "./math-utils.js";
 
 const lathe = (pts, segments = 48) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), segments);
 
@@ -190,18 +191,6 @@ function beerFoamGeometry(level = BEER_LEVEL, decay = 0) {
   return lathe(pts, 48);
 }
 
-/** Small deterministic random generator (same layout on every start). */
-function random(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /**
  * @param {THREE.Scene} scene
  * @param {{ x: number, z: number, r: number }[]} taken — objects already on the tables (candles, ashtrays)
@@ -211,7 +200,7 @@ function random(seed) {
 export function createGlasses(scene, taken) {
   const group = new THREE.Group();
   group.name = "glasses";
-  const rnd = random(GLASSES_SEED);
+  const rnd = seededRandom(GLASSES_SEED);
 
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: GLASS_COLOR,

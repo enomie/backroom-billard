@@ -3,7 +3,8 @@
  * Loudness and brightness follow the impact speed. See _docs/sound.md.
  */
 import { getAudioContext, playBuffer, allowSound, impactStrength } from "./audio.js";
-import { lerp, pick, bandpass, finish } from "./synth-utils.js";
+import { pick, bandpass, finish } from "./synth-utils.js";
+import { lerp } from "./math-utils.js";
 import {
   BALL_HIT_SECONDS,
   BALL_HIT_STAGES,

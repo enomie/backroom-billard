@@ -17,6 +17,7 @@ import {
   FELT_STAIN_LIFT_COLOR,
   FELT_STAIN_ROUGHNESS,
 } from "./felt-constants.js";
+import { lerp, clamp } from "./math-utils.js";
 
 /** Smooth value noise in 0..1 at a point (x, y), the same every time. */
 function noise(x, y, seed) {
@@ -33,9 +34,8 @@ function noise(x, y, seed) {
   return top * (1 - sy) + bottom * sy;
 }
 
-const mix = (a, b, t) => a + (b - a) * t;
 const smooth = (a, b, x) => {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  const t = clamp((x - a) / (b - a), 0, 1);
   return t * t * (3 - 2 * t);
 };
 
@@ -86,13 +86,13 @@ export function feltTextures(bounds) {
       const wash = FELT_WASH;
       const { t: st } = blobEdge(x, z, wash, 2);
       const flat = wash.strength * (1 - smooth(0.3, 1.2, st)) * (0.75 + 0.5 * noise(x * 38, z * 38, 4));
-      for (let k = 0; k < 3; k++) rgb[k] = mix(rgb[k], wash.color[k], flat);
-      roughness = mix(roughness, wash.roughness, Math.min(1, flat / wash.strength));
+      for (let k = 0; k < 3; k++) rgb[k] = lerp(rgb[k], wash.color[k], flat);
+      roughness = lerp(roughness, wash.roughness, Math.min(1, flat / wash.strength));
       const wear = FELT_WEAR;
       const { t: wt } = blobEdge(x, z, wear, 1);
       const hole = wear.strength * (1 - smooth(0.82, 1, wt)); // a short, slightly frayed edge
-      for (let k = 0; k < 3; k++) rgb[k] = mix(rgb[k], wear.color[k], hole);
-      roughness = mix(roughness, wear.roughness, hole);
+      for (let k = 0; k < 3; k++) rgb[k] = lerp(rgb[k], wear.color[k], hole);
+      roughness = lerp(roughness, wear.roughness, hole);
 
       // the water stains
       for (const [i, stain] of FELT_STAINS.entries()) {
@@ -101,8 +101,8 @@ export function feltTextures(bounds) {
         // the edge ring: strong in places, missing in others; a fainter one inside
         const along = Math.max(0, noise(Math.cos(angle) * 2.2 + i * 5, Math.sin(angle) * 2.2, 30 + i) * 1.6 - 0.25);
         const ring = stain.rim * (Math.exp(-(((t - 1) / 0.07) ** 2)) + 0.4 * Math.exp(-(((t - 0.62) / 0.06) ** 2))) * along;
-        for (let k = 0; k < 3; k++) rgb[k] = mix(mix(rgb[k], FELT_STAIN_LIFT_COLOR[k], lift), stain.rimColor[k], Math.min(1, ring));
-        roughness = mix(roughness, FELT_STAIN_ROUGHNESS, Math.min(1, lift / stain.lift) * (1 - smooth(0.9, 1.2, t)));
+        for (let k = 0; k < 3; k++) rgb[k] = lerp(lerp(rgb[k], FELT_STAIN_LIFT_COLOR[k], lift), stain.rimColor[k], Math.min(1, ring));
+        roughness = lerp(roughness, FELT_STAIN_ROUGHNESS, Math.min(1, lift / stain.lift) * (1 - smooth(0.9, 1.2, t)));
       }
 
       const nap = (noise(x * 300, z * 300, 3) - 0.5) * 2 * FELT_NAP_NOISE;

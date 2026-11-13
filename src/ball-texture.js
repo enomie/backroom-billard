@@ -27,17 +27,7 @@ import {
   ballColor,
   isStripe,
 } from "./ball-constants.js";
-
-/** Small seeded random generator: every ball keeps its pattern from one start to the next. */
-function random(seed) {
-  let s = (seed * 2654435761 + 1013904223) >>> 0;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { seededRandom } from "./math-utils.js";
 
 const rgb = (hex) => [(hex >> 16) & 255, (hex >> 8) & 255, hex & 255];
 const css = (c) => `rgb(${c.join(",")})`;
@@ -69,7 +59,7 @@ function paint(ctx, id) {
     ctx.fillRect(0, latToY(BALL_STRIPE_HALF_ANGLE), W, latToY(-BALL_STRIPE_HALF_ANGLE) - latToY(BALL_STRIPE_HALF_ANGLE));
   }
 
-  const rnd = random(id + 1);
+  const rnd = seededRandom(id + 1);
   for (let i = 0; i < BALL_SPECK_COUNT; i++) {
     // a point spread evenly over the sphere, as longitude (x) and latitude (y) on the texture
     const lat = Math.asin(2 * rnd() - 1);

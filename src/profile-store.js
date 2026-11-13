@@ -6,37 +6,21 @@
  * - the old profile of earlier versions (name, country, face, money): read once, see loadLegacy.
  */
 import { normalizeName, isValidName } from "./name-rules.js";
+import { storageGet, storageSet, storageRemove } from "./storage.js";
 
 const SINGLE_KEY = "backroom-billard.single";
 const MULTI_KEY = "backroom-billard.multi-choice";
 const LEGACY_KEY = "backroom-billard.profile";
 
-const memory = new Map(); // when localStorage is not available
 const read = (key) => {
   try {
-    const text = localStorage.getItem(key);
-    if (text) return JSON.parse(text);
+    return JSON.parse(storageGet(key) ?? "null");
   } catch {
-    /* not allowed or not JSON: the memory has it, if anything */
-  }
-  return memory.get(key) ?? null;
-};
-const write = (key, value) => {
-  memory.set(key, value);
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* not allowed: it stays in memory */
+    return null; // not JSON
   }
 };
-const remove = (key) => {
-  memory.delete(key);
-  try {
-    localStorage.removeItem(key);
-  } catch {
-    /* nothing to remove */
-  }
-};
+const write = (key, value) => storageSet(key, JSON.stringify(value));
+const remove = storageRemove;
 
 /** @typedef {{ money: number, firstDrink: string | null, firstPack: number | null }} Purse */
 

@@ -12,6 +12,7 @@ import { randomFace, isFace, faceSvg } from "./face.js";
 import { COUNTRIES, DEFAULT_COUNTRY, isCountry, countryName, flagUrl } from "./country-list.js";
 import { loadLegacy, clearLegacy, loadSingle, saveSingle, clearSingle, loadMultiChoice, saveMultiChoice } from "./profile-store.js";
 import { loadKey, clearKey, normalizeKey } from "./account-key.js";
+import { clamp } from "./math-utils.js";
 
 const format = (amount) => "$ " + amount.toLocaleString("en-US");
 const $ = (id) => document.getElementById(id);
@@ -197,7 +198,7 @@ export function showWelcome(game) {
     $("welcome-country-name").textContent = countryName(country, getLanguage());
   };
   const mark = (index) => {
-    marked = Math.max(0, Math.min(shown.length - 1, index));
+    marked = clamp(index, 0, shown.length - 1);
     [...list.children].forEach((li, i) => li.classList.toggle("is-marked", i === marked));
     list.children[marked]?.scrollIntoView({ block: "nearest" });
   };

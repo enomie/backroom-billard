@@ -2,6 +2,9 @@
  * Physics parameters (Rapier). Values and rationale: _docs/physics.md
  */
 
+/** Gravitational acceleration (m/s²). */
+export const GRAVITY = 9.81;
+
 /** Fixed simulation time step (240 Hz). */
 export const PHYSICS_STEP = 1 / 240;
 

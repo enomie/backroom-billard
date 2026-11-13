@@ -15,7 +15,7 @@ import {
   CUE_TIP_LENGTH,
   CUE_FERRULE_LENGTH,
 } from "./cue-model.js";
-import {
+import { GRAVITY,
   PHYSICS_STEP,
   CUSHION_RESTITUTION,
   CUSHION_FRICTION,
@@ -67,7 +67,7 @@ function cueTipColliderDesc(RAPIER) {
  * @param {number} feltDepth
  */
 export function createPhysicsWorld(RAPIER, colliderGeometries, pocketSpecs, tableH, feltDepth) {
-  const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+  const world = new RAPIER.World({ x: 0, y: -GRAVITY, z: 0 });
   world.timestep = PHYSICS_STEP;
   world.lengthUnit = 0.1;
   const eventQueue = new RAPIER.EventQueue(true);

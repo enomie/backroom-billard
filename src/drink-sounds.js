@@ -4,7 +4,8 @@
  * positioned.
  */
 import { getAudioContext, getMasterNode, playBuffer } from "./audio.js";
-import { bandpass, finish, lerp, pick } from "./synth-utils.js";
+import { bandpass, finish, pick } from "./synth-utils.js";
+import { lerp } from "./math-utils.js";
 import { GULP_GAIN, GULP_SECONDS, GULP_VARIANTS, DRINK_FLOW, AHH_GAIN, AHH_SECONDS } from "./sound-constants.js";
 
 /** One swallow: a small air click, a throat thump whose pitch falls, and a gluck of water behind it. */
