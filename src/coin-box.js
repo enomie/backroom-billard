@@ -12,6 +12,7 @@ import {
   COIN_BOX_WIDTH,
   COIN_BOX_HEIGHT,
   COIN_BOX_DEPTH,
+  COIN_BOX_SINK,
   COIN_BOX_TOP_GAP,
   COIN_BOX_SLOT_WIDTH,
   COIN_BOX_SLOT_HEIGHT,
@@ -30,8 +31,10 @@ export function createCoinBox(scene) {
   const metal = new THREE.MeshStandardMaterial({ color: COIN_BOX_COLOR_METAL, metalness: 0.5, roughness: 0.4 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.9 });
 
-  const body = new THREE.Mesh(new RoundedBoxGeometry(COIN_BOX_WIDTH, COIN_BOX_HEIGHT, COIN_BOX_DEPTH, 3, 0.008), metal);
-  body.position.z = COIN_BOX_DEPTH / 2;
+  // sunk into the apron: only the front edges show rounded
+  const bodyDepth = COIN_BOX_DEPTH + COIN_BOX_SINK;
+  const body = new THREE.Mesh(new RoundedBoxGeometry(COIN_BOX_WIDTH, COIN_BOX_HEIGHT, bodyDepth, 3, 0.008), metal);
+  body.position.z = COIN_BOX_DEPTH - bodyDepth / 2;
   body.castShadow = true;
   group.add(body);
 

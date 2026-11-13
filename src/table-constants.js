@@ -87,7 +87,8 @@ export const SKIRT_HEIGHT = 0.4;
  */
 export const COIN_BOX_WIDTH = 0.24; // along the table (z)
 export const COIN_BOX_HEIGHT = 0.15;
-export const COIN_BOX_DEPTH = 0.08; // out from the apron
+export const COIN_BOX_DEPTH = 0.03; // out from the apron
+export const COIN_BOX_SINK = 0.015; // sunk into the apron (hides the rounded back edges)
 export const COIN_BOX_TOP_GAP = 0.04; // below the bottom of the wooden frame
 export const COIN_BOX_SLOT_WIDTH = 0.05;
 export const COIN_BOX_SLOT_HEIGHT = 0.006;

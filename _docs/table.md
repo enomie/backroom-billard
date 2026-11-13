@@ -20,7 +20,7 @@ Ursprung in der Tischmitte, Filzoberkante bei `y = TABLE_H` (0,85 m). Alle Maße
 | Taschenbecher | beginnt direkt unter der Platte, Boden bei `TABLE_H − 0,15` |
 | Diamanten | Perlmutt-Rauten (26 × 15 mm, `DIAMOND_*`) auf dem Holzrahmen, **3 zwischen je zwei benachbarten Taschen** (lange Seiten 2 × 3, kurze Seiten 3). Nur Optik, ohne Physik. |
 | Zargen (Bretter rundherum) | **2 cm dick, 40 cm hoch** (`SKIRT_THICKNESS`, `SKIRT_HEIGHT`), bündig mit der Außenkante des Holzrahmens, Oberkante an der Unterkante des Rahmens (y = 0,85 m). Verdecken die Taschenbecher von außen. |
-| Münzkasten | Nur Optik, ohne Funktion (`src/coin-box.js`): Metallkasten **24 × 15 × 8 cm** mittig an der Zarge der Längsseite zum Radio (unter der Mitteltasche), 4 cm unter dem Rahmen; Münzschlitz und runder roter Knopf, leicht leuchtend (`COIN_BOX_*`). Immer sichtbar. |
+| Münzkasten | Nur Optik, ohne Funktion (`src/coin-box.js`): Metallkasten **24 × 15 cm, 3 cm vorstehend** (1,5 cm ins Holz versenkt, runde Kanten nur vorne) mittig an der Zarge der Längsseite zum Radio (unter der Mitteltasche), 4 cm unter dem Rahmen; Münzschlitz und runder roter Knopf, leicht leuchtend (`COIN_BOX_*`). Immer sichtbar. |
 | Tischbeine | 4 Stück, **direkt unter den Eckbechern**, vom Boden bis **2 cm unter den Becherboden** (`LEG_CUP_GAP`), also 0,68 m hoch |
 
 ## Taschen
