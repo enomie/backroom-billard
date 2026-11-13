@@ -125,7 +125,7 @@ Die Oberfläche ist Englisch (Standard) und Deutsch; in den Einstellungen (Symbo
 - [`_docs/cigarettes.md`](_docs/cigarettes.md) — Zigaretten, Packung, Feuerzeug, Rauch, Rauchen mit `T`
 - [`_docs/look.md`](_docs/look.md) — Optik des 80er-Raums: Raum, Leuchten, Nebel, Möbel, Spiegelungen
 - [`_docs/welcome-screen.md`](_docs/welcome-screen.md) — Welcome-Screen nach dem Startscreen: Spielart, Konto (Schlüssel, Name in drei Feldern, Land, Gesicht), „Was darf es sein?“
-- [`_docs/trinken-rauchen.md`](_docs/trinken-rauchen.md) — Plan (nicht umgesetzt): warum man aus dem Glas des anderen trinkt (Suche nach Entfernung statt nach Platz), weitere Befunde, Umbau mit eigenem Platz je Hand und `seats.js`
+- [`_docs/trinken-rauchen.md`](_docs/trinken-rauchen.md) — warum man aus dem Glas des anderen trank (Suche nach Entfernung statt nach Platz), ein Kit je Gast (Zuschauer haben es in der Hand), `seats.js`
 - [`_docs/chat.md`](_docs/chat.md) — Chat im Mehrspieler: die letzte Nachricht steht über dem Kopf, bis der Gast sie löscht (`Enter` zum Schreiben)
 - [`_docs/camera.md`](_docs/camera.md) — Plan (nicht umgesetzt): Spielerkamera schaut immer auf die weiße Kugel, Cue und Kamera gleich begrenzt, ein Kamerasystem statt Sonderwegen
 - [`_docs/konto-umbau.md`](_docs/konto-umbau.md) — Plan (nicht umgesetzt): Spielart zuerst, Konto und Geld auf dem Server, Rangliste; die Schritte mit Prüfungen

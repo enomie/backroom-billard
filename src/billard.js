@@ -41,6 +41,7 @@ import { createStakeWindow } from "./stake-window.js";
 import { createRankingPanel } from "./ranking-panel.js";
 import { debugFlag } from "./debug-flags.js";
 import { createFullscreenButton } from "./fullscreen.js";
+import { createSeats } from "./seats.js";
 import { createChatBox } from "./chat-box.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
@@ -222,6 +223,7 @@ let wallet = null; // the player's money (wallet.js)
 let stakeWindow = null; // the stake window and the table bet (stake-window.js)
 let rankingPanel = null; // the world ranking in the settings (ranking-panel.js)
 let chatBox = null; // the chat field and my own message (chat-box.js)
+let seats = null; // the two seats of the table as wholes (seats.js)
 let drinkMenu = null; // the drinks popover (drink-menu.js)
 let settings = null; // the settings overlay (settings.js)
 let drinking = null; // sips from the player glasses with the R key (drinking.js)
@@ -419,6 +421,7 @@ function setupLightingAndRoom() {
   cigarettes = createCigarettes(scene, ashtrays.slots);
   packs = createCigarettePacks(scene, bottles.taken);
   lighters = createLighters(scene);
+  seats = createSeats({ glasses, packs, lighters, ashtrays, cigarettes });
   radio = createRadio(scene);
   createBar(scene, glasses, bottles);
   createBarLamps(scene);
@@ -2103,7 +2106,7 @@ function remoteHandOf(guest, seat) {
   }
   if (hand) return hand;
   const carried = seat === 0;
-  const kit = carried ? makeCarriedKit(guestKits.get(guest) ?? { drink: "beer", sips: DRINK_SIPS, pack: 0, packCount: PACK_SIZE }) : seatKit(seat === 1 ? 1 : 0); // (seat 1 is the +z side of the table, seat 2 the −z side)
+  const kit = carried ? makeCarriedKit(guestKits.get(guest) ?? { drink: "beer", sips: DRINK_SIPS, pack: 0, packCount: PACK_SIZE }) : seats.kit(seat === 1 ? 1 : 0); // (seat 1 is the +z side of the table, seat 2 the −z side)
   hand = {
     carried,
     seat,
@@ -2502,28 +2505,6 @@ let settingsName = ""; // the name in the settings panel (multiplayer); single p
 let mpMode = false; // this guest is in the multiplayer room (not single player)
 let myKit = null; // the kit of this guest: { drink (the kind of the glass), sips, pack (the design), packCount }; his seat shows it while he sits
 let mySideNow = null; // his seat (0 or 1), null: a spectator
-/** The kit as it stands at a seat now. */
-function readSeatKit(side) {
-  const glass = glasses.seat(side);
-  const pack = packs.packs[side];
-  return { drink: glass.kind, sips: glass.sipsLeft, pack: pack.design, packCount: pack.count };
-}
-
-/**
- * What a guest smokes and drinks with, as an object for the hands (drinking.js, smoking.js): `{ carried, glass, pack, lighter, glowing(), spawn() }`.
- * At a seat these are the things of that seat. Without a seat (a spectator) they are his own, invisible unless he uses them (carried.js).
- */
-const seatKits = [];
-function seatKit(side) {
-  return (seatKits[side] ??= {
-    carried: false,
-    glass: glasses.seat(side),
-    pack: packs.packs[side],
-    lighter: lighters.lighters[side],
-    glowing: () => cigarettes.playerCigarette(side),
-    spawn: () => cigarettes.spawn(side),
-  });
-}
 /** The kit in the hand of a guest without a seat, with the state of `data` ({ drink, sips, pack, packCount }). */
 function makeCarriedKit(data) {
   const kit = {
@@ -2549,11 +2530,11 @@ let myCarried = null; // my kit in the hand (made when I first need it without a
 /** The kit this guest smokes and drinks with: his seat's, or (no seat) the one in his hand; null before he has a kit. */
 function ownKit() {
   if (!myKit) return null;
-  if (mySideNow !== null) return seatKit(mySideNow);
+  if (mySideNow !== null) return seats.kit(mySideNow);
   return (myCarried ??= makeCarriedKit(myKit));
 }
 /** My kit as it stands now (the seat or the hand holds it while it is in use). */
-const readOwnKit = () => (mySideNow !== null ? readSeatKit(mySideNow) : myCarried ? readCarriedKit(myCarried) : myKit);
+const readOwnKit = () => (mySideNow !== null ? seats.read(mySideNow) : myCarried ? readCarriedKit(myCarried) : myKit);
 
 function applySeats(taken, mySide) {
   if (myKit && mySide !== mySideNow) {
@@ -2561,17 +2542,10 @@ function applySeats(taken, mySide) {
     myKit = readOwnKit();
     if (mySide === null && myCarried) setCarriedKit(myCarried, myKit);
   }
-  [0, 1].forEach((side) => {
-    glasses.setSeat(side, taken[side]);
-    packs.setSeat(side, taken[side]);
-    lighters.setSeat(side, taken[side]);
-    ashtrays.setSeat(side, taken[side]);
-    cigarettes.setSeat(side, taken[side]);
-  });
+  [0, 1].forEach((side) => seats.setTaken(side, taken[side]));
   if (myKit && mySide !== null && mySide !== mySideNow) {
     // he sits (or sits elsewhere now): his kit stands at his seat as it is (an empty glass stays empty: only buying fills it)
-    glasses.setSeatGlass(mySide, myKit.drink, myKit.sips);
-    packs.setSeatPack(mySide, myKit.pack, myKit.packCount);
+    seats.set(mySide, myKit);
   }
   mySideNow = mySide;
 }
@@ -2591,14 +2565,14 @@ const pendingKits = new Map(); // seat → kit
 function applyKit(seat, kit) {
   const side = seat === 1 ? 1 : 0;
   const hand = [...remoteHands.values()].find((h) => !h.carried && h.seat === seat);
-  const bought = kit.drink !== glasses.seat(side).kind || kit.sips > glasses.seat(side).sipsLeft; // (sips only fall while drinking: more means a new glass)
+  const at = seats.read(side);
+  const bought = kit.drink !== at.drink || kit.sips > at.sips; // (sips only fall while drinking: more means a new glass)
   if (hand && !bought && (hand.drinking.isBusy() || hand.smoking.isBusy())) {
     pendingKits.set(seat, kit); // he drinks or smokes right now: his animation shows the change itself
     return;
   }
   pendingKits.delete(seat);
-  glasses.setSeatGlass(side, kit.drink, kit.sips);
-  packs.setSeatPack(side, kit.pack, kit.packCount);
+  seats.set(side, kit);
 }
 
 /** What the stake window needs to know: my seat and money, the two at the table. */
