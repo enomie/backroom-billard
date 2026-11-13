@@ -278,6 +278,7 @@ export function createCigarettes(scene, ashtraySlots) {
   let time = 0;
   const frameSlots = ashtraySlots.filter((slot) => slot.onFrame);
   const putAside = [[], []]; // the cigarettes of a seat that is not taken
+  const carriedSlot = { x: 0, y: -5, z: 0, yaw: 0, scale: 1, onFrame: false, side: -1 }; // (no dish: a cigarette in the hand of a guest without a seat)
   return {
     group,
     /** Total burn progress of all cigarettes in whole steps of `step` (a share of the length): changes when one has visibly got shorter. */
@@ -315,6 +316,29 @@ export function createCigarettes(scene, ashtraySlots) {
       const c = add(slot, free.length ? free[Math.floor(rnd() * free.length)] : 0, "unlit", 0);
       c.held = true; // the player takes it at once
       return c;
+    },
+    /**
+     * A new, unlit cigarette for a guest without a seat: it exists only while he smokes it (the hand puts it where it comes from, `rest`),
+     * and is stubbed out and gone with `removeCarried`.
+     */
+    spawnCarried() {
+      const c = add(frameSlots[0], 0, "unlit", 0); // (the notch only gives it a first pose)
+      c.slot = carriedSlot;
+      c.onFrame = false;
+      c.carried = true;
+      c.held = true;
+      c.root.visible = false;
+      return c;
+    },
+    removeCarried(c) {
+      group.remove(c.root);
+      if (c.smoke) group.remove(c.smoke);
+      const i = cigarettes.indexOf(c);
+      if (i >= 0) cigarettes.splice(i, 1);
+      falling.delete(c);
+      c.emberMat.dispose();
+      c.glow.material.dispose();
+      c.smoke?.material.dispose();
     },
     /** The cigarette starts to burn. */
     ignite(c) {

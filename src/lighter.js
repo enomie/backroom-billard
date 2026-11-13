@@ -84,9 +84,9 @@ export function createLighters(scene) {
   const group = new THREE.Group();
   group.name = "lighters";
 
-  const lighters = [-1, 1].map((sz, side) => {
-    const metal = materials[side];
-    const root = new THREE.Group(); // origin: middle of the bottom of the case, standing upright
+  /** One lighter: the case with the lid, the flame and its controls (not placed anywhere yet: `root` stands upright, the origin in the middle of the bottom of the case). */
+  const build = (metal) => {
+    const root = new THREE.Group();
     const body = new THREE.Mesh(caseGeo, metal);
     body.position.y = CASE / 2;
     const insert = new THREE.Mesh(insertGeo, steel);
@@ -120,6 +120,29 @@ export function createLighters(scene) {
     root.add(body, insert, chimney, wheel, ...holes, lid, flame);
     for (const m of [body, lidMesh]) m.castShadow = m.receiveShadow = true;
 
+    return {
+      root,
+      api: {
+        group: root,
+        /** Where the tip of the flame is, in the lighter's own (upright) coordinates. */
+        flameLocal: new THREE.Vector3(0, CASE + 0.021 + LIGHTER_FLAME_HEIGHT * 0.8, 0),
+        /** Open the lid: 0 closed … 1 wide open. */
+        setOpen(k) {
+          lid.rotation.x = -LIGHTER_LID_ANGLE * THREE.MathUtils.clamp(k, 0, 1);
+        },
+        setFlame(on, time = 0) {
+          flame.visible = on;
+          if (on) {
+            const f = 1 + 0.12 * Math.sin(time * 38) + 0.08 * Math.sin(time * 61);
+            flame.scale.set(1 / Math.sqrt(f), f, 1 / Math.sqrt(f));
+          }
+        },
+      },
+    };
+  };
+
+  const lighters = [-1, 1].map((sz, side) => {
+    const { root, api } = build(materials[side]);
     // lying on its broad side across the frame, the lid end pointing along the frame
     root.rotation.set(-Math.PI / 2, Math.PI / 2, 0, "YXZ");
     root.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), (Math.random() - 0.5) * 2 * LIGHTER_FRAME_TURN)); // a little askew
@@ -127,30 +150,26 @@ export function createLighters(scene) {
     const half = new THREE.Vector3(0, (CASE + LID) / 2, 0).applyQuaternion(root.quaternion);
     root.position.copy(center).sub(half);
     group.add(root);
-
-    return {
-      side,
-      group: root,
-      rest: { position: root.position.clone(), quaternion: root.quaternion.clone() },
-      /** Where the tip of the flame is, in the lighter's own (upright) coordinates. */
-      flameLocal: new THREE.Vector3(0, CASE + 0.021 + LIGHTER_FLAME_HEIGHT * 0.8, 0),
-      /** Open the lid: 0 closed … 1 wide open. */
-      setOpen(k) {
-        lid.rotation.x = -LIGHTER_LID_ANGLE * THREE.MathUtils.clamp(k, 0, 1);
-      },
-      setFlame(on, time = 0) {
-        flame.visible = on;
-        if (on) {
-          const f = 1 + 0.12 * Math.sin(time * 38) + 0.08 * Math.sin(time * 61);
-          flame.scale.set(1 / Math.sqrt(f), f, 1 / Math.sqrt(f));
-        }
-      },
-    };
+    return { side, ...api, rest: { position: root.position.clone(), quaternion: root.quaternion.clone() } };
   });
 
   scene.add(group);
   return {
     lighters,
+    /**
+     * The lighter in the hand of a guest without a seat: invisible, unless he lights a cigarette (the hand sets `rest`, the place it comes
+     * from and goes back to, before each use).
+     */
+    makeCarried() {
+      const { root, api } = build(materials[0]);
+      root.visible = false;
+      group.add(root);
+      return { side: -1, carried: true, ...api, rest: { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() } };
+    },
+    /** A guest with a lighter in the hand leaves. */
+    removeCarried(lighter) {
+      group.remove(lighter.group);
+    },
     /** The lighter of a seat lies on the table only while the seat is taken. */
     setSeat(side, present) {
       lighters[side].group.visible = present;

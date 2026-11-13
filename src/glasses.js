@@ -425,6 +425,7 @@ export function createGlasses(scene, taken) {
     return state;
   });
   const player = [...seats]; // the glasses of the seats that are taken
+  const carried = []; // the glasses in the hands of guests without a seat: invisible, unless he drinks
 
   scene.add(group);
   return {
@@ -435,6 +436,22 @@ export function createGlasses(scene, taken) {
     makeGlass: build,
     /** The two players' glasses on the frame of the billard table. */
     player,
+    /** A glass in the hand of a guest without a seat (`kind` like in build): invisible; the hand shows it while he drinks (`carried: true`, `rest` is set by the hand). */
+    makeCarriedGlass(kind) {
+      const glass = build(kind);
+      glass.group.visible = false;
+      group.add(glass.group);
+      const state = makePlayerGlass(glass);
+      state.carried = true;
+      state.side = -1;
+      carried.push(state);
+      return state;
+    },
+    /** A guest with a glass in the hand leaves. */
+    removeCarriedGlass(state) {
+      group.remove(state.group);
+      carried.splice(carried.indexOf(state), 1);
+    },
     /** The glass of a seat (`side` 0 on the −z half, 1 on the +z half) as a state: kind, sipsLeft, … */
     seat(side) {
       return seats[side];
@@ -455,6 +472,7 @@ export function createGlasses(scene, taken) {
     update(dt) {
       liquidTime.value += dt;
       for (const g of player) g.update(dt);
+      for (const g of carried) if (g.group.visible) g.update(dt);
     },
     /** Let the glass reflect the room (call after the room reflection was captured). */
     applyReflection(reflection) {

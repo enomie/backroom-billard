@@ -10,6 +10,7 @@ import * as THREE from "three";
 import { startDragSound, playExhaleSound } from "./smoke-sounds.js";
 import { playLighterOpen, playLighterFlick, playLighterClose } from "./lighter-sounds.js";
 import { PACK_SIZE } from "./cigarette-pack.js";
+import { carriedStart } from "./carried.js";
 import { PACK_PRICE } from "./shop-constants.js";
 import { ASHTRAY_HEIGHT, ASHTRAY_FLOOR } from "./ashtray-constants.js";
 import {
@@ -36,28 +37,21 @@ import {
 const ease = (k) => k * k * (3 - 2 * k);
 const LIGHTING_TOTAL = LIGHTING_FLY + LIGHTING_OPEN + LIGHTING_HOLD + LIGHTING_CLOSE;
 
-/** The player's side at the billard table: 0 on the −z half, 1 on the +z half; his own seat if he has one. */
-let mySide = null;
-export const sideOf = (camera) => mySide ?? (camera.position.z < 0 ? 0 : 1);
-/** The seat of this player (0 or 1), or null for a spectator (then the side of the camera counts). */
-export const setMySide = (side) => {
-  mySide = side;
-};
-
 /**
- * @param {{ playerCigarette: Function, spawn: Function, ignite: Function, drop: Function }} cigarettes
+ * What a guest smokes with (his kit): `{ carried, pack: { count, setCount, group }, lighter, glowing(), spawn() }`. At a seat: the pack, the lighter and
+ * the ashtray of that seat (`glowing()`: the glowing cigarette lying there, `spawn()`: a new one in a notch). Without a seat (`carried: true`): a
+ * pack that is only a number, a lighter and a cigarette that are invisible unless he smokes (see carried.js).
+ * @param {{ ignite: Function, drop: Function, removeCarried: Function }} cigarettes
  * @param {{ trigger: (camera: THREE.Camera, strength: number) => void }} exhale
- * @param {{ lighters: any[] }} lighterSet
- * @param {{ packs: any[] }} packSet
  * @param {{ spend: Function, say: Function, format: Function }} wallet
  * @param {(dt: number) => void} onDraw — called every frame while the player draws (the nicotine marker moves)
- * @param {(camera: THREE.Camera) => number} [pickSide] — whose set he uses (0 or 1); by default his own seat (the others use theirs)
+ * @param {(camera: THREE.Camera) => object | null} kitOf — the kit he smokes with now (null: he has none)
  */
-export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, onDraw, pickSide = sideOf) {
+export function createSmoking(cigarettes, exhale, wallet, onDraw, kitOf) {
   /** @type {"idle" | "fetch" | "light" | "in" | "drawing" | "out"} */
   let phase = "idle";
   let cigarette = null;
-  let side = 0;
+  let kit = null; // the kit of the cigarette in the hand
   let time = 0; // time in the current phase
   let drawTime = 0;
   let dragSound = null;
@@ -113,7 +107,7 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
     dragSound?.stop();
     dragSound = null;
     copyPose(flightStart, cigarette.root);
-    dropping = cigarette.burn >= 1;
+    dropping = cigarette.burn >= 1 && !kit.carried; // (a carried one is stubbed out, it does not fall into a dish)
     if (dropping) {
       // 10 cm above the middle of the dish, a little to the side, lying flat in a random direction
       const slot = cigarette.slot;
@@ -139,7 +133,7 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
 
   /** Move the lighter along its lighting sequence; `t` = seconds since it started. */
   function stepLighting(t, camera) {
-    const lighter = lighterSet.lighters[side];
+    const lighter = kit.lighter;
     if (!ignited && t > LIGHTING_FLY + LIGHTING_OPEN + LIGHTING_HOLD * 0.4) {
       ignited = true;
       cigarettes.ignite(cigarette); // the cigarette catches fire while the flame is at its tip
@@ -190,11 +184,18 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
     /** T pressed: fetch the cigarette (a new one if there is no glowing one). */
     press(camera) {
       if (phase !== "idle") return;
-      side = pickSide(camera);
+      kit = kitOf(camera);
+      if (!kit) return;
       released = false;
       drawTime = 0;
       ignited = false;
-      cigarette = cigarettes.playerCigarette(side);
+      const start = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() };
+      if (kit.carried) {
+        // without a seat: everything comes from below and beside the face and goes back there
+        carriedStart(camera, start);
+        copyPose(kit.lighter.rest, start);
+      }
+      cigarette = kit.glowing();
       if (cigarette) {
         cigarette.held = true;
         phase = "in";
@@ -204,7 +205,7 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
         return;
       }
       // no cigarette: take a new one from the pack (a new pack is bought when it is empty)
-      const pack = packSet.packs[side];
+      const pack = kit.pack;
       if (pack.count <= 0) {
         if (!wallet.spend(PACK_PRICE, "pack")) {
           wallet.say("toast.noMoney");
@@ -214,9 +215,13 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
         pack.setCount(PACK_SIZE);
       }
       pack.setCount(pack.count - 1);
-      cigarette = cigarettes.spawn(side);
+      cigarette = kit.spawn();
       // it comes out of the pack, filter first
-      pack.group.getWorldPosition(flightStart.position);
+      if (kit.carried) {
+        flightStart.position.copy(start.position);
+        copyPose(cigarette.rest, start); // (where it goes back to: and is stubbed out)
+        cigarette.root.visible = true;
+      } else pack.group.getWorldPosition(flightStart.position);
       flightStart.position.y += 0.05;
       flightStart.quaternion.setFromUnitVectors(_v.set(1, 0, 0), new THREE.Vector3(0, -1, 0));
       copyPose(cigarette.root, flightStart);
@@ -238,7 +243,10 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
         lighterReturn.time += dt;
         const k = lighterReturn.time / LIGHTING_BACK;
         fly(lighterReturn.lighter.group, lighterReturn.from, lighterReturn.lighter.rest, k);
-        if (k >= 1) lighterReturn.active = false;
+        if (k >= 1) {
+          lighterReturn.active = false;
+          if (lighterReturn.lighter.carried) lighterReturn.lighter.group.visible = false; // (gone again)
+        }
       }
       if (phase === "idle") return;
       time += dt;
@@ -251,7 +259,11 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
         if (time >= SMOKING_FETCH_SECONDS) {
           phase = "light";
           time = 0;
-          const lighter = lighterSet.lighters[side];
+          const lighter = kit.lighter;
+          if (lighter.carried) {
+            copyPose(lighter.group, lighter.rest); // (it comes from below and beside the face)
+            lighter.group.visible = true;
+          }
           copyPose(lighterStart, lighter.group);
           lighter.closing = false;
           playLighterOpen();
@@ -262,7 +274,7 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
         stepLighting(time, camera);
         if (time >= LIGHTING_TOTAL) {
           // the lighter goes home; the cigarette burns: draw on it if T is still held
-          const lighter = lighterSet.lighters[side];
+          const lighter = kit.lighter;
           if (!ignited) {
             ignited = true;
             cigarettes.ignite(cigarette);
@@ -294,7 +306,9 @@ export function createSmoking(cigarettes, exhale, lighterSet, packSet, wallet, o
         cigarette.drawGlow = Math.max(0, cigarette.drawGlow - dt / SMOKING_FLY_OUT);
         if (time >= SMOKING_FLY_OUT) {
           cigarette.drawGlow = 0;
-          if (dropping) {
+          if (kit.carried) {
+            cigarettes.removeCarried(cigarette); // stubbed out and gone
+          } else if (dropping) {
             cigarettes.drop(cigarette); // let go of the butt above the ashtray: it falls in
           } else {
             copyPose(cigarette.root, cigarette.rest);

@@ -26,7 +26,7 @@ import { createCigarettePacks } from "./cigarette-pack.js";
 import { createLighters } from "./lighter.js";
 import { createAtmosphere } from "./atmosphere.js";
 import { createExhale } from "./exhale.js";
-import { createSmoking, sideOf, setMySide } from "./smoking.js";
+import { createSmoking } from "./smoking.js";
 import { createDrinking } from "./drinking.js";
 import { createSettings } from "./settings.js";
 import { ballTexture } from "./ball-texture.js";
@@ -354,13 +354,13 @@ function init() {
     renderMatch();
     tellStakeWindow();
   });
-  smoking = createSmoking(cigarettes, exhale, lighters, packs, wallet, (dt) => playerState.drag(dt));
+  smoking = createSmoking(cigarettes, exhale, wallet, (dt) => playerState.drag(dt), () => ownKit());
   let orderFor = null; // the empty glass the menu is for
   drinkMenu = createDrinkMenu(wallet, (item) => {
     if (wallet.spend(item.price, item.kind)) orderFor.replace(item.kind);
   });
-  // he drinks from the glass of his own seat (never the nearest one: that can be the other player's); a spectator has no seat yet (see _docs/trinken-rauchen.md)
-  const ownGlasses = { get player() { return mySideNow === null ? [] : [glasses.seat(mySideNow)]; } };
+  // he drinks from the glass of his own kit: at his seat, or (no seat) the one in his hand (never the nearest glass: that can be somebody else's)
+  const ownGlasses = { get player() { const kit = ownKit(); return kit ? [kit.glass] : []; } };
   drinking = createDrinking(ownGlasses, () => playerState.sip(), (glass) => {
     orderFor = glass;
     drinkMenu.show();
@@ -1917,7 +1917,7 @@ function gameLoop(currentTime) {
   setMarker(hud.markerBody, 50 + playerState.body * 50);
   setMarker(hud.markerNicotine, 50 + playerState.nicotine * 50);
 
-  const packCount = packs.packs[sideOf(camera)].count;
+  const packCount = ownKit()?.pack.count ?? 0;
   if (packCount !== hud.packCount) {
     hud.packCount = packCount;
     (hud.packCountElement ??= document.getElementById("pack-count")).textContent = packCount;
@@ -2067,7 +2067,6 @@ function updateShadows(dt) {
 /** What my hands do (R: drink, T: smoke, held down): the others see it too (multiplayer). */
 const myHand = { drinking: false, smoking: false };
 const drinkDown = () => {
-  if (mySideNow === null) return; // (no seat: no glass of the players is his; the kit in his hand comes next)
   drinking.press(camera);
   myHand.drinking = true;
   multiplayer?.setHand(myHand);
@@ -2078,7 +2077,6 @@ const drinkUp = () => {
   multiplayer?.setHand(myHand);
 };
 const smokeDown = () => {
-  if (mySideNow === null) return; // (no seat: the cigarettes of the players are not his)
   smoking.press(camera);
   myHand.smoking = true;
   multiplayer?.setHand(myHand);
@@ -2090,28 +2088,46 @@ const smokeUp = () => {
 };
 
 /**
- * The others drink and smoke at their seats: for each other seat the same animations run as for me (drinking.js,
- * smoking.js), driven by his R and T keys (as the database tells) and by where his head is. No money, no body marker.
+ * The others drink and smoke: for each other guest the same animations run as for me (drinking.js, smoking.js), driven by his R and T keys (as the
+ * database tells) and by where his head is. At a seat it is the glass, pack and lighter of that seat; without a seat (a spectator) his own kit in
+ * the hand, which is seen only while he uses it. No money, no body marker.
  */
-const remoteHands = new Map(); // seat → { side, view, drinking, smoking, held }
+const remoteHands = new Map(); // guest (hex) → { carried, seat, kit, view, drinking, smoking, held }
+const guestKits = new Map(); // guest (hex) → his last kit { drink, sips, pack, packCount }
 const silentWallet = { spend: () => true, say: () => {}, format: String };
-function remoteHandOf(seat) {
-  let hand = remoteHands.get(seat);
+function remoteHandOf(guest, seat) {
+  let hand = remoteHands.get(guest);
+  if (hand && hand.seat !== seat) {
+    removeRemoteHand(guest); // he sat down, got up or moved: a new hand for the new place of his kit
+    hand = null;
+  }
   if (hand) return hand;
-  const side = seat === 1 ? 1 : 0; // seat 1 is the +z side of the table, seat 2 the −z side
+  const carried = seat === 0;
+  const kit = carried ? makeCarriedKit(guestKits.get(guest) ?? { drink: "beer", sips: DRINK_SIPS, pack: 0, packCount: PACK_SIZE }) : seatKit(seat === 1 ? 1 : 0); // (seat 1 is the +z side of the table, seat 2 the −z side)
   hand = {
-    side,
+    carried,
+    seat,
+    kit,
     view: new THREE.PerspectiveCamera(), // (a camera: the animations look along its −z)
-    drinking: createDrinking({ get player() { return glasses.player.filter((g) => g.side === side); } }, () => {}, () => {}),
-    smoking: createSmoking(cigarettes, exhale, lighters, packs, silentWallet, () => {}, () => side),
+    drinking: createDrinking({ get player() { return [kit.glass]; } }, () => {}, () => {}),
+    smoking: createSmoking(cigarettes, exhale, silentWallet, () => {}, () => kit),
     held: { drinking: false, smoking: false },
   };
-  remoteHands.set(seat, hand);
+  remoteHands.set(guest, hand);
   return hand;
 }
+/** A guest is gone (or has a new place): his hand and the kit in it go. */
+function removeRemoteHand(guest) {
+  const hand = remoteHands.get(guest);
+  if (!hand) return;
+  remoteHands.delete(guest);
+  if (!hand.carried) return;
+  glasses.removeCarriedGlass(hand.kit.glass);
+  lighters.removeCarried(hand.kit.lighter);
+}
 /** Put the view of a remote hand where the head of its guest is. */
-function placeRemoteView(seat, hand) {
-  const head = multiplayer?.poseOf(seat);
+function placeRemoteView(guest, hand) {
+  const head = multiplayer?.poseOfGuest(guest);
   if (!head) return false;
   hand.view.position.set(head.x, head.y, head.z);
   hand.view.rotation.set(head.pitch, head.yaw, 0, "YXZ");
@@ -2119,13 +2135,13 @@ function placeRemoteView(seat, hand) {
   return true;
 }
 function updateRemoteHands(dt) {
-  for (const [seat, hand] of remoteHands) {
-    if (placeRemoteView(seat, hand)) {
+  for (const [guest, hand] of remoteHands) {
+    if (placeRemoteView(guest, hand)) {
       hand.drinking.update(dt, hand.view);
       hand.smoking.update(dt, hand.view);
     }
-    const waiting = pendingKits.get(seat);
-    if (waiting && !hand.drinking.isBusy() && !hand.smoking.isBusy()) applyKit(seat, waiting); // (also without his head pose)
+    const waiting = hand.carried ? null : pendingKits.get(hand.seat);
+    if (waiting && !hand.drinking.isBusy() && !hand.smoking.isBusy()) applyKit(hand.seat, waiting); // (also without his head pose)
   }
 }
 
@@ -2299,13 +2315,20 @@ function onMultiplayerGame(e) {
     return;
   }
   if (e.kind === "kit") {
-    applyKit(e.seat, e);
+    guestKits.set(e.guest, e); // (his kit: at his seat when he sits, in his hand when he does not)
+    if (e.seat > 0) applyKit(e.seat, e);
+    return;
+  }
+  if (e.kind === "gone") {
+    removeRemoteHand(e.guest);
+    guestKits.delete(e.guest);
     return;
   }
   if (e.kind === "hand") {
-    // the guest on that seat holds R or T (or let go)
-    const hand = remoteHandOf(e.seat);
-    placeRemoteView(e.seat, hand);
+    // that guest holds R or T (or let go): at his seat, or (a spectator) with the kit in his hand
+    const hand = remoteHandOf(e.guest, e.seat);
+    placeRemoteView(e.guest, hand);
+    if (hand.carried && !hand.drinking.isBusy() && !hand.smoking.isBusy() && guestKits.has(e.guest)) setCarriedKit(hand.kit, guestKits.get(e.guest)); // (as he has it now)
     if (e.drinking !== hand.held.drinking) (e.drinking ? hand.drinking.press(hand.view) : hand.drinking.release());
     if (e.smoking !== hand.held.smoking) (e.smoking ? hand.smoking.press(hand.view) : hand.smoking.release(hand.view));
     hand.held = { drinking: e.drinking, smoking: e.smoking };
@@ -2469,7 +2492,8 @@ export async function startGame(choice) {
     faceBall?.show(JSON.parse(choice.face), choice.name, choice.country);
   } else {
     wallet.setBalance(choice.money);
-    applySeats([false, true], 1); // one set at the table: the +z seat
+    if (debugFlag("carried")) applySeats([false, false], null); // (as a spectator: no seat, the kit in the hand)
+    else applySeats([false, true], 1); // one set at the table: the +z seat
   }
 }
 let settingsName = ""; // the name in the settings panel (multiplayer); single player shows "Single player"
@@ -2484,8 +2508,59 @@ function readSeatKit(side) {
   const pack = packs.packs[side];
   return { drink: glass.kind, sips: glass.sipsLeft, pack: pack.design, packCount: pack.count };
 }
+
+/**
+ * What a guest smokes and drinks with, as an object for the hands (drinking.js, smoking.js): `{ carried, glass, pack, lighter, glowing(), spawn() }`.
+ * At a seat these are the things of that seat. Without a seat (a spectator) they are his own, invisible unless he uses them (carried.js).
+ */
+const seatKits = [];
+function seatKit(side) {
+  return (seatKits[side] ??= {
+    carried: false,
+    glass: glasses.seat(side),
+    pack: packs.packs[side],
+    lighter: lighters.lighters[side],
+    glowing: () => cigarettes.playerCigarette(side),
+    spawn: () => cigarettes.spawn(side),
+  });
+}
+/** The kit in the hand of a guest without a seat, with the state of `data` ({ drink, sips, pack, packCount }). */
+function makeCarriedKit(data) {
+  const kit = {
+    carried: true,
+    glass: glasses.makeCarriedGlass(data.drink),
+    pack: { count: data.packCount, design: data.pack, setCount(n) { this.count = n; } },
+    lighter: lighters.makeCarried(),
+    glowing: () => null, // (it is stubbed out when he lets go: nothing glows in an ashtray)
+    spawn: () => cigarettes.spawnCarried(),
+  };
+  setCarriedKit(kit, data);
+  return kit;
+}
+function setCarriedKit(kit, data) {
+  if (kit.glass.kind !== data.drink) kit.glass.replace(data.drink);
+  kit.glass.sipsLeft = data.sips;
+  kit.glass.setShare(data.sips / DRINK_SIPS);
+  kit.pack.design = data.pack;
+  kit.pack.count = data.packCount;
+}
+const readCarriedKit = (kit) => ({ drink: kit.glass.kind, sips: kit.glass.sipsLeft, pack: kit.pack.design, packCount: kit.pack.count });
+let myCarried = null; // my kit in the hand (made when I first need it without a seat)
+/** The kit this guest smokes and drinks with: his seat's, or (no seat) the one in his hand; null before he has a kit. */
+function ownKit() {
+  if (!myKit) return null;
+  if (mySideNow !== null) return seatKit(mySideNow);
+  return (myCarried ??= makeCarriedKit(myKit));
+}
+/** My kit as it stands now (the seat or the hand holds it while it is in use). */
+const readOwnKit = () => (mySideNow !== null ? readSeatKit(mySideNow) : myCarried ? readCarriedKit(myCarried) : myKit);
+
 function applySeats(taken, mySide) {
-  if (mySideNow !== null && mySide !== mySideNow && myKit) myKit = readSeatKit(mySideNow); // he gets up (or moves): his kit goes with him
+  if (myKit && mySide !== mySideNow) {
+    // he gets up, sits down or moves: his kit goes with him (it stands at the seat, or is in his hand when he has none)
+    myKit = readOwnKit();
+    if (mySide === null && myCarried) setCarriedKit(myCarried, myKit);
+  }
   [0, 1].forEach((side) => {
     glasses.setSeat(side, taken[side]);
     packs.setSeat(side, taken[side]);
@@ -2493,7 +2568,6 @@ function applySeats(taken, mySide) {
     ashtrays.setSeat(side, taken[side]);
     cigarettes.setSeat(side, taken[side]);
   });
-  setMySide(mySide);
   if (myKit && mySide !== null && mySide !== mySideNow) {
     // he sits (or sits elsewhere now): his kit stands at his seat as it is (an empty glass stays empty: only buying fills it)
     glasses.setSeatGlass(mySide, myKit.drink, myKit.sips);
@@ -2508,7 +2582,7 @@ function sendMyKit(dt) {
   kitAge += dt;
   if (kitAge < 0.25 || !myKit) return;
   kitAge = 0;
-  if (mySideNow !== null) myKit = readSeatKit(mySideNow); // (while he sits his seat is the kit: a sip, a new order, a cigarette)
+  myKit = readOwnKit(); // (the seat or the hand is the kit: a sip, a new order, a cigarette)
   multiplayer.setKit(myKit); // (every guest, spectators too: the others put it at his seat when he sits down)
 }
 
@@ -2516,7 +2590,7 @@ function sendMyKit(dt) {
 const pendingKits = new Map(); // seat → kit
 function applyKit(seat, kit) {
   const side = seat === 1 ? 1 : 0;
-  const hand = remoteHands.get(seat);
+  const hand = [...remoteHands.values()].find((h) => !h.carried && h.seat === seat);
   const bought = kit.drink !== glasses.seat(side).kind || kit.sips > glasses.seat(side).sipsLeft; // (sips only fall while drinking: more means a new glass)
   if (hand && !bought && (hand.drinking.isBusy() || hand.smoking.isBusy())) {
     pendingKits.set(seat, kit); // he drinks or smokes right now: his animation shows the change itself

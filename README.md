@@ -56,7 +56,7 @@ Stand: volle Bildrate des Monitors (75 fps bei 75 Hz, 120 fps auf einem 120-Hz-M
 - **Physik:** im Ruhezustand wird nichts berechnet (siehe `_docs/physics.md`).
 - **Nebel und Rauch:** Fragmente ohne Wirkung werden vor der Lichtberechnung verworfen. HUD und Audio-Hörer schreiben nur bei Änderung.
 - Statische Gruppen (`STATIC_GROUPS`) berechnen ihre Matrizen nicht jedes Bild neu.
-- **Debug-Flaggen:** Mit `?debug=face` (hinter der Adresse) erscheint der Dummy-Kopf neben der Bar wieder (dein eigenes Gesicht als Kugel mit Name und Flagge), mit `?debug=face,chat` dazu eine lange Beispielnachricht über ihm (`src/debug-flags.js`).
+- **Debug-Flaggen:** Mit `?debug=face` (hinter der Adresse) erscheint der Dummy-Kopf neben der Bar wieder (dein eigenes Gesicht als Kugel mit Name und Flagge), mit `?debug=face,chat` dazu eine lange Beispielnachricht über ihm (`src/debug-flags.js`); mit `?debug=carried` hat der Einzelspieler keinen Platz wie ein Zuschauer (Glas, Zigarette und Feuerzeug erscheinen nur beim Benutzen in der Hand).
 - **Messen:** Mit `?perf` hinter der Adresse (z. B. `http://localhost:5173/?perf`) erscheint unten rechts ein Entwickler-Overlay (`src/perf-hud.js`): fps, CPU-Zeit der Schleife und von `render`, **GPU-Zeit** (Timer-Query), Draw-Calls, Dreiecke, Programme, dazu Schalter für Nebelschichten, Schatten und Pixelverhältnis. Ist `loop`/`render` klein und `gpu` groß, begrenzt die Grafikkarte.
 - **Reserve für schwächere Geräte** (nicht umgesetzt, die Optik soll bleiben): Materialien mit Klarlack (Vertäfelung, Kugeln), die 11 Nebelschichten, Retina-Pixelverhältnis 2 (4× Pixel), die 4 Kerzen-Punktlichter (bleiben wie sie sind).
 

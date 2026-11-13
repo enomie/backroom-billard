@@ -186,7 +186,7 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
     if (joined || id === myId) tellRoom();
     if (id !== myId && row.seat > 0 && row.seat !== before?.seat && kits.has(id)) {
       const k = kits.get(id); // he sat down: what stands at his seat
-      onGame({ kind: "kit", seat: row.seat, drink: k.drink, sips: k.sips, pack: k.pack, packCount: k.packCount });
+      onGame({ kind: "kit", guest: id, seat: row.seat, drink: k.drink, sips: k.sips, pack: k.pack, packCount: k.packCount });
     }
     if (id === myId) {
       clockOffset = Number(row.lastSeen.microsSinceUnixEpoch / 1000n) - Date.now();
@@ -280,6 +280,7 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
           const gone = roster.get(id);
           roster.delete(id);
           drop(id);
+          onGame({ kind: "gone", guest: id }); // (his hand and the kit in it go)
           if (looked && gone?.connected) onNote("left", gone.name);
           tellRoom();
         });
@@ -390,15 +391,13 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
         // what the others do with their hands: drinking (R) and smoking (T)
         const onHand = (row) => {
           const id = hex(row.identity);
-          const seat = roster.get(id)?.seat ?? 0;
-          if (id !== myId && seat > 0) onGame({ kind: "hand", seat, drinking: row.drinking, smoking: row.smoking });
+          if (id !== myId) onGame({ kind: "hand", guest: id, seat: roster.get(id)?.seat ?? 0, drinking: row.drinking, smoking: row.smoking }); // (seat 0: a spectator, with his kit in the hand)
         };
         // what stands at the seats of the others (drink and cigarettes); a guest's seat may come after his kit: it is kept
         const onKit = (row) => {
           const id = hex(row.identity);
           kits.set(id, row);
-          const seat = roster.get(id)?.seat ?? 0;
-          if (id !== myId && seat > 0) onGame({ kind: "kit", seat, drink: row.drink, sips: row.sips, pack: row.pack, packCount: row.packCount });
+          if (id !== myId) onGame({ kind: "kit", guest: id, seat: roster.get(id)?.seat ?? 0, drink: row.drink, sips: row.sips, pack: row.pack, packCount: row.packCount });
         };
         // who pocketed which ball (the two lists above the table): the whole list each time something changes
         const tellPockets = () => onGame({ kind: "pockets", rows: [...conn.db.pocket.iter()].map((p) => ({ ball: p.ballId, seat: p.seat })) });
@@ -530,6 +529,10 @@ export function createMultiplayer(scene, onRoom, announce, onGame) {
     /** Where the heads of the others are now: [{ x, y, z }]. */
     heads() {
       return [...faces.values()].filter((e) => e.current && e.connected && e.shown).map((e) => e.current);
+    },
+    /** Where the head of a guest is now (smoothed), or null: { x, y, z, yaw, pitch }. */
+    poseOfGuest(id) {
+      return faces.get(id)?.current ?? null;
     },
     /** Where the head of the guest on a seat is now (smoothed), or null: { x, y, z, yaw, pitch }. */
     poseOf(seat) {

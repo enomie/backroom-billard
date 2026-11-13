@@ -6,6 +6,7 @@
  */
 import * as THREE from "three";
 import { playGulpSound, startFlowSound, playAhhSound } from "./drink-sounds.js";
+import { carriedStart } from "./carried.js";
 import {
   DRINK_FLY_IN,
   DRINK_SIP_SECONDS,
@@ -119,6 +120,13 @@ export function createDrinking(glasses, onSip, onEmpty) {
         return;
       }
       glass = best;
+      if (glass.carried) {
+        // the glass of a guest without a seat comes out of nowhere, from below and beside the face, and goes back there
+        carriedStart(camera, glass.rest);
+        glass.group.position.copy(glass.rest.position);
+        glass.group.quaternion.copy(glass.rest.quaternion);
+        glass.group.visible = true;
+      }
       start.position.copy(glass.group.position);
       start.quaternion.copy(glass.group.quaternion);
       gulpsDone = 0;
@@ -159,6 +167,7 @@ export function createDrinking(glasses, onSip, onEmpty) {
         if (time >= DRINK_FLY_OUT) {
           glass.group.position.copy(glass.rest.position);
           glass.group.quaternion.copy(glass.rest.quaternion);
+          if (glass.carried) glass.group.visible = false; // (gone again)
           const emptied = glass.sipsLeft <= 0 ? glass : null;
           phase = "idle";
           glass = null;
