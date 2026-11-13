@@ -47,6 +47,7 @@ import { createChatBox } from "./chat-box.js";
 import { createDrinkMenu } from "./drink-menu.js";
 import { createWallLamps } from "./wall-lamps.js";
 import { createRadio } from "./radio.js";
+import { createCoinBox } from "./coin-box.js";
 import { createBar } from "./bar.js";
 import { createBarLamps } from "./bar-lamps.js";
 import { createBackbar } from "./backbar.js";
@@ -408,6 +409,7 @@ function setupLightingAndRoom() {
   lighters = createLighters(scene);
   seats = createSeats({ glasses, packs, lighters, ashtrays, cigarettes });
   radio = createRadio(scene);
+  createCoinBox(scene); // only looks (see coin-box.js)
   createBar(scene, glasses, bottles);
   createBarLamps(scene);
   createBackbar(scene, bottles);

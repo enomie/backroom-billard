@@ -80,3 +80,18 @@ export const LEG_RADIUS_BOTTOM = 0.055;
 /** Apron boards around the table (hide the pocket cups): thickness and height; top edge = bottom of the wooden frame. */
 export const SKIRT_THICKNESS = 0.02;
 export const SKIRT_HEIGHT = 0.4;
+
+/**
+ * Coin box (only looks, no function yet): a small metal box on the apron of the long side facing the radio, in the middle
+ * (z = 0, below the side pocket). Size, how far its top is below the frame, and the red push button on its face.
+ */
+export const COIN_BOX_WIDTH = 0.24; // along the table (z)
+export const COIN_BOX_HEIGHT = 0.15;
+export const COIN_BOX_DEPTH = 0.08; // out from the apron
+export const COIN_BOX_TOP_GAP = 0.04; // below the bottom of the wooden frame
+export const COIN_BOX_SLOT_WIDTH = 0.05;
+export const COIN_BOX_SLOT_HEIGHT = 0.006;
+export const COIN_BOX_BUTTON_RADIUS = 0.018;
+export const COIN_BOX_COLOR_METAL = 0x9a948a;
+export const COIN_BOX_COLOR_BUTTON = 0xd01a12;
+export const COIN_BOX_BUTTON_GLOW = 0.6; // emissive intensity of the button
