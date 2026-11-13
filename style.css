@@ -1961,7 +1961,7 @@ html {
   user-select: all;
 }
 
-/* The multiplayer button while the room is being set up: a spinner next to the word, no other click */
+/* A button while something loads (the game, the room, the account): a spinner next to the word, no other click */
 .welcome__spinner {
   display: none;
   width: 0.9em;

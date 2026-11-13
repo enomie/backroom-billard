@@ -54,7 +54,7 @@ async function boot() {
  */
 async function enter() {
   const game = boot();
-  await waitForConfirmation();
+  await waitForConfirmation(game); // a spinner on the button while the game is still loading
   // the choice (single or multi) is applied to the game when it is ready; multiplayer waits for the room
   const welcome = showWelcome({
     login: async (spec) => (await game).loginMulti(spec), // multiplayer: log in (the game has to be loaded for the connection)

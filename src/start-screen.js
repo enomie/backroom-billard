@@ -15,15 +15,17 @@ export function introDone() {
   open = false;
 }
 
-/** Resolves when the player has confirmed his age. */
-export function waitForConfirmation() {
+/** Resolves when the player has confirmed his age and `ready` (the loading game) has settled; a spinner until then. */
+export function waitForConfirmation(ready) {
   const button = document.getElementById("start-confirm");
   return new Promise((resolve) => {
     button.addEventListener(
       "click",
-      () => {
+      async () => {
         unlockAudio(); // the click allows sound and starts the radio
-        button.disabled = true; // the game may still be loading: wait quietly
+        button.disabled = true;
+        button.classList.add("is-busy"); // the game may still be loading
+        await ready;
         resolve();
       },
       { once: true }
