@@ -132,6 +132,9 @@ import {
   BALL_FRICTION,
   ROLLING_RESISTANCE,
   SIDE_SPIN_DECEL,
+  SHOT_SPEED_MIN,
+  SHOT_SPEED_MAX,
+  SHOT_SPEED_CURVE,
   CUE_RESPAWN_DELAY,
 } from "./physics-constants.js";
 
@@ -695,7 +698,7 @@ const _strokeEuler = new THREE.Euler(0, 0, 0, "YXZ");
 function startCueStroke() {
   const power = selectedPower;
   const f = (power * 100 - POWER_MIN) / (POWER_MAX - POWER_MIN); // 0 = weakest, 1 = strongest
-  const ballSpeed = 0.8 + power * 3.4; // gently balanced shot strength (m/s)
+  const ballSpeed = SHOT_SPEED_MIN + power ** SHOT_SPEED_CURVE * (SHOT_SPEED_MAX - SHOT_SPEED_MIN);
   const pitch = aimCuePitch();
   // the horizontal part of the cue speed must give the ball the intended speed
   const vCue = ballSpeed / ((1 + CUE_STRIKE_RESTITUTION) * Math.cos(pitch));

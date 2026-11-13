@@ -71,3 +71,12 @@ export const GROUP_CUE = 0x00020001;
 
 /** The white ball (pocketed or shot off the table) is put back after this many seconds at the earliest, and only when all other balls lie still. */
 export const CUE_RESPAWN_DELAY = 0.6;
+
+/**
+ * Speed of the white ball after the hit (m/s) for the chosen power p (0..1):
+ * SHOT_SPEED_MIN + p^SHOT_SPEED_CURVE × (SHOT_SPEED_MAX − SHOT_SPEED_MIN). The curve keeps soft shots
+ * finely adjustable; only the top of the range reaches break speed.
+ */
+export const SHOT_SPEED_MIN = 0.8;
+export const SHOT_SPEED_MAX = 8;
+export const SHOT_SPEED_CURVE = 2;
